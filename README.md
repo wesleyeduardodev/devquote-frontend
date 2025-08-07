@@ -42,15 +42,65 @@ O aplicativo estará disponível em `http://localhost:3000`
 
 ```
 src/
-├── components/          # Componentes reutilizáveis
-│   ├── ui/             # Componentes de interface
-│   ├── layout/         # Componentes de layout
-│   └── forms/          # Componentes de formulário
-├── pages/              # Páginas da aplicação
-├── services/           # Serviços de API
-├── hooks/              # Custom hooks
-├── utils/              # Utilitários e validações
-└── styles/             # Estilos globais
+udget-control-frontend/
+├── public/
+│   └── vite.svg
+├── src/
+│   ├── assets/
+│   │   └── react.svg
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── Button.jsx
+│   │   │   ├── Input.jsx
+│   │   │   ├── Select.jsx
+│   │   │   ├── Card.jsx
+│   │   │   ├── Modal.jsx
+│   │   │   └── LoadingSpinner.jsx
+│   │   ├── layout/
+│   │   │   ├── Header.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   └── Layout.jsx
+│   │   └── forms/
+│   │       ├── RequesterForm.jsx
+│   │       ├── TaskForm.jsx
+│   │       ├── SubTaskForm.jsx
+│   │       └── FormField.jsx
+│   ├── pages/
+│   │   ├── requesters/
+│   │   │   ├── RequesterList.jsx
+│   │   │   ├── RequesterCreate.jsx
+│   │   │   └── RequesterEdit.jsx
+│   │   ├── tasks/
+│   │   │   ├── TaskList.jsx
+│   │   │   ├── TaskCreate.jsx
+│   │   │   └── TaskEdit.jsx
+│   │   ├── Dashboard.jsx
+│   │   └── NotFound.jsx
+│   ├── services/
+│   │   ├── api.js
+│   │   ├── requesterService.js
+│   │   └── taskService.js
+│   ├── hooks/
+│   │   ├── useRequesters.js
+│   │   ├── useTasks.js
+│   │   └── useApi.js
+│   ├── utils/
+│   │   ├── validationSchemas.js
+│   │   ├── constants.js
+│   │   └── formatters.js
+│   ├── styles/
+│   │   └── globals.css
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+├── .eslintrc.cjs
+├── .gitignore
+├── index.html
+├── package.json
+├── postcss.config.js
+├── README.md
+├── tailwind.config.js
+└── vite.config.js
 ```
 
 ## 🎯 Funcionalidades

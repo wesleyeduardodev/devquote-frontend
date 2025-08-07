@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { DollarSign, Users } from 'lucide-react';
+import { DollarSign, Users, CheckSquare } from 'lucide-react';
 
 const Header = () => {
   const location = useLocation();
@@ -7,6 +7,7 @@ const Header = () => {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: DollarSign },
     { name: 'Solicitantes', href: '/requesters', icon: Users },
+    { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
   ];
 
   const isActive = (href) => {

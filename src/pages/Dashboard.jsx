@@ -1,32 +1,61 @@
 import { Link } from 'react-router-dom';
-import { Users, Plus, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, Plus, TrendingUp, DollarSign, CheckSquare } from 'lucide-react';
 import { useRequesters } from '../hooks/useRequesters';
+import { useTasks } from '../hooks/useTasks';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Dashboard = () => {
-  const { requesters, loading } = useRequesters();
+  const { requesters, loading: requestersLoading } = useRequesters();
+  const { tasks, loading: tasksLoading } = useTasks();
+
+  // Calcular estatísticas das tarefas
+  const calculateTaskStats = () => {
+    if (!tasks.length) return { total: 0, totalValue: 0, completedTasks: 0 };
+    
+    const totalValue = tasks.reduce((sum, task) => {
+      const taskTotal = task.subTasks?.reduce((subSum, subTask) => subSum + (subTask.amount || 0), 0) || 0;
+      return sum + taskTotal;
+    }, 0);
+    
+    const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
+    
+    return {
+      total: tasks.length,
+      totalValue,
+      completedTasks
+    };
+  };
+
+  const taskStats = calculateTaskStats();
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
 
   const stats = [
     {
       title: 'Total de Solicitantes',
-      value: loading ? '-' : requesters.length,
+      value: requestersLoading ? '-' : requesters.length,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Orçamentos',
-      value: '0',
-      icon: DollarSign,
+      title: 'Total de Tarefas',
+      value: tasksLoading ? '-' : taskStats.total,
+      icon: CheckSquare,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Crescimento',
-      value: '0%',
-      icon: TrendingUp,
+      title: 'Valor Total',
+      value: tasksLoading ? '-' : formatCurrency(taskStats.totalValue),
+      icon: DollarSign,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
     },
@@ -75,7 +104,7 @@ const Dashboard = () => {
         >
           <div className="space-y-4">
             <p className="text-gray-600">
-              {loading ? (
+              {requestersLoading ? (
                 <LoadingSpinner size="sm" />
               ) : (
                 `Você tem ${requesters.length} solicitante${requesters.length !== 1 ? 's' : ''} cadastrado${requesters.length !== 1 ? 's' : ''}`
@@ -98,25 +127,57 @@ const Dashboard = () => {
         </Card>
 
         <Card 
-          title="Orçamentos"
-          subtitle="Em breve - funcionalidade em desenvolvimento"
+          title="Tarefas"
+          subtitle="Gerencie tarefas e subtarefas"
         >
           <div className="space-y-4">
-            <p className="text-gray-600">
-              A funcionalidade de orçamentos será implementada em breve.
-            </p>
-            <Button disabled variant="outline">
-              Em Desenvolvimento
-            </Button>
+            <div className="text-gray-600">
+              {tasksLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <div className="space-y-1">
+                  <p>{taskStats.total} tarefa{taskStats.total !== 1 ? 's' : ''} cadastrada{taskStats.total !== 1 ? 's' : ''}</p>
+                  <p>{taskStats.completedTasks} concluída{taskStats.completedTasks !== 1 ? 's' : ''}</p>
+                  <p className="font-semibold text-primary-600">
+                    Total: {formatCurrency(taskStats.totalValue)}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex space-x-3">
+              <Link to="/tasks">
+                <Button variant="outline">
+                  Ver Todas
+                </Button>
+              </Link>
+              <Link to="/tasks/create">
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Tarefa
+                </Button>
+              </Link>
+            </div>
           </div>
         </Card>
       </div>
 
       {/* Recent Activity */}
-      <Card title="Atividade Recente">
-        <div className="text-center py-8 text-gray-500">
-          <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p>Nenhuma atividade recente</p>
+      <Card title="Resumo do Sistema">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div className="space-y-2">
+            <div className="text-2xl font-bold text-blue-600">{requesters.length}</div>
+            <div className="text-sm text-gray-600">Solicitantes Ativos</div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-2xl font-bold text-green-600">{taskStats.total}</div>
+            <div className="text-sm text-gray-600">Tarefas Cadastradas</div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-2xl font-bold text-purple-600">
+              {taskStats.total > 0 ? Math.round((taskStats.completedTasks / taskStats.total) * 100) : 0}%
+            </div>
+            <div className="text-sm text-gray-600">Taxa de Conclusão</div>
+          </div>
         </div>
       </Card>
     </div>

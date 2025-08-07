@@ -5,6 +5,9 @@ import Dashboard from './pages/Dashboard';
 import RequesterList from './pages/requesters/RequesterList';
 import RequesterCreate from './pages/requesters/RequesterCreate';
 import RequesterEdit from './pages/requesters/RequesterEdit';
+import TaskList from './pages/tasks/TaskList';
+import TaskCreate from './pages/tasks/TaskCreate';
+import TaskEdit from './pages/tasks/TaskEdit';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -17,6 +20,9 @@ function App() {
             <Route path="requesters" element={<RequesterList />} />
             <Route path="requesters/create" element={<RequesterCreate />} />
             <Route path="requesters/:id/edit" element={<RequesterEdit />} />
+            <Route path="tasks" element={<TaskList />} />
+            <Route path="tasks/create" element={<TaskCreate />} />
+            <Route path="tasks/:id/edit" element={<TaskEdit />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

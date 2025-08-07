@@ -24,3 +24,67 @@ export const requesterSchema = yup.object({
     .nullable()
     .transform((value, originalValue) => originalValue === '' ? null : value),
 });
+
+export const subTaskSchema = yup.object({
+  title: yup
+    .string()
+    .required('Título é obrigatório')
+    .max(200, 'Título deve ter no máximo 200 caracteres')
+    .trim(),
+    
+  description: yup
+    .string()
+    .max(200, 'Descrição deve ter no máximo 200 caracteres')
+    .nullable()
+    .transform((value, originalValue) => originalValue === '' ? null : value),
+    
+  amount: yup
+    .number()
+    .required('Valor é obrigatório')
+    .min(0.01, 'Valor deve ser maior que zero')
+    .max(999999.99, 'Valor deve ser menor que 1.000.000')
+    .typeError('Valor deve ser um número válido'),
+    
+  status: yup
+    .string()
+    .required('Status é obrigatório')
+    .max(30, 'Status deve ter no máximo 30 caracteres'),
+});
+
+export const taskWithSubTasksSchema = yup.object({
+  requesterId: yup
+    .number()
+    .required('Solicitante é obrigatório')
+    .typeError('Selecione um solicitante válido'),
+    
+  title: yup
+    .string()
+    .required('Título é obrigatório')
+    .trim(),
+    
+  description: yup
+    .string()
+    .nullable()
+    .transform((value, originalValue) => originalValue === '' ? null : value),
+    
+  status: yup
+    .string()
+    .required('Status é obrigatório'),
+    
+  code: yup
+    .string()
+    .required('Código é obrigatório')
+    .trim(),
+    
+  link: yup
+    .string()
+    .url('Link deve ser uma URL válida')
+    .nullable()
+    .transform((value, originalValue) => originalValue === '' ? null : value),
+    
+  subTasks: yup
+    .array()
+    .of(subTaskSchema)
+    .min(1, 'Pelo menos uma subtarefa é obrigatória')
+    .required('Subtarefas são obrigatórias'),
+});
