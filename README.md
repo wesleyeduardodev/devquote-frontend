@@ -42,7 +42,7 @@ O aplicativo estará disponível em `http://localhost:3000`
 
 ```
 src/
-udget-control-frontend/
+budget-control-frontend/
 ├── public/
 │   └── vite.svg
 ├── src/
