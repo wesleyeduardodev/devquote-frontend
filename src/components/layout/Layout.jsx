@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const Layout = ({ children }) => {
-  console.log('Layout sendo renderizado!');
   
   const navigate = useNavigate();
   const { user, logout } = useAuth();

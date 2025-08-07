@@ -55,8 +55,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-    console.log('Iniciando login com:', data);
-
+ 
     try {
       // Simular delay de API
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -64,9 +63,7 @@ const Login = () => {
       // Verificar credenciais
       if (data.username === VALID_CREDENTIALS.username && 
           data.password === VALID_CREDENTIALS.password) {
-        
-        console.log('Credenciais válidas');
-        
+                
         // Verificar se authHook existe
         if (authHook && authHook.login) {
           const userData = {
@@ -74,18 +71,15 @@ const Login = () => {
             loginTime: new Date().toISOString()
           };
           
-          console.log('Chamando login com:', userData);
           authHook.login(userData);
           toast.success('Login realizado com sucesso!');
           
           // Redirecionar
-          setTimeout(() => {
-            console.log('Redirecionando para dashboard');
+          setTimeout(() => {    
             navigate('/dashboard');
           }, 500);
         } else {
           // Fallback: salvar diretamente no localStorage
-          console.log('Usando fallback localStorage');
           localStorage.setItem('isAuthenticated', 'true');
           localStorage.setItem('user', JSON.stringify({
             username: data.username,
@@ -96,7 +90,6 @@ const Login = () => {
         }
         
       } else {
-        console.log('Credenciais inválidas');
         setError('username', { 
           type: 'manual', 
           message: 'Usuário ou senha inválidos' 
@@ -188,26 +181,6 @@ const Login = () => {
                 </button>
               </div>
             </div>
-
-            {/* Credenciais de teste */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800 font-medium mb-1">
-                Credenciais para teste:
-              </p>
-              <p className="text-xs text-blue-700">
-                <strong>Usuário:</strong> admin<br />
-                <strong>Senha:</strong> 1234
-              </p>
-            </div>
-
-            {/* Debug info */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-600">
-                  <strong>Debug:</strong> AuthHook = {authHook ? '✅ OK' : '❌ Erro'}
-                </p>
-              </div>
-            )}
 
             {/* Botão de Login */}
             <Button

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const Header = ({ onToggleSidebar, isSidebarOpen }) => {
-  console.log('Header sendo renderizado!');
-  
+   
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 

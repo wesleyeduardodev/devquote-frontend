@@ -58,15 +58,15 @@ const AppRoutes = () => {
               {/* Dashboard */}
               <Route path="/dashboard" element={<Dashboard />} />
               
-              {/* Solicitantes */}
+              {/* Solicitantes - ROTAS CORRIGIDAS */}
               <Route path="/requesters" element={<RequesterList />} />
               <Route path="/requesters/create" element={<RequesterCreate />} />
-              <Route path="/requesters/edit/:id" element={<RequesterEdit />} />
+              <Route path="/requesters/:id/edit" element={<RequesterEdit />} />
               
               {/* Tarefas */}
               <Route path="/tasks" element={<TaskList />} />
               <Route path="/tasks/create" element={<TaskCreate />} />
-              <Route path="/tasks/edit/:id" element={<TaskEdit />} />
+              <Route path="/tasks/:id/edit" element={<TaskEdit />} />
               
               {/* Redirecionamento da raiz */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
