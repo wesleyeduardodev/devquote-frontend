@@ -12,36 +12,22 @@ const Dashboard = () => {
   const { tasks, loading: tasksLoading } = useTasks();
   const { quotes, loading: quotesLoading } = useQuotes();
 
-  // Estatísticas de tarefas
   const calculateTaskStats = () => {
     if (!tasks.length) return { total: 0, totalValue: 0, completedTasks: 0 };
-
     const totalValue = tasks.reduce((sum, task) => {
       const taskTotal = task.subTasks?.reduce((subSum, subTask) => subSum + (subTask.amount || 0), 0) || 0;
       return sum + taskTotal;
     }, 0);
-
     const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
-
-    return {
-      total: tasks.length,
-      totalValue,
-      completedTasks
-    };
+    return { total: tasks.length, totalValue, completedTasks };
   };
 
   const taskStats = calculateTaskStats();
 
-  // Estatísticas de orçamentos
   const calculateQuoteStats = () => {
     if (!quotes.length) return { total: 0, totalValue: 0 };
-
     const totalValue = quotes.reduce((sum, quote) => sum + (quote.totalAmount || 0), 0);
-
-    return {
-      total: quotes.length,
-      totalValue
-    };
+    return { total: quotes.length, totalValue };
   };
 
   const quoteStats = calculateQuoteStats();
@@ -97,8 +83,6 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">Bem-vindo ao sistema de controle de orçamento</p>
       </div>
-
-      {/* Cards Estatísticos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -117,8 +101,6 @@ const Dashboard = () => {
           );
         })}
       </div>
-
-      {/* Ações rápidas: Solicitantes e Tarefas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card title="Solicitantes" subtitle="Gerencie os solicitantes do sistema">
           <div className="space-y-4">
@@ -131,79 +113,49 @@ const Dashboard = () => {
                 Você tem {requesters.length} solicitante{requesters.length !== 1 ? 's' : ''} cadastrado{requesters.length !== 1 ? 's' : ''}
               </p>
             )}
-
             <div className="flex space-x-3">
-              <Link to="/requesters">
-                <Button variant="outline">Ver Todos</Button>
-              </Link>
-              <Link to="/requesters/create">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Solicitante
-                </Button>
-              </Link>
+              <Link to="/requesters"><Button variant="outline">Ver Todos</Button></Link>
+              <Link to="/requesters/create"><Button><Plus className="w-4 h-4 mr-2" />Novo Solicitante</Button></Link>
             </div>
           </div>
         </Card>
-
         <Card title="Tarefas" subtitle="Gerencie tarefas e subtarefas">
           <div className="space-y-4">
             <div className="text-gray-600">
-              {tasksLoading ? (
-                <LoadingSpinner size="sm" />
-              ) : (
+              {tasksLoading ? <LoadingSpinner size="sm" /> : (
                 <div className="space-y-1">
                   <p>{taskStats.total} tarefa{taskStats.total !== 1 ? 's' : ''} cadastrada{taskStats.total !== 1 ? 's' : ''}</p>
                   <p>{taskStats.completedTasks} concluída{taskStats.completedTasks !== 1 ? 's' : ''}</p>
-                  <p className="font-semibold text-primary-600">
-                    Total: {formatCurrency(taskStats.totalValue)}
-                  </p>
+                  <p className="font-semibold text-primary-600">Total: {formatCurrency(taskStats.totalValue)}</p>
                 </div>
               )}
             </div>
             <div className="flex space-x-3">
-              <Link to="/tasks">
-                <Button variant="outline">Ver Todas</Button>
-              </Link>
-              <Link to="/tasks/create">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Tarefa
-                </Button>
-              </Link>
+              <Link to="/tasks"><Button variant="outline">Ver Todas</Button></Link>
+              <Link to="/tasks/create"><Button><Plus className="w-4 h-4 mr-2" />Nova Tarefa</Button></Link>
             </div>
           </div>
         </Card>
-          <Card title="Orçamentos" subtitle="Gerencie os orçamentos do sistema">
-              <div className="space-y-4">
-                <div className="text-gray-600">
-                  {quotesLoading ? (
-                    <LoadingSpinner size="sm" />
-                  ) : (
-                    <div className="space-y-1">
-                      <p>{quoteStats.total} orçamento{quoteStats.total !== 1 ? 's' : ''} cadastrados</p>
-                      <p className="font-semibold text-primary-600">
-                        Total: {formatCurrency(quoteStats.totalValue)}
-                      </p>
-                    </div>
-                  )}
+        <Card title="Orçamentos" subtitle="Gerencie os orçamentos do sistema">
+          <div className="space-y-4">
+            <div className="text-gray-600">
+              {quotesLoading ? <LoadingSpinner size="sm" /> : (
+                <div className="space-y-1">
+                  <p>{quoteStats.total} orçamento{quoteStats.total !== 1 ? 's' : ''} cadastrados</p>
+                  <p className="font-semibold text-primary-600">Total: {formatCurrency(quoteStats.totalValue)}</p>
                 </div>
-                <div className="flex space-x-3">
-                  <Link to="/quotes">
-                    <Button variant="outline">Ver Todos</Button>
-                  </Link>
-                  <Link to="/quotes/create">
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Novo Orçamento
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </Card> 
-      </div>
+              )}
+            </div>
+            <div className="flex space-x-3">
+              <Link to="/quotes"><Button variant="outline">Ver Todos</Button></Link>
+              <Link to="/quotes/create"><Button><Plus className="w-4 h-4 mr-2" />Novo Orçamento</Button></Link>
+            </div>
+          </div>
+        </Card>
 
-      {/* Resumo do Sistema */}
+
+
+      </div>
       <Card title="Resumo do Sistema">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
           <div className="space-y-2">
@@ -224,6 +176,7 @@ const Dashboard = () => {
             <div className="text-2xl font-bold text-yellow-600">{quoteStats.total}</div>
             <div className="text-sm text-gray-600">Orçamentos Cadastrados</div>
           </div>
+
         </div>
       </Card>
     </div>

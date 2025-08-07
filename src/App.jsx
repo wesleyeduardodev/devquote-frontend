@@ -15,12 +15,13 @@ import TaskEdit from './pages/tasks/TaskEdit';
 import QuoteList from './pages/quotes/QuoteList';
 import QuoteCreate from './pages/quotes/QuoteCreate';
 import QuoteEdit from './pages/quotes/QuoteEdit';
+import ProjectList from './pages/projects/ProjectList';
+import ProjectCreate from './pages/projects/ProjectCreate';
+import ProjectEdit from './pages/projects/ProjectEdit';
 import NotFound from './pages/NotFound';
 
-// Componente para redirecionar usuários logados
 const RedirectIfAuthenticated = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -31,19 +32,13 @@ const RedirectIfAuthenticated = ({ children }) => {
       </div>
     );
   }
-  
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return children;
 };
 
-// Componente principal das rotas
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Rota de Login */}
       <Route 
         path="/login" 
         element={
@@ -52,34 +47,24 @@ const AppRoutes = () => {
           </RedirectIfAuthenticated>
         } 
       />
-
-      {/* Rotas Protegidas */}
       <Route path="/*" element={
         <ProtectedRoute>
           <Layout>
             <Routes>
-              {/* Dashboard */}
               <Route path="/dashboard" element={<Dashboard />} />
-              
-              {/* Solicitantes */}
               <Route path="/requesters" element={<RequesterList />} />
               <Route path="/requesters/create" element={<RequesterCreate />} />
               <Route path="/requesters/:id/edit" element={<RequesterEdit />} />
-              
-              {/* Tarefas */}
               <Route path="/tasks" element={<TaskList />} />
               <Route path="/tasks/create" element={<TaskCreate />} />
               <Route path="/tasks/:id/edit" element={<TaskEdit />} />
-              
-              {/* Orçamentos */}
               <Route path="/quotes" element={<QuoteList />} />
               <Route path="/quotes/create" element={<QuoteCreate />} />
               <Route path="/quotes/:id/edit" element={<QuoteEdit />} />
-              
-              {/* Redirecionamento da raiz */}
+              <Route path="/projects" element={<ProjectList />} />
+              <Route path="/projects/create" element={<ProjectCreate />} />
+              <Route path="/projects/:id/edit" element={<ProjectEdit />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              
-              {/* Página 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
@@ -89,15 +74,12 @@ const AppRoutes = () => {
   );
 };
 
-// Componente principal da aplicação
 const App = () => {
   return (
     <Router>
       <AuthProvider>
         <div className="App">
           <AppRoutes />
-          
-          {/* Toaster para notificações */}
           <Toaster
             position="top-right"
             reverseOrder={false}
@@ -105,24 +87,9 @@ const App = () => {
             containerStyle={{}}
             toastOptions={{
               duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                theme: {
-                  primary: '#4ade80',
-                  secondary: 'black',
-                },
-              },
-              error: {
-                duration: 4000,
-                theme: {
-                  primary: '#ef4444',
-                  secondary: 'black',
-                },
-              },
+              style: { background: '#363636', color: '#fff' },
+              success: { duration: 3000, theme: { primary: '#4ade80', secondary: 'black' } },
+              error: { duration: 4000, theme: { primary: '#ef4444', secondary: 'black' } },
             }}
           />
         </div>
