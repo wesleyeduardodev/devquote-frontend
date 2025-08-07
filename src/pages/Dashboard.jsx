@@ -103,13 +103,18 @@ const Dashboard = () => {
           subtitle="Gerencie os solicitantes do sistema"
         >
           <div className="space-y-4">
-            <p className="text-gray-600">
-              {requestersLoading ? (
-                <LoadingSpinner size="sm" />
+           
+                      {requestersLoading ? (
+                <div className="text-gray-600">
+                  <LoadingSpinner size="sm" />
+                </div>
               ) : (
-                `Você tem ${requesters.length} solicitante${requesters.length !== 1 ? 's' : ''} cadastrado${requesters.length !== 1 ? 's' : ''}`
+                <p className="text-gray-600">
+                  Você tem {requesters.length} solicitante{requesters.length !== 1 ? 's' : ''} cadastrado{requesters.length !== 1 ? 's' : ''}
+                </p>
               )}
-            </p>
+
+
             <div className="flex space-x-3">
               <Link to="/requesters">
                 <Button variant="outline">
