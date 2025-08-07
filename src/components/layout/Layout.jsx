@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const Layout = ({ children }) => {
-  
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -51,21 +50,27 @@ const Layout = ({ children }) => {
           <div className="flex space-x-8 h-12 items-center">
             <button 
               onClick={() => navigate('/dashboard')}
-              className="text-gray-700 hover:text-blue-600 font-medium"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Dashboard
             </button>
             <button 
               onClick={() => navigate('/requesters')}
-              className="text-gray-700 hover:text-blue-600 font-medium"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Solicitantes
             </button>
             <button 
               onClick={() => navigate('/tasks')}
-              className="text-gray-700 hover:text-blue-600 font-medium"
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
             >
               Tarefas
+            </button>
+            <button 
+              onClick={() => navigate('/quotes')}
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+            >
+              Orçamentos
             </button>
           </div>
         </div>

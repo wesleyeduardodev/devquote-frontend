@@ -12,6 +12,9 @@ import RequesterEdit from './pages/requesters/RequesterEdit';
 import TaskList from './pages/tasks/TaskList';
 import TaskCreate from './pages/tasks/TaskCreate';
 import TaskEdit from './pages/tasks/TaskEdit';
+import QuoteList from './pages/quotes/QuoteList';
+import QuoteCreate from './pages/quotes/QuoteCreate';
+import QuoteEdit from './pages/quotes/QuoteEdit';
 import NotFound from './pages/NotFound';
 
 // Componente para redirecionar usuários logados
@@ -58,7 +61,7 @@ const AppRoutes = () => {
               {/* Dashboard */}
               <Route path="/dashboard" element={<Dashboard />} />
               
-              {/* Solicitantes - ROTAS CORRIGIDAS */}
+              {/* Solicitantes */}
               <Route path="/requesters" element={<RequesterList />} />
               <Route path="/requesters/create" element={<RequesterCreate />} />
               <Route path="/requesters/:id/edit" element={<RequesterEdit />} />
@@ -67,6 +70,11 @@ const AppRoutes = () => {
               <Route path="/tasks" element={<TaskList />} />
               <Route path="/tasks/create" element={<TaskCreate />} />
               <Route path="/tasks/:id/edit" element={<TaskEdit />} />
+              
+              {/* Orçamentos */}
+              <Route path="/quotes" element={<QuoteList />} />
+              <Route path="/quotes/create" element={<QuoteCreate />} />
+              <Route path="/quotes/:id/edit" element={<QuoteEdit />} />
               
               {/* Redirecionamento da raiz */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
