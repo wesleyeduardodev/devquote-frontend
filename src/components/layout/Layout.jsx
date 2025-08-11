@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useLocation} from 'react-router-dom';
 import {useAuth} from '../../hooks/useAuth';
 
 const Layout = ({children}) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {user, logout} = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -15,6 +16,21 @@ const Layout = ({children}) => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  // Helper para verificar se a rota está ativa
+  const isActiveRoute = (path) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
+  const navigationItems = [
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/requesters', label: 'Solicitantes' },
+    { path: '/tasks', label: 'Tarefas' },
+    { path: '/quotes', label: 'Orçamentos' },
+    { path: '/projects', label: 'Projetos' },
+    { path: '/deliveries', label: 'Entregas' },
+    { path: '/billing', label: 'Faturamento' }
+  ];
 
   return (
       <div className="min-h-screen bg-gray-50">
@@ -47,43 +63,20 @@ const Layout = ({children}) => {
         {/* Navigation Simples */}
         <nav className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex space-x-8 h-12 items-center">
-              <button
-                  onClick={() => navigate('/dashboard')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Dashboard
-              </button>
-              <button
-                  onClick={() => navigate('/requesters')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Solicitantes
-              </button>
-              <button
-                  onClick={() => navigate('/tasks')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Tarefas
-              </button>
-              <button
-                  onClick={() => navigate('/quotes')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Orçamentos
-              </button>
-              <button
-                  onClick={() => navigate('/projects')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Projetos
-              </button>
-              <button
-                  onClick={() => navigate('/deliveries')}
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Entregas
-              </button>
+            <div className="flex space-x-8 h-12 items-center overflow-x-auto">
+              {navigationItems.map((item) => (
+                  <button
+                      key={item.path}
+                      onClick={() => navigate(item.path)}
+                      className={`whitespace-nowrap font-medium transition-colors border-b-2 pb-2 ${
+                          isActiveRoute(item.path)
+                              ? 'text-blue-600 border-blue-600'
+                              : 'text-gray-700 hover:text-blue-600 border-transparent hover:border-blue-300'
+                      }`}
+                  >
+                    {item.label}
+                  </button>
+              ))}
             </div>
           </div>
         </nav>

@@ -21,6 +21,7 @@ import ProjectEdit from './pages/projects/ProjectEdit';
 import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
+import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import NotFound from './pages/NotFound';
 
 const RedirectIfAuthenticated = ({ children }) => {
@@ -70,6 +71,7 @@ const AppRoutes = () => {
                             <Route path="/deliveries" element={<DeliveryList />} />
                             <Route path="/deliveries/create" element={<DeliveryCreate />} />
                             <Route path="/deliveries/:id/edit" element={<DeliveryEdit />} />
+                            <Route path="/billing" element={<BillingMonthManagement />} />
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             <Route path="*" element={<NotFound />} />
                         </Routes>
