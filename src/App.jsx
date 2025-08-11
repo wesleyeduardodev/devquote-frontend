@@ -15,120 +15,128 @@ import TaskEdit from './pages/tasks/TaskEdit';
 import QuoteList from './pages/quotes/QuoteList';
 import QuoteCreate from './pages/quotes/QuoteCreate';
 import QuoteEdit from './pages/quotes/QuoteEdit';
+import DeliveryList from './pages/deliveries/DeliveryList';
+import DeliveryCreate from './pages/deliveries/DeliveryCreate';
+import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import NotFound from './pages/NotFound';
 
 // Componente para redirecionar usuários logados
 const RedirectIfAuthenticated = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return children;
+    const { isAuthenticated, isLoading } = useAuth();
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Carregando...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (isAuthenticated) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    return children;
 };
 
 // Componente principal das rotas
 const AppRoutes = () => {
-  return (
-    <Routes>
-      {/* Rota de Login */}
-      <Route 
-        path="/login" 
-        element={
-          <RedirectIfAuthenticated>
-            <Login />
-          </RedirectIfAuthenticated>
-        } 
-      />
+    return (
+        <Routes>
+            {/* Rota de Login */}
+            <Route
+                path="/login"
+                element={
+                    <RedirectIfAuthenticated>
+                        <Login />
+                    </RedirectIfAuthenticated>
+                }
+            />
 
-      {/* Rotas Protegidas */}
-      <Route path="/*" element={
-        <ProtectedRoute>
-          <Layout>
-            <Routes>
-              {/* Dashboard */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              
-              {/* Solicitantes */}
-              <Route path="/requesters" element={<RequesterList />} />
-              <Route path="/requesters/create" element={<RequesterCreate />} />
-              <Route path="/requesters/:id/edit" element={<RequesterEdit />} />
-              
-              {/* Tarefas */}
-              <Route path="/tasks" element={<TaskList />} />
-              <Route path="/tasks/create" element={<TaskCreate />} />
-              <Route path="/tasks/:id/edit" element={<TaskEdit />} />
-              
-              {/* Orçamentos */}
-              <Route path="/quotes" element={<QuoteList />} />
-              <Route path="/quotes/create" element={<QuoteCreate />} />
-              <Route path="/quotes/:id/edit" element={<QuoteEdit />} />
-              
-              {/* Redirecionamento da raiz */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              
-              {/* Página 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </ProtectedRoute>
-      } />
-    </Routes>
-  );
+            {/* Rotas Protegidas */}
+            <Route path="/*" element={
+                <ProtectedRoute>
+                    <Layout>
+                        <Routes>
+                            {/* Dashboard */}
+                            <Route path="/dashboard" element={<Dashboard />} />
+
+                            {/* Solicitantes */}
+                            <Route path="/requesters" element={<RequesterList />} />
+                            <Route path="/requesters/create" element={<RequesterCreate />} />
+                            <Route path="/requesters/:id/edit" element={<RequesterEdit />} />
+
+                            {/* Tarefas */}
+                            <Route path="/tasks" element={<TaskList />} />
+                            <Route path="/tasks/create" element={<TaskCreate />} />
+                            <Route path="/tasks/:id/edit" element={<TaskEdit />} />
+
+                            {/* Orçamentos */}
+                            <Route path="/quotes" element={<QuoteList />} />
+                            <Route path="/quotes/create" element={<QuoteCreate />} />
+                            <Route path="/quotes/:id/edit" element={<QuoteEdit />} />
+
+                            {/* Entregas */}
+                            <Route path="/deliveries" element={<DeliveryList />} />
+                            <Route path="/deliveries/create" element={<DeliveryCreate />} />
+                            <Route path="/deliveries/:id/edit" element={<DeliveryEdit />} />
+
+                            {/* Redirecionamento da raiz */}
+                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+                            {/* Página 404 */}
+                            <Route path="*" element={<NotFound />} />
+                        </Routes>
+                    </Layout>
+                </ProtectedRoute>
+            } />
+        </Routes>
+    );
 };
 
 // Componente principal da aplicação
 const App = () => {
-  return (
-    <Router>
-      <AuthProvider>
-        <div className="App">
-          <AppRoutes />
-          
-          {/* Toaster para notificações */}
-          <Toaster
-            position="top-right"
-            reverseOrder={false}
-            gutter={8}
-            containerStyle={{}}
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                theme: {
-                  primary: '#4ade80',
-                  secondary: 'black',
-                },
-              },
-              error: {
-                duration: 4000,
-                theme: {
-                  primary: '#ef4444',
-                  secondary: 'black',
-                },
-              },
-            }}
-          />
-        </div>
-      </AuthProvider>
-    </Router>
-  );
+    return (
+        <Router>
+            <AuthProvider>
+                <div className="App">
+                    <AppRoutes />
+
+                    {/* Toaster para notificações */}
+                    <Toaster
+                        position="top-right"
+                        reverseOrder={false}
+                        gutter={8}
+                        containerStyle={{}}
+                        toastOptions={{
+                            duration: 4000,
+                            style: {
+                                background: '#363636',
+                                color: '#fff',
+                            },
+                            success: {
+                                duration: 3000,
+                                theme: {
+                                    primary: '#4ade80',
+                                    secondary: 'black',
+                                },
+                            },
+                            error: {
+                                duration: 4000,
+                                theme: {
+                                    primary: '#ef4444',
+                                    secondary: 'black',
+                                },
+                            },
+                        }}
+                    />
+                </div>
+            </AuthProvider>
+        </Router>
+    );
 };
 
 export default App;
