@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api.js';
 
 export const taskService = {
   // Listar todas as tarefas

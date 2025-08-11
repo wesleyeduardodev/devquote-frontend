@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api.js';
 
 export const requesterService = {
   // Listar todos os solicitantes
