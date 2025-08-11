@@ -1,80 +1,63 @@
-const API_BASE_URL = '/api';
+import api from './api';
 
 const billingMonthService = {
-    // QuoteBillingMonth endpoints
-    findAll: () => {
-        return fetch(`${API_BASE_URL}/quote-billing-months`);
-    },
+  // ------- QuoteBillingMonth -------
+  findAll: async () => {
+    const res = await api.get('/quote-billing-months');
+    return res.data;
+  },
 
-    findById: (id) => {
-        return fetch(`${API_BASE_URL}/quote-billing-months/${id}`);
-    },
+  findById: async (id) => {
+    const res = await api.get(`/quote-billing-months/${id}`);
+    return res.data;
+  },
 
-    create: (data) => {
-        return fetch(`${API_BASE_URL}/quote-billing-months`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-    },
+  create: async (data) => {
+    const res = await api.post('/quote-billing-months', data);
+    return res.data;
+  },
 
-    update: (id, data) => {
-        return fetch(`${API_BASE_URL}/quote-billing-months/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-    },
+  update: async (id, data) => {
+    const res = await api.put(`/quote-billing-months/${id}`, data);
+    return res.data;
+  },
 
-    delete: (id) => {
-        return fetch(`${API_BASE_URL}/quote-billing-months/${id}`, {
-            method: 'DELETE'
-        });
-    },
+  delete: async (id) => {
+    await api.delete(`/quote-billing-months/${id}`);
+    return true;
+  },
 
-    // QuoteBillingMonthQuote endpoints (para vincular orçamentos)
-    findAllQuoteLinks: () => {
-        return fetch(`${API_BASE_URL}/quote-billing-month-quotes`);
-    },
+  // ------- QuoteBillingMonthQuote (vínculos) -------
+  findAllQuoteLinks: async () => {
+    const res = await api.get('/quote-billing-month-quotes');
+    return res.data;
+  },
 
-    findQuoteLinkById: (id) => {
-        return fetch(`${API_BASE_URL}/quote-billing-month-quotes/${id}`);
-    },
+  findQuoteLinkById: async (id) => {
+    const res = await api.get(`/quote-billing-month-quotes/${id}`);
+    return res.data;
+  },
 
-    createQuoteLink: (data) => {
-        return fetch(`${API_BASE_URL}/quote-billing-month-quotes`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-    },
+  createQuoteLink: async (data) => {
+    const res = await api.post('/quote-billing-month-quotes', data);
+    return res.data;
+  },
 
-    updateQuoteLink: (id, data) => {
-        return fetch(`${API_BASE_URL}/quote-billing-month-quotes/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-    },
+  updateQuoteLink: async (id, data) => {
+    const res = await api.put(`/quote-billing-month-quotes/${id}`, data);
+    return res.data;
+  },
 
-    deleteQuoteLink: (id) => {
-        return fetch(`${API_BASE_URL}/quote-billing-month-quotes/${id}`, {
-            method: 'DELETE'
-        });
-    },
+  deleteQuoteLink: async (id) => {
+    await api.delete(`/quote-billing-month-quotes/${id}`);
+    return true;
+  },
 
-    // Buscar orçamentos vinculados a um período específico
-    findQuotesByBillingMonth: (billingMonthId) => {
-        return fetch(`${API_BASE_URL}/quote-billing-month-quotes?quoteBillingMonthId=${billingMonthId}`);
-    }
+  // ✅ OTIMIZADO: Usa a nova rota específica do backend
+  findQuoteLinksByBillingMonth: async (billingMonthId) => {
+    const res = await api.get(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}`);
+    return res.data;
+  }
 };
 
 export default billingMonthService;
