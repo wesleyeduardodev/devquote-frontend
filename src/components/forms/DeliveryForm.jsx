@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQuotes } from '../../hooks/useQuotes';
+import { useProjects } from '../../hooks/useProjects';
 import { deliverySchema } from '../../utils/validationSchemas';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -15,6 +16,7 @@ const DeliveryForm = ({
                           loading = false
                       }) => {
     const { quotes, loading: quotesLoading } = useQuotes();
+    const { projects, loading: projectsLoading } = useProjects();
 
     const {
         register,
@@ -35,14 +37,6 @@ const DeliveryForm = ({
     });
 
     const selectedQuoteId = watch('quoteId');
-
-    // Simular projetos - em uma implementação real, você buscaria da API
-    const projects = [
-        { id: 1, name: 'Sistema de Login' },
-        { id: 2, name: 'API de Pagamentos' },
-        { id: 3, name: 'Dashboard Analytics' },
-        { id: 4, name: 'Sistema de Notificações' },
-    ];
 
     const handleFormSubmit = async (data) => {
         try {
@@ -71,7 +65,7 @@ const DeliveryForm = ({
         { value: 'REJECTED', label: 'Rejeitado' }
     ];
 
-    if (quotesLoading) {
+    if (quotesLoading || projectsLoading) {
         return (
             <div className="flex items-center justify-center py-8">
                 <LoadingSpinner />

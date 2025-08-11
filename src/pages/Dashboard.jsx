@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Users, Plus, TrendingUp, DollarSign, CheckSquare, FileText, Truck } from 'lucide-react';
+import { Users, Plus, DollarSign, CheckSquare, FileText, FolderGit2, Truck } from 'lucide-react';
 import { useRequesters } from '../hooks/useRequesters';
 import { useTasks } from '../hooks/useTasks';
 import { useQuotes } from '../hooks/useQuotes';
+import { useProjects } from '../hooks/useProjects';
 import { useDeliveries } from '../hooks/useDeliveries';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -12,24 +13,39 @@ const Dashboard = () => {
   const { requesters, loading: requestersLoading } = useRequesters();
   const { tasks, loading: tasksLoading } = useTasks();
   const { quotes, loading: quotesLoading } = useQuotes();
+  const { projects, loading: projectsLoading } = useProjects();
   const { deliveries, loading: deliveriesLoading } = useDeliveries();
 
+  // Estatísticas de tarefas
   const calculateTaskStats = () => {
     if (!tasks.length) return { total: 0, totalValue: 0, completedTasks: 0 };
+
     const totalValue = tasks.reduce((sum, task) => {
       const taskTotal = task.subTasks?.reduce((subSum, subTask) => subSum + (subTask.amount || 0), 0) || 0;
       return sum + taskTotal;
     }, 0);
+
     const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
-    return { total: tasks.length, totalValue, completedTasks };
+
+    return {
+      total: tasks.length,
+      totalValue,
+      completedTasks
+    };
   };
 
   const taskStats = calculateTaskStats();
 
+  // Estatísticas de orçamentos
   const calculateQuoteStats = () => {
     if (!quotes.length) return { total: 0, totalValue: 0 };
+
     const totalValue = quotes.reduce((sum, quote) => sum + (quote.totalAmount || 0), 0);
-    return { total: quotes.length, totalValue };
+
+    return {
+      total: quotes.length,
+      totalValue
+    };
   };
 
   const quoteStats = calculateQuoteStats();
@@ -94,6 +110,13 @@ const Dashboard = () => {
       bgColor: 'bg-amber-100',
     },
     {
+      title: 'Total de Projetos',
+      value: projectsLoading ? '-' : projects.length,
+      icon: FolderGit2,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
+    },
+    {
       title: 'Total de Entregas',
       value: deliveriesLoading ? '-' : deliveryStats.total,
       icon: Truck,
@@ -103,131 +126,195 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Bem-vindo ao sistema de controle de orçamento</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="hover:shadow-custom-lg transition-shadow">
-              <div className="flex items-center">
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card title="Solicitantes" subtitle="Gerencie os solicitantes do sistema">
-          <div className="space-y-4">
-            {requestersLoading ? (
-              <div className="text-gray-600">
-                <LoadingSpinner size="sm" />
-              </div>
-            ) : (
-              <p className="text-gray-600">
-                Você tem {requesters.length} solicitante{requesters.length !== 1 ? 's' : ''} cadastrado{requesters.length !== 1 ? 's' : ''}
-              </p>
-            )}
-            <div className="flex space-x-3">
-              <Link to="/requesters"><Button variant="outline">Ver Todos</Button></Link>
-              <Link to="/requesters/create"><Button><Plus className="w-4 h-4 mr-2" />Novo Solicitante</Button></Link>
-            </div>
-          </div>
-        </Card>
-        <Card title="Tarefas" subtitle="Gerencie tarefas e subtarefas">
-          <div className="space-y-4">
-            <div className="text-gray-600">
-              {tasksLoading ? <LoadingSpinner size="sm" /> : (
-                <div className="space-y-1">
-                  <p>{taskStats.total} tarefa{taskStats.total !== 1 ? 's' : ''} cadastrada{taskStats.total !== 1 ? 's' : ''}</p>
-                  <p>{taskStats.completedTasks} concluída{taskStats.completedTasks !== 1 ? 's' : ''}</p>
-                  <p className="font-semibold text-primary-600">Total: {formatCurrency(taskStats.totalValue)}</p>
-                </div>
-              )}
-            </div>
-            <div className="flex space-x-3">
-              <Link to="/tasks"><Button variant="outline">Ver Todas</Button></Link>
-              <Link to="/tasks/create"><Button><Plus className="w-4 h-4 mr-2" />Nova Tarefa</Button></Link>
-            </div>
-          </div>
-        </Card>
-        <Card title="Orçamentos" subtitle="Gerencie os orçamentos do sistema">
-          <div className="space-y-4">
-            <div className="text-gray-600">
-              {quotesLoading ? <LoadingSpinner size="sm" /> : (
-                <div className="space-y-1">
-                  <p>{quoteStats.total} orçamento{quoteStats.total !== 1 ? 's' : ''} cadastrados</p>
-                  <p className="font-semibold text-primary-600">Total: {formatCurrency(quoteStats.totalValue)}</p>
-                </div>
-              )}
-            </div>
-            <div className="flex space-x-3">
-              <Link to="/quotes"><Button variant="outline">Ver Todos</Button></Link>
-              <Link to="/quotes/create"><Button><Plus className="w-4 h-4 mr-2" />Novo Orçamento</Button></Link>
-            </div>
-          </div>
-        </Card>
-
-
-
-      </div>
-      <Card title="Resumo do Sistema">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-blue-600">{requesters.length}</div>
-            <div className="text-sm text-gray-600">Solicitantes Ativos</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-green-600">{taskStats.total}</div>
-            <div className="text-sm text-gray-600">Tarefas Cadastradas</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-purple-600">
-              {taskStats.total > 0 ? Math.round((taskStats.completedTasks / taskStats.total) * 100) : 0}%
-            </div>
-            <div className="text-sm text-gray-600">Taxa de Conclusão</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-2xl font-bold text-yellow-600">{quoteStats.total}</div>
-            <div className="text-sm text-gray-600">Orçamentos Cadastrados</div>
-          </div>
-
+      <div className="p-6 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-2">Bem-vindo ao sistema de controle de orçamento</p>
         </div>
+
+        {/* Cards Estatísticos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+                <Card key={index} className="hover:shadow-custom-lg transition-shadow">
+                  <div className="flex items-center">
+                    <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`w-6 h-6 ${stat.color}`} />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                      <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                    </div>
+                  </div>
+                </Card>
+            );
+          })}
+        </div>
+
+        {/* Ações rápidas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          <Card title="Solicitantes" subtitle="Gerencie os solicitantes do sistema">
+            <div className="space-y-4">
+              {requestersLoading ? (
+                  <div className="text-gray-600">
+                    <LoadingSpinner size="sm" />
+                  </div>
+              ) : (
+                  <p className="text-gray-600">
+                    {requesters.length} solicitante{requesters.length !== 1 ? 's' : ''} cadastrado{requesters.length !== 1 ? 's' : ''}
+                  </p>
+              )}
+
+              <div className="flex space-x-3">
+                <Link to="/requesters">
+                  <Button variant="outline" size="sm">Ver Todos</Button>
+                </Link>
+                <Link to="/requesters/create">
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Novo
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Tarefas" subtitle="Gerencie tarefas e subtarefas">
+            <div className="space-y-4">
+              <div className="text-gray-600">
+                {tasksLoading ? (
+                    <LoadingSpinner size="sm" />
+                ) : (
+                    <div className="space-y-1">
+                      <p>{taskStats.total} tarefa{taskStats.total !== 1 ? 's' : ''}</p>
+                      <p className="text-xs">{taskStats.completedTasks} concluída{taskStats.completedTasks !== 1 ? 's' : ''}</p>
+                    </div>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <Link to="/tasks">
+                  <Button variant="outline" size="sm">Ver Todas</Button>
+                </Link>
+                <Link to="/tasks/create">
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Nova
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Orçamentos" subtitle="Gerencie os orçamentos do sistema">
+            <div className="space-y-4">
+              <div className="text-gray-600">
+                {quotesLoading ? (
+                    <LoadingSpinner size="sm" />
+                ) : (
+                    <div className="space-y-1">
+                      <p>{quoteStats.total} orçamento{quoteStats.total !== 1 ? 's' : ''}</p>
+                      <p className="text-xs font-semibold text-primary-600">
+                        Total: {formatCurrency(quoteStats.totalValue)}
+                      </p>
+                    </div>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <Link to="/quotes">
+                  <Button variant="outline" size="sm">Ver Todos</Button>
+                </Link>
+                <Link to="/quotes/create">
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Novo
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Projetos" subtitle="Gerencie os projetos do sistema">
+            <div className="space-y-4">
+              <div className="text-gray-600">
+                {projectsLoading ? (
+                    <LoadingSpinner size="sm" />
+                ) : (
+                    <p>{projects.length} projeto{projects.length !== 1 ? 's' : ''} cadastrado{projects.length !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="flex space-x-3">
+                <Link to="/projects">
+                  <Button variant="outline" size="sm">Ver Todos</Button>
+                </Link>
+                <Link to="/projects/create">
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Novo
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Entregas - Card separado */}
+        <Card title="Entregas" subtitle="Gerencie as entregas dos projetos">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {deliveriesLoading ? '-' : deliveryStats.total}
+              </div>
+              <div className="text-sm text-gray-600">Total de Entregas</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {deliveriesLoading ? '-' : deliveryStats.approved}
+              </div>
+              <div className="text-sm text-gray-600">Entregas Aprovadas</div>
+            </div>
+            <div className="flex space-x-3 justify-center">
+              <Link to="/deliveries">
+                <Button variant="outline" size="sm">Ver Todas</Button>
+              </Link>
+              <Link to="/deliveries/create">
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nova Entrega
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
 
         {/* Resumo do Sistema */}
         <Card title="Resumo do Sistema">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 text-center">
             <div className="space-y-2">
               <div className="text-2xl font-bold text-blue-600">{requesters.length}</div>
-              <div className="text-sm text-gray-600">Solicitantes Ativos</div>
+              <div className="text-sm text-gray-600">Solicitantes</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-green-600">{taskStats.total}</div>
-              <div className="text-sm text-gray-600">Tarefas Cadastradas</div>
+              <div className="text-sm text-gray-600">Tarefas</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-yellow-600">{quoteStats.total}</div>
+              <div className="text-sm text-gray-600">Orçamentos</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-indigo-600">{projects.length}</div>
+              <div className="text-sm text-gray-600">Projetos</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-orange-600">{deliveryStats.total}</div>
+              <div className="text-sm text-gray-600">Entregas</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-purple-600">
                 {taskStats.total > 0 ? Math.round((taskStats.completedTasks / taskStats.total) * 100) : 0}%
               </div>
-              <div className="text-sm text-gray-600">Taxa de Conclusão</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-2xl font-bold text-yellow-600">{quoteStats.total}</div>
-              <div className="text-sm text-gray-600">Orçamentos Cadastrados</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-2xl font-bold text-orange-600">{deliveryStats.total}</div>
-              <div className="text-sm text-gray-600">Entregas Realizadas</div>
+              <div className="text-sm text-gray-600">Taxa Conclusão</div>
             </div>
           </div>
         </Card>
