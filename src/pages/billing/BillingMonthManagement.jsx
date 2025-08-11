@@ -244,6 +244,40 @@ const BillingMonthManagement = () => {
     }
   };
 
+  // ✅ NOVO: Função para excluir período de faturamento
+  const deleteBillingMonth = async (billingMonth) => {
+    const hasLinks = totals[billingMonth.id] > 0;
+
+    let confirmMessage = `Deseja realmente excluir o faturamento de ${monthLabel(billingMonth.month)}/${billingMonth.year}?`;
+    if (hasLinks) {
+      confirmMessage += '\n\nATENÇÃO: Este período possui orçamentos vinculados que também serão removidos.';
+    }
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setLoadingList(true);
+    try {
+      await billingMonthService.delete(billingMonth.id);
+
+      // Remove da lista local
+      setBillingMonths(prev => prev.filter(bm => bm.id !== billingMonth.id));
+
+      // Remove do cache de totais
+      setTotals(prev => {
+        const newTotals = { ...prev };
+        delete newTotals[billingMonth.id];
+        return newTotals;
+      });
+
+      alert('Período de faturamento excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir período:', error);
+      alert(error.response?.data?.message || 'Erro ao excluir período de faturamento');
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
   return (
       <div className="p-6 space-y-6">
         {/* Header */}
@@ -373,12 +407,21 @@ const BillingMonthManagement = () => {
                           )}
                         </td>
                         <td className="px-6 py-3 whitespace-nowrap text-right">
-                          <button
-                              className="px-3 py-1.5 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-50"
-                              onClick={() => openManageModal(bm)}
-                          >
-                            Detalhes
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                                className="px-3 py-1.5 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-50"
+                                onClick={() => openManageModal(bm)}
+                            >
+                              Detalhes
+                            </button>
+                            <button
+                                className="px-3 py-1.5 border border-red-300 text-red-700 rounded-md hover:bg-red-50 disabled:opacity-50"
+                                onClick={() => deleteBillingMonth(bm)}
+                                disabled={loadingList}
+                            >
+                              Excluir
+                            </button>
+                          </div>
                         </td>
                       </tr>
                   ))}
