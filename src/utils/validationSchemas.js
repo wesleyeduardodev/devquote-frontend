@@ -122,4 +122,14 @@ export const deliverySchema = yup.object({
       .string()
       .required('Status é obrigatório')
       .max(30, 'Status deve ter no máximo 30 caracteres'),
+
+  startedAt: yup
+      .date()
+      .nullable()
+      .transform((value, originalValue) => originalValue === '' ? null : value),
+
+  finishedAt: yup
+      .date()
+      .nullable()
+      .transform((value, originalValue) => originalValue === '' ? null : value),
 });

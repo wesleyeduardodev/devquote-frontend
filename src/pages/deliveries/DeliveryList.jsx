@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Truck, GitBranch, ExternalLink, Calendar, FileCode } from 'lucide-react';
 import { useDeliveries } from '../../hooks/useDeliveries';
 import { useQuotes } from '../../hooks/useQuotes';
+import { useProjects } from '../../hooks/useProjects';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -10,6 +11,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 const DeliveryList = () => {
     const { deliveries, loading, deleteDelivery } = useDeliveries();
     const { quotes } = useQuotes();
+    const { projects } = useProjects();
     const [deletingId, setDeletingId] = useState(null);
 
     const handleDelete = async (id) => {
@@ -31,14 +33,8 @@ const DeliveryList = () => {
     };
 
     const getProjectName = (projectId) => {
-        // Simular projetos - em uma implementação real, você buscaria da API
-        const projects = {
-            1: 'Sistema de Login',
-            2: 'API de Pagamentos',
-            3: 'Dashboard Analytics',
-            4: 'Sistema de Notificações'
-        };
-        return projects[projectId] || `Projeto #${projectId}`;
+        const project = projects.find(p => p.id === projectId);
+        return project?.name || `Projeto #${projectId}`;
     };
 
     const getStatusColor = (status) => {
@@ -84,7 +80,7 @@ const DeliveryList = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
@@ -128,14 +124,14 @@ const DeliveryList = () => {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-2 mb-2">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
-                        {getStatusLabel(delivery.status)}
-                      </span>
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
+                                                {getStatusLabel(delivery.status)}
+                                            </span>
                                             {delivery.branch && (
                                                 <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
-                          <GitBranch className="w-3 h-3 inline mr-1" />
+                                                    <GitBranch className="w-3 h-3 inline mr-1" />
                                                     {delivery.branch}
-                        </span>
+                                                </span>
                                             )}
                                         </div>
                                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -167,8 +163,8 @@ const DeliveryList = () => {
                                         <div className="flex items-center text-sm text-gray-600">
                                             <FileCode className="w-4 h-4 mr-2 flex-shrink-0" />
                                             <span className="truncate">
-                        Script SQL incluído ({delivery.script.length} caracteres)
-                      </span>
+                                                Script SQL incluído ({delivery.script.length} caracteres)
+                                            </span>
                                         </div>
                                     )}
 

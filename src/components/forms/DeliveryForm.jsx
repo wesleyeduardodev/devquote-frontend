@@ -33,6 +33,36 @@ const DeliveryForm = ({
             pullRequest: initialData?.pullRequest || '',
             script: initialData?.script || '',
             status: initialData?.status || 'PENDING',
+            startedAt: initialData?.startedAt ?
+                (() => {
+                    try {
+                        // Se já está no formato yyyy-MM-dd, usar direto
+                        if (typeof initialData.startedAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(initialData.startedAt)) {
+                            return initialData.startedAt;
+                        }
+                        // Converter de ISO string para yyyy-MM-dd
+                        const date = new Date(initialData.startedAt);
+                        return date.toISOString().split('T')[0];
+                    } catch (error) {
+                        console.error('Erro ao converter startedAt:', error);
+                        return '';
+                    }
+                })() : '',
+            finishedAt: initialData?.finishedAt ?
+                (() => {
+                    try {
+                        // Se já está no formato yyyy-MM-dd, usar direto
+                        if (typeof initialData.finishedAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(initialData.finishedAt)) {
+                            return initialData.finishedAt;
+                        }
+                        // Converter de ISO string para yyyy-MM-dd
+                        const date = new Date(initialData.finishedAt);
+                        return date.toISOString().split('T')[0];
+                    } catch (error) {
+                        console.error('Erro ao converter finishedAt:', error);
+                        return '';
+                    }
+                })() : '',
         },
     });
 
@@ -40,18 +70,57 @@ const DeliveryForm = ({
 
     const handleFormSubmit = async (data) => {
         try {
-            // Converter IDs para números
+            console.log('Dados do formulário:', data); // Debug
+
+            // Função auxiliar para converter data para yyyy-MM-dd
+            const convertDateToLocalDate = (dateValue) => {
+                if (!dateValue || (typeof dateValue === 'string' && dateValue.trim() === '')) {
+                    return null;
+                }
+
+                try {
+                    // Se for datetime-local (2024-12-25T10:30), pegar só a parte da data
+                    const dateOnly = typeof dateValue === 'string' && dateValue.includes('T')
+                        ? dateValue.split('T')[0]
+                        : dateValue;
+
+                    // Verificar se está no formato yyyy-MM-dd
+                    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                    if (typeof dateOnly === 'string' && dateRegex.test(dateOnly)) {
+                        return dateOnly; // Já está no formato correto
+                    }
+
+                    // Tentar converter para Date e depois extrair yyyy-MM-dd
+                    const date = new Date(dateValue);
+                    if (isNaN(date.getTime())) {
+                        return null;
+                    }
+
+                    // Converter para yyyy-MM-dd (formato LocalDate)
+                    return date.toISOString().split('T')[0];
+                } catch (error) {
+                    console.error('Erro ao converter data:', error);
+                    return null;
+                }
+            };
+
+            // Converter IDs para números e tratar datas
             const formattedData = {
                 ...data,
                 quoteId: parseInt(data.quoteId),
                 projectId: parseInt(data.projectId),
+                startedAt: convertDateToLocalDate(data.startedAt),
+                finishedAt: convertDateToLocalDate(data.finishedAt),
             };
+
+            console.log('Dados formatados para envio:', formattedData); // Debug
 
             await onSubmit(formattedData);
             if (!initialData) {
                 reset(); // Reset form only for create mode
             }
         } catch (error) {
+            console.error('Erro no formulário:', error);
             // Error is handled by the parent component
         }
     };
@@ -117,6 +186,20 @@ const DeliveryForm = ({
                     label="Pull Request"
                     placeholder="https://github.com/user/repo/pull/123"
                     error={errors.pullRequest?.message}
+                />
+
+                <Input
+                    {...register('startedAt')}
+                    type="date"
+                    label="Data de Início"
+                    error={errors.startedAt?.message}
+                />
+
+                <Input
+                    {...register('finishedAt')}
+                    type="date"
+                    label="Data de Finalização"
+                    error={errors.finishedAt?.message}
                 />
 
                 <div className="md:col-span-2">
