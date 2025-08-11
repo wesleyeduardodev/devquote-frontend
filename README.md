@@ -29,7 +29,7 @@ npm install
 
 3. Configure a API:
    - Certifique-se de que a API está rodando na porta 8080
-   - A URL base está configurada em `src/services/api.ts`
+   - A URL base está configurada em `src/services/api.js`
 
 4. Inicie o servidor de desenvolvimento:
 ```bash
@@ -77,9 +77,9 @@ budget-control-frontend/
 │   │   ├── Dashboard.jsx
 │   │   └── NotFound.jsx
 │   ├── services/
-│   │   ├── api.ts
-│   │   ├── requesterService.ts
-│   │   └── taskService.ts
+│   │   ├── api.js
+│   │   ├── requesterService.js
+│   │   └── taskService.js
 │   ├── hooks/
 │   │   ├── useRequesters.js
 │   │   ├── useTasks.js

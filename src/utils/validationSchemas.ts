@@ -1,6 +1,5 @@
 import * as yup from 'yup';
 
-// Schema para Requester (Solicitante)
 export const requesterSchema = yup.object({
   name: yup
       .string()
@@ -26,7 +25,6 @@ export const requesterSchema = yup.object({
       .transform((value, originalValue) => originalValue === '' ? null : value),
 });
 
-// Schema para SubTask (Subtarefa)
 export const subTaskSchema = yup.object({
   title: yup
       .string()
@@ -53,7 +51,6 @@ export const subTaskSchema = yup.object({
       .max(30, 'Status deve ter no máximo 30 caracteres'),
 });
 
-// Schema para Task com SubTasks (Tarefa com Subtarefas)
 export const taskWithSubTasksSchema = yup.object({
   requesterId: yup
       .number()
@@ -92,7 +89,6 @@ export const taskWithSubTasksSchema = yup.object({
       .required('Subtarefas são obrigatórias'),
 });
 
-// Schema para Delivery (Entrega)
 export const deliverySchema = yup.object({
   quoteId: yup
       .number()
@@ -137,90 +133,3 @@ export const deliverySchema = yup.object({
       .nullable()
       .transform((value, originalValue) => originalValue === '' ? null : value),
 });
-
-// ✅ NOVO: Schema para BillingMonth (Faturamento)
-export const billingMonthSchema = yup.object({
-  month: yup
-      .number()
-      .required('Mês é obrigatório')
-      .min(1, 'Mês deve ser entre 1 e 12')
-      .max(12, 'Mês deve ser entre 1 e 12')
-      .typeError('Mês deve ser um número válido'),
-
-  year: yup
-      .number()
-      .required('Ano é obrigatório')
-      .min(2020, 'Ano deve ser maior que 2019')
-      .max(2030, 'Ano deve ser menor que 2031')
-      .typeError('Ano deve ser um número válido'),
-
-  paymentDate: yup
-      .date()
-      .nullable()
-      .transform((value, originalValue) => originalValue === '' ? null : value),
-
-  status: yup
-      .string()
-      .required('Status é obrigatório')
-      .oneOf(['PENDENTE', 'PROCESSANDO', 'FATURADO', 'PAGO', 'ATRASADO', 'CANCELADO'], 'Status inválido'),
-});
-
-// ✅ NOVO: Schema para Project (Projeto)
-export const projectSchema = yup.object({
-  name: yup
-      .string()
-      .required('Nome é obrigatório')
-      .max(200, 'Nome deve ter no máximo 200 caracteres')
-      .trim(),
-
-  description: yup
-      .string()
-      .max(500, 'Descrição deve ter no máximo 500 caracteres')
-      .nullable()
-      .transform((value, originalValue) => originalValue === '' ? null : value),
-
-  link: yup
-      .string()
-      .url('Link deve ser uma URL válida')
-      .max(300, 'Link deve ter no máximo 300 caracteres')
-      .nullable()
-      .transform((value, originalValue) => originalValue === '' ? null : value),
-
-  status: yup
-      .string()
-      .required('Status é obrigatório')
-      .max(30, 'Status deve ter no máximo 30 caracteres'),
-});
-
-// ✅ NOVO: Schema para Quote (Orçamento)
-export const quoteSchema = yup.object({
-  requesterId: yup
-      .number()
-      .required('Solicitante é obrigatório')
-      .typeError('Selecione um solicitante válido'),
-
-  taskId: yup
-      .number()
-      .required('Tarefa é obrigatória')
-      .typeError('Selecione uma tarefa válida'),
-
-  status: yup
-      .string()
-      .required('Status é obrigatório')
-      .oneOf(['RASCUNHO', 'PENDENTE', 'APROVADO', 'APPROVED', 'REJEITADO', 'CANCELADO'], 'Status inválido'),
-
-  totalValue: yup
-      .number()
-      .required('Valor total é obrigatório')
-      .min(0.01, 'Valor deve ser maior que zero')
-      .typeError('Valor deve ser um número válido'),
-});
-
-// Tipos inferidos dos schemas (para uso com react-hook-form)
-export type RequesterFormData = yup.InferType<typeof requesterSchema>;
-export type SubTaskFormData = yup.InferType<typeof subTaskSchema>;
-export type TaskWithSubTasksFormData = yup.InferType<typeof taskWithSubTasksSchema>;
-export type DeliveryFormData = yup.InferType<typeof deliverySchema>;
-export type BillingMonthFormData = yup.InferType<typeof billingMonthSchema>;
-export type ProjectFormData = yup.InferType<typeof projectSchema>;
-export type QuoteFormData = yup.InferType<typeof quoteSchema>;
