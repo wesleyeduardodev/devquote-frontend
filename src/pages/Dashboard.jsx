@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Users, Plus, TrendingUp, DollarSign, CheckSquare, FileText } from 'lucide-react';
+import { Users, Plus, TrendingUp, DollarSign, CheckSquare, FileText, Truck } from 'lucide-react';
 import { useRequesters } from '../hooks/useRequesters';
 import { useTasks } from '../hooks/useTasks';
 import { useQuotes } from '../hooks/useQuotes';
+import { useDeliveries } from '../hooks/useDeliveries';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -11,6 +12,7 @@ const Dashboard = () => {
   const { requesters, loading: requestersLoading } = useRequesters();
   const { tasks, loading: tasksLoading } = useTasks();
   const { quotes, loading: quotesLoading } = useQuotes();
+  const { deliveries, loading: deliveriesLoading } = useDeliveries();
 
   const calculateTaskStats = () => {
     if (!tasks.length) return { total: 0, totalValue: 0, completedTasks: 0 };
@@ -31,6 +33,22 @@ const Dashboard = () => {
   };
 
   const quoteStats = calculateQuoteStats();
+
+  // Estatísticas de entregas
+  const calculateDeliveryStats = () => {
+    if (!deliveries.length) return { total: 0, delivered: 0, approved: 0 };
+
+    const delivered = deliveries.filter(delivery => delivery.status === 'DELIVERED').length;
+    const approved = deliveries.filter(delivery => delivery.status === 'APPROVED').length;
+
+    return {
+      total: deliveries.length,
+      delivered,
+      approved
+    };
+  };
+
+  const deliveryStats = calculateDeliveryStats();
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -74,6 +92,13 @@ const Dashboard = () => {
       icon: DollarSign,
       color: 'text-amber-600',
       bgColor: 'bg-amber-100',
+    },
+    {
+      title: 'Total de Entregas',
+      value: deliveriesLoading ? '-' : deliveryStats.total,
+      icon: Truck,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
     },
   ];
 
@@ -178,8 +203,35 @@ const Dashboard = () => {
           </div>
 
         </div>
-      </Card>
-    </div>
+
+        {/* Resumo do Sistema */}
+        <Card title="Resumo do Sistema">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 text-center">
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-blue-600">{requesters.length}</div>
+              <div className="text-sm text-gray-600">Solicitantes Ativos</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-green-600">{taskStats.total}</div>
+              <div className="text-sm text-gray-600">Tarefas Cadastradas</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-purple-600">
+                {taskStats.total > 0 ? Math.round((taskStats.completedTasks / taskStats.total) * 100) : 0}%
+              </div>
+              <div className="text-sm text-gray-600">Taxa de Conclusão</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-yellow-600">{quoteStats.total}</div>
+              <div className="text-sm text-gray-600">Orçamentos Cadastrados</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-orange-600">{deliveryStats.total}</div>
+              <div className="text-sm text-gray-600">Entregas Realizadas</div>
+            </div>
+          </div>
+        </Card>
+      </div>
   );
 };
 
