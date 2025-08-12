@@ -1,137 +1,56 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Lock, User, LogIn } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 
-// Validação do formulário
+type FormValues = { username: string; password: string; };
+
 const loginSchema = yup.object({
-  username: yup
-    .string()
-    .required('Usuário é obrigatório')
-    .min(3, 'Usuário deve ter pelo menos 3 caracteres'),
-  password: yup
-    .string()
-    .required('Senha é obrigatória')
-    .min(4, 'Senha deve ter pelo menos 4 caracteres'),
+  username: yup.string().required('Usuário é obrigatório'),
+  password: yup.string().required('Senha é obrigatória')
 });
 
-// Credenciais fixas (temporário)
-const VALID_CREDENTIALS = {
-  username: 'admin',
-  password: '1234'
-};
-
-const Login = () => {
+export default function Login() {
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
-  
-  // Verificar se o hook useAuth está funcionando
-  let authHook = null;
-  try {
-    authHook = useAuth();
-  } catch (error) {
-    console.error('Erro no useAuth:', error);
-    toast.error('Erro de configuração. Verifique o console.');
-  }
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation() as any;
+  const redirectTo = location?.state?.from?.pathname || '/dashboard';
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setError
-  } = useForm({
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: yupResolver(loginSchema),
     mode: 'onChange'
   });
 
-  const onSubmit = async (data) => {
-    setIsLoading(true);
- 
+  const onSubmit = async (data: FormValues) => {
     try {
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Verificar credenciais
-      if (data.username === VALID_CREDENTIALS.username && 
-          data.password === VALID_CREDENTIALS.password) {
-                
-        // Verificar se authHook existe
-        if (authHook && authHook.login) {
-          const userData = {
-            username: data.username,
-            loginTime: new Date().toISOString()
-          };
-          
-          authHook.login(userData);
-          toast.success('Login realizado com sucesso!');
-          
-          // Redirecionar
-          setTimeout(() => {    
-            navigate('/dashboard');
-          }, 500);
-        } else {
-          // Fallback: salvar diretamente no localStorage
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('user', JSON.stringify({
-            username: data.username,
-            loginTime: new Date().toISOString()
-          }));
-          toast.success('Login realizado com sucesso!');
-          navigate('/dashboard');
-        }
-        
-      } else {
-        setError('username', { 
-          type: 'manual', 
-          message: 'Usuário ou senha inválidos' 
-        });
-        setError('password', { 
-          type: 'manual', 
-          message: 'Usuário ou senha inválidos' 
-        });
-        toast.error('Credenciais inválidas!');
-      }
-    } catch (error) {
-      console.error('Erro no login:', error);
-      toast.error('Erro no servidor. Tente novamente.');
-    } finally {
-      setIsLoading(false);
+      await login({ username: data.username, password: data.password });
+      toast.success('Login realizado com sucesso!');
+      navigate(redirectTo, { replace: true });
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'Usuário ou senha inválidos';
+      toast.error(message);
     }
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center mb-4">
             <LogIn className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            DevQuote
-          </h2>
-          <p className="text-gray-600">
-            Faça login para acessar o sistema
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">DevQuote</h2>
+          <p className="text-gray-600">Faça login para acessar o sistema</p>
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-xl shadow-lg p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Usuário */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                 Usuário
@@ -140,18 +59,19 @@ const Login = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
-                <Input
+                <input
                   id="username"
                   type="text"
                   placeholder="Digite seu usuário"
-                  className="pl-10"
+                  className="pl-10 w-full border rounded-md h-10 px-3 outline-none"
                   {...register('username')}
-                  error={errors.username?.message}
                 />
               </div>
+              {errors.username?.message && (
+                <p className="text-sm text-red-600 mt-1">{errors.username.message}</p>
+              )}
             </div>
 
-            {/* Senha */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Senha
@@ -160,55 +80,40 @@ const Login = () => {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
-                <Input
+                <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Digite sua senha"
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 w-full border rounded-md h-10 px-3 outline-none"
                   {...register('password')}
-                  error={errors.password?.message}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={togglePasswordVisibility}
+                  onClick={() => setShowPassword((v) => !v)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
                 </button>
               </div>
+              {errors.password?.message && (
+                <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
+              )}
             </div>
 
-            {/* Botão de Login */}
-            <Button
+            <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full h-10 rounded-md bg-primary-600 text-white font-medium hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                <>
-                  <LogIn className="h-4 w-4" />
-                  Entrar
-                </>
-              )}
-            </Button>
+              {isLoading ? 'Entrando...' : (<><LogIn className="h-4 w-4" /> Entrar</>)}
+            </button>
           </form>
         </div>
 
-        {/* Footer */}
         <div className="text-center">
-          <p className="text-sm text-gray-500">
-            Sistema de Controle de Orçamentos
-          </p>
+          <p className="text-sm text-gray-500">Sistema de Controle de Orçamentos</p>
         </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

@@ -1,65 +1,66 @@
-import axios from 'axios';
-import toast from 'react-hot-toast';
+import axios, { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+
+function resolveBaseURL(): string {
+  // Prioriza Vite; mantém compat com REACT_APP_* e um default seguro
+  const fromVite = import.meta.env?.VITE_API_URL || import.meta.env?.VITE_API_BASE_URL;
+  const fromCRA =
+      (typeof process !== 'undefined' ? (process as any)?.env?.REACT_APP_API_URL : undefined) ||
+      (typeof process !== 'undefined' ? (process as any)?.env?.REACT_APP_API_BASE_URL : undefined);
+
+  const base = (fromVite || fromCRA || 'http://localhost:8080/api').toString();
+
+  // Normaliza removendo barra final duplicada (opcional)
+  return base.replace(/\/+$/, '') + '/';
+}
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
-  timeout: 10000,
+  baseURL: resolveBaseURL(),
+  withCredentials: false,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor para requests
+// Request: injeta Bearer se existir
 api.interceptors.request.use(
-  (config) => {
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
+    (config: InternalAxiosRequestConfig) => {
+      if (typeof window !== 'undefined') {
+        const token = window.localStorage.getItem('auth.token') || window.localStorage.getItem('token');
+        if (token) {
+          config.headers = config.headers ?? {};
+          (config.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+        }
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
 );
 
-// Interceptor para responses
+// Response: trata 401 limpando sessão e redirecionando
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    let errorMessage = 'Ocorreu um erro inesperado';
-    
-    if (error.response) {
-      // Erro de response do servidor
-      const status = error.response.status;
-      
-      switch (status) {
-        case 400:
-          if (error.response.data.errors) {
-            // Erros de validação
-            const validationErrors = error.response.data.errors;
-            errorMessage = Object.values(validationErrors).join(', ');
-          } else if (error.response.data.message) {
-            errorMessage = error.response.data.message;
-          } else {
-            errorMessage = 'Dados inválidos fornecidos';
+    (res) => res,
+    (err) => {
+      const status = err?.response?.status;
+
+      if (status === 401) {
+        try {
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem('auth.token');
+            window.localStorage.removeItem('auth.user');
+            // Evita loop caso já esteja na tela de login
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login';
+            }
           }
-          break;
-        case 404:
-          errorMessage = 'Recurso não encontrado';
-          break;
-        case 500:
-          errorMessage = 'Erro interno do servidor';
-          break;
-        default:
-          errorMessage = error.response.data.message || errorMessage;
+        } catch {
+          // no-op
+        }
       }
-    } else if (error.request) {
-      // Erro de network
-      errorMessage = 'Erro de conexão. Verifique se a API está rodando.';
+
+      // (Opcional) você pode tratar 403/404/500 aqui se quiser
+      return Promise.reject(err);
     }
-    
-    toast.error(errorMessage);
-    return Promise.reject(error);
-  }
 );
 
 export default api;

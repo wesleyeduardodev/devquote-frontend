@@ -1,72 +1,90 @@
-import { useState, useEffect, createContext, useContext, createElement } from 'react';
-import toast from 'react-hot-toast';
+import { createContext, useContext, useMemo, useState, ReactNode, useEffect, useCallback, createElement } from 'react';
+import api from '../services/api';
+import type { AuthLoginRequest, AuthLoginResponse, AuthUser } from '../types/auth';
 
-// Context de Autenticação
-const AuthContext = createContext({});
+type AuthContextValue = {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasRole: (role: string) => boolean;
+  hasPermission: (perm: string) => boolean;
+  hasAnyPermission: (perms: string[]) => boolean;
+  login: (data: AuthLoginRequest) => Promise<AuthUser>;
+  logout: () => void;
+};
 
-// Provider do Context
-const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-  // Verificar se usuário está logado ao carregar a aplicação
+function readStoredUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem('auth.user');
+  if (!raw) return null;
+  try { return JSON.parse(raw) as AuthUser; } catch { return null; }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(readStoredUser());
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   useEffect(() => {
-    checkAuthStatus();
+    // keep state in sync when tab storage changes
+    const handler = (e: StorageEvent) => {
+      if (e.key === 'auth.user') {
+        setUser(readStoredUser());
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
 
-  const checkAuthStatus = () => {
+  const login = useCallback(async (data: AuthLoginRequest): Promise<AuthUser> => {
+    setIsLoading(true);
     try {
-      const authStatus = localStorage.getItem('isAuthenticated');
-      const userData = localStorage.getItem('user');
-
-      if (authStatus === 'true' && userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      }
-    } catch (error) {
-      console.error('Erro ao verificar status de autenticação:', error);
-      logout();
+      // Atenção: api.ts já tem baseURL com /api → então aqui é só /auth/login
+      const res = await api.post<AuthLoginResponse>('/auth/login', data);
+      const payload = res.data;
+      const u: AuthUser = {
+        username: payload.username,
+        email: payload.email,
+        roles: payload.roles ?? [],
+        permissions: payload.permissions ?? [],
+        token: payload.token
+      };
+      window.localStorage.setItem('auth.token', u.token);
+      window.localStorage.setItem('auth.user', JSON.stringify(u));
+      setUser(u);
+      return u;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const login = (userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
+  const logout = useCallback(() => {
+    try {
+      window.localStorage.removeItem('auth.token');
+      window.localStorage.removeItem('auth.user');
+    } finally {
+      setUser(null);
+    }
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');
-    toast.success('Logout realizado com sucesso!');
-  };
-
-  const value = {
+  const value: AuthContextValue = useMemo(() => ({
     user,
-    isAuthenticated,
+    isAuthenticated: !!user?.token,
     isLoading,
+    hasRole: (role: string) => !!user?.roles?.includes(role),
+    hasPermission: (perm: string) => !!user?.permissions?.includes(perm),
+    hasAnyPermission: (perms: string[]) => perms.some((p) => !!user?.permissions?.includes(p)),
     login,
-    logout,
-    checkAuthStatus
-  };
+    logout
+  }), [user, isLoading, login, logout]);
 
+  // Sem JSX em arquivo .ts
   return createElement(AuthContext.Provider, { value }, children);
-};
+}
 
-// Hook para usar o context
-const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-  }
-  return context;
-};
-
-export { AuthProvider, useAuth };
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}
