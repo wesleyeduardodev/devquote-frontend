@@ -1,3 +1,4 @@
+import React from 'react';
 import { Plus, Trash2, DollarSign } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -5,14 +6,26 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
+interface SubTask {
+    id?: number;
+    title: string;
+    description: string;
+    amount: string;
+    status: string;
+    excluded?: boolean;
+}
 
-const SubTaskForm = () => {
+interface FormData {
+    subTasks: SubTask[];
+}
+
+const SubTaskForm: React.FC = () => {
     const {
         control,
         register,
         formState: { errors },
         setValue
-    } = useFormContext();
+    } = useFormContext<FormData>();
 
     const { fields, append } = useFieldArray({
         control,
@@ -21,7 +34,7 @@ const SubTaskForm = () => {
 
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
 
-    const calculateTotal = () => {
+    const calculateTotal = (): number => {
         if (!watchSubTasks) return 0;
         return watchSubTasks
             .filter((subTask) => !subTask?.excluded)
@@ -31,7 +44,7 @@ const SubTaskForm = () => {
             }, 0);
     };
 
-    const addSubTask = () => {
+    const addSubTask = (): void => {
         append({
             title: '',
             description: '',
@@ -41,7 +54,7 @@ const SubTaskForm = () => {
         });
     };
 
-    const softRemoveSubTask = (index) => {
+    const softRemoveSubTask = (index: number): void => {
         const field = watchSubTasks?.[index];
         if (field?.id) {
             // se já existe no backend, marca como excluído
@@ -61,7 +74,7 @@ const SubTaskForm = () => {
         { value: 'CANCELLED', label: 'Cancelada' }
     ];
 
-    const formatCurrency = (value) => {
+    const formatCurrency = (value: number): string => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'

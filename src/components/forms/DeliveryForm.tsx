@@ -1,34 +1,74 @@
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useQuotes } from '../../hooks/useQuotes';
-import { useProjects } from '../../hooks/useProjects';
-import { deliverySchema } from '../../utils/validationSchemas';
+import React from 'react';
+import {useForm} from 'react-hook-form';
+import {yupResolver} from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import {useQuotes} from '@/hooks/useQuotes';
+import {useProjects} from '@/hooks/useProjects';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import TextArea from '../ui/TextArea';
 import Button from '../ui/Button';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
-const DeliveryForm = ({
-                          initialData = null,
-                          onSubmit,
-                          onCancel,
-                          loading = false
-                      }) => {
-    const { quotes, loading: quotesLoading } = useQuotes();
-    const { projects, loading: projectsLoading } = useProjects();
+interface DeliveryData {
+    quoteId: string;
+    projectId: string;
+    branch?: string;
+    pullRequest?: string;
+    script?: string;
+    status: string;
+    startedAt?: string;
+    finishedAt?: string;
+}
+
+interface DeliveryFormProps {
+    initialData?: any;
+    onSubmit: (data: any) => Promise<void>;
+    onCancel?: () => void;
+    loading?: boolean;
+}
+
+interface Quote {
+    id: number;
+    title?: string;
+}
+
+interface Project {
+    id: number;
+    name: string;
+}
+
+const schema = yup.object({
+    quoteId: yup.string().required('Orçamento é obrigatório'),
+    projectId: yup.string().required('Projeto é obrigatório'),
+    branch: yup.string().optional(),
+    pullRequest: yup.string().url('URL inválida').optional(),
+    script: yup.string().optional(),
+    status: yup.string().required('Status é obrigatório'),
+    startedAt: yup.string().optional(),
+    finishedAt: yup.string().optional(),
+});
+
+const DeliveryForm: React.FC<DeliveryFormProps> = ({
+                                                       initialData = null,
+                                                       onSubmit,
+                                                       onCancel,
+                                                       loading = false
+                                                   }) => {
+    const {quotes, loading: quotesLoading} = useQuotes();
+    const {projects, loading: projectsLoading} = useProjects();
 
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting },
+        formState: {errors, isSubmitting},
         reset,
         watch,
-    } = useForm({
-        resolver: yupResolver(deliverySchema),
+    } = useForm<DeliveryData>({
+        resolver: yupResolver(schema),
         defaultValues: {
-            quoteId: initialData?.quoteId || '',
-            projectId: initialData?.projectId || '',
+            quoteId: initialData?.quoteId?.toString() || '',
+            projectId: initialData?.projectId?.toString() || '',
             branch: initialData?.branch || '',
             pullRequest: initialData?.pullRequest || '',
             script: initialData?.script || '',
@@ -68,25 +108,25 @@ const DeliveryForm = ({
 
     const selectedQuoteId = watch('quoteId');
 
-    const handleFormSubmit = async (data) => {
+    const handleFormSubmit = async (data: DeliveryData): Promise<void> => {
         try {
             console.log('Dados do formulário:', data); // Debug
 
             // Função auxiliar para converter data para yyyy-MM-dd
-            const convertDateToLocalDate = (dateValue) => {
-                if (!dateValue || (typeof dateValue === 'string' && dateValue.trim() === '')) {
+            const convertDateToLocalDate = (dateValue?: string): string | null => {
+                if (!dateValue || (dateValue.trim() === '')) {
                     return null;
                 }
 
                 try {
                     // Se for datetime-local (2024-12-25T10:30), pegar só a parte da data
-                    const dateOnly = typeof dateValue === 'string' && dateValue.includes('T')
+                    const dateOnly = dateValue.includes('T')
                         ? dateValue.split('T')[0]
                         : dateValue;
 
                     // Verificar se está no formato yyyy-MM-dd
                     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                    if (typeof dateOnly === 'string' && dateRegex.test(dateOnly)) {
+                    if (dateRegex.test(dateOnly)) {
                         return dateOnly; // Já está no formato correto
                     }
 
@@ -126,18 +166,18 @@ const DeliveryForm = ({
     };
 
     const statusOptions = [
-        { value: 'PENDING', label: 'Pendente' },
-        { value: 'IN_PROGRESS', label: 'Em Progresso' },
-        { value: 'TESTING', label: 'Em Teste' },
-        { value: 'DELIVERED', label: 'Entregue' },
-        { value: 'APPROVED', label: 'Aprovado' },
-        { value: 'REJECTED', label: 'Rejeitado' }
+        {value: 'PENDING', label: 'Pendente'},
+        {value: 'IN_PROGRESS', label: 'Em Progresso'},
+        {value: 'TESTING', label: 'Em Teste'},
+        {value: 'DELIVERED', label: 'Entregue'},
+        {value: 'APPROVED', label: 'Aprovado'},
+        {value: 'REJECTED', label: 'Rejeitado'}
     ];
 
     if (quotesLoading || projectsLoading) {
         return (
             <div className="flex items-center justify-center py-8">
-                <LoadingSpinner />
+                <LoadingSpinner/>
             </div>
         );
     }
@@ -146,13 +186,13 @@ const DeliveryForm = ({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Select
-                    {...register('quoteId', { valueAsNumber: false })}
+                    {...register('quoteId', {valueAsNumber: false})}
                     label="Orçamento"
                     placeholder="Selecione um orçamento"
                     error={errors.quoteId?.message}
                     required
                 >
-                    {quotes.map(quote => (
+                    {quotes.map((quote: Quote) => (
                         <option key={quote.id} value={quote.id}>
                             {quote.title || `Orçamento #${quote.id}`}
                         </option>
@@ -160,13 +200,13 @@ const DeliveryForm = ({
                 </Select>
 
                 <Select
-                    {...register('projectId', { valueAsNumber: false })}
+                    {...register('projectId', {valueAsNumber: false})}
                     label="Projeto"
                     placeholder="Selecione um projeto"
                     error={errors.projectId?.message}
                     required
                 >
-                    {projects.map(project => (
+                    {projects.map((project: Project) => (
                         <option key={project.id} value={project.id}>
                             {project.name}
                         </option>

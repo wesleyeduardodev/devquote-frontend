@@ -7,8 +7,8 @@ function resolveBaseURL(): string {
       (typeof process !== 'undefined' ? (process as any)?.env?.REACT_APP_API_URL : undefined) ||
       (typeof process !== 'undefined' ? (process as any)?.env?.REACT_APP_API_BASE_URL : undefined);
 
-  //const base = (fromVite || fromCRA || 'http://localhost:8080/api').toString();
-    const base = (fromVite || fromCRA || 'https://devquote-backend-latest.onrender.com/api').toString();
+  const base = (fromVite || fromCRA || 'http://localhost:8080/api').toString();
+   //const base = (fromVite || fromCRA || 'https://devquote-backend-latest.onrender.com/api').toString();
 
   // Normaliza removendo barra final duplicada (opcional)
   return base.replace(/\/+$/, '') + '/';

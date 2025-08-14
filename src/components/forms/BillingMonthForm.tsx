@@ -1,47 +1,68 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
 
-const BillingMonthForm = ({
-                              initialData = {},
-                              onSubmit,
-                              onCancel,
-                              loading = false
-                          }) => {
-    const [formData, setFormData] = useState({
-        month: initialData.month || '',
+interface BillingMonthData {
+    month: number;
+    year: number;
+    paymentDate: string;
+    status: string;
+}
+
+interface BillingMonthFormProps {
+    initialData?: Partial<BillingMonthData>;
+    onSubmit: (data: BillingMonthData) => void;
+    onCancel: () => void;
+    loading?: boolean;
+}
+
+interface FormErrors {
+    [key: string]: string | null;
+}
+
+const BillingMonthForm: React.FC<BillingMonthFormProps> = ({
+                                                               initialData = {},
+                                                               onSubmit,
+                                                               onCancel,
+                                                               loading = false
+                                                           }) => {
+    const [formData, setFormData] = useState<BillingMonthData>({
+        month: initialData.month || 0,
         year: initialData.year || new Date().getFullYear(),
         paymentDate: initialData.paymentDate || '',
         status: initialData.status || 'PENDENTE',
         ...initialData
     });
 
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<FormErrors>({});
 
     const statusOptions = [
-        { value: 'PENDENTE', label: 'Pendente' },
-        { value: 'PROCESSANDO', label: 'Processando' },
-        { value: 'FATURADO', label: 'Faturado' },
-        { value: 'PAGO', label: 'Pago' },
-        { value: 'ATRASADO', label: 'Atrasado' },
-        { value: 'CANCELADO', label: 'Cancelado' }
+        {value: 'PENDENTE', label: 'Pendente'},
+        {value: 'PROCESSANDO', label: 'Processando'},
+        {value: 'FATURADO', label: 'Faturado'},
+        {value: 'PAGO', label: 'Pago'},
+        {value: 'ATRASADO', label: 'Atrasado'},
+        {value: 'CANCELADO', label: 'Cancelado'}
     ];
 
     const monthOptions = [
-        { value: 1, label: 'Janeiro' },
-        { value: 2, label: 'Fevereiro' },
-        { value: 3, label: 'Março' },
-        { value: 4, label: 'Abril' },
-        { value: 5, label: 'Maio' },
-        { value: 6, label: 'Junho' },
-        { value: 7, label: 'Julho' },
-        { value: 8, label: 'Agosto' },
-        { value: 9, label: 'Setembro' },
-        { value: 10, label: 'Outubro' },
-        { value: 11, label: 'Novembro' },
-        { value: 12, label: 'Dezembro' }
+        {value: 1, label: 'Janeiro'},
+        {value: 2, label: 'Fevereiro'},
+        {value: 3, label: 'Março'},
+        {value: 4, label: 'Abril'},
+        {value: 5, label: 'Maio'},
+        {value: 6, label: 'Junho'},
+        {value: 7, label: 'Julho'},
+        {value: 8, label: 'Agosto'},
+        {value: 9, label: 'Setembro'},
+        {value: 10, label: 'Outubro'},
+        {value: 11, label: 'Novembro'},
+        {value: 12, label: 'Dezembro'}
     ];
 
-    const validateForm = () => {
-        const newErrors = {};
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {};
 
         if (!formData.month) {
             newErrors.month = 'Mês é obrigatório';
@@ -57,7 +78,7 @@ const BillingMonthForm = ({
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
 
         if (validateForm()) {
@@ -65,12 +86,12 @@ const BillingMonthForm = ({
         }
     };
 
-    const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+    const handleInputChange = (field: keyof BillingMonthData, value: string | number): void => {
+        setFormData(prev => ({...prev, [field]: value}));
 
         // Limpar erro do campo quando o usuário começar a digitar
         if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: null }));
+            setErrors(prev => ({...prev, [field]: null}));
         }
     };
 
@@ -87,92 +108,69 @@ const BillingMonthForm = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Mês *
-                        </label>
-                        <select
-                            value={formData.month}
-                            onChange={(e) => handleInputChange('month', parseInt(e.target.value))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required
-                        >
-                            <option value="">Selecione o mês</option>
-                            {monthOptions.map(month => (
-                                <option key={month.value} value={month.value}>
-                                    {month.label}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.month && (
-                            <p className="mt-1 text-sm text-red-600">{errors.month}</p>
-                        )}
-                    </div>
+                    <Select
+                        value={formData.month.toString()}
+                        onChange={(e) => handleInputChange('month', parseInt(e.target.value))}
+                        label="Mês"
+                        placeholder="Selecione o mês"
+                        error={errors.month || undefined}
+                        required
+                    >
+                        <option value="">Selecione o mês</option>
+                        {monthOptions.map(month => (
+                            <option key={month.value} value={month.value}>
+                                {month.label}
+                            </option>
+                        ))}
+                    </Select>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ano *
-                        </label>
-                        <input
-                            type="number"
-                            value={formData.year}
-                            onChange={(e) => handleInputChange('year', parseInt(e.target.value))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            min="2020"
-                            max="2030"
-                            required
-                        />
-                        {errors.year && (
-                            <p className="mt-1 text-sm text-red-600">{errors.year}</p>
-                        )}
-                    </div>
+                    <Input
+                        type="number"
+                        value={formData.year.toString()}
+                        onChange={(e) => handleInputChange('year', parseInt(e.target.value))}
+                        label="Ano"
+                        error={errors.year || undefined}
+                        min="2020"
+                        max="2030"
+                        required
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Data de Pagamento
-                        </label>
-                        <input
-                            type="date"
-                            value={formData.paymentDate}
-                            onChange={(e) => handleInputChange('paymentDate', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
+                    <Input
+                        type="date"
+                        value={formData.paymentDate}
+                        onChange={(e) => handleInputChange('paymentDate', e.target.value)}
+                        label="Data de Pagamento"
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Status
-                        </label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => handleInputChange('status', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            {statusOptions.map(status => (
-                                <option key={status.value} value={status.value}>
-                                    {status.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <Select
+                        value={formData.status}
+                        onChange={(e) => handleInputChange('status', e.target.value)}
+                        label="Status"
+                    >
+                        {statusOptions.map(status => (
+                            <option key={status.value} value={status.value}>
+                                {status.label}
+                            </option>
+                        ))}
+                    </Select>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
                         onClick={onCancel}
                         disabled={loading}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                     >
                         Cancelar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="submit"
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                        loading={loading}
                     >
-                        {loading ? 'Salvando...' : 'Salvar Período'}
-                    </button>
+                        Salvar Período
+                    </Button>
                 </div>
             </form>
         </div>

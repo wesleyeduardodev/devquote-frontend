@@ -1,14 +1,22 @@
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import clsx from 'clsx';
 
-const TextArea = forwardRef(({
-                                 label,
-                                 error,
-                                 className,
-                                 required,
-                                 rows = 4,
-                                 ...props
-                             }, ref) => {
+interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+    label?: string;
+    error?: string;
+    className?: string;
+    required?: boolean;
+    rows?: number;
+}
+
+const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(({
+                                                                     label,
+                                                                     error,
+                                                                     className,
+                                                                     required,
+                                                                     rows = 4,
+                                                                     ...props
+                                                                 }, ref) => {
     return (
         <div className="w-full">
             {label && (
