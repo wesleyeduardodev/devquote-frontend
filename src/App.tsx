@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './hooks/useAuth';
+import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
+import {Toaster} from 'react-hot-toast';
+import {AuthProvider, useAuth} from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
@@ -24,8 +24,13 @@ import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import NotFound from './pages/NotFound';
 
-const RedirectIfAuthenticated = ({ children }) => {
-    const { isAuthenticated, isLoading } = useAuth();
+interface RedirectIfAuthenticatedProps {
+    children: React.ReactNode;
+}
+
+const RedirectIfAuthenticated: React.FC<RedirectIfAuthenticatedProps> = ({children}) => {
+    const {isAuthenticated, isLoading} = useAuth();
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -36,18 +41,19 @@ const RedirectIfAuthenticated = ({ children }) => {
             </div>
         );
     }
-    if (isAuthenticated) return <Navigate to="/dashboard" replace />;
-    return children;
+
+    if (isAuthenticated) return <Navigate to="/dashboard" replace/>;
+    return <>{children}</>;
 };
 
-const AppRoutes = () => {
+const AppRoutes: React.FC = () => {
     return (
         <Routes>
             <Route
                 path="/login"
                 element={
                     <RedirectIfAuthenticated>
-                        <Login />
+                        <Login/>
                     </RedirectIfAuthenticated>
                 }
             />
@@ -55,39 +61,39 @@ const AppRoutes = () => {
                 <ProtectedRoute>
                     <Layout>
                         <Routes>
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/requesters" element={<RequesterList />} />
-                            <Route path="/requesters/create" element={<RequesterCreate />} />
-                            <Route path="/requesters/:id/edit" element={<RequesterEdit />} />
-                            <Route path="/tasks" element={<TaskList />} />
-                            <Route path="/tasks/create" element={<TaskCreate />} />
-                            <Route path="/tasks/:id/edit" element={<TaskEdit />} />
-                            <Route path="/quotes" element={<QuoteList />} />
-                            <Route path="/quotes/create" element={<QuoteCreate />} />
-                            <Route path="/quotes/:id/edit" element={<QuoteEdit />} />
-                            <Route path="/projects" element={<ProjectList />} />
-                            <Route path="/projects/create" element={<ProjectCreate />} />
-                            <Route path="/projects/:id/edit" element={<ProjectEdit />} />
-                            <Route path="/deliveries" element={<DeliveryList />} />
-                            <Route path="/deliveries/create" element={<DeliveryCreate />} />
-                            <Route path="/deliveries/:id/edit" element={<DeliveryEdit />} />
-                            <Route path="/billing" element={<BillingMonthManagement />} />
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="*" element={<NotFound />} />
+                            <Route path="/dashboard" element={<Dashboard/>}/>
+                            <Route path="/requesters" element={<RequesterList/>}/>
+                            <Route path="/requesters/create" element={<RequesterCreate/>}/>
+                            <Route path="/requesters/:id/edit" element={<RequesterEdit/>}/>
+                            <Route path="/tasks" element={<TaskList/>}/>
+                            <Route path="/tasks/create" element={<TaskCreate/>}/>
+                            <Route path="/tasks/:id/edit" element={<TaskEdit/>}/>
+                            <Route path="/quotes" element={<QuoteList/>}/>
+                            <Route path="/quotes/create" element={<QuoteCreate/>}/>
+                            <Route path="/quotes/:id/edit" element={<QuoteEdit/>}/>
+                            <Route path="/projects" element={<ProjectList/>}/>
+                            <Route path="/projects/create" element={<ProjectCreate/>}/>
+                            <Route path="/projects/:id/edit" element={<ProjectEdit/>}/>
+                            <Route path="/deliveries" element={<DeliveryList/>}/>
+                            <Route path="/deliveries/create" element={<DeliveryCreate/>}/>
+                            <Route path="/deliveries/:id/edit" element={<DeliveryEdit/>}/>
+                            <Route path="/billing" element={<BillingMonthManagement/>}/>
+                            <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+                            <Route path="*" element={<NotFound/>}/>
                         </Routes>
                     </Layout>
                 </ProtectedRoute>
-            } />
+            }/>
         </Routes>
     );
 };
 
-const App = () => {
+const App: React.FC = () => {
     return (
         <Router>
             <AuthProvider>
                 <div className="App">
-                    <AppRoutes />
+                    <AppRoutes/>
                     <Toaster
                         position="top-right"
                         reverseOrder={false}
@@ -95,9 +101,24 @@ const App = () => {
                         containerStyle={{}}
                         toastOptions={{
                             duration: 4000,
-                            style: { background: '#363636', color: '#fff' },
-                            success: { duration: 3000, theme: { primary: '#4ade80', secondary: 'black' } },
-                            error: { duration: 4000, theme: { primary: '#ef4444', secondary: 'black' } },
+                            style: {
+                                background: '#363636',
+                                color: '#fff'
+                            },
+                            success: {
+                                duration: 3000,
+                                style: {
+                                    background: '#4ade80',
+                                    color: '#000'
+                                }
+                            },
+                            error: {
+                                duration: 4000,
+                                style: {
+                                    background: '#ef4444',
+                                    color: '#fff'
+                                }
+                            },
                         }}
                     />
                 </div>
