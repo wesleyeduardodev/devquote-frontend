@@ -1,44 +1,43 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Truck, GitBranch, ExternalLink, Calendar, FileCode } from 'lucide-react';
-import { useDeliveries } from '../../hooks/useDeliveries';
-import { useQuotes } from '../../hooks/useQuotes';
-import { useProjects } from '../../hooks/useProjects';
+import { useDeliveries } from '@/hooks/useDeliveries';
+import { useQuotes } from '@/hooks/useQuotes';
+import { useProjects } from '@/hooks/useProjects';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
-const DeliveryList = () => {
+const DeliveryList: React.FC = () => {
     const { deliveries, loading, deleteDelivery } = useDeliveries();
     const { quotes } = useQuotes();
     const { projects } = useProjects();
-    const [deletingId, setDeletingId] = useState(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         if (window.confirm('Tem certeza que deseja excluir esta entrega?')) {
             try {
                 setDeletingId(id);
                 await deleteDelivery(id);
             } catch (error) {
-                // Error handled by the hook
             } finally {
                 setDeletingId(null);
             }
         }
     };
 
-    const getQuoteName = (quoteId) => {
-        const quote = quotes.find(q => q.id === quoteId);
+    const getQuoteName = (quoteId: number) => {
+        const quote = quotes.find((q: any) => q.id === quoteId);
         return quote?.title || `Orçamento #${quoteId}`;
     };
 
-    const getProjectName = (projectId) => {
-        const project = projects.find(p => p.id === projectId);
+    const getProjectName = (projectId: number) => {
+        const project = projects.find((p: any) => p.id === projectId);
         return project?.name || `Projeto #${projectId}`;
     };
 
-    const getStatusColor = (status) => {
-        const colors = {
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
             PENDING: 'bg-yellow-100 text-yellow-800',
             IN_PROGRESS: 'bg-blue-100 text-blue-800',
             TESTING: 'bg-purple-100 text-purple-800',
@@ -49,8 +48,8 @@ const DeliveryList = () => {
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
 
-    const getStatusLabel = (status) => {
-        const labels = {
+    const getStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
             PENDING: 'Pendente',
             IN_PROGRESS: 'Em Progresso',
             TESTING: 'Em Teste',
@@ -61,12 +60,12 @@ const DeliveryList = () => {
         return labels[status] || status;
     };
 
-    const formatDate = (dateString) => {
+    const formatDate = (dateString: string | undefined) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleString('pt-BR');
     };
 
-    const formatDateShort = (dateString) => {
+    const formatDateShort = (dateString: string | undefined) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleDateString('pt-BR');
     };
@@ -117,7 +116,7 @@ const DeliveryList = () => {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {deliveries.map((delivery) => (
+                    {deliveries.map((delivery: any) => (
                         <Card key={delivery.id} className="hover:shadow-custom-lg transition-shadow">
                             <div className="space-y-4">
                                 {/* Header da Entrega */}

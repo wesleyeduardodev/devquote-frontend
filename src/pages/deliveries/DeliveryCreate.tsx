@@ -1,29 +1,41 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { useDeliveries } from '../../hooks/useDeliveries';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {ArrowLeft} from 'lucide-react';
+import {useDeliveries} from '@/hooks/useDeliveries';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import DeliveryForm from '../../components/forms/DeliveryForm.jsx';
+import DeliveryForm from '../../components/forms/DeliveryForm';
 
-const DeliveryCreate = () => {
+interface DeliveryFormData {
+    quoteId: number;
+    projectId: number;
+    status: string;
+    branch?: string;
+    pullRequest?: string;
+    script?: string;
+    startedAt?: string;
+    finishedAt?: string;
+    notes?: string;
+}
+
+const DeliveryCreate: React.FC = () => {
     const navigate = useNavigate();
-    const { createDelivery } = useDeliveries();
-    const [loading, setLoading] = useState(false);
+    const {createDelivery} = useDeliveries();
+    const [loading, setLoading] = useState<boolean>(false);
 
-    const handleSubmit = async (data) => {
+    const handleSubmit = async (data: DeliveryFormData): Promise<void> => {
         try {
             setLoading(true);
             await createDelivery(data);
             navigate('/deliveries');
         } catch (error) {
-            // Error handled by the hook and form
+            console.error('Error creating delivery:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCancel = () => {
+    const handleCancel = (): void => {
         navigate('/deliveries');
     };
 
@@ -36,7 +48,7 @@ const DeliveryCreate = () => {
                     onClick={handleCancel}
                     className="flex items-center"
                 >
-                    <ArrowLeft className="w-4 h-4 mr-1" />
+                    <ArrowLeft className="w-4 h-4 mr-1"/>
                     Voltar
                 </Button>
             </div>
