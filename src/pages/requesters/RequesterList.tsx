@@ -1,33 +1,21 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, User, Mail, Phone } from 'lucide-react';
-import { useRequesters } from '@/hooks/useRequesters';
+import React, {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {Plus, Edit, Trash2, User, Mail, Phone} from 'lucide-react';
+import {useRequesters} from '@/hooks/useRequesters';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
-interface Requester {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    createdAt: string;
-    updatedAt: string;
-}
+const RequesterList = () => {
+    const {requesters = [], loading = true, deleteRequester} = useRequesters();
+    const [deletingId, setDeletingId] = useState(null);
 
-const RequesterList: React.FC = () => {
-    const { requesters, loading, deleteRequester } = useRequesters();
-    const [deletingId, setDeletingId] = useState<string | null>(null);
-
-    const handleDelete = async (id: string): Promise<void> => {
-        const confirmed = window.confirm('Tem certeza que deseja excluir este solicitante?');
-
-        if (confirmed) {
+    const handleDelete = async (id: any) => {
+        if (window.confirm('Tem certeza que deseja excluir este solicitante?')) {
             try {
                 setDeletingId(id);
                 await deleteRequester(id);
             } catch (error) {
-                // Error handled by the hook
                 console.error('Erro ao excluir solicitante:', error);
             } finally {
                 setDeletingId(null);
@@ -35,20 +23,20 @@ const RequesterList: React.FC = () => {
         }
     };
 
-    const formatDate = (dateString: string): string => {
+    const formatDate = (dateString: any) => {
         return new Date(dateString).toLocaleString('pt-BR');
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="lg" />
+                <LoadingSpinner size="lg"/>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="p-6 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
@@ -61,7 +49,7 @@ const RequesterList: React.FC = () => {
 
                 <Link to="/requesters/create">
                     <Button className="flex items-center">
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="w-4 h-4 mr-2"/>
                         Novo Solicitante
                     </Button>
                 </Link>
@@ -69,7 +57,7 @@ const RequesterList: React.FC = () => {
 
             {requesters.length === 0 ? (
                 <Card className="text-center py-12">
-                    <User className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <User className="w-16 h-16 mx-auto text-gray-400 mb-4"/>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
                         Nenhum solicitante encontrado
                     </h3>
@@ -78,14 +66,14 @@ const RequesterList: React.FC = () => {
                     </p>
                     <Link to="/requesters/create">
                         <Button>
-                            <Plus className="w-4 h-4 mr-2" />
+                            <Plus className="w-4 h-4 mr-2"/>
                             Criar Primeiro Solicitante
                         </Button>
                     </Link>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {requesters.map((requester: Requester) => (
+                    {requesters.map((requester) => (
                         <Card
                             key={requester.id}
                             className="hover:shadow-custom-lg transition-shadow duration-200"
@@ -100,14 +88,14 @@ const RequesterList: React.FC = () => {
                                         <div className="space-y-2">
                                             {requester.email && (
                                                 <div className="flex items-center text-sm text-gray-600">
-                                                    <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                    <Mail className="w-4 h-4 mr-2 flex-shrink-0"/>
                                                     <span className="truncate">{requester.email}</span>
                                                 </div>
                                             )}
 
                                             {requester.phone && (
                                                 <div className="flex items-center text-sm text-gray-600">
-                                                    <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                    <Phone className="w-4 h-4 mr-2 flex-shrink-0"/>
                                                     <span>{requester.phone}</span>
                                                 </div>
                                             )}
@@ -127,7 +115,7 @@ const RequesterList: React.FC = () => {
                                 <div className="flex items-center justify-end space-x-2 pt-2 border-t">
                                     <Link to={`/requesters/${requester.id}/edit`}>
                                         <Button size="sm" variant="outline">
-                                            <Edit className="w-4 h-4 mr-1" />
+                                            <Edit className="w-4 h-4 mr-1"/>
                                             Editar
                                         </Button>
                                     </Link>
@@ -139,7 +127,7 @@ const RequesterList: React.FC = () => {
                                         loading={deletingId === requester.id}
                                         disabled={deletingId === requester.id}
                                     >
-                                        <Trash2 className="w-4 h-4 mr-1" />
+                                        <Trash2 className="w-4 h-4 mr-1"/>
                                         Excluir
                                     </Button>
                                 </div>
