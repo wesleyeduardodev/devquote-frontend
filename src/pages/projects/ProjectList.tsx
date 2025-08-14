@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, FolderGit2 } from 'lucide-react';
 import useProjects from '../../hooks/useProjects';
@@ -6,11 +6,11 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
-const ProjectList = () => {
+const ProjectList: React.FC = () => {
     const { projects, loading, deleteProject } = useProjects();
-    const [deletingId, setDeletingId] = useState(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: number) => {
         if (window.confirm('Tem certeza que deseja excluir este projeto?')) {
             try {
                 setDeletingId(id);
@@ -21,7 +21,10 @@ const ProjectList = () => {
         }
     };
 
-    const formatDate = (date) => new Date(date).toLocaleString('pt-BR');
+    const formatDate = (date: string | undefined) => {
+        if (!date) return '-';
+        return new Date(date).toLocaleString('pt-BR');
+    };
 
     if (loading) {
         return (
@@ -64,7 +67,7 @@ const ProjectList = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {projects.map((project) => (
+                    {projects.map((project: any) => (
                         <Card key={project.id}>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-start">
