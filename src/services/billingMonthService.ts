@@ -1,63 +1,61 @@
 import api from './api';
 
 const billingMonthService = {
-  // ------- QuoteBillingMonth -------
-  findAll: async () => {
-    const res = await api.get('/quote-billing-months');
-    return res.data;
-  },
 
-  findById: async (id) => {
-    const res = await api.get(`/quote-billing-months/${id}`);
-    return res.data;
-  },
+    findAll: async (): Promise<any> => {
+        const res = await api.get('/quote-billing-months');
+        return res.data;
+    },
 
-  create: async (data) => {
-    const res = await api.post('/quote-billing-months', data);
-    return res.data;
-  },
+    findById: async (id: any): Promise<any> => {
+        const res = await api.get(`/quote-billing-months/${id}`);
+        return res.data;
+    },
 
-  update: async (id, data) => {
-    const res = await api.put(`/quote-billing-months/${id}`, data);
-    return res.data;
-  },
+    create: async (data: any): Promise<any> => {
+        const res = await api.post('/quote-billing-months', data);
+        return res.data;
+    },
 
-  delete: async (id) => {
-    await api.delete(`/quote-billing-months/${id}`);
-    return true;
-  },
+    update: async (id: any, data: any): Promise<any> => {
+        const res = await api.put(`/quote-billing-months/${id}`, data);
+        return res.data;
+    },
 
-  // ------- QuoteBillingMonthQuote (vínculos) -------
-  findAllQuoteLinks: async () => {
-    const res = await api.get('/quote-billing-month-quotes');
-    return res.data;
-  },
+    delete: async (id: any): Promise<boolean> => {
+        await api.delete(`/quote-billing-months/${id}`);
+        return true;
+    },
 
-  findQuoteLinkById: async (id) => {
-    const res = await api.get(`/quote-billing-month-quotes/${id}`);
-    return res.data;
-  },
+    findAllQuoteLinks: async (): Promise<any> => {
+        const res = await api.get('/quote-billing-month-quotes');
+        return res.data;
+    },
 
-  createQuoteLink: async (data) => {
-    const res = await api.post('/quote-billing-month-quotes', data);
-    return res.data;
-  },
+    findQuoteLinkById: async (id: any): Promise<any> => {
+        const res = await api.get(`/quote-billing-month-quotes/${id}`);
+        return res.data;
+    },
 
-  updateQuoteLink: async (id, data) => {
-    const res = await api.put(`/quote-billing-month-quotes/${id}`, data);
-    return res.data;
-  },
+    createQuoteLink: async (data: any): Promise<any> => {
+        const res = await api.post('/quote-billing-month-quotes', data);
+        return res.data;
+    },
 
-  deleteQuoteLink: async (id) => {
-    await api.delete(`/quote-billing-month-quotes/${id}`);
-    return true;
-  },
+    updateQuoteLink: async (id: any, data: any): Promise<any> => {
+        const res = await api.put(`/quote-billing-month-quotes/${id}`, data);
+        return res.data;
+    },
 
-  // ✅ OTIMIZADO: Usa a nova rota específica do backend
-  findQuoteLinksByBillingMonth: async (billingMonthId) => {
-    const res = await api.get(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}`);
-    return res.data;
-  }
+    deleteQuoteLink: async (id: any): Promise<boolean> => {
+        await api.delete(`/quote-billing-month-quotes/${id}`);
+        return true;
+    },
+
+    findQuoteLinksByBillingMonth: async (billingMonthId: any): Promise<any> => {
+        const res = await api.get(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}`);
+        return res.data;
+    }
 };
 
 export default billingMonthService;
