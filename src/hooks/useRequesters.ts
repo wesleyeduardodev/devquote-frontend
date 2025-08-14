@@ -1,77 +1,104 @@
-import { useState, useEffect } from 'react';
-import { requesterService } from '../services/requesterService';
+import {useState, useEffect, useCallback} from 'react';
+import {requesterService} from '@/services/requesterService';
 import toast from 'react-hot-toast';
 
-export const useRequesters = () => {
-  const [requesters, setRequesters] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+interface Requester {
+    id: number;
+    name: string;
+    email?: string;
+    phone?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
-  const fetchRequesters = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await requesterService.getAll();
-      setRequesters(data);
-    } catch (err) {
-      setError(err.message);
-      console.error('Erro ao buscar solicitantes:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+interface RequesterCreate {
+    name: string;
+    email?: string;
+    phone?: string;
+}
 
-  const createRequester = async (requesterData) => {
-    try {
-      const newRequester = await requesterService.create(requesterData);
-      setRequesters(prev => [...prev, newRequester]);
-      toast.success('Solicitante criado com sucesso!');
-      return newRequester;
-    } catch (err) {
-      console.error('Erro ao criar solicitante:', err);
-      throw err;
-    }
-  };
+interface RequesterUpdate extends Partial<RequesterCreate> {
+    id?: number;
+}
 
-  const updateRequester = async (id, requesterData) => {
-    try {
-      const updatedRequester = await requesterService.update(id, requesterData);
-      setRequesters(prev => 
-        prev.map(req => req.id === id ? updatedRequester : req)
-      );
-      toast.success('Solicitante atualizado com sucesso!');
-      return updatedRequester;
-    } catch (err) {
-      console.error('Erro ao atualizar solicitante:', err);
-      throw err;
-    }
-  };
+interface UseRequestersReturn {
+    requesters: Requester[];
+    loading: boolean;
+    error: string | null;
+    fetchRequesters: () => Promise<void>;
+    createRequester: (requesterData: RequesterCreate) => Promise<Requester>;
+    updateRequester: (id: number, requesterData: RequesterUpdate) => Promise<Requester>;
+    deleteRequester: (id: number) => Promise<void>;
+}
 
-  const deleteRequester = async (id) => {
-    try {
-      await requesterService.delete(id);
-      setRequesters(prev => prev.filter(req => req.id !== id));
-      toast.success('Solicitante excluído com sucesso!');
-    } catch (err) {
-      console.error('Erro ao excluir solicitante:', err);
-      throw err;
-    }
-  };
+export const useRequesters = (): UseRequestersReturn => {
+    const [requesters, setRequesters] = useState<Requester[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRequesters();
-  }, []);
+    const fetchRequesters = useCallback(async (): Promise<void> => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await requesterService.getAll();
+            setRequesters(data);
+        } catch (err: any) {
+            const errorMessage = err.message || 'Erro ao buscar solicitantes';
+            setError(errorMessage);
+            console.error('Erro ao buscar solicitantes:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-  return {
-    requesters,
-    loading,
-    error,
-    fetchRequesters,
-    createRequester,
-    updateRequester,
-    deleteRequester,
-  };
+    const createRequester = useCallback(async (requesterData: RequesterCreate): Promise<Requester> => {
+        try {
+            const newRequester = await requesterService.create(requesterData);
+            setRequesters(prev => [...prev, newRequester]);
+            toast.success('Solicitante criado com sucesso!');
+            return newRequester;
+        } catch (err: any) {
+            console.error('Erro ao criar solicitante:', err);
+            throw err;
+        }
+    }, []);
+
+    const updateRequester = useCallback(async (id: number, requesterData: RequesterUpdate): Promise<Requester> => {
+        try {
+            const updatedRequester = await requesterService.update(id, requesterData);
+            setRequesters(prev =>
+                prev.map(req => req.id === id ? updatedRequester : req)
+            );
+            toast.success('Solicitante atualizado com sucesso!');
+            return updatedRequester;
+        } catch (err: any) {
+            console.error('Erro ao atualizar solicitante:', err);
+            throw err;
+        }
+    }, []);
+
+    const deleteRequester = useCallback(async (id: number): Promise<void> => {
+        try {
+            await requesterService.delete(id);
+            setRequesters(prev => prev.filter(req => req.id !== id));
+            toast.success('Solicitante excluído com sucesso!');
+        } catch (err: any) {
+            console.error('Erro ao excluir solicitante:', err);
+            throw err;
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchRequesters();
+    }, [fetchRequesters]);
+
+    return {
+        requesters,
+        loading,
+        error,
+        fetchRequesters,
+        createRequester,
+        updateRequester,
+        deleteRequester,
+    };
 };
-
-// Export default também para compatibilidade
-export default useRequesters;
