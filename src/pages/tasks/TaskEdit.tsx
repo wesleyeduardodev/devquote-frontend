@@ -88,7 +88,15 @@ const TaskEdit = () => {
             </div>
 
             <Card
-                title="Editar Tarefa"
+                title={
+                    <div className="flex items-center gap-2">
+                        <span>Editar Tarefa</span>
+                        <span
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                            #{(task as any)?.id}
+                        </span>
+                    </div>
+                }
                 subtitle={`Atualize as informações da tarefa: ${(task as any)?.title || 'Carregando...'}`}
             >
                 <TaskForm

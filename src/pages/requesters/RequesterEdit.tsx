@@ -138,11 +138,19 @@ const RequesterEdit: React.FC = () => {
                 </Button>
             </div>
 
-            {/* Card */}
             <Card
-                title="Editar Solicitante"
+                title={
+                    <div className="flex items-center gap-2">
+                        <span>Editar Solicitante</span>
+                        <span
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                #{requester.id}
+                         </span>
+                    </div>
+                }
                 subtitle={`Atualize as informações de ${requester.name}`}
             >
+
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Nome */}

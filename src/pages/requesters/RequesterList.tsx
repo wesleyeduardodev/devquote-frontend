@@ -101,11 +101,16 @@ const RequesterList = () => {
                                             )}
                                         </div>
                                     </div>
+                                    <div className="ml-4">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                            #{requester.id}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div className="text-xs text-gray-500 border-t pt-3">
                                     <div>Criado em: {formatDate(requester.createdAt)}</div>
-                                    {requester.updatedAt !== requester.createdAt && (
+                                    {requester.updatedAt && requester.updatedAt !== requester.createdAt && (
                                         <div className="mt-1">
                                             Atualizado em: {formatDate(requester.updatedAt)}
                                         </div>

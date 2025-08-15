@@ -192,8 +192,13 @@ const QuoteEdit: React.FC = () => {
             {/* Card */}
             <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Editar Orçamento</h1>
-                    <p className="text-gray-600 mt-1">Orçamento #{quote.id}</p>
+                    <div className="flex items-center gap-2 mb-2">
+                        <h1 className="text-2xl font-bold text-gray-900">Editar Orçamento</h1>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                            #{quote.id}
+                        </span>
+                    </div>
+                    <p className="text-gray-600">Atualize as informações do orçamento</p>
                 </div>
 
                 {/* Form */}

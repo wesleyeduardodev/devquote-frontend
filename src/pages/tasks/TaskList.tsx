@@ -118,13 +118,16 @@ const TaskList = () => {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {task.code}
-                      </span>
+                                            <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                                {task.code}
+                                            </span>
                                             <span
                                                 className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
-                        {getStatusLabel(task.status)}
-                      </span>
+                                                {getStatusLabel(task.status)}
+                                            </span>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                #{task.id}
+                                            </span>
                                         </div>
                                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
                                             {task.title}
@@ -178,16 +181,18 @@ const TaskList = () => {
                                             {task.subTasks.slice(0, 3).map((subTask: any, index: number) => (
                                                 <div key={subTask.id || index}
                                                      className="flex items-center justify-between text-xs">
-                          <span className="text-gray-600 truncate flex-1 mr-2">
-                            {subTask.title}
-                          </span>
+
+                                                    <span className="text-gray-600 truncate flex-1 mr-2">
+                                                        {subTask.title}
+                                                    </span>
+
                                                     <div className="flex items-center space-x-2">
-                            <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(subTask.status)}`}>
-                              {getStatusLabel(subTask.status)}
-                            </span>
+                                                        <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(subTask.status)}`}>
+                                                            {getStatusLabel(subTask.status)}
+                                                        </span>
                                                         <span className="text-gray-900 font-medium">
-                              {formatCurrency(subTask.amount)}
-                            </span>
+                                                            {formatCurrency(subTask.amount)}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -203,7 +208,7 @@ const TaskList = () => {
                                 {/* Data de criação */}
                                 <div className="text-xs text-gray-500 border-t pt-3">
                                     <div>Criada em: {formatDate(task.createdAt)}</div>
-                                    {task.updatedAt !== task.createdAt && (
+                                    {task.updatedAt && task.updatedAt !== task.createdAt && (
                                         <div className="mt-1">
                                             Atualizada em: {formatDate(task.updatedAt)}
                                         </div>

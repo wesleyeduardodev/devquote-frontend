@@ -65,8 +65,8 @@ const QuoteList: React.FC = () => {
 
         return (
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${config.bg} ${config.text}`}>
-        {config.label}
-      </span>
+                {config.label}
+            </span>
         );
     };
 
@@ -139,9 +139,14 @@ const QuoteList: React.FC = () => {
                                 {/* Header do Card */}
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                            Orçamento #{quote.id}
-                                        </h3>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <h3 className="text-lg font-semibold text-gray-900">
+                                                Orçamento
+                                            </h3>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                #{quote.id}
+                                            </span>
+                                        </div>
 
                                         <div className="space-y-2">
                                             <div className="flex items-center text-sm text-gray-600">
@@ -152,8 +157,8 @@ const QuoteList: React.FC = () => {
                                             <div className="flex items-center text-sm text-gray-600">
                                                 <DollarSign className="w-4 h-4 mr-2 flex-shrink-0"/>
                                                 <span className="font-semibold text-green-600">
-                          {formatCurrency(quote.totalAmount)}
-                        </span>
+                                                    {formatCurrency(quote.totalAmount)}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -169,7 +174,7 @@ const QuoteList: React.FC = () => {
                                         <Calendar className="w-3 h-3 mr-1"/>
                                         Criado: {formatDate(quote.createdAt)}
                                     </div>
-                                    {quote.updatedAt !== quote.createdAt && (
+                                    {quote.updatedAt && quote.updatedAt !== quote.createdAt && (
                                         <div className="flex items-center">
                                             <Calendar className="w-3 h-3 mr-1"/>
                                             Atualizado: {formatDate(quote.updatedAt)}

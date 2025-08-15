@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Truck, GitBranch, ExternalLink, Calendar, FileCode } from 'lucide-react';
-import { useDeliveries } from '@/hooks/useDeliveries';
-import { useQuotes } from '@/hooks/useQuotes';
-import { useProjects } from '@/hooks/useProjects';
+import React, {useState} from 'react';
+import {Link} from 'react-router-dom';
+import {Plus, Edit, Trash2, Truck, GitBranch, ExternalLink, Calendar, FileCode} from 'lucide-react';
+import {useDeliveries} from '@/hooks/useDeliveries';
+import {useQuotes} from '@/hooks/useQuotes';
+import {useProjects} from '@/hooks/useProjects';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const DeliveryList: React.FC = () => {
-    const { deliveries, loading, deleteDelivery } = useDeliveries();
-    const { quotes } = useQuotes();
-    const { projects } = useProjects();
+    const {deliveries, loading, deleteDelivery} = useDeliveries();
+    const {quotes} = useQuotes();
+    const {projects} = useProjects();
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const handleDelete = async (id: number) => {
@@ -73,7 +73,7 @@ const DeliveryList: React.FC = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="lg" />
+                <LoadingSpinner size="lg"/>
             </div>
         );
     }
@@ -92,7 +92,7 @@ const DeliveryList: React.FC = () => {
 
                 <Link to="/deliveries/create">
                     <Button className="flex items-center">
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="w-4 h-4 mr-2"/>
                         Nova Entrega
                     </Button>
                 </Link>
@@ -100,7 +100,7 @@ const DeliveryList: React.FC = () => {
 
             {deliveries.length === 0 ? (
                 <Card className="text-center py-12">
-                    <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4"/>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
                         Nenhuma entrega encontrada
                     </h3>
@@ -109,7 +109,7 @@ const DeliveryList: React.FC = () => {
                     </p>
                     <Link to="/deliveries/create">
                         <Button>
-                            <Plus className="w-4 h-4 mr-2" />
+                            <Plus className="w-4 h-4 mr-2"/>
                             Criar Primeira Entrega
                         </Button>
                     </Link>
@@ -123,12 +123,18 @@ const DeliveryList: React.FC = () => {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-2 mb-2">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
+                                            <span
+                                                className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
                                                 {getStatusLabel(delivery.status)}
                                             </span>
+                                            <span
+                                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                #{delivery.id}
+                                            </span>
                                             {delivery.branch && (
-                                                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
-                                                    <GitBranch className="w-3 h-3 inline mr-1" />
+                                                <span
+                                                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
+                                                    <GitBranch className="w-3 h-3 inline mr-1"/>
                                                     {delivery.branch}
                                                 </span>
                                             )}
@@ -146,7 +152,7 @@ const DeliveryList: React.FC = () => {
                                 <div className="space-y-2">
                                     {delivery.pullRequest && (
                                         <div className="flex items-center text-sm text-gray-600">
-                                            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+                                            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0"/>
                                             <a
                                                 href={delivery.pullRequest}
                                                 target="_blank"
@@ -160,7 +166,7 @@ const DeliveryList: React.FC = () => {
 
                                     {delivery.script && (
                                         <div className="flex items-center text-sm text-gray-600">
-                                            <FileCode className="w-4 h-4 mr-2 flex-shrink-0" />
+                                            <FileCode className="w-4 h-4 mr-2 flex-shrink-0"/>
                                             <span className="truncate">
                                                 Script SQL incluído ({delivery.script.length} caracteres)
                                             </span>
@@ -169,7 +175,7 @@ const DeliveryList: React.FC = () => {
 
                                     {(delivery.startedAt || delivery.finishedAt) && (
                                         <div className="flex items-center text-sm text-gray-600">
-                                            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                                            <Calendar className="w-4 h-4 mr-2 flex-shrink-0"/>
                                             <div className="flex-1">
                                                 {delivery.startedAt && (
                                                     <div>Iniciado: {formatDateShort(delivery.startedAt)}</div>
@@ -197,10 +203,9 @@ const DeliveryList: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Data de criação */}
                                 <div className="text-xs text-gray-500 border-t pt-3">
                                     <div>Criada em: {formatDate(delivery.createdAt)}</div>
-                                    {delivery.updatedAt !== delivery.createdAt && (
+                                    {delivery.updatedAt && delivery.updatedAt !== delivery.createdAt && (
                                         <div className="mt-1">
                                             Atualizada em: {formatDate(delivery.updatedAt)}
                                         </div>
@@ -211,7 +216,7 @@ const DeliveryList: React.FC = () => {
                                 <div className="flex items-center justify-end space-x-2 pt-2 border-t">
                                     <Link to={`/deliveries/${delivery.id}/edit`}>
                                         <Button size="sm" variant="outline">
-                                            <Edit className="w-4 h-4 mr-1" />
+                                            <Edit className="w-4 h-4 mr-1"/>
                                             Editar
                                         </Button>
                                     </Link>
@@ -223,7 +228,7 @@ const DeliveryList: React.FC = () => {
                                         loading={deletingId === delivery.id}
                                         disabled={deletingId === delivery.id}
                                     >
-                                        <Trash2 className="w-4 h-4 mr-1" />
+                                        <Trash2 className="w-4 h-4 mr-1"/>
                                         Excluir
                                     </Button>
                                 </div>

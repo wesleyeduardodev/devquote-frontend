@@ -59,7 +59,18 @@ const ProjectEdit: React.FC = () => {
                 </Button>
             </div>
 
-            <Card title="Editar Projeto" subtitle={`Atualize os dados do projeto "${project.name}"`}>
+            <Card
+                title={
+                    <div className="flex items-center gap-2">
+                        <span>Editar Projeto</span>
+                        <span
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                            #{project.id}
+                        </span>
+                    </div>
+                }
+                subtitle={`Atualize os dados do projeto "${project.name}"`}
+            >
                 <ProjectForm initialData={project} onSubmit={handleSubmit} loading={loading}/>
             </Card>
         </div>

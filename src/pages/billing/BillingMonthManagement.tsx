@@ -509,6 +509,7 @@ const BillingMonthManagement: React.FC = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                             <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mês/Ano</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pagamento</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -521,6 +522,12 @@ const BillingMonthManagement: React.FC = () => {
                             <tbody className="bg-white divide-y divide-gray-100">
                             {billingMonths.map((bm) => (
                                 <tr key={bm.id}>
+                                    <td className="px-6 py-3 whitespace-nowrap">
+                                        <span
+                                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                            #{bm.id}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-3 whitespace-nowrap">{monthLabel(bm.month)} / {bm.year}</td>
                                     <td className="px-6 py-3 whitespace-nowrap">{fmtDate(bm.paymentDate ?? null)}</td>
                                     <td className="px-6 py-3 whitespace-nowrap">
@@ -573,9 +580,15 @@ const BillingMonthManagement: React.FC = () => {
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
                         <div className="p-6 border-b flex items-center justify-between">
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Faturamento: {monthLabel(selectedBilling.month)} / {selectedBilling.year}
-                                </h3>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        Faturamento: {monthLabel(selectedBilling.month)} / {selectedBilling.year}
+                                    </h3>
+                                    <span
+                                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                        #{selectedBilling.id}
+                                    </span>
+                                </div>
                                 <p className="text-sm text-gray-600">Gerencie os orçamentos deste período</p>
                             </div>
                             <button
@@ -659,7 +672,14 @@ const BillingMonthManagement: React.FC = () => {
                                                         <FileText className="w-5 h-5 text-blue-600"/>
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">Orçamento #{q.id}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-medium text-gray-900">Orçamento
+                                                                #{q.id}</p>
+                                                            <span
+                                                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                                                Link #{q.linkId}
+                                                            </span>
+                                                        </div>
                                                         <p className="text-sm text-gray-600">Valor: {fmtMoney(q.totalAmount)}</p>
                                                     </div>
                                                 </div>
