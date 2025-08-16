@@ -2,15 +2,34 @@ import React, {useState} from 'react';
 import {Link} from 'react-router-dom';
 import {Plus, Edit, Trash2, User, Mail, Phone} from 'lucide-react';
 import {useRequesters} from '@/hooks/useRequesters';
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import DataTable, {Column} from '../../components/ui/DataTable';
+
+interface Requester {
+    id: number;
+    name: string;
+    email?: string;
+    phone?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
 const RequesterList = () => {
-    const {requesters = [], loading = true, deleteRequester} = useRequesters();
-    const [deletingId, setDeletingId] = useState(null);
+    const {
+        requesters,
+        pagination,
+        loading,
+        error,
+        sorting,
+        deleteRequester,
+        setPage,
+        setPageSize,
+        setSorting
+    } = useRequesters();
 
-    const handleDelete = async (id: any) => {
+    const [deletingId, setDeletingId] = useState<number | null>(null);
+
+    const handleDelete = async (id: number) => {
         if (window.confirm('Tem certeza que deseja excluir este solicitante?')) {
             try {
                 setDeletingId(id);
@@ -23,14 +42,136 @@ const RequesterList = () => {
         }
     };
 
-    const formatDate = (dateString: any) => {
-        return new Date(dateString).toLocaleString('pt-BR');
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('pt-BR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
-    if (loading) {
+    const columns: Column<Requester>[] = [
+        {
+            key: 'id',
+            title: 'ID',
+            sortable: true,
+            width: '80px',
+            align: 'center',
+            render: (item) => (
+                <span
+                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                    #{item.id}
+                </span>
+            )
+        },
+        {
+            key: 'name',
+            title: 'Nome',
+            sortable: true,
+            render: (item) => (
+                <div className="flex items-center">
+                    <User className="w-4 h-4 text-gray-400 mr-2"/>
+                    <span className="font-medium text-gray-900">{item.name}</span>
+                </div>
+            )
+        },
+        {
+            key: 'email',
+            title: 'Email',
+            sortable: true,
+            render: (item) => item.email ? (
+                <div className="flex items-center text-gray-600">
+                    <Mail className="w-4 h-4 mr-2 flex-shrink-0"/>
+                    <span className="truncate">{item.email}</span>
+                </div>
+            ) : (
+                <span className="text-gray-400">-</span>
+            )
+        },
+        {
+            key: 'phone',
+            title: 'Telefone',
+            sortable: true,
+            render: (item) => item.phone ? (
+                <div className="flex items-center text-gray-600">
+                    <Phone className="w-4 h-4 mr-2 flex-shrink-0"/>
+                    <span>{item.phone}</span>
+                </div>
+            ) : (
+                <span className="text-gray-400">-</span>
+            )
+        },
+        {
+            key: 'createdAt',
+            title: 'Criado em',
+            sortable: true,
+            width: '180px',
+            render: (item) => (
+                <span className="text-sm text-gray-500">
+                    {formatDate(item.createdAt)}
+                </span>
+            )
+        },
+        {
+            key: 'updatedAt',
+            title: 'Atualizado em',
+            sortable: true,
+            width: '180px',
+            render: (item) => (
+                <span className="text-sm text-gray-500">
+                    {formatDate(item.updatedAt)}
+                </span>
+            )
+        },
+        {
+            key: 'actions',
+            title: 'Ações',
+            width: '150px',
+            align: 'center',
+            render: (item) => (
+                <div className="flex items-center justify-center space-x-2">
+                    <Link to={`/requesters/${item.id}/edit`}>
+                        <Button size="sm" variant="outline">
+                            <Edit className="w-4 h-4"/>
+                        </Button>
+                    </Link>
+                    <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleDelete(item.id)}
+                        loading={deletingId === item.id}
+                        disabled={deletingId === item.id}
+                    >
+                        <Trash2 className="w-4 h-4"/>
+                    </Button>
+                </div>
+            )
+        }
+    ];
+
+    const handlePageChange = (page: number) => {
+        setPage(page);
+    };
+
+    const handlePageSizeChange = (pageSize: number) => {
+        setPageSize(pageSize);
+    };
+
+    const handleSort = (field: string, direction: 'asc' | 'desc') => {
+        setSorting(field, direction);
+    };
+
+    if (error) {
         return (
-            <div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="lg"/>
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="text-red-800">
+                        <strong>Erro:</strong> {error}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -55,92 +196,18 @@ const RequesterList = () => {
                 </Link>
             </div>
 
-            {requesters.length === 0 ? (
-                <Card className="text-center py-12">
-                    <User className="w-16 h-16 mx-auto text-gray-400 mb-4"/>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Nenhum solicitante encontrado
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                        Comece criando seu primeiro solicitante para o sistema de orçamento.
-                    </p>
-                    <Link to="/requesters/create">
-                        <Button>
-                            <Plus className="w-4 h-4 mr-2"/>
-                            Criar Primeiro Solicitante
-                        </Button>
-                    </Link>
-                </Card>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {requesters.map((requester) => (
-                        <Card
-                            key={requester.id}
-                            className="hover:shadow-custom-lg transition-shadow duration-200"
-                        >
-                            <div className="space-y-4">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                            {requester.name}
-                                        </h3>
-
-                                        <div className="space-y-2">
-                                            {requester.email && (
-                                                <div className="flex items-center text-sm text-gray-600">
-                                                    <Mail className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                                    <span className="truncate">{requester.email}</span>
-                                                </div>
-                                            )}
-
-                                            {requester.phone && (
-                                                <div className="flex items-center text-sm text-gray-600">
-                                                    <Phone className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                                    <span>{requester.phone}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="ml-4">
-                                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                            #{requester.id}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="text-xs text-gray-500 border-t pt-3">
-                                    <div>Criado em: {formatDate(requester.createdAt)}</div>
-                                    {requester.updatedAt && requester.updatedAt !== requester.createdAt && (
-                                        <div className="mt-1">
-                                            Atualizado em: {formatDate(requester.updatedAt)}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center justify-end space-x-2 pt-2 border-t">
-                                    <Link to={`/requesters/${requester.id}/edit`}>
-                                        <Button size="sm" variant="outline">
-                                            <Edit className="w-4 h-4 mr-1"/>
-                                            Editar
-                                        </Button>
-                                    </Link>
-
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => handleDelete(requester.id)}
-                                        loading={deletingId === requester.id}
-                                        disabled={deletingId === requester.id}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-1"/>
-                                        Excluir
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            )}
+            <DataTable
+                data={requesters}
+                columns={columns}
+                loading={loading}
+                pagination={pagination}
+                sorting={sorting}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                onSort={handleSort}
+                emptyMessage="Nenhum solicitante encontrado. Comece criando seu primeiro solicitante para o sistema de orçamento."
+                className="shadow-lg"
+            />
         </div>
     );
 };
