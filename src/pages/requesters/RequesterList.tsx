@@ -1,9 +1,11 @@
-import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
-import {Plus, Edit, Trash2, User, Mail, Phone} from 'lucide-react';
-import {useRequesters} from '@/hooks/useRequesters';
-import Button from '../../components/ui/Button';
-import DataTable, { Column } from '../../components/ui/DataTable';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useRequesters } from '@/hooks/useRequesters';
+import DataTable, { Column } from '@/components/ui/DataTable';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import toast from 'react-hot-toast';
 
 interface Requester {
     id: number;
@@ -14,41 +16,43 @@ interface Requester {
     updatedAt?: string;
 }
 
-const RequesterList = () => {
+const RequesterList: React.FC = () => {
+    const navigate = useNavigate();
     const {
         requesters,
         pagination,
         loading,
-        error,
         sorting,
-        deleteRequester,
+        filters,
         setPage,
         setPageSize,
-        setSorting
+        setSorting,
+        setFilter,
+        clearFilters,
+        deleteRequester
     } = useRequesters();
 
-    const [deletingId, setDeletingId] = useState<number | null>(null);
-    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['updatedAt']); // Oculta coluna "Atualizado em" por padrão
+    const handleEdit = (id: number) => {
+        navigate(`/requesters/${id}/edit`);
+    };
 
     const handleDelete = async (id: number) => {
         if (window.confirm('Tem certeza que deseja excluir este solicitante?')) {
             try {
-                setDeletingId(id);
                 await deleteRequester(id);
             } catch (error) {
-                console.error('Erro ao excluir solicitante:', error);
-            } finally {
-                setDeletingId(null);
+                toast.error('Erro ao excluir solicitante');
             }
         }
     };
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('pt-BR', {
-            year: 'numeric',
-            month: '2-digit',
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', {
             day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -59,9 +63,10 @@ const RequesterList = () => {
             key: 'id',
             title: 'ID',
             sortable: true,
+            filterable: true,
+            filterType: 'number',
             width: '80px',
             align: 'center',
-            hideable: false, // ID sempre visível
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                     #{item.id}
@@ -72,11 +77,11 @@ const RequesterList = () => {
             key: 'name',
             title: 'Nome',
             sortable: true,
-            hideable: false, // Nome sempre visível
+            filterable: true,
+            filterType: 'text',
             render: (item) => (
-                <div className="flex items-center">
-                    <User className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="font-medium text-gray-900">{item.name}</span>
+                <div>
+                    <p className="font-medium text-gray-900">{item.name}</p>
                 </div>
             )
         },
@@ -84,73 +89,64 @@ const RequesterList = () => {
             key: 'email',
             title: 'Email',
             sortable: true,
-            hideable: true, // Pode ser ocultado
-            render: (item) => item.email ? (
-                <div className="flex items-center text-gray-600">
-                    <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{item.email}</span>
-                </div>
-            ) : (
-                <span className="text-gray-400">-</span>
+            filterable: true,
+            filterType: 'text',
+            render: (item) => (
+                <a
+                    href={`mailto:${item.email}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {item.email || '-'}
+                </a>
             )
         },
         {
             key: 'phone',
             title: 'Telefone',
             sortable: true,
-            hideable: true, // Pode ser ocultado
-            render: (item) => item.phone ? (
-                <div className="flex items-center text-gray-600">
-                    <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span>{item.phone}</span>
-                </div>
-            ) : (
-                <span className="text-gray-400">-</span>
-            )
+            filterable: true,
+            filterType: 'text',
+            render: (item) => item.phone || '-'
         },
         {
             key: 'createdAt',
             title: 'Criado em',
             sortable: true,
-            width: '180px',
-            hideable: true, // Pode ser ocultado
-            render: (item) => (
-                <span className="text-sm text-gray-500">
-                    {formatDate(item.createdAt)}
-                </span>
-            )
+            filterable: true,
+            filterType: 'date',
+            render: (item) => formatDate(item.createdAt)
         },
         {
             key: 'updatedAt',
             title: 'Atualizado em',
             sortable: true,
-            width: '180px',
-            hideable: true, // Pode ser ocultado
-            render: (item) => (
-                <span className="text-sm text-gray-500">
-                    {formatDate(item.updatedAt)}
-                </span>
-            )
+            filterable: true,
+            filterType: 'date',
+            render: (item) => formatDate(item.updatedAt),
+            hideable: true
         },
         {
             key: 'actions',
             title: 'Ações',
-            width: '150px',
             align: 'center',
-            hideable: false, // Ações sempre visíveis
+            width: '120px',
             render: (item) => (
-                <div className="flex items-center justify-center space-x-2">
-                    <Link to={`/requesters/${item.id}/edit`}>
-                        <Button size="sm" variant="outline">
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                    </Link>
+                <div className="flex items-center justify-center gap-1">
                     <Button
                         size="sm"
-                        variant="danger"
+                        variant="ghost"
+                        onClick={() => handleEdit(item.id)}
+                        title="Editar"
+                    >
+                        <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => handleDelete(item.id)}
-                        loading={deletingId === item.id}
-                        disabled={deletingId === item.id}
+                        title="Excluir"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
                         <Trash2 className="w-4 h-4" />
                     </Button>
@@ -159,84 +155,43 @@ const RequesterList = () => {
         }
     ];
 
-    const handlePageChange = (page: number) => {
-        setPage(page);
-    };
-
-    const handlePageSizeChange = (pageSize: number) => {
-        setPageSize(pageSize);
-    };
-
-    const handleSort = (field: string, direction: 'asc' | 'desc') => {
-        setSorting(field, direction);
-    };
-
-    const handleColumnVisibilityChange = (newHiddenColumns: string[]) => {
-        setHiddenColumns(newHiddenColumns);
-        // Aqui você pode salvar a preferência do usuário no localStorage ou backend
-        localStorage.setItem('requester-hidden-columns', JSON.stringify(newHiddenColumns));
-    };
-
-    // Carrega preferências salvas ao montar o componente
-    React.useEffect(() => {
-        const savedHiddenColumns = localStorage.getItem('requester-hidden-columns');
-        if (savedHiddenColumns) {
-            try {
-                const parsed = JSON.parse(savedHiddenColumns);
-                setHiddenColumns(parsed);
-            } catch (error) {
-                console.warn('Erro ao carregar preferências de colunas:', error);
-            }
-        }
-    }, []);
-
-    if (error) {
-        return (
-            <div className="p-6">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="text-red-800">
-                        <strong>Erro:</strong> {error}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Solicitantes
-                    </h1>
-                    <p className="text-gray-600 mt-1">
-                        Gerencie os solicitantes do sistema de orçamento
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-900">Solicitantes</h1>
+                    <p className="text-gray-600 mt-1">Gerencie os solicitantes do sistema</p>
                 </div>
-
-                <Link to="/requesters/create">
-                    <Button className="flex items-center">
-                        <Plus className="w-4 h-4 mr-2"/>
-                        Novo Solicitante
-                    </Button>
-                </Link>
+                <Button
+                    variant="primary"
+                    onClick={() => navigate('/requesters/new')}
+                    className="flex items-center"
+                >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Solicitante
+                </Button>
             </div>
 
-            <DataTable
-                data={requesters}
-                columns={columns}
-                loading={loading}
-                pagination={pagination}
-                sorting={sorting}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-                onSort={handleSort}
-                showColumnToggle={true}
-                hiddenColumns={hiddenColumns}
-                onColumnVisibilityChange={handleColumnVisibilityChange}
-                emptyMessage="Nenhum solicitante encontrado. Comece criando seu primeiro solicitante para o sistema de orçamento."
-                className="shadow-lg"
-            />
+            {/* Table Card */}
+            <Card className="p-0">
+                <DataTable
+                    data={requesters}
+                    columns={columns}
+                    loading={loading}
+                    pagination={pagination}
+                    sorting={sorting}
+                    filters={filters}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                    onSort={setSorting}
+                    onFilter={setFilter}
+                    onClearFilters={clearFilters}
+                    emptyMessage="Nenhum solicitante encontrado"
+                    showColumnToggle={true}
+                    hiddenColumns={['updatedAt']} // Coluna updatedAt oculta por padrão
+                />
+            </Card>
         </div>
     );
 };

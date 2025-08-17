@@ -5,10 +5,20 @@ interface SortInfo {
     direction: 'asc' | 'desc';
 }
 
+interface FilterParams {
+    id?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 interface PaginatedParams {
     page: number;
     size: number;
     sort: SortInfo[];
+    filters?: FilterParams;
 }
 
 export const requesterService = {
@@ -18,7 +28,7 @@ export const requesterService = {
     },
 
     getAllPaginated: async (params: PaginatedParams): Promise<any> => {
-        const {page, size, sort} = params;
+        const {page, size, sort, filters} = params;
 
         const sortParams = sort.map(s => `${s.field},${s.direction}`);
 
@@ -27,9 +37,19 @@ export const requesterService = {
             size: size.toString(),
         });
 
+        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
+
+        // Adiciona parâmetros de filtro
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && value.toString().trim() !== '') {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
 
         const response = await api.get(`/requesters?${queryParams.toString()}`);
         return response.data;

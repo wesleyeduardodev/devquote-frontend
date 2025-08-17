@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 import {requesterService} from '@/services/requesterService';
 import toast from 'react-hot-toast';
 
@@ -35,10 +35,22 @@ interface SortInfo {
     direction: 'asc' | 'desc';
 }
 
+interface FilterParams {
+    [key: string]: string | undefined;
+
+    id?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 interface UseRequestersParams {
     page?: number;
     size?: number;
     sort?: SortInfo[];
+    filters?: FilterParams;
 }
 
 interface UseRequestersReturn {
@@ -47,6 +59,7 @@ interface UseRequestersReturn {
     loading: boolean;
     error: string | null;
     sorting: SortInfo[];
+    filters: FilterParams;
     fetchRequesters: (params?: UseRequestersParams) => Promise<void>;
     createRequester: (requesterData: RequesterCreate) => Promise<Requester>;
     updateRequester: (id: number, requesterData: RequesterUpdate) => Promise<Requester>;
@@ -54,6 +67,8 @@ interface UseRequestersReturn {
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
+    setFilter: (field: string, value: string) => void;
+    clearFilters: () => void;
 }
 
 export const useRequesters = (initialParams?: UseRequestersParams): UseRequestersReturn => {
@@ -64,8 +79,12 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
     const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
-        { field: 'id', direction: 'asc' }
+        {field: 'id', direction: 'asc'}
     ]);
+    const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
+
+    // Refs para controlar o debounce
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const fetchRequesters = useCallback(async (params?: UseRequestersParams): Promise<void> => {
         try {
@@ -75,11 +94,13 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
             const page = params?.page ?? currentPage;
             const size = params?.size ?? pageSize;
             const sort = params?.sort ?? sorting;
+            const currentFilters = params?.filters ?? filters;
 
             const data = await requesterService.getAllPaginated({
                 page,
                 size,
-                sort
+                sort,
+                filters: currentFilters
             });
 
             setRequesters(data.content);
@@ -98,7 +119,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, sorting]);
+    }, [currentPage, pageSize, sorting, filters]);
 
     const createRequester = useCallback(async (requesterData: RequesterCreate): Promise<Requester> => {
         try {
@@ -148,15 +169,43 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         setSortingState(prevSorting => {
             // Remove existing sort for this field and add new one at the beginning
             const filteredSorting = prevSorting.filter(s => s.field !== field);
-            return [{ field, direction }, ...filteredSorting];
+            return [{field, direction}, ...filteredSorting];
         });
         setCurrentPage(0); // Reset to first page when sorting changes
     }, []);
 
-    // Effect to fetch data when parameters change
+    const setFilter = useCallback((field: string, value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [field]: value || undefined
+        }));
+        setCurrentPage(0); // Reset to first page when filter changes
+    }, []);
+
+    const clearFilters = useCallback(() => {
+        setFilters({});
+        setCurrentPage(0);
+    }, []);
+
+    // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
-        fetchRequesters();
-    }, [fetchRequesters]);
+        // Clear previous timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        // Set new timer for debounce (1 second)
+        debounceTimerRef.current = setTimeout(() => {
+            fetchRequesters();
+        }, 1000);
+
+        // Cleanup on unmount or when dependencies change
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [currentPage, pageSize, sorting, filters]);
 
     return {
         requesters,
@@ -164,6 +213,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         loading,
         error,
         sorting,
+        filters,
         fetchRequesters,
         createRequester,
         updateRequester,
@@ -171,5 +221,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         setPage,
         setPageSize,
         setSorting,
+        setFilter,
+        clearFilters,
     };
 };

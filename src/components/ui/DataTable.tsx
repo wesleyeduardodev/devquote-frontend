@@ -1,5 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, EyeOff, Settings } from 'lucide-react';
+import React, {useState, useEffect} from 'react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown,
+    Eye,
+    EyeOff,
+    Settings,
+    X,
+    Filter
+} from 'lucide-react';
 import Button from './Button';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -7,10 +20,12 @@ export interface Column<T> {
     key: string;
     title: string;
     sortable?: boolean;
+    filterable?: boolean; // Nova propriedade para habilitar filtro
+    filterType?: 'text' | 'number' | 'date'; // Tipo de filtro
     render?: (item: T) => React.ReactNode;
     width?: string;
     align?: 'left' | 'center' | 'right';
-    hideable?: boolean; // Nova propriedade para controlar se a coluna pode ser ocultada
+    hideable?: boolean;
 }
 
 export interface PaginationInfo {
@@ -27,20 +42,27 @@ export interface SortInfo {
     direction: 'asc' | 'desc';
 }
 
+export interface FilterValues {
+    [key: string]: string | undefined;
+}
+
 interface DataTableProps<T> {
     data: T[];
     columns: Column<T>[];
     loading?: boolean;
     pagination?: PaginationInfo | null;
     sorting?: SortInfo[];
+    filters?: FilterValues;
     onPageChange?: (page: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
     onSort?: (field: string, direction: 'asc' | 'desc') => void;
+    onFilter?: (field: string, value: string) => void;
+    onClearFilters?: () => void;
     emptyMessage?: string;
     className?: string;
-    showColumnToggle?: boolean; // Nova propriedade para mostrar/ocultar o controle de colunas
-    hiddenColumns?: string[]; // Colunas inicialmente ocultas
-    onColumnVisibilityChange?: (hiddenColumns: string[]) => void; // Callback para mudanças na visibilidade
+    showColumnToggle?: boolean;
+    hiddenColumns?: string[];
+    onColumnVisibilityChange?: (hiddenColumns: string[]) => void;
 }
 
 const DataTable = <T extends Record<string, any>>({
@@ -49,9 +71,12 @@ const DataTable = <T extends Record<string, any>>({
                                                       loading = false,
                                                       pagination,
                                                       sorting = [],
+                                                      filters = {},
                                                       onPageChange,
                                                       onPageSizeChange,
                                                       onSort,
+                                                      onFilter,
+                                                      onClearFilters,
                                                       emptyMessage = "Nenhum item encontrado",
                                                       className = "",
                                                       showColumnToggle = true,
@@ -61,6 +86,7 @@ const DataTable = <T extends Record<string, any>>({
 
     const [hiddenColumns, setHiddenColumns] = useState<string[]>(initialHiddenColumns);
     const [showColumnMenu, setShowColumnMenu] = useState(false);
+    const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
 
     // Filtra as colunas visíveis
     const visibleColumns = columns.filter(column => !hiddenColumns.includes(column.key));
@@ -69,6 +95,11 @@ const DataTable = <T extends Record<string, any>>({
     useEffect(() => {
         setHiddenColumns(initialHiddenColumns);
     }, [initialHiddenColumns]);
+
+    // Atualiza os filtros locais quando os filtros externos mudam
+    useEffect(() => {
+        setLocalFilters(filters);
+    }, [filters]);
 
     const toggleColumn = (columnKey: string) => {
         const newHiddenColumns = hiddenColumns.includes(columnKey)
@@ -92,16 +123,40 @@ const DataTable = <T extends Record<string, any>>({
         onSort(field, newDirection);
     };
 
+    const handleFilterChange = (field: string, value: string) => {
+        setLocalFilters(prev => ({
+            ...prev,
+            [field]: value
+        }));
+
+        if (onFilter) {
+            onFilter(field, value);
+        }
+    };
+
+    const handleClearFilter = (field: string) => {
+        handleFilterChange(field, '');
+    };
+
+    const handleClearAllFilters = () => {
+        setLocalFilters({});
+        if (onClearFilters) {
+            onClearFilters();
+        }
+    };
+
+    const hasActiveFilters = Object.values(localFilters).some(value => value && value.trim() !== '');
+
     const renderSortIcon = (field: string) => {
         const direction = getSortDirection(field);
 
         if (direction === 'asc') {
-            return <ArrowUp className="w-4 h-4 ml-1" />;
+            return <ArrowUp className="w-4 h-4 ml-1"/>;
         } else if (direction === 'desc') {
-            return <ArrowDown className="w-4 h-4 ml-1" />;
+            return <ArrowDown className="w-4 h-4 ml-1"/>;
         }
 
-        return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />;
+        return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50"/>;
     };
 
     const renderCell = (item: T, column: Column<T>) => {
@@ -113,9 +168,12 @@ const DataTable = <T extends Record<string, any>>({
 
     const getAlignClass = (align?: string) => {
         switch (align) {
-            case 'center': return 'text-center';
-            case 'right': return 'text-right';
-            default: return 'text-left';
+            case 'center':
+                return 'text-center';
+            case 'right':
+                return 'text-right';
+            default:
+                return 'text-left';
         }
     };
 
@@ -134,20 +192,19 @@ const DataTable = <T extends Record<string, any>>({
                     onClick={() => setShowColumnMenu(!showColumnMenu)}
                     className="flex items-center"
                 >
-                    <Settings className="w-4 h-4 mr-1" />
+                    <Settings className="w-4 h-4 mr-1"/>
                     Colunas
                 </Button>
 
                 {showColumnMenu && (
                     <>
-                        {/* Overlay para fechar o menu ao clicar fora */}
                         <div
                             className="fixed inset-0 z-10"
                             onClick={() => setShowColumnMenu(false)}
                         />
 
-                        {/* Menu de colunas */}
-                        <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-3">
+                        <div
+                            className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-3">
                             <div className="text-sm font-medium text-gray-900 mb-3">
                                 Mostrar/Ocultar Colunas
                             </div>
@@ -170,13 +227,14 @@ const DataTable = <T extends Record<string, any>>({
 
                                             <div className="flex items-center flex-1">
                                                 {isVisible ? (
-                                                    <Eye className="w-4 h-4 mr-2 text-green-600" />
+                                                    <Eye className="w-4 h-4 mr-2 text-green-600"/>
                                                 ) : (
-                                                    <EyeOff className="w-4 h-4 mr-2 text-gray-400" />
+                                                    <EyeOff className="w-4 h-4 mr-2 text-gray-400"/>
                                                 )}
-                                                <span className={`text-sm ${isVisible ? 'text-gray-900' : 'text-gray-500'}`}>
-                          {column.title}
-                        </span>
+                                                <span
+                                                    className={`text-sm ${isVisible ? 'text-gray-900' : 'text-gray-500'}`}>
+                                                    {column.title}
+                                                </span>
                                             </div>
                                         </label>
                                     );
@@ -189,7 +247,6 @@ const DataTable = <T extends Record<string, any>>({
                                         size="sm"
                                         variant="outline"
                                         onClick={() => {
-                                            const allColumnKeys = hideableColumns.map(col => col.key);
                                             setHiddenColumns([]);
                                             onColumnVisibilityChange?.([]);
                                         }}
@@ -217,6 +274,34 @@ const DataTable = <T extends Record<string, any>>({
         );
     };
 
+    const renderFilterInput = (column: Column<T>) => {
+        if (!column.filterable) return null;
+
+        const filterValue = localFilters[column.key] || '';
+        const inputType = column.filterType === 'number' ? 'number' :
+            column.filterType === 'date' ? 'date' : 'text';
+
+        return (
+            <div className="mt-1 relative">
+                <input
+                    type={inputType}
+                    value={filterValue}
+                    onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                    placeholder={`Filtrar...`}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {filterValue && (
+                    <button
+                        onClick={() => handleClearFilter(column.key)}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                        <X className="w-3 h-3"/>
+                    </button>
+                )}
+            </div>
+        );
+    };
+
     const pageSizeOptions = [5, 10, 25, 50, 100];
 
     const renderPaginationInfo = () => {
@@ -235,7 +320,7 @@ const DataTable = <T extends Record<string, any>>({
     const renderPaginationButtons = () => {
         if (!pagination || !onPageChange) return null;
 
-        const { currentPage, totalPages } = pagination;
+        const {currentPage, totalPages} = pagination;
 
         return (
             <div className="flex items-center space-x-2">
@@ -245,7 +330,7 @@ const DataTable = <T extends Record<string, any>>({
                     onClick={() => onPageChange(0)}
                     disabled={currentPage === 0}
                 >
-                    <ChevronsLeft className="w-4 h-4" />
+                    <ChevronsLeft className="w-4 h-4"/>
                 </Button>
 
                 <Button
@@ -254,12 +339,12 @@ const DataTable = <T extends Record<string, any>>({
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 0}
                 >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4"/>
                 </Button>
 
                 <span className="px-3 py-1 text-sm">
-          Página {currentPage + 1} de {totalPages}
-        </span>
+                    Página {currentPage + 1} de {totalPages}
+                </span>
 
                 <Button
                     size="sm"
@@ -267,7 +352,7 @@ const DataTable = <T extends Record<string, any>>({
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages - 1}
                 >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4"/>
                 </Button>
 
                 <Button
@@ -276,7 +361,7 @@ const DataTable = <T extends Record<string, any>>({
                     onClick={() => onPageChange(totalPages - 1)}
                     disabled={currentPage >= totalPages - 1}
                 >
-                    <ChevronsRight className="w-4 h-4" />
+                    <ChevronsRight className="w-4 h-4"/>
                 </Button>
             </div>
         );
@@ -284,9 +369,25 @@ const DataTable = <T extends Record<string, any>>({
 
     return (
         <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-            {/* Header com controle de colunas */}
-            {showColumnToggle && (
-                <div className="border-b border-gray-200 px-4 py-3 flex justify-end">
+            {/* Header com controle de colunas e filtros */}
+            {(showColumnToggle || hasActiveFilters) && (
+                <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        {hasActiveFilters && (
+                            <>
+                                <Filter className="w-4 h-4 text-blue-600"/>
+                                <span className="text-sm text-gray-600">Filtros ativos</span>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleClearAllFilters}
+                                    className="text-xs"
+                                >
+                                    Limpar filtros
+                                </Button>
+                            </>
+                        )}
+                    </div>
                     {renderColumnToggle()}
                 </div>
             )}
@@ -300,19 +401,22 @@ const DataTable = <T extends Record<string, any>>({
                             <th
                                 key={column.key}
                                 className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
-                                style={{ width: column.width }}
+                                style={{width: column.width}}
                             >
-                                {column.sortable ? (
-                                    <button
-                                        onClick={() => handleSort(column.key)}
-                                        className="group flex items-center hover:text-gray-700 focus:outline-none"
-                                    >
-                                        {column.title}
-                                        {renderSortIcon(column.key)}
-                                    </button>
-                                ) : (
-                                    column.title
-                                )}
+                                <div>
+                                    {column.sortable ? (
+                                        <button
+                                            onClick={() => handleSort(column.key)}
+                                            className="group flex items-center hover:text-gray-700 focus:outline-none"
+                                        >
+                                            {column.title}
+                                            {renderSortIcon(column.key)}
+                                        </button>
+                                    ) : (
+                                        <div>{column.title}</div>
+                                    )}
+                                    {renderFilterInput(column)}
+                                </div>
                             </th>
                         ))}
                     </tr>
@@ -322,7 +426,7 @@ const DataTable = <T extends Record<string, any>>({
                     {loading ? (
                         <tr>
                             <td colSpan={visibleColumns.length} className="px-6 py-12 text-center">
-                                <LoadingSpinner size="lg" />
+                                <LoadingSpinner size="lg"/>
                             </td>
                         </tr>
                     ) : data.length === 0 ? (
