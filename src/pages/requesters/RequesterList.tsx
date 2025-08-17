@@ -65,7 +65,7 @@ const RequesterList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'number',
-            width: '80px',
+            width: '120px',
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -165,7 +165,7 @@ const RequesterList: React.FC = () => {
                 </div>
                 <Button
                     variant="primary"
-                    onClick={() => navigate('/requesters/new')}
+                    onClick={() => navigate('/requesters/create')}
                     className="flex items-center"
                 >
                     <Plus className="w-4 h-4 mr-2" />
