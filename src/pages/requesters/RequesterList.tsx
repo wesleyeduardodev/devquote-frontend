@@ -115,7 +115,8 @@ const RequesterList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'date',
-            render: (item) => formatDate(item.createdAt)
+            render: (item) => formatDate(item.createdAt),
+            hideable: true
         },
         {
             key: 'updatedAt',
@@ -189,7 +190,7 @@ const RequesterList: React.FC = () => {
                     onClearFilters={clearFilters}
                     emptyMessage="Nenhum solicitante encontrado"
                     showColumnToggle={true}
-                    hiddenColumns={['updatedAt']} // Coluna updatedAt oculta por padrão
+                    hiddenColumns={['createdAt', 'updatedAt']}
                 />
             </Card>
         </div>

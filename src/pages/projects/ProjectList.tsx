@@ -117,7 +117,8 @@ const ProjectList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'date',
-            render: (item) => formatDate(item.createdAt)
+            render: (item) => formatDate(item.createdAt),
+            hideable: true
         },
         {
             key: 'updatedAt',
@@ -191,7 +192,7 @@ const ProjectList: React.FC = () => {
                     onClearFilters={clearFilters}
                     emptyMessage="Nenhum projeto encontrado"
                     showColumnToggle={true}
-                    hiddenColumns={['updatedAt']}
+                    hiddenColumns={['createdAt', 'updatedAt']}
                 />
             </Card>
         </div>

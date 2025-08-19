@@ -312,7 +312,7 @@ const TaskList: React.FC = () => {
                     onClearFilters={clearFilters}
                     emptyMessage="Nenhuma tarefa encontrada"
                     showColumnToggle={true}
-                    hiddenColumns={['createdAt', 'updatedAt']} // Colunas de data ocultas por padrão
+                    hiddenColumns={['createdAt', 'updatedAt']}
                 />
             </Card>
         </div>
