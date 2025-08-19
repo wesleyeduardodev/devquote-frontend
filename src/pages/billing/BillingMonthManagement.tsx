@@ -364,6 +364,14 @@ const BillingManagement = () => {
         }
     }, [totals, getMonthLabel]);
 
+    const handleOpenQuoteSelection = useCallback(() => {
+        // Fechar o modal de detalhes e abrir o de seleção
+        setShowDetailsModal(false);
+        setShowQuoteSelectModal(true);
+        setQuoteSearchTerm('');
+        setQuoteStatusFilter('APPROVED');
+    }, []);
+
     const handleLinkQuote = useCallback(async (quoteId: number) => {
         if (!selectedBilling) {
             toast.error('Erro: Período não selecionado.');
@@ -380,6 +388,8 @@ const BillingManagement = () => {
             setShowQuoteSelectModal(false);
             setQuoteSearchTerm('');
             setQuoteStatusFilter('APPROVED');
+            // Reabrir o modal de detalhes
+            setShowDetailsModal(true);
             // Atualizar total
             await loadTotals();
             toast.success('Orçamento vinculado com sucesso!');
@@ -819,21 +829,35 @@ const BillingManagement = () => {
                 )}
 
                 {/* Quote Selection Modal */}
-                {showQuoteSelectModal && (
+                {showQuoteSelectModal && selectedBilling && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
                             <div className="p-6 border-b border-gray-100">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">Selecionar Orçamento</h3>
-                                        <p className="text-gray-600 mt-1">Escolha um orçamento aprovado para vincular</p>
+                                        <h3 className="text-lg font-semibold text-gray-900">
+                                            Selecionar Orçamento para {getMonthLabel(selectedBilling.month)} {selectedBilling.year}
+                                        </h3>
+                                        <p className="text-gray-600 mt-1">Escolha um orçamento aprovado para vincular a este período</p>
                                     </div>
-                                    <button
-                                        onClick={() => setShowQuoteSelectModal(false)}
-                                        className="text-gray-400 hover:text-gray-600"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setShowQuoteSelectModal(false);
+                                                setShowDetailsModal(true);
+                                            }}
+                                            className="inline-flex items-center gap-2 px-3 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            Voltar aos Detalhes
+                                        </button>
+                                        <button
+                                            onClick={() => setShowQuoteSelectModal(false)}
+                                            className="text-gray-400 hover:text-gray-600"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -961,7 +985,17 @@ const BillingManagement = () => {
                                 )}
                             </div>
 
-                            <div className="p-6 border-t border-gray-100 flex justify-end">
+                            <div className="p-6 border-t border-gray-100 flex justify-between">
+                                <button
+                                    onClick={() => {
+                                        setShowQuoteSelectModal(false);
+                                        setShowDetailsModal(true);
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    Voltar aos Detalhes
+                                </button>
                                 <button
                                     onClick={() => setShowQuoteSelectModal(false)}
                                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -1027,7 +1061,7 @@ const BillingManagement = () => {
                                     </h4>
                                     <div className="flex gap-3">
                                         <button
-                                            onClick={() => setShowQuoteSelectModal(true)}
+                                            onClick={handleOpenQuoteSelection}
                                             disabled={quotesLoading || linksLoading}
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                                         >
