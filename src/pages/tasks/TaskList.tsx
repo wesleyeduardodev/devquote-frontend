@@ -113,7 +113,7 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'number',
-            width: '80px',
+            width: '100px',
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
