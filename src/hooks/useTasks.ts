@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { taskService } from '@/services/taskService';
+import {useState, useEffect, useCallback, useRef} from 'react';
+import {taskService} from '@/services/taskService';
 import toast from 'react-hot-toast';
 
 interface SubTask {
@@ -17,6 +17,7 @@ interface SubTask {
 interface Task {
     id: number;
     requesterId: number;
+    requesterName?: string;
     title: string;
     description?: string;
     status: string;
@@ -42,27 +43,101 @@ interface TaskUpdate extends Partial<TaskCreate> {
     subTasks?: SubTask[];
 }
 
+interface PaginationInfo {
+    currentPage: number;
+    totalPages: number;
+    pageSize: number;
+    totalElements: number;
+    first: boolean;
+    last: boolean;
+}
+
+interface SortInfo {
+    field: string;
+    direction: 'asc' | 'desc';
+}
+
+interface FilterParams {
+    [key: string]: string | undefined;
+
+    id?: string;
+    requesterId?: string;
+    requesterName?: string;
+    title?: string;
+    description?: string;
+    status?: string;
+    code?: string;
+    link?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+interface UseTasksParams {
+    page?: number;
+    size?: number;
+    sort?: SortInfo[];
+    filters?: FilterParams;
+}
+
 interface UseTasksReturn {
     tasks: Task[];
+    pagination: PaginationInfo | null;
     loading: boolean;
     error: string | null;
-    fetchTasks: () => Promise<void>;
+    sorting: SortInfo[];
+    filters: FilterParams;
+    fetchTasks: (params?: UseTasksParams) => Promise<void>;
     createTaskWithSubTasks: (taskData: TaskCreate) => Promise<Task>;
     updateTaskWithSubTasks: (id: number, taskData: TaskUpdate) => Promise<Task>;
     deleteTaskWithSubTasks: (id: number) => Promise<void>;
+    setPage: (page: number) => void;
+    setPageSize: (size: number) => void;
+    setSorting: (field: string, direction: 'asc' | 'desc') => void;
+    setFilter: (field: string, value: string) => void;
+    clearFilters: () => void;
 }
 
-export const useTasks = (): UseTasksReturn => {
+export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
+    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
+    const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
+        {field: 'id', direction: 'asc'}
+    ]);
+    const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
 
-    const fetchTasks = useCallback(async (): Promise<void> => {
+    // Refs para controlar o debounce
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const fetchTasks = useCallback(async (params?: UseTasksParams): Promise<void> => {
         try {
             setLoading(true);
             setError(null);
-            const data = await taskService.getAll();
-            setTasks(data);
+
+            const page = params?.page ?? currentPage;
+            const size = params?.size ?? pageSize;
+            const sort = params?.sort ?? sorting;
+            const currentFilters = params?.filters ?? filters;
+
+            const data = await taskService.getAllPaginated({
+                page,
+                size,
+                sort,
+                filters: currentFilters
+            });
+
+            setTasks(data.content);
+            setPagination({
+                currentPage: data.currentPage,
+                totalPages: data.totalPages,
+                pageSize: data.pageSize,
+                totalElements: data.totalElements,
+                first: data.first,
+                last: data.last
+            });
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao buscar tarefas';
             setError(errorMessage);
@@ -70,56 +145,109 @@ export const useTasks = (): UseTasksReturn => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [currentPage, pageSize, sorting, filters]);
 
     const createTaskWithSubTasks = useCallback(async (taskData: TaskCreate): Promise<Task> => {
         try {
             const newTask = await taskService.createWithSubTasks(taskData);
-            setTasks(prev => [...prev, newTask]);
+            await fetchTasks(); // Recarrega a lista após criação
             toast.success('Tarefa criada com sucesso!');
             return newTask;
         } catch (err: any) {
             console.error('Erro ao criar tarefa:', err);
             throw err;
         }
-    }, []);
+    }, [fetchTasks]);
 
     const updateTaskWithSubTasks = useCallback(async (id: number, taskData: TaskUpdate): Promise<Task> => {
         try {
             const updatedTask = await taskService.updateWithSubTasks(id, taskData);
-            setTasks(prev =>
-                prev.map(task => task.id === id ? updatedTask : task)
-            );
+            await fetchTasks(); // Recarrega a lista após atualização
             toast.success('Tarefa atualizada com sucesso!');
             return updatedTask;
         } catch (err: any) {
             console.error('Erro ao atualizar tarefa:', err);
             throw err;
         }
-    }, []);
+    }, [fetchTasks]);
 
     const deleteTaskWithSubTasks = useCallback(async (id: number): Promise<void> => {
         try {
             await taskService.deleteTaskWithSubTasks(id);
-            setTasks(prev => prev.filter(task => task.id !== id));
+            await fetchTasks(); // Recarrega a lista após exclusão
             toast.success('Tarefa excluída com sucesso!');
         } catch (err: any) {
             console.error('Erro ao excluir tarefa:', err);
             throw err;
         }
+    }, [fetchTasks]);
+
+    const setPage = useCallback((page: number) => {
+        setCurrentPage(page);
     }, []);
 
+    const setPageSize = useCallback((size: number) => {
+        setCurrentPageSize(size);
+        setCurrentPage(0); // Reset to first page when changing page size
+    }, []);
+
+    const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
+        setSortingState(prevSorting => {
+            // Remove existing sort for this field and add new one at the beginning
+            const filteredSorting = prevSorting.filter(s => s.field !== field);
+            return [{field, direction}, ...filteredSorting];
+        });
+        setCurrentPage(0); // Reset to first page when sorting changes
+    }, []);
+
+    const setFilter = useCallback((field: string, value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [field]: value || undefined
+        }));
+        setCurrentPage(0); // Reset to first page when filter changes
+    }, []);
+
+    const clearFilters = useCallback(() => {
+        setFilters({});
+        setCurrentPage(0);
+    }, []);
+
+    // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
-        fetchTasks();
-    }, [fetchTasks]);
+        // Clear previous timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        // Set new timer for debounce (1 second)
+        debounceTimerRef.current = setTimeout(() => {
+            fetchTasks();
+        }, 1000);
+
+        // Cleanup on unmount or when dependencies change
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [currentPage, pageSize, sorting, filters]);
 
     return {
         tasks,
+        pagination,
         loading,
         error,
+        sorting,
+        filters,
         fetchTasks,
         createTaskWithSubTasks,
         updateTaskWithSubTasks,
         deleteTaskWithSubTasks,
+        setPage,
+        setPageSize,
+        setSorting,
+        setFilter,
+        clearFilters,
     };
 };

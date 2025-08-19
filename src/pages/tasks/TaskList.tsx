@@ -1,36 +1,88 @@
-import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
-import {Plus, Edit, Trash2, CheckSquare, DollarSign, User, ExternalLink} from 'lucide-react';
+import React from 'react';
+import {useNavigate} from 'react-router-dom';
+import {Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign} from 'lucide-react';
 import {useTasks} from '@/hooks/useTasks';
-import {useRequesters} from '@/hooks/useRequesters';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import DataTable, {Column} from '@/components/ui/DataTable';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import toast from 'react-hot-toast';
 
-const TaskList = () => {
-    const {tasks = [], loading = true, deleteTaskWithSubTasks} = useTasks();
-    const {requesters = []} = useRequesters();
-    const [deletingId, setDeletingId] = useState(null);
+interface SubTask {
+    id?: number;
+    title: string;
+    description?: string;
+    amount: number;
+    status: string;
+    taskId?: number;
+    excluded?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
-    const handleDelete = async (id: any) => {
+interface Task {
+    id: number;
+    requesterId: number;
+    requesterName?: string;
+    title: string;
+    description?: string;
+    status: string;
+    code: string;
+    link?: string;
+    subTasks?: SubTask[];
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+const TaskList: React.FC = () => {
+    const navigate = useNavigate();
+    const {
+        tasks,
+        pagination,
+        loading,
+        sorting,
+        filters,
+        setPage,
+        setPageSize,
+        setSorting,
+        setFilter,
+        clearFilters,
+        deleteTaskWithSubTasks
+    } = useTasks();
+
+    const handleEdit = (id: number) => {
+        navigate(`/tasks/${id}/edit`);
+    };
+
+    const handleDelete = async (id: number) => {
         if (window.confirm('Tem certeza que deseja excluir esta tarefa e todas as suas subtarefas?')) {
             try {
-                setDeletingId(id);
                 await deleteTaskWithSubTasks(id);
             } catch (error) {
-                // Error handled by the hook
-            } finally {
-                setDeletingId(null);
+                toast.error('Erro ao excluir tarefa');
             }
         }
     };
 
-    const getRequesterName = (requesterId: any) => {
-        const requester = requesters.find((r: any) => r.id === requesterId);
-        return requester?.name || 'Solicitante não encontrado';
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
-    const getStatusColor = (status: any) => {
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
+
+    const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             PENDING: 'bg-yellow-100 text-yellow-800',
             IN_PROGRESS: 'bg-blue-100 text-blue-800',
@@ -40,7 +92,7 @@ const TaskList = () => {
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
 
-    const getStatusLabel = (status: any) => {
+    const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
             IN_PROGRESS: 'Em Progresso',
@@ -50,196 +102,218 @@ const TaskList = () => {
         return labels[status] || status;
     };
 
-    const calculateTaskTotal = (subTasks: any) => {
-        return subTasks?.reduce((total: number, subTask: any) => total + (subTask.amount || 0), 0) || 0;
+    const calculateTaskTotal = (subTasks?: SubTask[]) => {
+        return subTasks?.reduce((total: number, subTask: SubTask) => total + (subTask.amount || 0), 0) || 0;
     };
 
-    const formatCurrency = (value: any) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(value);
-    };
-
-    const formatDate = (dateString: any) => {
-        return new Date(dateString).toLocaleString('pt-BR');
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="lg"/>
-            </div>
-        );
-    }
+    const columns: Column<Task>[] = [
+        {
+            key: 'id',
+            title: 'ID',
+            sortable: true,
+            filterable: true,
+            filterType: 'number',
+            width: '80px',
+            align: 'center',
+            render: (item) => (
+                <span
+                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                    #{item.id}
+                </span>
+            )
+        },
+        {
+            key: 'code',
+            title: 'Código',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '120px',
+            render: (item) => (
+                <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {item.code}
+                </span>
+            )
+        },
+        {
+            key: 'title',
+            title: 'Título',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            render: (item) => (
+                <div>
+                    <p className="font-medium text-gray-900">{item.title}</p>
+                    {item.description && (
+                        <p className="text-sm text-gray-500 truncate max-w-xs" title={item.description}>
+                            {item.description}
+                        </p>
+                    )}
+                </div>
+            )
+        },
+        {
+            key: 'status',
+            title: 'Status',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '140px',
+            align: 'center',
+            render: (item) => (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
+                    {getStatusLabel(item.status)}
+                </span>
+            )
+        },
+        {
+            key: 'requesterName',
+            title: 'Solicitante',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            render: (item) => (
+                <span className="text-sm text-gray-900">
+                    {item.requesterName || 'Não informado'}
+                </span>
+            )
+        },
+        {
+            key: 'link',
+            title: 'Link',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '100px',
+            align: 'center',
+            render: (item) => (
+                item.link ? (
+                    <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                        title={item.link}
+                    >
+                        <ExternalLink className="w-4 h-4"/>
+                    </a>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
+            key: 'subTasks',
+            title: 'Subtarefas',
+            width: '120px',
+            align: 'center',
+            render: (item) => (
+                <div className="flex items-center justify-center gap-1">
+                    <CheckSquare className="w-4 h-4 text-gray-400"/>
+                    <span className="text-sm text-gray-600">
+                        {item.subTasks?.length || 0}
+                    </span>
+                </div>
+            )
+        },
+        {
+            key: 'total',
+            title: 'Valor Total',
+            width: '120px',
+            align: 'right',
+            render: (item) => (
+                <div className="flex items-center justify-end gap-1">
+                    <DollarSign className="w-4 h-4 text-green-600"/>
+                    <span className="text-sm font-medium text-green-600">
+                        {formatCurrency(calculateTaskTotal(item.subTasks))}
+                    </span>
+                </div>
+            )
+        },
+        {
+            key: 'createdAt',
+            title: 'Criado em',
+            sortable: true,
+            filterable: true,
+            filterType: 'date',
+            render: (item) => formatDate(item.createdAt),
+        },
+        {
+            key: 'updatedAt',
+            title: 'Atualizado em',
+            sortable: true,
+            filterable: true,
+            filterType: 'date',
+            render: (item) => formatDate(item.updatedAt),
+            hideable: true
+        },
+        {
+            key: 'actions',
+            title: 'Ações',
+            align: 'center',
+            width: '120px',
+            render: (item) => (
+                <div className="flex items-center justify-center gap-1">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(item.id)}
+                        title="Editar"
+                    >
+                        <Edit className="w-4 h-4"/>
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(item.id)}
+                        title="Excluir"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
+                        <Trash2 className="w-4 h-4"/>
+                    </Button>
+                </div>
+            )
+        }
+    ];
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Tarefas
-                    </h1>
-                    <p className="text-gray-600 mt-1">
-                        Gerencie tarefas e subtarefas do sistema de orçamento
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-900">Tarefas</h1>
+                    <p className="text-gray-600 mt-1">Gerencie tarefas e subtarefas do sistema de orçamento</p>
                 </div>
-
-                <Link to="/tasks/create">
-                    <Button className="flex items-center">
-                        <Plus className="w-4 h-4 mr-2"/>
-                        Nova Tarefa
-                    </Button>
-                </Link>
+                <Button
+                    variant="primary"
+                    onClick={() => navigate('/tasks/create')}
+                    className="flex items-center"
+                >
+                    <Plus className="w-4 h-4 mr-2"/>
+                    Nova Tarefa
+                </Button>
             </div>
 
-            {tasks.length === 0 ? (
-                <Card className="text-center py-12">
-                    <CheckSquare className="w-16 h-16 mx-auto text-gray-400 mb-4"/>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Nenhuma tarefa encontrada
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                        Comece criando sua primeira tarefa para o sistema de orçamento.
-                    </p>
-                    <Link to="/tasks/create">
-                        <Button>
-                            <Plus className="w-4 h-4 mr-2"/>
-                            Criar Primeira Tarefa
-                        </Button>
-                    </Link>
-                </Card>
-            ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {tasks.map((task: any) => (
-                        <Card key={task.id} className="hover:shadow-custom-lg transition-shadow">
-                            <div className="space-y-4">
-                                {/* Header da Tarefa */}
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                                {task.code}
-                                            </span>
-                                            <span
-                                                className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
-                                                {getStatusLabel(task.status)}
-                                            </span>
-                                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                                #{task.id}
-                                            </span>
-                                        </div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                            {task.title}
-                                        </h3>
-                                        {task.description && (
-                                            <p className="text-sm text-gray-600 line-clamp-2">
-                                                {task.description}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Informações da Tarefa */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center text-sm text-gray-600">
-                                        <User className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                        <span>{getRequesterName(task.requesterId)}</span>
-                                    </div>
-
-                                    {task.link && (
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                            <a
-                                                href={task.link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-primary-600 hover:text-primary-700 truncate"
-                                            >
-                                                Ver Link
-                                            </a>
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center justify-between text-sm">
-                                        <div className="flex items-center text-gray-600">
-                                            <CheckSquare className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                            <span>{task.subTasks?.length || 0} subtarefa{task.subTasks?.length !== 1 ? 's' : ''}</span>
-                                        </div>
-                                        <div className="flex items-center text-primary-600 font-semibold">
-                                            <DollarSign className="w-4 h-4 mr-1"/>
-                                            <span>{formatCurrency(calculateTaskTotal(task.subTasks))}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Subtarefas Preview */}
-                                {task.subTasks && task.subTasks.length > 0 && (
-                                    <div className="border-t pt-3">
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Subtarefas:</h4>
-                                        <div className="space-y-1 max-h-24 overflow-y-auto">
-                                            {task.subTasks.slice(0, 3).map((subTask: any, index: number) => (
-                                                <div key={subTask.id || index}
-                                                     className="flex items-center justify-between text-xs">
-
-                                                    <span className="text-gray-600 truncate flex-1 mr-2">
-                                                        {subTask.title}
-                                                    </span>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(subTask.status)}`}>
-                                                            {getStatusLabel(subTask.status)}
-                                                        </span>
-                                                        <span className="text-gray-900 font-medium">
-                                                            {formatCurrency(subTask.amount)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {task.subTasks.length > 3 && (
-                                                <div className="text-xs text-gray-500 text-center pt-1">
-                                                    +{task.subTasks.length - 3} subtarefa{task.subTasks.length - 3 !== 1 ? 's' : ''}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Data de criação */}
-                                <div className="text-xs text-gray-500 border-t pt-3">
-                                    <div>Criada em: {formatDate(task.createdAt)}</div>
-                                    {task.updatedAt && task.updatedAt !== task.createdAt && (
-                                        <div className="mt-1">
-                                            Atualizada em: {formatDate(task.updatedAt)}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Ações */}
-                                <div className="flex items-center justify-end space-x-2 pt-2 border-t">
-                                    <Link to={`/tasks/${task.id}/edit`}>
-                                        <Button size="sm" variant="outline">
-                                            <Edit className="w-4 h-4 mr-1"/>
-                                            Editar
-                                        </Button>
-                                    </Link>
-
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => handleDelete(task.id)}
-                                        loading={deletingId === task.id}
-                                        disabled={deletingId === task.id}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-1"/>
-                                        Excluir
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            )}
+            {/* Table Card */}
+            <Card className="p-0">
+                <DataTable
+                    data={tasks}
+                    columns={columns}
+                    loading={loading}
+                    pagination={pagination}
+                    sorting={sorting}
+                    filters={filters}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                    onSort={setSorting}
+                    onFilter={setFilter}
+                    onClearFilters={clearFilters}
+                    emptyMessage="Nenhuma tarefa encontrada"
+                    showColumnToggle={true}
+                    hiddenColumns={['updatedAt']}
+                />
+            </Card>
         </div>
     );
 };
