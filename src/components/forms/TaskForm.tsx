@@ -2,11 +2,9 @@ import React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useRequesters } from '@/hooks/useRequesters';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
-import LoadingSpinner from '../ui/LoadingSpinner';
 import SubTaskForm from './SubTaskForm';
 
 interface SubTask {
@@ -19,7 +17,7 @@ interface SubTask {
 }
 
 interface TaskData {
-    requesterId: string;
+    requesterId: number;
     title: string;
     description?: string;
     status: string;
@@ -35,13 +33,7 @@ interface TaskFormProps {
     loading?: boolean;
 }
 
-interface Requester {
-    id: number;
-    name: string;
-}
-
 const schema = yup.object({
-    requesterId: yup.string().required('Solicitante é obrigatório'),
     title: yup.string().required('Título é obrigatório').max(200, 'Máximo 200 caracteres'),
     description: yup.string().optional(),
     status: yup.string().required('Status é obrigatório'),
@@ -56,12 +48,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                onCancel,
                                                loading = false
                                            }) => {
-    const { requesters, loading: requestersLoading } = useRequesters();
-
     const methods = useForm<TaskData>({
         resolver: yupResolver(schema),
         defaultValues: {
-            requesterId: initialData?.requesterId?.toString() || '',
             title: initialData?.title || '',
             description: initialData?.description || '',
             status: initialData?.status || 'PENDING',
@@ -85,10 +74,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
     const handleFormSubmit = async (data: TaskData): Promise<void> => {
         try {
-            // Converter requesterId para number e processar subtasks
+            // Incluir o requesterId do initialData (que vem da seleção do modal)
             const formattedData = {
                 ...data,
-                requesterId: parseInt(data.requesterId),
+                requesterId: initialData?.requesterId, // Vem da seleção no modal
                 subTasks: (data.subTasks || []).map((subTask: any) => ({
                     ...subTask,
                     amount: parseFloat(subTask.amount || '0'),
@@ -97,7 +86,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
             };
 
             await onSubmit(formattedData);
-            if (!initialData) {
+            if (!initialData?.id) {
                 reset(); // Reset form only for create mode
             }
         } catch (error) {
@@ -112,14 +101,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
         { value: 'CANCELLED', label: 'Cancelada' }
     ];
 
-    if (requestersLoading) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <LoadingSpinner />
-            </div>
-        );
-    }
-
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
@@ -130,20 +111,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Select
-                            {...register('requesterId', { valueAsNumber: false })}
-                            label="Solicitante"
-                            placeholder="Selecione um solicitante"
-                            error={errors.requesterId?.message}
-                            required
-                        >
-                            {requesters.map((requester: Requester) => (
-                                <option key={requester.id} value={requester.id}>
-                                    {requester.name}
-                                </option>
-                            ))}
-                        </Select>
-
                         <Input
                             {...register('code')}
                             label="Código"
@@ -151,6 +118,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             error={errors.code?.message}
                             required
                         />
+
+                        <Select
+                            {...register('status')}
+                            label="Status"
+                            error={errors.status?.message}
+                            required
+                        >
+                            {statusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
 
                         <div className="md:col-span-2">
                             <Input
@@ -171,26 +151,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             />
                         </div>
 
-                        <Select
-                            {...register('status')}
-                            label="Status"
-                            error={errors.status?.message}
-                            required
-                        >
-                            {statusOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
-
-                        <Input
-                            {...register('link')}
-                            type="url"
-                            label="Link"
-                            placeholder="https://exemplo.com (opcional)"
-                            error={errors.link?.message}
-                        />
+                        <div className="md:col-span-2">
+                            <Input
+                                {...register('link')}
+                                type="url"
+                                label="Link"
+                                placeholder="https://exemplo.com (opcional)"
+                                error={errors.link?.message}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -222,7 +191,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         loading={isSubmitting || loading}
                         disabled={isSubmitting || loading}
                     >
-                        {initialData ? 'Atualizar' : 'Criar'} Tarefa
+                        {initialData?.id ? 'Atualizar' : 'Criar'} Tarefa
                     </Button>
                 </div>
             </form>
