@@ -2,7 +2,7 @@ import React from 'react';
 import {useForm} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import {useQuotes} from '@/hooks/useQuotes';
+import useQuotes from '@/hooks/useQuotes';
 import {useProjects} from '@/hooks/useProjects';
 import Input from '../ui/Input';
 import Select from '../ui/Select';

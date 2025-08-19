@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Link} from 'react-router-dom';
 import {Plus, Edit, Trash2, Truck, GitBranch, ExternalLink, Calendar, FileCode} from 'lucide-react';
 import {useDeliveries} from '@/hooks/useDeliveries';
-import {useQuotes} from '@/hooks/useQuotes';
+import useQuotes from '@/hooks/useQuotes';
 import {useProjects} from '@/hooks/useProjects';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -28,7 +28,7 @@ const DeliveryList: React.FC = () => {
 
     const getQuoteName = (quoteId: number) => {
         const quote = quotes.find((q: any) => q.id === quoteId);
-        return quote?.title || `Orçamento #${quoteId}`;
+        return quote?.id || `Orçamento #${quoteId}`;
     };
 
     const getProjectName = (projectId: number) => {

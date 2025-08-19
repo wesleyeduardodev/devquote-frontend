@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Users, Plus, DollarSign, CheckSquare, FileText, FolderGit2, Truck } from 'lucide-react';
 import { useRequesters } from '@/hooks/useRequesters';
 import { useTasks } from '@/hooks/useTasks';
-import { useQuotes } from '@/hooks/useQuotes';
+import useQuotes from '@/hooks/useQuotes';
 import { useProjects } from '@/hooks/useProjects';
 import { useDeliveries } from '@/hooks/useDeliveries';
 import Card from '../components/ui/Card';
