@@ -136,9 +136,6 @@ const QuoteList: React.FC = () => {
                         >
                             {item.taskName}
                         </p>
-                        <p className="text-xs text-gray-500">
-                            Task ID: {item.taskId}
-                        </p>
                     </div>
                 </div>
             )
