@@ -1,8 +1,8 @@
 import React from 'react';
-import {useNavigate} from 'react-router-dom';
-import {Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign} from 'lucide-react';
-import {useTasks} from '@/hooks/useTasks';
-import DataTable, {Column} from '@/components/ui/DataTable';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign } from 'lucide-react';
+import { useTasks } from '@/hooks/useTasks';
+import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import toast from 'react-hot-toast';
@@ -116,8 +116,7 @@ const TaskList: React.FC = () => {
             width: '80px',
             align: 'center',
             render: (item) => (
-                <span
-                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                     #{item.id}
                 </span>
             )
@@ -141,14 +140,15 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
+            width: '250px',
             render: (item) => (
                 <div>
-                    <p className="font-medium text-gray-900">{item.title}</p>
-                    {item.description && (
-                        <p className="text-sm text-gray-500 truncate max-w-xs" title={item.description}>
-                            {item.description}
-                        </p>
-                    )}
+                    <p
+                        className="font-medium text-gray-900 truncate cursor-help"
+                        title={item.title}
+                    >
+                        {item.title}
+                    </p>
                 </div>
             )
         },
@@ -196,7 +196,7 @@ const TaskList: React.FC = () => {
                         onClick={(e) => e.stopPropagation()}
                         title={item.link}
                     >
-                        <ExternalLink className="w-4 h-4"/>
+                        <ExternalLink className="w-4 h-4" />
                     </a>
                 ) : (
                     <span className="text-gray-400">-</span>
@@ -210,7 +210,7 @@ const TaskList: React.FC = () => {
             align: 'center',
             render: (item) => (
                 <div className="flex items-center justify-center gap-1">
-                    <CheckSquare className="w-4 h-4 text-gray-400"/>
+                    <CheckSquare className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-600">
                         {item.subTasks?.length || 0}
                     </span>
@@ -224,7 +224,7 @@ const TaskList: React.FC = () => {
             align: 'right',
             render: (item) => (
                 <div className="flex items-center justify-end gap-1">
-                    <DollarSign className="w-4 h-4 text-green-600"/>
+                    <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-600">
                         {formatCurrency(calculateTaskTotal(item.subTasks))}
                     </span>
@@ -238,6 +238,7 @@ const TaskList: React.FC = () => {
             filterable: true,
             filterType: 'date',
             render: (item) => formatDate(item.createdAt),
+            hideable: true
         },
         {
             key: 'updatedAt',
@@ -261,7 +262,7 @@ const TaskList: React.FC = () => {
                         onClick={() => handleEdit(item.id)}
                         title="Editar"
                     >
-                        <Edit className="w-4 h-4"/>
+                        <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                         size="sm"
@@ -270,7 +271,7 @@ const TaskList: React.FC = () => {
                         title="Excluir"
                         className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
-                        <Trash2 className="w-4 h-4"/>
+                        <Trash2 className="w-4 h-4" />
                     </Button>
                 </div>
             )
@@ -290,7 +291,7 @@ const TaskList: React.FC = () => {
                     onClick={() => navigate('/tasks/create')}
                     className="flex items-center"
                 >
-                    <Plus className="w-4 h-4 mr-2"/>
+                    <Plus className="w-4 h-4 mr-2" />
                     Nova Tarefa
                 </Button>
             </div>
@@ -311,7 +312,7 @@ const TaskList: React.FC = () => {
                     onClearFilters={clearFilters}
                     emptyMessage="Nenhuma tarefa encontrada"
                     showColumnToggle={true}
-                    hiddenColumns={['updatedAt']}
+                    hiddenColumns={['createdAt', 'updatedAt']} // Colunas de data ocultas por padrão
                 />
             </Card>
         </div>
