@@ -9,6 +9,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import TaskForm from '../../components/forms/TaskForm';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 interface Requester {
     id: number;
@@ -88,13 +89,18 @@ const TaskEdit = () => {
     const handleSubmit = async (data: any) => {
         if (!id) return;
 
+        if (!selectedRequester) {
+            toast.error('Selecione um solicitante');
+            return;
+        }
+
         try {
             setLoading(true);
 
             // Adiciona o requester selecionado aos dados
             const taskData = {
                 ...data,
-                requesterId: selectedRequester?.id || data.requesterId
+                requesterId: selectedRequester.id
             };
 
             await updateTaskWithSubTasks(Number(id), taskData);
@@ -268,45 +274,35 @@ const TaskEdit = () => {
                 }
                 subtitle={`Atualize as informações da tarefa: ${(task as any)?.title || 'Carregando...'}`}
             >
-                {/* Seleção de Requester */}
-                <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Solicitante *
-                    </label>
-
-                    {selectedRequester ? (
-                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <div className="font-medium text-gray-900">
-                                        {selectedRequester.name}
-                                    </div>
-                                    {selectedRequester.email && (
-                                        <div className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                                            <Mail className="w-4 h-4"/>
-                                            {selectedRequester.email}
-                                        </div>
-                                    )}
-                                    {selectedRequester.phone && (
-                                        <div className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                                            <Phone className="w-4 h-4"/>
-                                            {selectedRequester.phone}
-                                        </div>
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedRequester(null);
-                                        setShowRequesterModal(true);
-                                    }}
-                                    className="ml-2 text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="w-4 h-4"/>
-                                </button>
-                            </div>
+                {/* Solicitante Selecionado */}
+                {selectedRequester ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-blue-900">Solicitante Selecionado</h4>
+                            <button
+                                type="button"
+                                onClick={() => setShowRequesterModal(true)}
+                                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                title="Alterar solicitante"
+                            >
+                                Alterar
+                            </button>
                         </div>
-                    ) : (
+                        <div className="space-y-1 text-sm text-blue-800">
+                            <div><strong>Nome:</strong> {selectedRequester.name}</div>
+                            {selectedRequester.email && (
+                                <div><strong>Email:</strong> {selectedRequester.email}</div>
+                            )}
+                            {selectedRequester.phone && (
+                                <div><strong>Telefone:</strong> {selectedRequester.phone}</div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Solicitante *
+                        </label>
                         <button
                             type="button"
                             onClick={() => setShowRequesterModal(true)}
@@ -315,8 +311,8 @@ const TaskEdit = () => {
                             <Search className="w-4 h-4 mx-auto mb-1"/>
                             Clique para selecionar um solicitante
                         </button>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {/* TaskForm com requester pré-selecionado */}
                 <TaskForm
