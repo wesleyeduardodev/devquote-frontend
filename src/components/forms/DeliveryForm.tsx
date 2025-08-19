@@ -1,18 +1,15 @@
 import React from 'react';
-import {useForm} from 'react-hook-form';
-import {yupResolver} from '@hookform/resolvers/yup';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import useQuotes from '@/hooks/useQuotes';
-import {useProjects} from '@/hooks/useProjects';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import TextArea from '../ui/TextArea';
 import Button from '../ui/Button';
-import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface DeliveryData {
-    quoteId: string;
-    projectId: string;
+    quoteId: number;
+    projectId: number;
     branch?: string;
     pullRequest?: string;
     script?: string;
@@ -26,21 +23,11 @@ interface DeliveryFormProps {
     onSubmit: (data: any) => Promise<void>;
     onCancel?: () => void;
     loading?: boolean;
-}
-
-interface Quote {
-    id: number;
-    title?: string;
-}
-
-interface Project {
-    id: number;
-    name: string;
+    selectedQuote?: any;
+    selectedProject?: any;
 }
 
 const schema = yup.object({
-    quoteId: yup.string().required('Orçamento é obrigatório'),
-    projectId: yup.string().required('Projeto é obrigatório'),
     branch: yup.string().optional(),
     pullRequest: yup.string().url('URL inválida').optional(),
     script: yup.string().optional(),
@@ -53,22 +40,18 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                                                        initialData = null,
                                                        onSubmit,
                                                        onCancel,
-                                                       loading = false
+                                                       loading = false,
+                                                       selectedQuote,
+                                                       selectedProject
                                                    }) => {
-    const {quotes, loading: quotesLoading} = useQuotes();
-    const {projects, loading: projectsLoading} = useProjects();
-
     const {
         register,
         handleSubmit,
-        formState: {errors, isSubmitting},
+        formState: { errors, isSubmitting },
         reset,
-        watch,
     } = useForm<DeliveryData>({
         resolver: yupResolver(schema),
         defaultValues: {
-            quoteId: initialData?.quoteId?.toString() || '',
-            projectId: initialData?.projectId?.toString() || '',
             branch: initialData?.branch || '',
             pullRequest: initialData?.pullRequest || '',
             script: initialData?.script || '',
@@ -106,11 +89,16 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
         },
     });
 
-    const selectedQuoteId = watch('quoteId');
-
     const handleFormSubmit = async (data: DeliveryData): Promise<void> => {
         try {
-            console.log('Dados do formulário:', data); // Debug
+            // Validar se quote e project existem
+            if (!selectedQuote?.id && !initialData?.quoteId) {
+                throw new Error('Orçamento é obrigatório');
+            }
+
+            if (!selectedProject?.id && !initialData?.projectId) {
+                throw new Error('Projeto é obrigatório');
+            }
 
             // Função auxiliar para converter data para yyyy-MM-dd
             const convertDateToLocalDate = (dateValue?: string): string | null => {
@@ -144,124 +132,98 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                 }
             };
 
-            // Converter IDs para números e tratar datas
+            // Incluir os IDs dos itens selecionados
             const formattedData = {
                 ...data,
-                quoteId: parseInt(data.quoteId),
-                projectId: parseInt(data.projectId),
+                quoteId: selectedQuote?.id || initialData?.quoteId,
+                projectId: selectedProject?.id || initialData?.projectId,
                 startedAt: convertDateToLocalDate(data.startedAt),
                 finishedAt: convertDateToLocalDate(data.finishedAt),
             };
 
-            console.log('Dados formatados para envio:', formattedData); // Debug
-
             await onSubmit(formattedData);
-            if (!initialData) {
+            if (!initialData?.id) {
                 reset(); // Reset form only for create mode
             }
         } catch (error) {
-            console.error('Erro no formulário:', error);
             // Error is handled by the parent component
+            throw error;
         }
     };
 
     const statusOptions = [
-        {value: 'PENDING', label: 'Pendente'},
-        {value: 'IN_PROGRESS', label: 'Em Progresso'},
-        {value: 'TESTING', label: 'Em Teste'},
-        {value: 'DELIVERED', label: 'Entregue'},
-        {value: 'APPROVED', label: 'Aprovado'},
-        {value: 'REJECTED', label: 'Rejeitado'}
+        { value: 'PENDING', label: 'Pendente' },
+        { value: 'IN_PROGRESS', label: 'Em Progresso' },
+        { value: 'TESTING', label: 'Em Teste' },
+        { value: 'DELIVERED', label: 'Entregue' },
+        { value: 'APPROVED', label: 'Aprovado' },
+        { value: 'REJECTED', label: 'Rejeitado' }
     ];
 
-    if (quotesLoading || projectsLoading) {
-        return (
-            <div className="flex items-center justify-center py-8">
-                <LoadingSpinner/>
-            </div>
-        );
-    }
-
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Select
-                    {...register('quoteId', {valueAsNumber: false})}
-                    label="Orçamento"
-                    placeholder="Selecione um orçamento"
-                    error={errors.quoteId?.message}
-                    required
-                >
-                    {quotes.map((quote: Quote) => (
-                        <option key={quote.id} value={quote.id}>
-                            {quote.title || `Orçamento #${quote.id}`}
-                        </option>
-                    ))}
-                </Select>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+            {/* Informações da Entrega */}
+            <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Informações da Entrega
+                </h2>
 
-                <Select
-                    {...register('projectId', {valueAsNumber: false})}
-                    label="Projeto"
-                    placeholder="Selecione um projeto"
-                    error={errors.projectId?.message}
-                    required
-                >
-                    {projects.map((project: Project) => (
-                        <option key={project.id} value={project.id}>
-                            {project.name}
-                        </option>
-                    ))}
-                </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                        {...register('branch')}
+                        label="Branch"
+                        placeholder="feature/nova-funcionalidade"
+                        error={errors.branch?.message}
+                    />
 
-                <Input
-                    {...register('branch')}
-                    label="Branch"
-                    placeholder="feature/nova-funcionalidade"
-                    error={errors.branch?.message}
-                />
+                    <Input
+                        {...register('pullRequest')}
+                        type="url"
+                        label="Pull Request"
+                        placeholder="https://github.com/user/repo/pull/123"
+                        error={errors.pullRequest?.message}
+                    />
 
-                <Input
-                    {...register('pullRequest')}
-                    type="url"
-                    label="Pull Request"
-                    placeholder="https://github.com/user/repo/pull/123"
-                    error={errors.pullRequest?.message}
-                />
+                    <Input
+                        {...register('startedAt')}
+                        type="date"
+                        label="Data de Início"
+                        error={errors.startedAt?.message}
+                    />
 
-                <Input
-                    {...register('startedAt')}
-                    type="date"
-                    label="Data de Início"
-                    error={errors.startedAt?.message}
-                />
+                    <Input
+                        {...register('finishedAt')}
+                        type="date"
+                        label="Data de Finalização"
+                        error={errors.finishedAt?.message}
+                    />
 
-                <Input
-                    {...register('finishedAt')}
-                    type="date"
-                    label="Data de Finalização"
-                    error={errors.finishedAt?.message}
-                />
-
-                <div className="md:col-span-2">
-                    <Select
-                        {...register('status')}
-                        label="Status"
-                        error={errors.status?.message}
-                        required
-                    >
-                        {statusOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </Select>
+                    <div className="md:col-span-2">
+                        <Select
+                            {...register('status')}
+                            label="Status"
+                            error={errors.status?.message}
+                            required
+                        >
+                            {statusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
                 </div>
             </div>
 
-            <div className="md:col-span-2">
+            {/* Script SQL */}
+            <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                    Script de Banco de Dados
+                </h2>
+
                 <TextArea
                     {...register('script')}
-                    label="Script de Banco de Dados"
+                    label="Script SQL"
                     placeholder="-- Insira aqui o script SQL para a entrega
 CREATE TABLE exemplo (
   id BIGINT PRIMARY KEY,
@@ -274,6 +236,7 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');"
                 />
             </div>
 
+            {/* Ações */}
             <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
                 {onCancel && (
                     <Button
@@ -291,7 +254,7 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');"
                     loading={isSubmitting || loading}
                     disabled={isSubmitting || loading}
                 >
-                    {initialData ? 'Atualizar' : 'Criar'} Entrega
+                    {initialData?.id ? 'Atualizar' : 'Criar'} Entrega
                 </Button>
             </div>
         </form>

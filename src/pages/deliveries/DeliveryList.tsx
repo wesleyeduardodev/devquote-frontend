@@ -1,39 +1,72 @@
-import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
-import {Plus, Edit, Trash2, Truck, GitBranch, ExternalLink, Calendar, FileCode} from 'lucide-react';
-import {useDeliveries} from '@/hooks/useDeliveries';
-import useQuotes from '@/hooks/useQuotes';
-import {useProjects} from '@/hooks/useProjects';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck } from 'lucide-react';
+import { useDeliveries } from '@/hooks/useDeliveries';
+import DataTable, { Column } from '@/components/ui/DataTable';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import toast from 'react-hot-toast';
+
+interface Delivery {
+    id: number;
+    taskName: string;
+    taskCode: string;
+    projectName: string;
+    branch?: string;
+    pullRequest?: string;
+    status: string;
+    startedAt?: string;
+    finishedAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
 const DeliveryList: React.FC = () => {
-    const {deliveries, loading, deleteDelivery} = useDeliveries();
-    const {quotes} = useQuotes();
-    const {projects} = useProjects();
-    const [deletingId, setDeletingId] = useState<number | null>(null);
+    const navigate = useNavigate();
+    const {
+        deliveries,
+        pagination,
+        loading,
+        sorting,
+        filters,
+        setPage,
+        setPageSize,
+        setSorting,
+        setFilter,
+        clearFilters,
+        deleteDelivery
+    } = useDeliveries();
+
+    const handleEdit = (id: number) => {
+        navigate(`/deliveries/${id}/edit`);
+    };
 
     const handleDelete = async (id: number) => {
         if (window.confirm('Tem certeza que deseja excluir esta entrega?')) {
             try {
-                setDeletingId(id);
                 await deleteDelivery(id);
             } catch (error) {
-            } finally {
-                setDeletingId(null);
+                toast.error('Erro ao excluir entrega');
             }
         }
     };
 
-    const getQuoteName = (quoteId: number) => {
-        const quote = quotes.find((q: any) => q.id === quoteId);
-        return quote?.id || `Orçamento #${quoteId}`;
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
-    const getProjectName = (projectId: number) => {
-        const project = projects.find((p: any) => p.id === projectId);
-        return project?.name || `Projeto #${projectId}`;
+    const formatDateShort = (dateString?: string) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR');
     };
 
     const getStatusColor = (status: string) => {
@@ -60,183 +93,301 @@ const DeliveryList: React.FC = () => {
         return labels[status] || status;
     };
 
-    const formatDate = (dateString: string | undefined) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('pt-BR');
-    };
-
-    const formatDateShort = (dateString: string | undefined) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('pt-BR');
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="lg"/>
-            </div>
-        );
-    }
+    const columns: Column<Delivery>[] = [
+        {
+            key: 'id',
+            title: 'ID',
+            sortable: true,
+            filterable: true,
+            filterType: 'number',
+            width: '100px',
+            align: 'center',
+            render: (item) => (
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                    #{item.id}
+                </span>
+            )
+        },
+        {
+            key: 'taskCode',
+            title: 'Código da Tarefa',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '140px',
+            render: (item) => (
+                <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {item.taskCode}
+                </span>
+            )
+        },
+        {
+            key: 'taskName',
+            title: 'Nome da Tarefa',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '200px',
+            render: (item) => (
+                <div>
+                    <p
+                        className="font-medium text-gray-900 truncate cursor-help"
+                        title={item.taskName}
+                    >
+                        {item.taskName}
+                    </p>
+                </div>
+            )
+        },
+        {
+            key: 'projectName',
+            title: 'Projeto',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '150px',
+            render: (item) => (
+                <span className="text-sm text-gray-900">
+                    {item.projectName}
+                </span>
+            )
+        },
+        {
+            key: 'status',
+            title: 'Status',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '120px',
+            align: 'center',
+            render: (item) => (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
+                    {getStatusLabel(item.status)}
+                </span>
+            )
+        },
+        {
+            key: 'branch',
+            title: 'Branch',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '150px',
+            render: (item) => (
+                item.branch ? (
+                    <div className="flex items-center gap-1">
+                        <GitBranch className="w-4 h-4 text-gray-400"/>
+                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
+                            {item.branch}
+                        </span>
+                    </div>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
+            key: 'pullRequest',
+            title: 'Pull Request',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '120px',
+            align: 'center',
+            render: (item) => (
+                item.pullRequest ? (
+                    <a
+                        href={item.pullRequest}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                        title={item.pullRequest}
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </a>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
+            key: 'startedAt',
+            title: 'Iniciado em',
+            sortable: true,
+            filterable: true,
+            filterType: 'date',
+            width: '120px',
+            render: (item) => (
+                <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4 text-gray-400"/>
+                    <span className="text-sm text-gray-600">
+                        {formatDateShort(item.startedAt)}
+                    </span>
+                </div>
+            ),
+            hideable: true
+        },
+        {
+            key: 'finishedAt',
+            title: 'Finalizado em',
+            sortable: true,
+            filterable: true,
+            filterType: 'date',
+            width: '120px',
+            render: (item) => (
+                <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4 text-gray-400"/>
+                    <span className="text-sm text-gray-600">
+                        {formatDateShort(item.finishedAt)}
+                    </span>
+                </div>
+            ),
+            hideable: true
+        },
+        {
+            key: 'createdAt',
+            title: 'Criado em',
+            sortable: true,
+            filterable: true,
+            filterType: 'date',
+            render: (item) => formatDate(item.createdAt),
+            hideable: true
+        },
+        {
+            key: 'updatedAt',
+            title: 'Atualizado em',
+            sortable: true,
+            filterable: true,
+            filterType: 'date',
+            render: (item) => formatDate(item.updatedAt),
+            hideable: true
+        },
+        {
+            key: 'actions',
+            title: 'Ações',
+            align: 'center',
+            width: '120px',
+            render: (item) => (
+                <div className="flex items-center justify-center gap-1">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(item.id)}
+                        title="Editar"
+                    >
+                        <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(item.id)}
+                        title="Excluir"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
+                </div>
+            )
+        }
+    ];
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Entregas
-                    </h1>
-                    <p className="text-gray-600 mt-1">
-                        Gerencie as entregas dos projetos e orçamentos
-                    </p>
+                    <h1 className="text-2xl font-bold text-gray-900">Entregas</h1>
+                    <p className="text-gray-600 mt-1">Gerencie as entregas dos projetos e orçamentos</p>
                 </div>
-
-                <Link to="/deliveries/create">
-                    <Button className="flex items-center">
-                        <Plus className="w-4 h-4 mr-2"/>
-                        Nova Entrega
-                    </Button>
-                </Link>
+                <Button
+                    variant="primary"
+                    onClick={() => navigate('/deliveries/create')}
+                    className="flex items-center"
+                >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Entrega
+                </Button>
             </div>
 
-            {deliveries.length === 0 ? (
-                <Card className="text-center py-12">
-                    <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4"/>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Nenhuma entrega encontrada
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                        Comece criando sua primeira entrega de projeto.
-                    </p>
-                    <Link to="/deliveries/create">
-                        <Button>
-                            <Plus className="w-4 h-4 mr-2"/>
-                            Criar Primeira Entrega
-                        </Button>
-                    </Link>
-                </Card>
-            ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {deliveries.map((delivery: any) => (
-                        <Card key={delivery.id} className="hover:shadow-custom-lg transition-shadow">
-                            <div className="space-y-4">
-                                {/* Header da Entrega */}
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <span
-                                                className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
-                                                {getStatusLabel(delivery.status)}
-                                            </span>
-                                            <span
-                                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                                #{delivery.id}
-                                            </span>
-                                            {delivery.branch && (
-                                                <span
-                                                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
-                                                    <GitBranch className="w-3 h-3 inline mr-1"/>
-                                                    {delivery.branch}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                            {getQuoteName(delivery.quoteId)}
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            {getProjectName(delivery.projectId)}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Informações da Entrega */}
-                                <div className="space-y-2">
-                                    {delivery.pullRequest && (
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                            <a
-                                                href={delivery.pullRequest}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-primary-600 hover:text-primary-700 truncate"
-                                            >
-                                                Ver Pull Request
-                                            </a>
-                                        </div>
-                                    )}
-
-                                    {delivery.script && (
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <FileCode className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                            <span className="truncate">
-                                                Script SQL incluído ({delivery.script.length} caracteres)
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {(delivery.startedAt || delivery.finishedAt) && (
-                                        <div className="flex items-center text-sm text-gray-600">
-                                            <Calendar className="w-4 h-4 mr-2 flex-shrink-0"/>
-                                            <div className="flex-1">
-                                                {delivery.startedAt && (
-                                                    <div>Iniciado: {formatDateShort(delivery.startedAt)}</div>
-                                                )}
-                                                {delivery.finishedAt && (
-                                                    <div>Finalizado: {formatDateShort(delivery.finishedAt)}</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Script Preview */}
-                                {delivery.script && (
-                                    <div className="border-t pt-3">
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Script SQL:</h4>
-                                        <div className="bg-gray-50 rounded-md p-3 max-h-20 overflow-y-auto">
-                                            <code className="text-xs text-gray-800 whitespace-pre-wrap">
-                                                {delivery.script.length > 200
-                                                    ? `${delivery.script.substring(0, 200)}...`
-                                                    : delivery.script
-                                                }
-                                            </code>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="text-xs text-gray-500 border-t pt-3">
-                                    <div>Criada em: {formatDate(delivery.createdAt)}</div>
-                                    {delivery.updatedAt && delivery.updatedAt !== delivery.createdAt && (
-                                        <div className="mt-1">
-                                            Atualizada em: {formatDate(delivery.updatedAt)}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Ações */}
-                                <div className="flex items-center justify-end space-x-2 pt-2 border-t">
-                                    <Link to={`/deliveries/${delivery.id}/edit`}>
-                                        <Button size="sm" variant="outline">
-                                            <Edit className="w-4 h-4 mr-1"/>
-                                            Editar
-                                        </Button>
-                                    </Link>
-
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => handleDelete(delivery.id)}
-                                        loading={deletingId === delivery.id}
-                                        disabled={deletingId === delivery.id}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-1"/>
-                                        Excluir
-                                    </Button>
-                                </div>
+            {/* Estatísticas Rápidas */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <Truck className="h-8 w-8 text-blue-600"/>
+                        </div>
+                        <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-500">Total</div>
+                            <div className="text-2xl font-bold text-gray-900">
+                                {pagination?.totalElements || 0}
                             </div>
-                        </Card>
-                    ))}
+                        </div>
+                    </div>
                 </div>
-            )}
+
+                <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <FileCode className="h-8 w-8 text-yellow-600"/>
+                        </div>
+                        <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-500">Em Progresso</div>
+                            <div className="text-2xl font-bold text-yellow-600">
+                                {deliveries.filter(d => d.status === 'IN_PROGRESS').length}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <FileCode className="h-8 w-8 text-green-600"/>
+                        </div>
+                        <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-500">Entregues</div>
+                            <div className="text-2xl font-bold text-green-600">
+                                {deliveries.filter(d => d.status === 'DELIVERED').length}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <FileCode className="h-8 w-8 text-emerald-600"/>
+                        </div>
+                        <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-500">Aprovadas</div>
+                            <div className="text-2xl font-bold text-emerald-600">
+                                {deliveries.filter(d => d.status === 'APPROVED').length}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Table Card */}
+            <Card className="p-0">
+                <DataTable
+                    data={deliveries}
+                    columns={columns}
+                    loading={loading}
+                    pagination={pagination}
+                    sorting={sorting}
+                    filters={filters}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                    onSort={setSorting}
+                    onFilter={setFilter}
+                    onClearFilters={clearFilters}
+                    emptyMessage="Nenhuma entrega encontrada"
+                    showColumnToggle={true}
+                    hiddenColumns={['startedAt', 'finishedAt', 'createdAt', 'updatedAt']}
+                />
+            </Card>
         </div>
     );
 };
