@@ -19,7 +19,9 @@ import {
     Download,
     Eye,
     TrendingUp,
-    Loader2
+    Loader2,
+    Hash,
+    Tag
 } from 'lucide-react';
 
 // Importações dos seus hooks e serviços existentes
@@ -91,19 +93,25 @@ const BillingManagement = () => {
     // Estados para modais
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showQuoteSelectModal, setShowQuoteSelectModal] = useState(false);
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
-    // Estados para filtros
+    // Estados para filtros melhorados
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [yearFilter, setYearFilter] = useState('');
+    const [monthFilter, setMonthFilter] = useState('');
 
     // Estados para gerenciamento de vínculos
     const [links, setLinks] = useState<QuoteLink[]>([]);
     const [linksLoading, setLinksLoading] = useState(false);
     const [linking, setLinking] = useState(false);
     const [selectedQuoteId, setSelectedQuoteId] = useState('');
+
+    // Estados para modal de seleção de quotes
+    const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
+    const [quoteStatusFilter, setQuoteStatusFilter] = useState('APPROVED');
 
     // Form state
     const [formData, setFormData] = useState<{
@@ -202,28 +210,31 @@ const BillingManagement = () => {
         loadTotals();
     }, [loadTotals]);
 
-    // Filtros
+    // Filtros aprimorados
     const filteredBillingMonths = useMemo(() => {
         return billingMonths.filter(billing => {
             const monthName = getMonthLabel(billing.month);
-            const matchesSearch = monthName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            const matchesSearch = searchTerm === '' ||
+                monthName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 billing.year.toString().includes(searchTerm);
-            const matchesStatus = !statusFilter || billing.status === statusFilter;
-            const matchesYear = !yearFilter || billing.year.toString() === yearFilter;
+            const matchesStatus = statusFilter === '' || billing.status === statusFilter;
+            const matchesYear = yearFilter === '' || billing.year.toString() === yearFilter;
+            const matchesMonth = monthFilter === '' || billing.month.toString() === monthFilter;
 
-            return matchesSearch && matchesStatus && matchesYear;
+            return matchesSearch && matchesStatus && matchesYear && matchesMonth;
         });
-    }, [billingMonths, searchTerm, statusFilter, yearFilter, getMonthLabel]);
+    }, [billingMonths, searchTerm, statusFilter, yearFilter, monthFilter, getMonthLabel]);
 
-    // Estatísticas
+    // Estatísticas baseadas nos filtros
     const stats = useMemo(() => {
-        const total = billingMonths.reduce((sum, b) => sum + (totals[b.id] || 0), 0);
-        const paid = billingMonths.filter(b => b.status === 'PAGO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
-        const pending = billingMonths.filter(b => b.status === 'PENDENTE').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
-        const processing = billingMonths.filter(b => b.status === 'PROCESSANDO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const filteredData = filteredBillingMonths;
+        const total = filteredData.reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const paid = filteredData.filter(b => b.status === 'PAGO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const pending = filteredData.filter(b => b.status === 'PENDENTE').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const processing = filteredData.filter(b => b.status === 'PROCESSANDO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
 
         return { total, paid, pending, processing };
-    }, [billingMonths, totals]);
+    }, [filteredBillingMonths, totals]);
 
     // Quotes aprovados disponíveis
     const approvedQuotes = useMemo(() => {
@@ -234,6 +245,19 @@ const BillingManagement = () => {
         const linkedIds = new Set(links.map(l => l.quoteId));
         return approvedQuotes.filter(q => !linkedIds.has(q.id));
     }, [approvedQuotes, links]);
+
+    // Filtrar quotes para o modal de seleção
+    const filteredQuotesForSelection = useMemo(() => {
+        return availableQuotes.filter(quote => {
+            const matchesSearch = quoteSearchTerm === '' ||
+                quote.taskName?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) ||
+                quote.taskCode?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) ||
+                quote.id.toString().includes(quoteSearchTerm);
+            const matchesStatus = quoteStatusFilter === '' || quote.status === quoteStatusFilter;
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [availableQuotes, quoteSearchTerm, quoteStatusFilter]);
 
     // Dados dos quotes vinculados
     const linkedQuotesDetailed = useMemo(() => {
@@ -340,20 +364,22 @@ const BillingManagement = () => {
         }
     }, [totals, getMonthLabel]);
 
-    const handleLinkQuote = useCallback(async () => {
-        if (!selectedQuoteId || !selectedBilling) {
-            toast.error('Selecione um orçamento aprovado.');
+    const handleLinkQuote = useCallback(async (quoteId: number) => {
+        if (!selectedBilling) {
+            toast.error('Erro: Período não selecionado.');
             return;
         }
         setLinking(true);
         try {
             await billingMonthService.createQuoteLink({
                 quoteBillingMonthId: selectedBilling.id,
-                quoteId: Number(selectedQuoteId),
+                quoteId: quoteId,
             });
             const data = await billingMonthService.findQuoteLinksByBillingMonth(selectedBilling.id) as QuoteLink[] | undefined;
             setLinks(data ?? []);
-            setSelectedQuoteId('');
+            setShowQuoteSelectModal(false);
+            setQuoteSearchTerm('');
+            setQuoteStatusFilter('APPROVED');
             // Atualizar total
             await loadTotals();
             toast.success('Orçamento vinculado com sucesso!');
@@ -363,7 +389,7 @@ const BillingManagement = () => {
         } finally {
             setLinking(false);
         }
-    }, [selectedBilling, selectedQuoteId, loadTotals]);
+    }, [selectedBilling, loadTotals]);
 
     const handleUnlinkQuote = useCallback(async (linkId: number) => {
         if (!selectedBilling) return;
@@ -382,9 +408,36 @@ const BillingManagement = () => {
         }
     }, [selectedBilling, loadTotals]);
 
+    const clearAllFilters = useCallback(() => {
+        setSearchTerm('');
+        setStatusFilter('');
+        setYearFilter('');
+        setMonthFilter('');
+    }, []);
+
     // Componentes auxiliares
     const getStatusConfig = (status: StatusValue) => {
         return statusOptions.find(s => s.value === status) || statusOptions[0];
+    };
+
+    const getQuoteStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
+            PENDING: 'bg-yellow-100 text-yellow-800',
+            APPROVED: 'bg-green-100 text-green-800',
+            REJECTED: 'bg-red-100 text-red-800',
+            DRAFT: 'bg-gray-100 text-gray-800'
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800';
+    };
+
+    const getQuoteStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
+            PENDING: 'Pendente',
+            APPROVED: 'Aprovado',
+            REJECTED: 'Rejeitado',
+            DRAFT: 'Rascunho'
+        };
+        return labels[status] || status;
     };
 
     const StatusBadge = ({ status }: { status: StatusValue }) => {
@@ -464,7 +517,7 @@ const BillingManagement = () => {
                         value={formatCurrency(stats.total)}
                         icon={TrendingUp}
                         color="text-purple-600"
-                        subtitle={`${billingMonths.length} períodos`}
+                        subtitle={`${filteredBillingMonths.length} períodos`}
                     />
                     <StatCard
                         title="Pago"
@@ -489,44 +542,77 @@ const BillingManagement = () => {
                     />
                 </div>
 
-                {/* Filters */}
+                {/* Filters Aprimorados */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por mês ou ano..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-medium text-gray-900">Filtros</h3>
+                            {(searchTerm || statusFilter || yearFilter || monthFilter) && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                >
+                                    Limpar filtros
+                                </button>
+                            )}
                         </div>
 
-                        <div className="flex gap-3">
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="">Todos os status</option>
-                                {statusOptions.map(status => (
-                                    <option key={status.value} value={status.value}>{status.label}</option>
-                                ))}
-                            </select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por mês ou ano..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
 
-                            <select
-                                value={yearFilter}
-                                onChange={(e) => setYearFilter(e.target.value)}
-                                className="px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="">Todos os anos</option>
-                                {years.map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Ano</label>
+                                <select
+                                    value={yearFilter}
+                                    onChange={(e) => setYearFilter(e.target.value)}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">Todos os anos</option>
+                                    {years.map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Mês</label>
+                                <select
+                                    value={monthFilter}
+                                    onChange={(e) => setMonthFilter(e.target.value)}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">Todos os meses</option>
+                                    {monthOptions.map(month => (
+                                        <option key={month.value} value={month.value}>{month.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">Todos os status</option>
+                                    {statusOptions.map(status => (
+                                        <option key={status.value} value={status.value}>{status.label}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -732,6 +818,161 @@ const BillingManagement = () => {
                     </div>
                 )}
 
+                {/* Quote Selection Modal */}
+                {showQuoteSelectModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+                            <div className="p-6 border-b border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">Selecionar Orçamento</h3>
+                                        <p className="text-gray-600 mt-1">Escolha um orçamento aprovado para vincular</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowQuoteSelectModal(false)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Filtros do modal */}
+                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                placeholder="Buscar por ID, código ou nome da tarefa..."
+                                                value={quoteSearchTerm}
+                                                onChange={(e) => setQuoteSearchTerm(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                        <select
+                                            value={quoteStatusFilter}
+                                            onChange={(e) => setQuoteStatusFilter(e.target.value)}
+                                            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        >
+                                            <option value="">Todos os status</option>
+                                            <option value="APPROVED">Aprovado</option>
+                                            <option value="PENDING">Pendente</option>
+                                            <option value="DRAFT">Rascunho</option>
+                                            <option value="REJECTED">Rejeitado</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 max-h-[calc(90vh-240px)] overflow-y-auto">
+                                {quotesLoading ? (
+                                    <div className="p-8 text-center">
+                                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-gray-400" />
+                                        <p className="text-gray-500">Carregando orçamentos...</p>
+                                    </div>
+                                ) : filteredQuotesForSelection.length === 0 ? (
+                                    <div className="p-8 text-center text-gray-500">
+                                        <FileText className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                                        <p>Nenhum orçamento disponível para vinculação</p>
+                                        <p className="text-xs text-gray-400 mt-1">Todos os orçamentos aprovados já estão vinculados ou não há orçamentos aprovados</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead className="bg-gray-50 border-b border-gray-100">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome da Tarefa</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ação</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                            {filteredQuotesForSelection.map((quote) => (
+                                                <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-4 py-4">
+                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                #{quote.id}
+                              </span>
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Hash className="w-4 h-4 text-gray-400" />
+                                                            <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                  {quote.taskCode}
+                                </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="w-4 h-4 text-gray-400" />
+                                                            <div>
+                                                                <p className="font-medium text-gray-900 max-w-xs truncate" title={quote.taskName}>
+                                                                    {quote.taskName}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getQuoteStatusColor(quote.status)}`}>
+                                {getQuoteStatusLabel(quote.status)}
+                              </span>
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex items-center gap-1">
+                                                            <DollarSign className="w-4 h-4 text-green-600" />
+                                                            <span className="text-sm font-semibold text-green-600">
+                                  {formatCurrency(getQuoteAmount(quote))}
+                                </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-center">
+                                                        <button
+                                                            onClick={() => handleLinkQuote(quote.id)}
+                                                            disabled={linking}
+                                                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+                                                        >
+                                                            {linking ? (
+                                                                <>
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    Vinculando...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Link2 className="w-4 h-4" />
+                                                                    Vincular
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-gray-100 flex justify-end">
+                                <button
+                                    onClick={() => setShowQuoteSelectModal(false)}
+                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Details Modal */}
                 {showDetailsModal && selectedBilling && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -785,36 +1026,17 @@ const BillingManagement = () => {
                                         Vincular Novo Orçamento
                                     </h4>
                                     <div className="flex gap-3">
-                                        <select
-                                            value={selectedQuoteId}
-                                            onChange={(e) => setSelectedQuoteId(e.target.value)}
-                                            disabled={quotesLoading || linksLoading}
-                                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        >
-                                            <option value="">Selecione um orçamento aprovado...</option>
-                                            {availableQuotes.map(quote => (
-                                                <option key={quote.id} value={quote.id}>
-                                                    #{quote.id} • {formatCurrency(getQuoteAmount(quote))}
-                                                </option>
-                                            ))}
-                                        </select>
                                         <button
-                                            onClick={handleLinkQuote}
-                                            disabled={!selectedQuoteId || linking}
+                                            onClick={() => setShowQuoteSelectModal(true)}
+                                            disabled={quotesLoading || linksLoading}
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                                         >
-                                            {linking ? (
-                                                <>
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Vinculando...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Link2 className="w-4 h-4" />
-                                                    Vincular
-                                                </>
-                                            )}
+                                            <Plus className="w-4 h-4" />
+                                            Selecionar Orçamento
                                         </button>
+                                        <div className="text-sm text-gray-600 self-center">
+                                            {availableQuotes.length} orçamentos disponíveis para vinculação
+                                        </div>
                                     </div>
                                 </div>
 
@@ -837,7 +1059,7 @@ const BillingManagement = () => {
                                         <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-lg">
                                             <FileText className="w-8 h-8 mx-auto mb-3 text-gray-300" />
                                             <p>Nenhum orçamento vinculado a este período</p>
-                                            <p className="text-xs text-gray-400 mt-1">Use o formulário acima para vincular orçamentos aprovados</p>
+                                            <p className="text-xs text-gray-400 mt-1">Use o botão acima para vincular orçamentos aprovados</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
@@ -855,8 +1077,13 @@ const BillingManagement = () => {
                                 </span>
                                                             </div>
                                                             <p className="text-sm text-gray-600">Valor: {formatCurrency(item.totalAmount)}</p>
-                                                            {item.quote.clientName && (
-                                                                <p className="text-xs text-gray-500">Cliente: {item.quote.clientName}</p>
+                                                            {item.quote.taskCode && (
+                                                                <p className="text-xs text-gray-500">Código: {item.quote.taskCode}</p>
+                                                            )}
+                                                            {item.quote.taskName && (
+                                                                <p className="text-xs text-gray-500 max-w-md truncate" title={item.quote.taskName}>
+                                                                    Tarefa: {item.quote.taskName}
+                                                                </p>
                                                             )}
                                                         </div>
                                                     </div>
