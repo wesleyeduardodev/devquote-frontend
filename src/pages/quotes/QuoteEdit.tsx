@@ -1,18 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calculator, Search, X, Check, DollarSign } from 'lucide-react';
+import { ArrowLeft, Search, X, Check, User, Hash, FileText, Calculator } from 'lucide-react';
 import { quoteService } from '@/services/quoteService';
 import { useTasks } from '@/hooks/useTasks';
 import DataTable, { Column } from '@/components/ui/DataTable';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import QuoteForm from '../../components/forms/QuoteForm';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
-
-interface SubTaskResponseDTO {
-    id?: number;
-    title: string;
-    description?: string;
-    amount: number;
-    status: string;
-}
 
 interface Task {
     id: number;
@@ -25,27 +21,19 @@ interface Task {
     link?: string;
     createdAt?: string;
     updatedAt?: string;
-    subTasks?: SubTaskResponseDTO[];
+    subTasks?: any[];
 }
 
-const QuoteEdit: React.FC = () => {
+const QuoteEdit = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
-    const [loading, setLoading] = useState<boolean>(false);
-    const [fetchLoading, setFetchLoading] = useState<boolean>(true);
     const [quote, setQuote] = useState<any>(null);
-
-    // Modal + tarefa selecionada (mesmo esquema do Create)
-    const [showTaskModal, setShowTaskModal] = useState<boolean>(false);
+    const [loading, setLoading] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(true);
+    const [showTaskModal, setShowTaskModal] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-    const [formData, setFormData] = useState({
-        status: 'DRAFT',
-        totalAmount: '',
-    });
-
-    // Hook de tarefas (paginado) — MESMO ESQUEMA DO CREATE
+    // Hook para gerenciar tarefas paginadas
     const {
         tasks,
         pagination,
@@ -56,35 +44,25 @@ const QuoteEdit: React.FC = () => {
         setPageSize,
         setSorting,
         setFilter,
-        clearFilters,
-        fetchTasks, // se existir no seu hook; senão remova
+        clearFilters
     } = useTasks({
         page: 0,
         size: 10,
         sort: [{ field: 'id', direction: 'desc' }],
-        filters: {},
+        filters: {}
     });
 
-    // Carrega orçamento
     useEffect(() => {
-        const load = async () => {
+        const fetchQuote = async () => {
             if (!id) {
                 navigate('/quotes');
                 return;
             }
+
             try {
                 setFetchLoading(true);
-                const quoteResponse = await quoteService.getById(Number(id));
-                setQuote(quoteResponse);
-
-                // Pré-carrega status/valor
-                setFormData({
-                    status: quoteResponse.status,
-                    totalAmount: (quoteResponse.totalAmount ?? '').toString(),
-                });
-
-                // Tenta selecionar a tarefa do orçamento quando ela estiver disponível no grid
-                // (pode acontecer depois; por isso há outro effect abaixo)
+                const data = await quoteService.getById(Number(id));
+                setQuote(data);
             } catch (error) {
                 console.error('Erro ao carregar orçamento:', error);
                 toast.error('Erro ao carregar orçamento');
@@ -93,10 +71,13 @@ const QuoteEdit: React.FC = () => {
                 setFetchLoading(false);
             }
         };
-        load();
+
+        if (id) {
+            fetchQuote();
+        }
     }, [id, navigate]);
 
-    // Quando tivermos o orçamento e as tarefas carregadas, tentamos “casar” a taskId
+    // Quando tivermos o orçamento e as tarefas carregadas, tentamos "casar" a taskId
     useEffect(() => {
         if (!quote || !Array.isArray(tasks) || tasks.length === 0) return;
         const found = tasks.find((t: any) => t.id === quote.taskId);
@@ -107,60 +88,27 @@ const QuoteEdit: React.FC = () => {
 
     const calculateTaskTotal = (task: Task) => {
         if (!task?.subTasks || !Array.isArray(task.subTasks)) return 0;
-        return task.subTasks.reduce((total: number, subTask: SubTaskResponseDTO) => {
+        return task.subTasks.reduce((total: number, subTask: any) => {
             return total + (parseFloat(subTask.amount?.toString() || '0') || 0);
         }, 0);
     };
 
     const handleTaskSelect = (task: Task) => {
         setSelectedTask(task);
-        const taskTotal = calculateTaskTotal(task);
-        setFormData((prev) => ({
-            ...prev,
-            totalAmount: taskTotal.toFixed(2),
-        }));
         setShowTaskModal(false);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleRecalculate = () => {
-        if (selectedTask) {
-            const taskTotal = calculateTaskTotal(selectedTask);
-            setFormData((prev) => ({
-                ...prev,
-                totalAmount: taskTotal.toFixed(2),
-            }));
-            toast.success('Valor recalculado com base nas subtarefas');
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (data: any) => {
+        if (!id) return;
 
         if (!selectedTask) {
             toast.error('Selecione uma tarefa');
             return;
         }
-        if (!formData.totalAmount || parseFloat(formData.totalAmount) <= 0) {
-            toast.error('Valor total deve ser maior que zero');
-            return;
-        }
-        if (!id) return;
 
         try {
             setLoading(true);
-            await quoteService.update(Number(id), {
-                taskId: selectedTask.id,
-                status: formData.status,
-                totalAmount: parseFloat(formData.totalAmount),
-            });
+            await quoteService.update(Number(id), data);
             toast.success('Orçamento atualizado com sucesso!');
             navigate('/quotes');
         } catch (error: any) {
@@ -174,15 +122,34 @@ const QuoteEdit: React.FC = () => {
                 errorMessage = error.message;
             }
             toast.error(errorMessage);
+            throw error;
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCancel = () => navigate('/quotes');
+    const handleCancel = () => {
+        navigate('/quotes');
+    };
 
-    const formatCurrency = (value: number) =>
-        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -210,7 +177,7 @@ const QuoteEdit: React.FC = () => {
         return labels[status] || status;
     };
 
-    // Colunas do DataTable (mesmas do Create)
+    // Colunas para o DataTable do modal de tarefas
     const taskColumns: Column<Task>[] = useMemo(
         () => [
             {
@@ -223,9 +190,9 @@ const QuoteEdit: React.FC = () => {
                 align: 'center',
                 render: (item) => (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-            #{item.id}
-          </span>
-                ),
+                        #{item.id}
+                    </span>
+                )
             },
             {
                 key: 'code',
@@ -235,8 +202,13 @@ const QuoteEdit: React.FC = () => {
                 filterType: 'text',
                 width: '120px',
                 render: (item) => (
-                    <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">{item.code}</span>
-                ),
+                    <div className="flex items-center gap-2">
+                        <Hash className="w-4 h-4 text-gray-400"/>
+                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                            {item.code}
+                        </span>
+                    </div>
+                )
             },
             {
                 key: 'title',
@@ -246,12 +218,15 @@ const QuoteEdit: React.FC = () => {
                 filterType: 'text',
                 width: '200px',
                 render: (item) => (
-                    <div>
-                        <p className="font-medium text-gray-900 truncate cursor-help" title={item.title}>
-                            {item.title}
-                        </p>
+                    <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400"/>
+                        <div>
+                            <p className="font-medium text-gray-900 truncate cursor-help" title={item.title}>
+                                {item.title}
+                            </p>
+                        </div>
                     </div>
-                ),
+                )
             },
             {
                 key: 'status',
@@ -263,9 +238,9 @@ const QuoteEdit: React.FC = () => {
                 align: 'center',
                 render: (item) => (
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-            {getStatusLabel(item.status)}
-          </span>
-                ),
+                        {getStatusLabel(item.status)}
+                    </span>
+                )
             },
             {
                 key: 'requesterName',
@@ -274,7 +249,14 @@ const QuoteEdit: React.FC = () => {
                 filterable: true,
                 filterType: 'text',
                 width: '150px',
-                render: (item) => <span className="text-sm text-gray-900">{item.requesterName || 'Não informado'}</span>,
+                render: (item) => (
+                    <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-400"/>
+                        <span className="text-sm text-gray-600">
+                            {item.requesterName || 'Não informado'}
+                        </span>
+                    </div>
+                )
             },
             {
                 key: 'total',
@@ -282,11 +264,10 @@ const QuoteEdit: React.FC = () => {
                 width: '120px',
                 align: 'right',
                 render: (item) => (
-                    <div className="flex items-center justify-end gap-1">
-                        <DollarSign className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-600">{formatCurrency(calculateTaskTotal(item))}</span>
-                    </div>
-                ),
+                    <span className="text-sm font-medium text-green-600">
+                        {formatCurrency(calculateTaskTotal(item))}
+                    </span>
+                )
             },
             {
                 key: 'actions',
@@ -301,11 +282,11 @@ const QuoteEdit: React.FC = () => {
                         }}
                         className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
                     >
-                        <Check className="w-3 h-3 mr-1" />
+                        <Check className="w-3 h-3 mr-1"/>
                         Selecionar
                     </button>
-                ),
-            },
+                )
+            }
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
         []
@@ -314,8 +295,7 @@ const QuoteEdit: React.FC = () => {
     if (fetchLoading) {
         return (
             <div className="flex items-center justify-center min-h-96">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <span className="ml-4 text-gray-600">Carregando orçamento...</span>
+                <LoadingSpinner size="lg"/>
             </div>
         );
     }
@@ -333,198 +313,108 @@ const QuoteEdit: React.FC = () => {
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-6 space-y-6">
-            {/* Header */}
+        <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center space-x-4">
-                <button onClick={handleCancel} className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-                    <ArrowLeft className="w-4 h-4 mr-1" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancel}
+                    className="flex items-center"
+                >
+                    <ArrowLeft className="w-4 h-4 mr-1"/>
                     Voltar
-                </button>
+                </Button>
             </div>
 
-            {/* Card */}
-            <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-                <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-2">
-                        <h1 className="text-2xl font-bold text-gray-900">Editar Orçamento</h1>
+            <Card
+                title={
+                    <div className="flex items-center gap-2">
+                        <span>Editar Orçamento</span>
                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-              #{quote.id}
-            </span>
+                            #{quote.id}
+                        </span>
                     </div>
-                    <p className="text-gray-600">Atualize as informações do orçamento</p>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Seleção de Tarefa (mesmo modal do Create) */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Tarefa *</label>
-
-                        {selectedTask ? (
-                            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <div className="font-medium text-gray-900">
-                                            {selectedTask.code} - {selectedTask.title}
-                                        </div>
-                                        {selectedTask.description && (
-                                            <div className="text-sm text-gray-600 mt-1">{selectedTask.description}</div>
-                                        )}
-                                        <div className="flex items-center gap-2 mt-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedTask.status)}`}>
-                        {getStatusLabel(selectedTask.status)}
-                      </span>
-                                            <span className="text-xs text-gray-500">Subtarefas: {selectedTask.subTasks?.length || 0}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedTask(null);
-                                            setFormData((prev) => ({ ...prev, totalAmount: '' }));
-                                            setShowTaskModal(true);
-                                        }}
-                                        className="ml-2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
+                }
+                subtitle={`Atualize as informações do orçamento`}
+            >
+                {/* Tarefa Selecionada */}
+                {selectedTask ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-blue-900">Tarefa Selecionada</h4>
                             <button
                                 type="button"
                                 onClick={() => setShowTaskModal(true)}
-                                className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                title="Alterar tarefa"
                             >
-                                <Search className="w-4 h-4 mx-auto mb-1" />
-                                Clique para selecionar uma tarefa
+                                Alterar
                             </button>
-                        )}
-                    </div>
-
-                    {/* Detalhes da Tarefa Selecionada */}
-                    {selectedTask && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-medium text-blue-900">Detalhes da Tarefa</h4>
-                                <button
-                                    type="button"
-                                    onClick={handleRecalculate}
-                                    className="flex items-center text-sm text-blue-600 hover:text-blue-700"
-                                >
-                                    <Calculator className="w-4 h-4 mr-1" />
-                                    Recalcular
-                                </button>
-                            </div>
-                            <div className="space-y-1 text-sm text-blue-800">
-                                <div>
-                                    <strong>Código:</strong> {selectedTask.code}
-                                </div>
-                                <div>
-                                    <strong>Título:</strong> {selectedTask.title}
-                                </div>
-                                {selectedTask.description && (
-                                    <div>
-                                        <strong>Descrição:</strong> {selectedTask.description}
-                                    </div>
-                                )}
-                                <div>
-                                    <strong>Subtarefas:</strong> {selectedTask.subTasks?.length || 0}
-                                </div>
-                                <div className="flex items-center">
-                                    <Calculator className="w-4 h-4 mr-1" />
-                                    <strong>Total Calculado:</strong> {formatCurrency(calculateTaskTotal(selectedTask))}
-                                </div>
+                        </div>
+                        <div className="space-y-1 text-sm text-blue-800">
+                            <div><strong>Código:</strong> {selectedTask.code}</div>
+                            <div><strong>Título:</strong> {selectedTask.title}</div>
+                            {selectedTask.description && (
+                                <div><strong>Descrição:</strong> {selectedTask.description}</div>
+                            )}
+                            <div><strong>Subtarefas:</strong> {selectedTask.subTasks?.length || 0}</div>
+                            <div className="flex items-center">
+                                <Calculator className="w-4 h-4 mr-1" />
+                                <strong>Total Calculado:</strong> {formatCurrency(calculateTaskTotal(selectedTask))}
                             </div>
                         </div>
-                    )}
-
-                    {/* Status */}
-                    <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                            Status *
-                        </label>
-                        <select
-                            id="status"
-                            name="status"
-                            value={formData.status}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="DRAFT">Rascunho</option>
-                            <option value="PENDING">Pendente</option>
-                            <option value="APPROVED">Aprovado</option>
-                            <option value="REJECTED">Rejeitado</option>
-                        </select>
                     </div>
-
-                    {/* Valor Total */}
-                    <div>
-                        <label htmlFor="totalAmount" className="block text-sm font-medium text-gray-700 mb-2">
-                            Valor Total *
+                ) : (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Tarefa *
                         </label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-2 text-gray-500">R$</span>
-                            <input
-                                type="number"
-                                id="totalAmount"
-                                name="totalAmount"
-                                value={formData.totalAmount}
-                                onChange={handleInputChange}
-                                step="0.01"
-                                min="0.01"
-                                required
-                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="0,00"
-                            />
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Valor calculado automaticamente com base nas subtarefas, mas pode ser editado</p>
-                    </div>
-
-                    {/* Botões */}
-                    <div className="flex space-x-3 pt-6">
                         <button
                             type="button"
-                            onClick={handleCancel}
-                            disabled={loading}
-                            className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+                            onClick={() => setShowTaskModal(true)}
+                            className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
                         >
-                            Cancelar
-                        </button>
-
-                        <button
-                            type="submit"
-                            disabled={loading || !selectedTask}
-                            className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center"
-                        >
-                            {loading ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Salvando...
-                                </>
-                            ) : (
-                                'Salvar Alterações'
-                            )}
+                            <Search className="w-4 h-4 mx-auto mb-1"/>
+                            Clique para selecionar uma tarefa
                         </button>
                     </div>
-                </form>
-            </div>
+                )}
 
-            {/* Modal de Seleção de Tarefa (igual ao Create) */}
+                {/* QuoteForm */}
+                <QuoteForm
+                    initialData={quote && selectedTask ? {
+                        ...quote,
+                        taskId: selectedTask.id,
+                    } : quote}
+                    onSubmit={handleSubmit}
+                    onCancel={handleCancel}
+                    loading={loading}
+                    selectedTask={selectedTask}
+                    formatCurrency={formatCurrency}
+                />
+            </Card>
+
+            {/* Modal de Seleção de Tarefa */}
             {showTaskModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        {/* Header do Modal */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
                             <div>
                                 <h2 className="text-xl font-semibold text-gray-900">Selecionar Tarefa</h2>
-                                <p className="text-sm text-gray-600 mt-1">Escolha uma tarefa para editar o orçamento</p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Escolha uma tarefa para editar o orçamento
+                                </p>
                             </div>
-                            <button onClick={() => setShowTaskModal(false)} className="text-gray-400 hover:text-gray-600">
-                                <X className="w-6 h-6" />
+                            <button
+                                onClick={() => setShowTaskModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-6 h-6"/>
                             </button>
                         </div>
 
+                        {/* DataTable Container */}
                         <div className="flex-1 overflow-hidden">
                             <DataTable
                                 data={tasks}
