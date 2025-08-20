@@ -181,8 +181,8 @@ const TaskList: React.FC = () => {
         {
             key: 'link',
             title: 'Link',
-            sortable: true,
-            filterable: true,
+            sortable: false,
+            filterable: false,
             filterType: 'text',
             width: '100px',
             align: 'center',
