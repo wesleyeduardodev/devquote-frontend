@@ -298,7 +298,6 @@ const DeliveryList: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Entregas</h1>
-                    <p className="text-gray-600 mt-1">Gerencie as entregas dos projetos e orçamentos</p>
                 </div>
                 <Button
                     variant="primary"

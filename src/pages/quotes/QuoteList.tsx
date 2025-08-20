@@ -317,7 +317,6 @@ const QuoteList: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Orçamentos</h1>
-                    <p className="text-gray-600 mt-1">Gerencie orçamentos criados para as tarefas</p>
                 </div>
                 <Button
                     variant="primary"
