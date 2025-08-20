@@ -23,6 +23,8 @@ interface Task {
     status: string;
     code: string;
     link?: string;
+    meetingLink?: string;
+    notes?: string;
     subTasks?: SubTask[];
     createdAt?: string;
     updatedAt?: string;
@@ -35,6 +37,11 @@ interface TaskCreate {
     status: string;
     code: string;
     link?: string;
+    meetingLink?: string;
+    notes?: string;
+    createQuote?: boolean;
+    linkQuoteToBilling?: boolean;
+    projectsIds?: number[];
     subTasks: Omit<SubTask, 'id' | 'taskId' | 'createdAt' | 'updatedAt'>[];
 }
 
@@ -68,6 +75,8 @@ interface FilterParams {
     status?: string;
     code?: string;
     link?: string;
+    meetingLink?: string;
+    notes?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -105,7 +114,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
     const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
-        {field: 'id', direction: 'asc'}
+        {field: 'id', direction: 'desc'}
     ]);
     const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
 

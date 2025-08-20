@@ -14,6 +14,8 @@ interface FilterParams {
     status?: string;
     code?: string;
     link?: string;
+    meetingLink?: string;
+    notes?: string;
     createdAt?: string;
     updatedAt?: string;
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign, Search, Filter, User, Code, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign, Search, Filter, User, Code, Calendar, Video, StickyNote, FileText } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
@@ -28,6 +28,8 @@ interface Task {
     status: string;
     code: string;
     link?: string;
+    meetingLink?: string;
+    notes?: string;
     subTasks?: SubTask[];
     createdAt?: string;
     updatedAt?: string;
@@ -194,7 +196,7 @@ const TaskList: React.FC = () => {
             sortable: false,
             filterable: false,
             filterType: 'text',
-            width: '100px',
+            width: '80px',
             align: 'center',
             render: (item) => (
                 item.link ? (
@@ -208,6 +210,49 @@ const TaskList: React.FC = () => {
                     >
                         <ExternalLink className="w-4 h-4" />
                     </a>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
+            key: 'meetingLink',
+            title: 'Reunião',
+            sortable: false,
+            filterable: false,
+            filterType: 'text',
+            width: '80px',
+            align: 'center',
+            render: (item) => (
+                item.meetingLink ? (
+                    <a
+                        href={item.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-800 flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                        title={item.meetingLink}
+                    >
+                        <Video className="w-4 h-4" />
+                    </a>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
+            key: 'notes',
+            title: 'Notas',
+            sortable: false,
+            filterable: true,
+            filterType: 'text',
+            width: '100px',
+            align: 'center',
+            render: (item) => (
+                item.notes ? (
+                    <div className="flex items-center justify-center" title={item.notes}>
+                        <StickyNote className="w-4 h-4 text-amber-600" />
+                    </div>
                 ) : (
                     <span className="text-gray-400">-</span>
                 )
@@ -360,17 +405,42 @@ const TaskList: React.FC = () => {
                     </div>
                 </div>
 
-                {task.link && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                        <a
-                            href={task.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 hover:underline truncate"
-                        >
-                            Ver link da tarefa
-                        </a>
+                {/* Links */}
+                <div className="flex items-center gap-4 text-sm">
+                    {task.link && (
+                        <div className="flex items-center gap-2">
+                            <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <a
+                                href={task.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 hover:underline truncate"
+                            >
+                                Ver link da tarefa
+                            </a>
+                        </div>
+                    )}
+
+                    {task.meetingLink && (
+                        <div className="flex items-center gap-2">
+                            <Video className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            <a
+                                href={task.meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-green-600 hover:text-green-800 hover:underline truncate"
+                            >
+                                Entrar na reunião
+                            </a>
+                        </div>
+                    )}
+                </div>
+
+                {/* Notas */}
+                {task.notes && (
+                    <div className="flex items-start gap-2 text-sm bg-amber-50 border border-amber-200 rounded-lg p-2">
+                        <StickyNote className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <span className="text-amber-800">{task.notes}</span>
                     </div>
                 )}
 
