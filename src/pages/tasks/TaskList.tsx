@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, CheckSquare, DollarSign, Search, Filter, User, Code, Calendar } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
@@ -35,6 +35,8 @@ interface Task {
 
 const TaskList: React.FC = () => {
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+
     const {
         tasks,
         pagination,
@@ -105,6 +107,14 @@ const TaskList: React.FC = () => {
     const calculateTaskTotal = (subTasks?: SubTask[]) => {
         return subTasks?.reduce((total: number, subTask: SubTask) => total + (subTask.amount || 0), 0) || 0;
     };
+
+    // Filtrar tasks baseado na busca (apenas para mobile)
+    const filteredTasks = tasks.filter(task =>
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.requesterName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getStatusLabel(task.status).toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const columns: Column<Task>[] = [
         {
@@ -278,43 +288,216 @@ const TaskList: React.FC = () => {
         }
     ];
 
+    // Componente Card para visualização mobile
+    const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+            {/* Header do Card */}
+            <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                            #{task.id}
+                        </span>
+                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                            {task.code}
+                        </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">
+                        {task.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
+                            {getStatusLabel(task.status)}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Ações */}
+                <div className="flex gap-1 ml-2">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(task.id)}
+                        title="Editar"
+                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                    >
+                        <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(task.id)}
+                        title="Excluir"
+                        className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Informações da Task */}
+            <div className="space-y-2">
+                {task.requesterName && (
+                    <div className="flex items-center gap-2 text-sm">
+                        <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-gray-700">{task.requesterName}</span>
+                    </div>
+                )}
+
+                <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                        <CheckSquare className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-gray-600">
+                            {task.subTasks?.length || 0} subtarefa(s)
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-600">
+                            {formatCurrency(calculateTaskTotal(task.subTasks))}
+                        </span>
+                    </div>
+                </div>
+
+                {task.link && (
+                    <div className="flex items-center gap-2 text-sm">
+                        <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <a
+                            href={task.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 hover:underline truncate"
+                        >
+                            Ver link da tarefa
+                        </a>
+                    </div>
+                )}
+
+                {task.createdAt && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
+                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <span>Criado em {formatDate(task.createdAt)}</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Tarefas</h1>
-                    <p className="text-gray-600 mt-1">Gerencie tarefas e subtarefas do sistema de orçamento</p>
                 </div>
                 <Button
                     variant="primary"
                     onClick={() => navigate('/tasks/create')}
-                    className="flex items-center"
+                    className="flex items-center justify-center sm:justify-start"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     Nova Tarefa
                 </Button>
             </div>
 
-            {/* Table Card */}
-            <Card className="p-0">
-                <DataTable
-                    data={tasks}
-                    columns={columns}
-                    loading={loading}
-                    pagination={pagination}
-                    sorting={sorting}
-                    filters={filters}
-                    onPageChange={setPage}
-                    onPageSizeChange={setPageSize}
-                    onSort={setSorting}
-                    onFilter={setFilter}
-                    onClearFilters={clearFilters}
-                    emptyMessage="Nenhuma tarefa encontrada"
-                    showColumnToggle={true}
-                    hiddenColumns={['createdAt', 'updatedAt']}
-                />
-            </Card>
+            {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
+            <div className="lg:hidden">
+                <Card className="p-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por título, código, solicitante ou status..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                        />
+                    </div>
+                </Card>
+            </div>
+
+            {/* Conteúdo Responsivo */}
+            {loading ? (
+                <Card className="p-8">
+                    <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <span className="ml-4 text-gray-600">Carregando...</span>
+                    </div>
+                </Card>
+            ) : (
+                <>
+                    {/* Visualização Desktop - Tabela com filtros originais */}
+                    <div className="hidden lg:block">
+                        <Card className="p-0">
+                            <DataTable
+                                data={tasks} // Usar dados originais sem filtro de busca
+                                columns={columns}
+                                loading={loading}
+                                pagination={pagination}
+                                sorting={sorting}
+                                filters={filters}
+                                onPageChange={setPage}
+                                onPageSizeChange={setPageSize}
+                                onSort={setSorting}
+                                onFilter={setFilter}
+                                onClearFilters={clearFilters}
+                                emptyMessage="Nenhuma tarefa encontrada"
+                                showColumnToggle={true}
+                                hiddenColumns={['createdAt', 'updatedAt']}
+                            />
+                        </Card>
+                    </div>
+
+                    {/* Visualização Mobile/Tablet - Cards com busca simples */}
+                    <div className="lg:hidden">
+                        {filteredTasks.length === 0 ? (
+                            <Card className="p-8 text-center">
+                                <div className="text-gray-500">
+                                    <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                    <h3 className="text-lg font-medium mb-2">Nenhuma tarefa encontrada</h3>
+                                    <p>Tente ajustar os filtros de busca ou criar uma nova tarefa.</p>
+                                </div>
+                            </Card>
+                        ) : (
+                            <div className="grid gap-4">
+                                {filteredTasks.map((task) => (
+                                    <TaskCard key={task.id} task={task} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Paginação Simplificada para Mobile */}
+                        {pagination && pagination.totalPages > 1 && (
+                            <Card className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => setPage(pagination.currentPage - 1)}
+                                        disabled={pagination.currentPage <= 1}
+                                    >
+                                        Anterior
+                                    </Button>
+
+                                    <span className="text-sm text-gray-600">
+                                        Página {pagination.currentPage} de {pagination.totalPages}
+                                    </span>
+
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => setPage(pagination.currentPage + 1)}
+                                        disabled={pagination.currentPage >= pagination.totalPages}
+                                    >
+                                        Próxima
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 };
