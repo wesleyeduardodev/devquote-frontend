@@ -7,28 +7,23 @@ import {
     FileText,
     Link2,
     Trash2,
-    Edit3,
     X,
-    ChevronDown,
     CheckCircle,
     Clock,
     AlertCircle,
     XCircle,
     Search,
-    Filter,
     Download,
     Eye,
     TrendingUp,
     Loader2,
     Hash,
-    Tag
 } from 'lucide-react';
 
-// Importações dos seus hooks e serviços existentes
+// Hooks e serviços existentes
 import useQuotes from '../../hooks/useQuotes';
 import billingMonthService from '../../services/billingMonthService';
 
-// Tipos baseados no seu código existente
 type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
 interface BillingMonth {
@@ -56,7 +51,6 @@ interface CreateBillingMonthDTO {
     status: StatusValue;
 }
 
-// Opções dos seus dados existentes
 const monthOptions = [
     { value: 1, label: 'Janeiro' },
     { value: 2, label: 'Fevereiro' },
@@ -81,39 +75,38 @@ const statusOptions = [
     { value: 'CANCELADO', label: 'Cancelado', color: 'gray', icon: X }
 ] as const;
 
-const BillingManagement = () => {
-    // Estados para lista de faturamentos
+const BillingManagement: React.FC = () => {
+    // Lista e carregamento
     const [billingMonths, setBillingMonths] = useState<BillingMonth[]>([]);
     const [loadingList, setLoadingList] = useState(true);
 
-    // Estados para totais
+    // Totais
     const [totals, setTotals] = useState<Record<number, number>>({});
     const [totalsLoading, setTotalsLoading] = useState(false);
 
-    // Estados para modais
+    // Modais
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showQuoteSelectModal, setShowQuoteSelectModal] = useState(false);
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
-    // Estados para filtros melhorados
+    // Filtros gerais (desktop + mobile)
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [yearFilter, setYearFilter] = useState('');
     const [monthFilter, setMonthFilter] = useState('');
 
-    // Estados para gerenciamento de vínculos
+    // Vínculos
     const [links, setLinks] = useState<QuoteLink[]>([]);
     const [linksLoading, setLinksLoading] = useState(false);
     const [linking, setLinking] = useState(false);
-    const [selectedQuoteId, setSelectedQuoteId] = useState('');
 
-    // Estados para modal de seleção de quotes
+    // Filtros do modal de seleção de orçamento
     const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
     const [quoteStatusFilter, setQuoteStatusFilter] = useState('APPROVED');
 
-    // Form state
+    // Form
     const [formData, setFormData] = useState<{
         month: number | '';
         year: number;
@@ -128,10 +121,9 @@ const BillingManagement = () => {
 
     const [formErrors, setFormErrors] = useState<Partial<Record<'month' | 'year', string>>>({});
 
-    // Hook para quotes
+    // Quotes
     const { quotes, loading: quotesLoading } = useQuotes();
 
-    // Função para obter valor do orçamento (usando sua lógica existente)
     const getQuoteAmount = useCallback((q: any): number => {
         const anyQ = q as unknown as {
             totalAmount?: number | string;
@@ -142,7 +134,6 @@ const BillingManagement = () => {
         return Number(anyQ.totalAmount ?? anyQ.total ?? anyQ.amount ?? anyQ.value ?? 0);
     }, []);
 
-    // Funções de formatação (suas existentes)
     const formatCurrency = useCallback((value: number | string | undefined | null) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -159,7 +150,6 @@ const BillingManagement = () => {
         return monthOptions.find(m => m.value === month)?.label ?? String(month);
     }, []);
 
-    // Buscar faturamentos (sua lógica existente)
     const fetchBillingMonths = useCallback(async () => {
         setLoadingList(true);
         try {
@@ -173,7 +163,6 @@ const BillingManagement = () => {
         }
     }, []);
 
-    // Carregar totais (sua lógica existente adaptada)
     const loadTotals = useCallback(async () => {
         if (!billingMonths.length || quotesLoading) return;
         setTotalsLoading(true);
@@ -201,7 +190,6 @@ const BillingManagement = () => {
         }
     }, [billingMonths, quotes, quotesLoading, getQuoteAmount]);
 
-    // Effects
     useEffect(() => {
         fetchBillingMonths();
     }, [fetchBillingMonths]);
@@ -210,7 +198,6 @@ const BillingManagement = () => {
         loadTotals();
     }, [loadTotals]);
 
-    // Filtros aprimorados
     const filteredBillingMonths = useMemo(() => {
         return billingMonths.filter(billing => {
             const monthName = getMonthLabel(billing.month);
@@ -225,7 +212,6 @@ const BillingManagement = () => {
         });
     }, [billingMonths, searchTerm, statusFilter, yearFilter, monthFilter, getMonthLabel]);
 
-    // Estatísticas baseadas nos filtros
     const stats = useMemo(() => {
         const filteredData = filteredBillingMonths;
         const total = filteredData.reduce((sum, b) => sum + (totals[b.id] || 0), 0);
@@ -236,7 +222,6 @@ const BillingManagement = () => {
         return { total, paid, pending, processing };
     }, [filteredBillingMonths, totals]);
 
-    // Quotes aprovados disponíveis
     const approvedQuotes = useMemo(() => {
         return quotes.filter(q => q.status === 'APROVADO' || q.status === 'APPROVED');
     }, [quotes]);
@@ -246,7 +231,6 @@ const BillingManagement = () => {
         return approvedQuotes.filter(q => !linkedIds.has(q.id));
     }, [approvedQuotes, links]);
 
-    // Filtrar quotes para o modal de seleção
     const filteredQuotesForSelection = useMemo(() => {
         return availableQuotes.filter(quote => {
             const matchesSearch = quoteSearchTerm === '' ||
@@ -259,7 +243,6 @@ const BillingManagement = () => {
         });
     }, [availableQuotes, quoteSearchTerm, quoteStatusFilter]);
 
-    // Dados dos quotes vinculados
     const linkedQuotesDetailed = useMemo(() => {
         const byId = new Map(quotes.map(q => [q.id, q]));
         return links
@@ -288,7 +271,6 @@ const BillingManagement = () => {
         [linkedQuotesDetailed]
     );
 
-    // Validação do formulário
     const validateCreate = useCallback((): boolean => {
         const e: Partial<Record<'month' | 'year', string>> = {};
         if (!formData.month) e.month = 'Mês é obrigatório';
@@ -297,7 +279,6 @@ const BillingManagement = () => {
         return Object.keys(e).length === 0;
     }, [formData.month, formData.year]);
 
-    // Handlers
     const handleCreateBilling = useCallback(async () => {
         if (!validateCreate()) return;
         setCreateLoading(true);
@@ -325,7 +306,6 @@ const BillingManagement = () => {
     const handleShowDetails = useCallback(async (billing: BillingMonth) => {
         setSelectedBilling(billing);
         setShowDetailsModal(true);
-        setSelectedQuoteId('');
         setLinks([]);
         setLinksLoading(true);
         try {
@@ -365,7 +345,6 @@ const BillingManagement = () => {
     }, [totals, getMonthLabel]);
 
     const handleOpenQuoteSelection = useCallback(() => {
-        // Fechar o modal de detalhes e abrir o de seleção
         setShowDetailsModal(false);
         setShowQuoteSelectModal(true);
         setQuoteSearchTerm('');
@@ -388,9 +367,7 @@ const BillingManagement = () => {
             setShowQuoteSelectModal(false);
             setQuoteSearchTerm('');
             setQuoteStatusFilter('APPROVED');
-            // Reabrir o modal de detalhes
             setShowDetailsModal(true);
-            // Atualizar total
             await loadTotals();
             toast.success('Orçamento vinculado com sucesso!');
         } catch (error: any) {
@@ -425,7 +402,6 @@ const BillingManagement = () => {
         setMonthFilter('');
     }, []);
 
-    // Componentes auxiliares
     const getStatusConfig = (status: StatusValue) => {
         return statusOptions.find(s => s.value === status) || statusOptions[0];
     };
@@ -494,14 +470,117 @@ const BillingManagement = () => {
 
     const years = [...new Set(billingMonths.map(b => b.year))].sort((a, b) => b - a);
 
+    // ----------- COMPONENTES MOBILE (seguindo Delivery) -----------
+    const BillingCard: React.FC<{ billing: BillingMonth }> = ({ billing }) => {
+        const total = totals[billing.id] || 0;
+        return (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                                    {getMonthLabel(billing.month)} {billing.year}
+                                </h3>
+                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                  #{billing.id}
+                </span>
+                            </div>
+                            <div className="mt-1">
+                                <StatusBadge status={billing.status} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex gap-1 ml-2">
+                        <button
+                            onClick={() => handleShowDetails(billing)}
+                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                            title="Detalhes"
+                        >
+                            <Eye className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => handleDeleteBilling(billing)}
+                            className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                            title="Excluir"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Infos */}
+                <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Pagamento:</span>
+                        <span className="text-gray-900">{formatDate(billing.paymentDate)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Valor total:</span>
+                        <span className="font-semibold text-green-600">{formatCurrency(total)}</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const QuoteCard: React.FC<{ quote: any }> = ({ quote }) => (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between">
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+              #{quote.id}
+            </span>
+                        {quote.taskCode && (
+                            <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                {quote.taskCode}
+              </span>
+                        )}
+                    </div>
+                    {quote.taskName && (
+                        <h4 className="font-semibold text-gray-900 text-base leading-tight mb-2">
+                            {quote.taskName}
+                        </h4>
+                    )}
+                    <div className="space-y-1">
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getQuoteStatusColor(quote.status)}`}>
+              {getQuoteStatusLabel(quote.status)}
+            </span>
+                        <div className="text-sm mt-1">
+                            <span className="text-gray-600">Valor: </span>
+                            <span className="font-semibold text-green-600">{formatCurrency(getQuoteAmount(quote))}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => handleLinkQuote(quote.id)}
+                    disabled={linking}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors ml-3"
+                >
+                    {linking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                    Vincular
+                </button>
+            </div>
+        </div>
+    );
+    // --------------------------------------------------------------
+
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Faturamento Mensal</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Faturamento Mensal</h1>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -519,8 +598,8 @@ const BillingManagement = () => {
                     </div>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Cards de estatísticas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     <StatCard
                         title="Total Geral"
                         value={formatCurrency(stats.total)}
@@ -551,8 +630,8 @@ const BillingManagement = () => {
                     />
                 </div>
 
-                {/* Filters Aprimorados */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                {/* Filtros Desktop */}
+                <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-medium text-gray-900">Filtros</h3>
@@ -566,11 +645,11 @@ const BillingManagement = () => {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                     <input
                                         type="text"
                                         placeholder="Buscar por mês ou ano..."
@@ -626,8 +705,24 @@ const BillingManagement = () => {
                     </div>
                 </div>
 
-                {/* Billing Periods Table */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                {/* Busca simples Mobile (padrão Delivery) */}
+                <div className="lg:hidden">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Buscar por mês ou ano..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Desktop: Tabela */}
+                <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-900">Períodos de Faturamento</h2>
                     </div>
@@ -652,7 +747,7 @@ const BillingManagement = () => {
                                 <tbody className="divide-y divide-gray-100">
                                 {filteredBillingMonths.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                             <Calendar className="w-8 h-8 mx-auto mb-3 text-gray-300" />
                                             <p>Nenhum período encontrado</p>
                                         </td>
@@ -660,7 +755,6 @@ const BillingManagement = () => {
                                 ) : (
                                     filteredBillingMonths.map((billing) => {
                                         const monthName = getMonthLabel(billing.month);
-
                                         return (
                                             <tr key={billing.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4">
@@ -723,6 +817,27 @@ const BillingManagement = () => {
                     )}
                 </div>
 
+                {/* Mobile/Tablet: Cards */}
+                <div className="lg:hidden">
+                    {loadingList ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-gray-400" />
+                            <p className="text-gray-500">Carregando períodos...</p>
+                        </div>
+                    ) : filteredBillingMonths.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+                            <Calendar className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                            <p>Nenhum período encontrado</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {filteredBillingMonths.map((billing) => (
+                                <BillingCard key={billing.id} billing={billing} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {/* Create Modal */}
                 {showCreateModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -740,7 +855,7 @@ const BillingManagement = () => {
                             </div>
 
                             <div className="p-6 space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Mês *</label>
                                         <select
@@ -763,8 +878,8 @@ const BillingManagement = () => {
                                             value={formData.year}
                                             onChange={(e) => setFormData(prev => ({ ...prev, year: Number(e.target.value) }))}
                                             className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            min="2020"
-                                            max="2030"
+                                            min={2020}
+                                            max={2035}
                                         />
                                         {formErrors.year && <p className="mt-1 text-sm text-red-600">{formErrors.year}</p>}
                                     </div>
@@ -827,11 +942,11 @@ const BillingManagement = () => {
                     </div>
                 )}
 
-                {/* Quote Selection Modal */}
+                {/* Quote Selection Modal (com versão mobile em cards) */}
                 {showQuoteSelectModal && selectedBilling && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-                            <div className="p-6 border-b border-gray-100">
+                            <div className="p-4 sm:p-6 border-b border-gray-100">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="text-lg font-semibold text-gray-900">
@@ -845,7 +960,7 @@ const BillingManagement = () => {
                                                 setShowQuoteSelectModal(false);
                                                 setShowDetailsModal(true);
                                             }}
-                                            className="inline-flex items-center gap-2 px-3 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                                         >
                                             <Eye className="w-4 h-4" />
                                             Voltar aos Detalhes
@@ -861,12 +976,12 @@ const BillingManagement = () => {
                             </div>
 
                             {/* Filtros do modal */}
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
                                         <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
                                                 type="text"
                                                 placeholder="Buscar por ID, código ou nome da tarefa..."
@@ -893,20 +1008,21 @@ const BillingManagement = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 max-h-[calc(90vh-240px)] overflow-y-auto">
-                                {quotesLoading ? (
-                                    <div className="p-8 text-center">
-                                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-gray-400" />
-                                        <p className="text-gray-500">Carregando orçamentos...</p>
-                                    </div>
-                                ) : filteredQuotesForSelection.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-500">
-                                        <FileText className="w-8 h-8 mx-auto mb-3 text-gray-300" />
-                                        <p>Nenhum orçamento disponível para vinculação</p>
-                                        <p className="text-xs text-gray-400 mt-1">Todos os orçamentos aprovados já estão vinculados ou não há orçamentos aprovados</p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
+                            <div className="p-4 sm:p-6 max-h-[calc(90vh-240px)] overflow-y-auto">
+                                {/* Desktop: tabela */}
+                                <div className="hidden lg:block overflow-x-auto">
+                                    {quotesLoading ? (
+                                        <div className="p-8 text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-gray-400" />
+                                            <p className="text-gray-500">Carregando orçamentos...</p>
+                                        </div>
+                                    ) : filteredQuotesForSelection.length === 0 ? (
+                                        <div className="p-8 text-center text-gray-500">
+                                            <FileText className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                                            <p>Nenhum orçamento disponível para vinculação</p>
+                                            <p className="text-xs text-gray-400 mt-1">Todos os aprovados já estão vinculados ou não há aprovados</p>
+                                        </div>
+                                    ) : (
                                         <table className="w-full">
                                             <thead className="bg-gray-50 border-b border-gray-100">
                                             <tr>
@@ -980,11 +1096,52 @@ const BillingManagement = () => {
                                             ))}
                                             </tbody>
                                         </table>
+                                    )}
+                                </div>
+
+                                {/* Mobile/Tablet: Cards */}
+                                <div className="lg:hidden">
+                                    {quotesLoading ? (
+                                        <div className="p-8 text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-gray-400" />
+                                            <p className="text-gray-500">Carregando orçamentos...</p>
+                                        </div>
+                                    ) : filteredQuotesForSelection.length === 0 ? (
+                                        <div className="p-8 text-center text-gray-500">
+                                            <FileText className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+                                            <p>Nenhum orçamento disponível para vinculação</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid gap-3">
+                                            {filteredQuotesForSelection.map((quote) => (
+                                                <QuoteCard key={quote.id} quote={quote} />
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="mt-4 flex items-center justify-between">
+                                        <button
+                                            onClick={() => {
+                                                setShowQuoteSelectModal(false);
+                                                setShowDetailsModal(true);
+                                            }}
+                                            className="inline-flex items-center gap-2 px-3 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            Voltar aos Detalhes
+                                        </button>
+                                        <button
+                                            onClick={() => setShowQuoteSelectModal(false)}
+                                            className="px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                        >
+                                            Fechar
+                                        </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
 
-                            <div className="p-6 border-t border-gray-100 flex justify-between">
+                            {/* Footer Desktop do modal */}
+                            <div className="hidden lg:flex p-6 border-t border-gray-100 justify-between">
                                 <button
                                     onClick={() => {
                                         setShowQuoteSelectModal(false);
@@ -1010,7 +1167,7 @@ const BillingManagement = () => {
                 {showDetailsModal && selectedBilling && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                            <div className="p-6 border-b border-gray-100">
+                            <div className="p-4 sm:p-6 border-b border-gray-100">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <div className="flex items-center gap-3 mb-2">
@@ -1033,8 +1190,8 @@ const BillingManagement = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 max-h-[calc(90vh-140px)] overflow-y-auto space-y-6">
-                                {/* Informações do período */}
+                            <div className="p-4 sm:p-6 max-h-[calc(90vh-140px)] overflow-y-auto space-y-6">
+                                {/* Info do período */}
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                         <div>
@@ -1058,7 +1215,7 @@ const BillingManagement = () => {
                                         <Link2 className="w-4 h-4" />
                                         Vincular Novo Orçamento
                                     </h4>
-                                    <div className="flex gap-3">
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                                         <button
                                             onClick={handleOpenQuoteSelection}
                                             disabled={quotesLoading || linksLoading}
@@ -1067,7 +1224,7 @@ const BillingManagement = () => {
                                             <Plus className="w-4 h-4" />
                                             Selecionar Orçamento
                                         </button>
-                                        <div className="text-sm text-gray-600 self-center">
+                                        <div className="text-sm text-gray-600">
                                             {availableQuotes.length} orçamentos disponíveis para vinculação
                                         </div>
                                     </div>
@@ -1135,7 +1292,7 @@ const BillingManagement = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-gray-100 flex justify-end">
+                            <div className="p-4 sm:p-6 border-t border-gray-100 flex justify-end">
                                 <button
                                     onClick={() => setShowDetailsModal(false)}
                                     className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -1146,6 +1303,7 @@ const BillingManagement = () => {
                         </div>
                     </div>
                 )}
+
             </div>
         </div>
     );
