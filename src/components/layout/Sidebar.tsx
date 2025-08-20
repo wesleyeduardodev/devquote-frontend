@@ -41,8 +41,8 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         {path: '/requesters', label: 'Solicitantes', icon: Users},
         {path: '/tasks', label: 'Tarefas', icon: CheckSquare},
         {path: '/quotes', label: 'Orçamentos', icon: FileText},
-        {path: '/projects', label: 'Projetos', icon: FolderOpen},
         {path: '/deliveries', label: 'Entregas', icon: Truck},
+        {path: '/projects', label: 'Projetos', icon: FolderOpen},
         {path: '/billing', label: 'Faturamento', icon: CreditCard}
     ];
 

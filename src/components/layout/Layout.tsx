@@ -47,8 +47,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/requesters', label: 'Solicitantes' },
         { path: '/tasks', label: 'Tarefas' },
         { path: '/quotes', label: 'Orçamentos' },
-        { path: '/projects', label: 'Projetos' },
         { path: '/deliveries', label: 'Entregas' },
+        { path: '/projects', label: 'Projetos' },
         { path: '/billing', label: 'Faturamento' }
     ];
 
