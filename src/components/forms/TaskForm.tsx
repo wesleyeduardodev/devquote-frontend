@@ -176,12 +176,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
-                {/* Informações da Tarefa */}
                 <div className="space-y-6">
-                    <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                        Informações da Tarefa
-                    </h2>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('code')}
@@ -215,12 +210,34 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         </div>
 
                         <div className="md:col-span-2">
-                            <Input
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Descrição
+                            </label>
+                            <textarea
                                 {...register('description')}
-                                label="Descrição"
-                                placeholder="Descreva a tarefa (opcional)"
-                                error={errors.description?.message}
+                                rows={4}
+                                placeholder="Descreva a tarefa (opcional)&#10;Você pode usar múltiplas linhas..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
                             />
+                            {errors.description && (
+                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                            )}
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Notas
+                            </label>
+                            <textarea
+                                {...register('notes')}
+                                rows={3}
+                                placeholder="Adicione notas sobre a tarefa (opcional)&#10;Máximo 256 caracteres..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                maxLength={256}
+                            />
+                            {errors.notes && (
+                                <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+                            )}
                         </div>
 
                         <Input
@@ -238,16 +255,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             placeholder="https://meet.google.com/... (opcional)"
                             error={errors.meetingLink?.message}
                         />
-
-                        <div className="md:col-span-2">
-                            <Input
-                                {...register('notes')}
-                                label="Notas"
-                                placeholder="Adicione notas sobre a tarefa (opcional)"
-                                error={errors.notes?.message}
-                            />
-                        </div>
                     </div>
+
                 </div>
 
                 {/* Subtarefas */}
