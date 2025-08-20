@@ -241,24 +241,6 @@ const TaskList: React.FC = () => {
             )
         },
         {
-            key: 'notes',
-            title: 'Notas',
-            sortable: false,
-            filterable: true,
-            filterType: 'text',
-            width: '100px',
-            align: 'center',
-            render: (item) => (
-                item.notes ? (
-                    <div className="flex items-center justify-center" title={item.notes}>
-                        <StickyNote className="w-4 h-4 text-amber-600" />
-                    </div>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                )
-            )
-        },
-        {
             key: 'subTasks',
             title: 'Subtarefas',
             width: '120px',
@@ -435,21 +417,6 @@ const TaskList: React.FC = () => {
                         </div>
                     )}
                 </div>
-
-                {/* Notas */}
-                {task.notes && (
-                    <div className="flex items-start gap-2 text-sm bg-amber-50 border border-amber-200 rounded-lg p-2">
-                        <StickyNote className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-amber-800">{task.notes}</span>
-                    </div>
-                )}
-
-                {task.createdAt && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
-                        <Calendar className="w-4 h-4 flex-shrink-0" />
-                        <span>Criado em {formatDate(task.createdAt)}</span>
-                    </div>
-                )}
             </div>
         </div>
     );
