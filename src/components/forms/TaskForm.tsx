@@ -281,18 +281,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 </label>
                             </div>
 
-                            {/* Checkbox para vincular cotação ao faturamento */}
-                            <div className="flex items-center">
-                                <input
-                                    {...register('linkQuoteToBilling')}
-                                    type="checkbox"
-                                    id="linkQuoteToBilling"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="linkQuoteToBilling" className="ml-2 block text-sm text-gray-900">
-                                    Vincular cotação ao faturamento
-                                </label>
-                            </div>
+                            {createQuote && (
+                                <div className="flex items-center">
+                                    <input
+                                        {...register('linkQuoteToBilling')}
+                                        type="checkbox"
+                                        id="linkQuoteToBilling"
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="linkQuoteToBilling" className="ml-2 block text-sm text-gray-900">
+                                        Vincular cotação ao faturamento
+                                    </label>
+                                </div>
+                            )}
 
                             {/* Seleção de Projetos - só aparece se createQuote estiver marcado */}
                             {createQuote && (
