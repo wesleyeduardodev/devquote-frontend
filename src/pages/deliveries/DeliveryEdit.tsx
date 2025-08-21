@@ -58,7 +58,7 @@ const DeliveryEdit = () => {
         clearFilters: clearQuoteFilters
     } = useQuotes({
         page: 0,
-        size: 10,
+        size: 5,
         sort: [{ field: 'id', direction: 'desc' }],
         filters: {}
     });
@@ -77,7 +77,7 @@ const DeliveryEdit = () => {
         clearFilters: clearProjectFilters
     } = useProjects({
         page: 0,
-        size: 10,
+        size: 5,
         sort: [{ field: 'name', direction: 'asc' }],
         filters: {}
     });

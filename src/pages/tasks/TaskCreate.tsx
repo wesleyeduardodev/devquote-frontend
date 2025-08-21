@@ -39,7 +39,7 @@ const TaskCreate = () => {
         clearFilters
     } = useRequesters({
         page: 0,
-        size: 10,
+        size: 5,
         sort: [{ field: 'name', direction: 'asc' }],
         filters: {}
     });
@@ -125,22 +125,6 @@ const TaskCreate = () => {
             )
         },
         {
-            key: 'email',
-            title: 'Email',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '200px',
-            render: (item) => (
-                <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                        {item.email || 'Não informado'}
-                    </span>
-                </div>
-            )
-        },
-        {
             key: 'phone',
             title: 'Telefone',
             sortable: true,
@@ -205,12 +189,6 @@ const TaskCreate = () => {
                     </h3>
 
                     <div className="space-y-1">
-                        {requester.email && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                <span className="truncate">{requester.email}</span>
-                            </div>
-                        )}
                         {requester.phone && (
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -285,12 +263,6 @@ const TaskCreate = () => {
                                             <div className="font-medium text-gray-900">
                                                 {selectedRequester.name}
                                             </div>
-                                            {selectedRequester.email && (
-                                                <div className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                                                    <Mail className="w-4 h-4" />
-                                                    {selectedRequester.email}
-                                                </div>
-                                            )}
                                             {selectedRequester.phone && (
                                                 <div className="text-sm text-gray-600 mt-1 flex items-center gap-1">
                                                     <Phone className="w-4 h-4" />
@@ -366,9 +338,6 @@ const TaskCreate = () => {
                                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                                     Selecionar Solicitante
                                 </h2>
-                                <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                                    Escolha um solicitante para a tarefa
-                                </p>
                             </div>
                             <button
                                 onClick={() => setShowRequesterModal(false)}

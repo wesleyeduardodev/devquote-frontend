@@ -77,7 +77,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
-    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
+    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 5);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
         {field: 'id', direction: 'asc'}
     ]);

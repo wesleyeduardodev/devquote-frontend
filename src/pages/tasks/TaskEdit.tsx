@@ -45,7 +45,7 @@ const TaskEdit = () => {
         clearFilters
     } = useRequesters({
         page: 0,
-        size: 10,
+        size: 5,
         sort: [{ field: 'name', direction: 'asc' }],
         filters: {}
     });
@@ -171,22 +171,6 @@ const TaskEdit = () => {
                 )
             },
             {
-                key: 'email',
-                title: 'Email',
-                sortable: true,
-                filterable: true,
-                filterType: 'text',
-                width: '200px',
-                render: (item) => (
-                    <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">
-                            {item.email || 'Não informado'}
-                        </span>
-                    </div>
-                )
-            },
-            {
                 key: 'phone',
                 title: 'Telefone',
                 sortable: true,
@@ -254,12 +238,6 @@ const TaskEdit = () => {
                     </h3>
 
                     <div className="space-y-1">
-                        {requester.email && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                <span className="truncate">{requester.email}</span>
-                            </div>
-                        )}
                         {requester.phone && (
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -378,9 +356,6 @@ const TaskEdit = () => {
                                 </div>
                                 <div className="space-y-1 text-sm text-blue-800">
                                     <div><strong>Nome:</strong> {selectedRequester.name}</div>
-                                    {selectedRequester.email && (
-                                        <div><strong>Email:</strong> {selectedRequester.email}</div>
-                                    )}
                                     {selectedRequester.phone && (
                                         <div><strong>Telefone:</strong> {selectedRequester.phone}</div>
                                     )}

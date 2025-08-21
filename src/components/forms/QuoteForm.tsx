@@ -26,7 +26,7 @@ const schema = yup.object({
     status: yup.string().required('Status é obrigatório'),
     totalAmount: yup.number()
         .required('Valor total é obrigatório')
-        .min(0.01, 'Valor deve ser maior que zero'),
+        .min(0, 'Valor deve ser maior ou igual a zero'),
 });
 
 const QuoteForm: React.FC<QuoteFormProps> = ({
@@ -137,7 +137,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
                                 {...register('totalAmount', { valueAsNumber: true })}
                                 type="number"
                                 step="0.01"
-                                min="0.01"
+                                min="0"
                                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="0,00"
                             />

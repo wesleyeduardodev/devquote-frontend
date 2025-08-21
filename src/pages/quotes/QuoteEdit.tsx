@@ -48,7 +48,7 @@ const QuoteEdit = () => {
         clearFilters
     } = useTasks({
         page: 0,
-        size: 10,
+        size: 5,
         sort: [{ field: 'id', direction: 'desc' }],
         filters: {}
     });

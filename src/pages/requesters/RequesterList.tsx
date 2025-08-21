@@ -230,13 +230,6 @@ const RequesterList: React.FC = () => {
                         </a>
                     </div>
                 )}
-
-                {requester.createdAt && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
-                        <Calendar className="w-4 h-4 flex-shrink-0" />
-                        <span>Criado em {formatDate(requester.createdAt)}</span>
-                    </div>
-                )}
             </div>
         </div>
     );
@@ -288,7 +281,7 @@ const RequesterList: React.FC = () => {
                     <div className="hidden lg:block">
                         <Card className="p-0">
                             <DataTable
-                                data={requesters} // Usar dados originais sem filtro de busca
+                                data={requesters}
                                 columns={columns}
                                 loading={loading}
                                 pagination={pagination}
