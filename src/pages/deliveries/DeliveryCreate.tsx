@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, X, Check, FileText, Hash, FolderOpen, ExternalLink, Plus, Filter, DollarSign, Calendar, Truck, GitBranch } from 'lucide-react';
+import { ArrowLeft, Search, X, Check, FileText, Hash, FolderOpen, ExternalLink, Plus, Filter, DollarSign, Calendar, Truck, GitBranch, StickyNote, GitMerge } from 'lucide-react';
 import { useDeliveries } from '@/hooks/useDeliveries';
 import useQuotes from '@/hooks/useQuotes';
 import { useProjects } from '@/hooks/useProjects';
@@ -384,8 +384,6 @@ const DeliveryCreate = () => {
     );
 
     // Componente ProjectCard atualizado para DeliveryCreate.tsx
-// Remover a URL do repositório na versão mobile
-
     const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
@@ -554,9 +552,21 @@ const DeliveryCreate = () => {
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
+                                <GitMerge className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <strong>Branch Origem:</strong> Branch onde está sendo desenvolvida a funcionalidade
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
                                 <GitBranch className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                                 <div>
-                                    <strong>Branch:</strong> Informe a branch de desenvolvimento
+                                    <strong>Branch Destino:</strong> Branch onde será feito o merge
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <StickyNote className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <strong>Notas:</strong> Adicione observações importantes sobre a entrega
                                 </div>
                             </div>
                         </div>

@@ -11,8 +11,10 @@ interface DeliveryData {
     quoteId: number;
     projectId: number;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
     script?: string;
+    notes?: string;
     status: string;
     startedAt?: string;
     finishedAt?: string;
@@ -29,8 +31,10 @@ interface DeliveryFormProps {
 
 const schema = yup.object({
     branch: yup.string().optional(),
+    sourceBranch: yup.string().max(200, 'Branch de origem deve ter no máximo 200 caracteres').optional(),
     pullRequest: yup.string().url('URL inválida').optional(),
     script: yup.string().optional(),
+    notes: yup.string().max(256, 'Notas devem ter no máximo 256 caracteres').optional(),
     status: yup.string().required('Status é obrigatório'),
     startedAt: yup.string().optional(),
     finishedAt: yup.string().optional(),
@@ -49,12 +53,15 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
         handleSubmit,
         formState: { errors, isSubmitting },
         reset,
+        watch,
     } = useForm<DeliveryData>({
         resolver: yupResolver(schema),
         defaultValues: {
             branch: initialData?.branch || '',
+            sourceBranch: initialData?.sourceBranch || '',
             pullRequest: initialData?.pullRequest || '',
             script: initialData?.script || '',
+            notes: initialData?.notes || '',
             status: initialData?.status || 'PENDING',
             startedAt: initialData?.startedAt ?
                 (() => {
@@ -88,6 +95,10 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                 })() : '',
         },
     });
+
+    // Watch para contar caracteres
+    const notesValue = watch('notes') || '';
+    const sourceBranchValue = watch('sourceBranch') || '';
 
     const handleFormSubmit = async (data: DeliveryData): Promise<void> => {
         try {
@@ -139,6 +150,9 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                 projectId: selectedProject?.id || initialData?.projectId,
                 startedAt: convertDateToLocalDate(data.startedAt),
                 finishedAt: convertDateToLocalDate(data.finishedAt),
+                // Garantir que campos vazios sejam enviados como null
+                notes: data.notes?.trim() || null,
+                sourceBranch: data.sourceBranch?.trim() || null,
             };
 
             await onSubmit(formattedData);
@@ -162,19 +176,28 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
-            {/* Informações da Entrega */}
             <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
-                    Informações da Entrega
-                </h2>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
                         {...register('branch')}
                         label="Branch"
                         placeholder="feature/nova-funcionalidade"
                         error={errors.branch?.message}
+                        helpText="Branch onde será feito o merge"
                     />
+
+                    <div>
+                        <Input
+                            {...register('sourceBranch')}
+                            label="Branch de Origem"
+                            placeholder="main, develop, master"
+                            error={errors.sourceBranch?.message}
+                            helpText="Branch onde está sendo desenvolvida a funcionalidade"
+                        />
+                        <div className="mt-1 text-xs text-gray-500">
+                            {sourceBranchValue.length}/200 caracteres
+                        </div>
+                    </div>
 
                     <Input
                         {...register('pullRequest')}
@@ -182,7 +205,23 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                         label="Pull Request"
                         placeholder="https://github.com/user/repo/pull/123"
                         error={errors.pullRequest?.message}
+                        helpText="URL do Pull Request"
                     />
+
+                    <div className="md:col-span-1">
+                        <Select
+                            {...register('status')}
+                            label="Status"
+                            error={errors.status?.message}
+                            required
+                        >
+                            {statusOptions.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
 
                     <Input
                         {...register('startedAt')}
@@ -197,20 +236,20 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                         label="Data de Finalização"
                         error={errors.finishedAt?.message}
                     />
+                </div>
 
-                    <div className="md:col-span-2">
-                        <Select
-                            {...register('status')}
-                            label="Status"
-                            error={errors.status?.message}
-                            required
-                        >
-                            {statusOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
+                {/* Notas */}
+                <div>
+                    <TextArea
+                        {...register('notes')}
+                        label="Notas"
+                        placeholder="Observações importantes sobre a entrega, problemas encontrados, etc."
+                        rows={3}
+                        error={errors.notes?.message}
+                        helpText="Informações adicionais sobre a entrega"
+                    />
+                    <div className="mt-1 text-xs text-gray-500">
+                        {notesValue.length}/256 caracteres
                     </div>
                 </div>
             </div>
@@ -233,6 +272,7 @@ CREATE TABLE exemplo (
 INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');"
                     rows={8}
                     error={errors.script?.message}
+                    helpText="Scripts SQL necessários para a implementação"
                 />
             </div>
 

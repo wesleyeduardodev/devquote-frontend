@@ -8,7 +8,9 @@ interface Delivery {
     taskCode: string;
     projectName: string;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
+    notes?: string;
     status: string;
     startedAt?: string;
     finishedAt?: string;
@@ -20,8 +22,10 @@ interface DeliveryCreate {
     quoteId: number;
     projectId: number;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
     script?: string;
+    notes?: string;
     status: string;
     startedAt?: string;
     finishedAt?: string;
@@ -52,7 +56,9 @@ interface FilterParams {
     taskCode?: string;
     projectName?: string;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
+    notes?: string;
     status?: string;
     startedAt?: string;
     finishedAt?: string;

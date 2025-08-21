@@ -11,7 +11,9 @@ interface FilterParams {
     taskCode?: string;
     projectName?: string;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
+    notes?: string;
     status?: string;
     startedAt?: string;
     finishedAt?: string;

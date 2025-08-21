@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen, StickyNote, GitMerge } from 'lucide-react';
 import { useDeliveries } from '@/hooks/useDeliveries';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
@@ -13,7 +13,9 @@ interface Delivery {
     taskCode: string;
     projectName: string;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
+    notes?: string;
     status: string;
     startedAt?: string;
     finishedAt?: string;
@@ -101,6 +103,8 @@ const DeliveryList: React.FC = () => {
         delivery.taskCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         delivery.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         delivery.branch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        delivery.sourceBranch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        delivery.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         getStatusLabel(delivery.status).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -178,6 +182,33 @@ const DeliveryList: React.FC = () => {
             )
         },
         {
+            key: 'pullRequest',
+            title: 'Link da Entrega',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '200px',
+            render: (item) => (
+                item.pullRequest ? (
+                    <a
+                        href={item.pullRequest}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 truncate"
+                        onClick={(e) => e.stopPropagation()}
+                        title={item.pullRequest}
+                    >
+                        <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate text-sm">
+                            {item.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
+                        </span>
+                    </a>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
             key: 'branch',
             title: 'Branch',
             sortable: true,
@@ -192,31 +223,6 @@ const DeliveryList: React.FC = () => {
                             {item.branch}
                         </span>
                     </div>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                )
-            )
-        },
-        {
-            key: 'pullRequest',
-            title: 'Pull Request',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '120px',
-            align: 'center',
-            render: (item) => (
-                item.pullRequest ? (
-                    <a
-                        href={item.pullRequest}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                        title={item.pullRequest}
-                    >
-                        <ExternalLink className="w-4 h-4" />
-                    </a>
                 ) : (
                     <span className="text-gray-400">-</span>
                 )
@@ -357,7 +363,21 @@ const DeliveryList: React.FC = () => {
                     <span className="text-gray-700 font-medium">{delivery.projectName}</span>
                 </div>
 
-                {delivery.branch && (
+                {delivery.sourceBranch && (
+                    <div className="flex items-center gap-2 text-sm">
+                        <GitMerge className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                        {delivery.branch && (
+                            <>
+                                <span className="text-gray-400">→</span>
+                                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
+                                    {delivery.branch}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {!delivery.sourceBranch && delivery.branch && (
                     <div className="flex items-center gap-2 text-sm">
                         <GitBranch className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
@@ -375,8 +395,9 @@ const DeliveryList: React.FC = () => {
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 hover:underline truncate"
                             onClick={(e) => e.stopPropagation()}
+                            title={delivery.pullRequest}
                         >
-                            Ver Pull Request
+                            {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
                         </a>
                     </div>
                 )}
@@ -476,22 +497,6 @@ const DeliveryList: React.FC = () => {
                 </div>
             </div>
 
-            {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
-            <div className="lg:hidden">
-                <Card className="p-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por tarefa, projeto, branch ou status..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                        />
-                    </div>
-                </Card>
-            </div>
-
             {/* Conteúdo Responsivo */}
             {loading ? (
                 <Card className="p-8">
@@ -519,7 +524,7 @@ const DeliveryList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma entrega encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['startedAt', 'finishedAt', 'createdAt', 'updatedAt']}
+                                hiddenColumns={['notes', 'startedAt', 'finishedAt', 'createdAt', 'updatedAt']}
                             />
                         </Card>
                     </div>
