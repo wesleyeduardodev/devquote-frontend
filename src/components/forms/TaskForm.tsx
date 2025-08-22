@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { useForm, FormProvider, useWatch } from 'react-hook-form';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Search, X, Check, FolderOpen, ExternalLink } from 'lucide-react';
+import { Search, X, Check, FolderOpen, ExternalLink, Filter } from 'lucide-react';
+
 import { useProjects } from '@/hooks/useProjects';
+import DataTable, { Column } from '@/components/ui/DataTable';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
-import Card from '../ui/Card';
 import SubTaskForm from './SubTaskForm';
 
 interface SubTask {
@@ -67,23 +68,29 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                initialData = null,
                                                onSubmit,
                                                onCancel,
-                                               loading = false
+                                               loading = false,
                                            }) => {
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [projectSearchTerm, setProjectSearchTerm] = useState('');
 
-    // Hook para gerenciar projects
+    // Hook padronizado como DeliveryCreate (com paginação, ordenação e filtros)
     const {
         projects,
-        pagination,
+        pagination: projectPagination,
         loading: loadingProjects,
-        setPage
+        sorting: projectSorting,
+        filters: projectFilters,
+        setPage: setProjectPage,
+        setPageSize: setProjectPageSize,
+        setSorting: setProjectSorting,
+        setFilter: setProjectFilter,
+        clearFilters: clearProjectFilters,
     } = useProjects({
         page: 0,
-        size: 20,
+        size: 8,
         sort: [{ field: 'name', direction: 'asc' }],
-        filters: {}
+        filters: {},
     });
 
     const methods = useForm<TaskData>({
@@ -99,12 +106,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
             createQuote: initialData?.createQuote || false,
             linkQuoteToBilling: initialData?.linkQuoteToBilling || false,
             projectsIds: initialData?.projectsIds || [],
-            subTasks: initialData?.subTasks || [{
-                title: '',
-                description: '',
-                amount: '',
-                status: 'PENDING'
-            }],
+            subTasks:
+                initialData?.subTasks || [
+                    {
+                        title: '',
+                        description: '',
+                        amount: '',
+                        status: 'PENDING',
+                    },
+                ],
         },
     });
 
@@ -114,63 +124,136 @@ const TaskForm: React.FC<TaskFormProps> = ({
         formState: { errors, isSubmitting },
         reset,
         control,
-        setValue
     } = methods;
 
-    // Watch createQuote para mostrar/esconder modal de projetos
-    const createQuote = useWatch({
-        control,
-        name: 'createQuote'
-    });
+    // pré-carrega seleção (edição)
+    useEffect(() => {
+        if (initialData?.projects && Array.isArray(initialData.projects)) {
+            setSelectedProjects(initialData.projects);
+        } else if (initialData?.projectsIds?.length) {
+            // se vier só os ids, mantém e seleciona quando aparecerem na lista
+            setSelectedProjects((prev) => prev);
+        }
+    }, [initialData]);
+
+    const createQuote = useWatch({ control, name: 'createQuote' });
 
     const handleFormSubmit = async (data: TaskData): Promise<void> => {
-        try {
-            // Incluir o requesterId do initialData (que vem da seleção do modal)
-            const formattedData = {
-                ...data,
-                requesterId: initialData?.requesterId, // Vem da seleção no modal
-                projectsIds: selectedProjects.map(p => p.id),
-                subTasks: (data.subTasks || []).map((subTask: any) => ({
-                    ...subTask,
-                    amount: parseFloat(subTask.amount || '0'),
-                    taskId: initialData?.id || null
-                }))
-            };
+        const formattedData = {
+            ...data,
+            requesterId: initialData?.requesterId,
+            projectsIds: selectedProjects.map((p) => p.id),
+            subTasks: (data.subTasks || []).map((subTask: any) => ({
+                ...subTask,
+                amount: parseFloat(subTask.amount || '0'),
+                taskId: initialData?.id || null,
+            })),
+        };
 
-            await onSubmit(formattedData);
-            if (!initialData?.id) {
-                reset(); // Reset form only for create mode
-                setSelectedProjects([]);
-            }
-        } catch (error) {
-            // Error is handled by the parent component
+        await onSubmit(formattedData);
+        if (!initialData?.id) {
+            reset();
+            setSelectedProjects([]);
         }
     };
 
-    const handleProjectToggle = (project: Project) => {
-        const isSelected = selectedProjects.find(p => p.id === project.id);
-        if (isSelected) {
-            setSelectedProjects(selectedProjects.filter(p => p.id !== project.id));
-        } else {
-            setSelectedProjects([...selectedProjects, project]);
-        }
+    const toggleProject = (project: Project) => {
+        setSelectedProjects((curr) => {
+            const exists = curr.some((p) => p.id === project.id);
+            if (exists) return curr.filter((p) => p.id !== project.id);
+            return [...curr, project];
+        });
     };
 
-    const handleProjectRemove = (projectId: number) => {
-        setSelectedProjects(selectedProjects.filter(p => p.id !== projectId));
+    const removeProject = (id: number) => {
+        setSelectedProjects((curr) => curr.filter((p) => p.id !== id));
     };
 
-    // Filtrar projects para o modal
-    const filteredProjects = projects.filter(project =>
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.repositoryUrl?.toLowerCase().includes(searchTerm.toLowerCase())
+    // filtragem rápida para os cards mobile (a DataTable já tem filtros por coluna)
+    const filteredProjectsMobile = useMemo(
+        () =>
+            projects.filter(
+                (p) =>
+                    p.name.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
+                    p.repositoryUrl?.toLowerCase().includes(projectSearchTerm.toLowerCase())
+            ),
+        [projects, projectSearchTerm]
     );
+
+    // colunas padronizadas + coluna de seleção múltipla
+    const projectColumns: Column<Project>[] = [
+        {
+            key: 'select',
+            title: '',
+            width: '48px',
+            align: 'center',
+            render: (item) => {
+                const checked = selectedProjects.some((p) => p.id === item.id);
+                return (
+                    <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleProject(item)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                );
+            },
+        },
+        {
+            key: 'id',
+            title: 'ID',
+            sortable: true,
+            filterable: true,
+            filterType: 'number',
+            width: '80px',
+            align: 'center',
+            render: (item) => (
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+          #{item.id}
+        </span>
+            ),
+        },
+        {
+            key: 'name',
+            title: 'Nome',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '240px',
+            render: (item) => (
+                <div className="flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4 text-gray-400" />
+                    <span className="font-medium text-gray-900" title={item.name}>
+            {item.name}
+          </span>
+                </div>
+            ),
+        },
+        {
+            key: 'repositoryUrl',
+            title: 'Repositório',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '280px',
+            hideable: true,
+            render: (item) =>
+                item.repositoryUrl ? (
+                    <div className="flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-600 truncate max-w-[220px]">{item.repositoryUrl}</span>
+                    </div>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                ),
+        },
+    ];
 
     const statusOptions = [
         { value: 'PENDING', label: 'Pendente' },
         { value: 'IN_PROGRESS', label: 'Em Progresso' },
         { value: 'COMPLETED', label: 'Concluída' },
-        { value: 'CANCELLED', label: 'Cancelada' }
+        { value: 'CANCELLED', label: 'Cancelada' },
     ];
 
     return (
@@ -186,13 +269,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             required
                         />
 
-                        <Select
-                            {...register('status')}
-                            label="Status"
-                            error={errors.status?.message}
-                            required
-                        >
-                            {statusOptions.map(option => (
+                        <Select {...register('status')} label="Status" error={errors.status?.message} required>
+                            {statusOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
                                 </option>
@@ -210,24 +288,18 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Descrição
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
                             <textarea
                                 {...register('description')}
                                 rows={4}
                                 placeholder="Descreva a tarefa (opcional)&#10;Você pode usar múltiplas linhas..."
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
                             />
-                            {errors.description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                            )}
+                            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Notas
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
                             <textarea
                                 {...register('notes')}
                                 rows={3}
@@ -235,9 +307,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
                                 maxLength={256}
                             />
-                            {errors.notes && (
-                                <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
-                            )}
+                            {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>}
                         </div>
 
                         <Input
@@ -256,28 +326,20 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             error={errors.meetingLink?.message}
                         />
                     </div>
-
                 </div>
 
                 {/* Subtarefas */}
                 <div className="border-t pt-8">
                     <SubTaskForm />
-                    {errors.subTasks && (
-                        <p className="mt-2 text-sm text-red-600">
-                            {errors.subTasks.message}
-                        </p>
-                    )}
+                    {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
                 </div>
 
-                {/* Configurações de Cotação - Apenas no modo de criação */}
+                {/* Configurações de Cotação - apenas criação */}
                 {!initialData?.id && (
                     <div className="border-t pt-8">
-                        <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-6">
-                            Configurações de Cotação
-                        </h2>
+                        <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-6">Configurações de Cotação</h2>
 
                         <div className="space-y-6">
-                            {/* Checkbox para criar cotação */}
                             <div className="flex items-center">
                                 <input
                                     {...register('createQuote')}
@@ -304,14 +366,12 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 </div>
                             )}
 
-                            {/* Seleção de Projetos - só aparece se createQuote estiver marcado */}
+                            {/* Seleção de Projetos */}
                             {createQuote && (
                                 <div className="space-y-4">
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Projetos Associados
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700">Projetos Associados</label>
 
-                                    {/* Projetos Selecionados */}
+                                    {/* Lista de selecionados */}
                                     {selectedProjects.length > 0 && (
                                         <div className="space-y-2">
                                             {selectedProjects.map((project) => (
@@ -322,19 +382,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                     <div className="flex items-center gap-2">
                                                         <FolderOpen className="w-4 h-4 text-blue-600" />
                                                         <div>
-                                                            <span className="text-sm font-medium text-blue-900">
-                                                                {project.name}
-                                                            </span>
+                                                            <span className="text-sm font-medium text-blue-900">{project.name}</span>
                                                             {project.repositoryUrl && (
-                                                                <div className="text-xs text-blue-700">
-                                                                    {project.repositoryUrl}
-                                                                </div>
+                                                                <div className="text-xs text-blue-700">{project.repositoryUrl}</div>
                                                             )}
                                                         </div>
                                                     </div>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleProjectRemove(project.id)}
+                                                        onClick={() => removeProject(project.id)}
                                                         className="text-blue-600 hover:text-blue-800"
                                                     >
                                                         <X className="w-4 h-4" />
@@ -344,7 +400,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                         </div>
                                     )}
 
-                                    {/* Botão para adicionar projeto */}
                                     <button
                                         type="button"
                                         onClick={() => setShowProjectModal(true)}
@@ -362,188 +417,77 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 {/* Ações */}
                 <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
                     {onCancel && (
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={onCancel}
-                            disabled={isSubmitting || loading}
-                        >
+                        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting || loading}>
                             Cancelar
                         </Button>
                     )}
-
-                    <Button
-                        type="submit"
-                        loading={isSubmitting || loading}
-                        disabled={isSubmitting || loading}
-                    >
+                    <Button type="submit" loading={isSubmitting || loading} disabled={isSubmitting || loading}>
                         {initialData?.id ? 'Atualizar' : 'Criar'} Tarefa
                     </Button>
                 </div>
             </form>
 
-            {/* Modal de Seleção de Projetos */}
+            {/* Modal Seleção de Projetos (padronizado) */}
             {showProjectModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-4xl">
-                        {/* Header do Modal */}
+                    <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-6xl">
+                        {/* Header */}
                         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
                             <div>
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                                    Selecionar Projetos
-                                </h2>
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Selecionar Projetos</h2>
                                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                                    Escolha os projetos para associar à tarefa ({selectedProjects.length} selecionado{selectedProjects.length !== 1 ? 's' : ''})
+                                    Escolha os projetos para associar à tarefa ({selectedProjects.length} selecionado
+                                    {selectedProjects.length !== 1 ? 's' : ''})
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
                                 {selectedProjects.length > 0 && (
-                                    <Button
-                                        size="sm"
-                                        variant="primary"
-                                        onClick={() => setShowProjectModal(false)}
-                                    >
+                                    <Button size="sm" variant="primary" onClick={() => setShowProjectModal(false)}>
                                         Confirmar ({selectedProjects.length})
                                     </Button>
                                 )}
-                                <button
-                                    onClick={() => setShowProjectModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 p-1"
-                                >
+                                <button onClick={() => setShowProjectModal(false)} className="text-gray-400 hover:text-gray-600 p-1">
                                     <X className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Busca e Controles */}
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar projeto..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                                    />
-                                </div>
-                                {selectedProjects.length > 0 && (
-                                    <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        onClick={() => setSelectedProjects([])}
-                                        className="whitespace-nowrap"
-                                    >
-                                        Limpar Seleção
-                                    </Button>
-                                )}
+                        {/* Busca Mobile */}
+                        <div className="lg:hidden p-4 border-b border-gray-200">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar projeto..."
+                                    value={projectSearchTerm}
+                                    onChange={(e) => setProjectSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                />
                             </div>
                         </div>
 
-                        {/* Conteúdo do Modal */}
                         <div className="flex-1 overflow-hidden">
-                            {/* Desktop - Tabela com seleção múltipla */}
+                            {/* Desktop - DataTable com filtros/ordenação/paginação */}
                             <div className="hidden lg:block h-full">
-                                {loadingProjects ? (
-                                    <div className="flex items-center justify-center p-8">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                        <span className="ml-3 text-gray-600">Carregando...</span>
-                                    </div>
-                                ) : filteredProjects.length === 0 ? (
-                                    <div className="p-8 text-center">
-                                        <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                        <h3 className="text-lg font-medium mb-2 text-gray-900">
-                                            Nenhum projeto encontrado
-                                        </h3>
-                                        <p className="text-gray-600">
-                                            Tente ajustar sua busca.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="h-full overflow-y-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50 sticky top-0">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={filteredProjects.length > 0 && filteredProjects.every(p => selectedProjects.some(sp => sp.id === p.id))}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                const newSelections = filteredProjects.filter(p => !selectedProjects.some(sp => sp.id === p.id));
-                                                                setSelectedProjects([...selectedProjects, ...newSelections]);
-                                                            } else {
-                                                                const filteredIds = new Set(filteredProjects.map(p => p.id));
-                                                                setSelectedProjects(selectedProjects.filter(p => !filteredIds.has(p.id)));
-                                                            }
-                                                        }}
-                                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                    />
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    ID
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Nome do Projeto
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    URL do Repositório
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                            {filteredProjects.map((project) => {
-                                                const isSelected = selectedProjects.some(p => p.id === project.id);
-                                                return (
-                                                    <tr
-                                                        key={project.id}
-                                                        onClick={() => handleProjectToggle(project)}
-                                                        className={`cursor-pointer hover:bg-gray-50 ${
-                                                            isSelected ? 'bg-blue-50' : ''
-                                                        }`}
-                                                    >
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => handleProjectToggle(project)}
-                                                                onClick={(e) => e.stopPropagation()}
-                                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                            />
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                                                    #{project.id}
-                                                                </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="flex items-center gap-2">
-                                                                <FolderOpen className="w-4 h-4 text-blue-600" />
-                                                                <span className="font-medium text-gray-900">
-                                                                        {project.name}
-                                                                    </span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            {project.repositoryUrl ? (
-                                                                <div className="flex items-center gap-2">
-                                                                    <ExternalLink className="w-4 h-4 text-gray-400" />
-                                                                    <span className="text-sm text-gray-600 truncate max-w-xs">
-                                                                            {project.repositoryUrl}
-                                                                        </span>
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-gray-400">-</span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                                <DataTable
+                                    data={projects}
+                                    columns={projectColumns}
+                                    loading={loadingProjects}
+                                    pagination={projectPagination}
+                                    sorting={projectSorting}
+                                    filters={projectFilters}
+                                    onPageChange={setProjectPage}
+                                    onPageSizeChange={setProjectPageSize}
+                                    onSort={setProjectSorting}
+                                    onFilter={setProjectFilter}
+                                    onClearFilters={clearProjectFilters}
+                                    emptyMessage="Nenhum projeto encontrado"
+                                    showColumnToggle={false}
+                                    hiddenColumns={['repositoryUrl']} // pode reexibir pelo toggle se habilitar
+                                    rowClassName={(item: Project) =>
+                                        selectedProjects.some((p) => p.id === item.id) ? 'bg-blue-50' : ''
+                                    }
+                                />
                             </div>
 
                             {/* Mobile - Cards com seleção múltipla */}
@@ -553,24 +497,20 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                                         <span className="ml-3 text-gray-600">Carregando...</span>
                                     </div>
-                                ) : filteredProjects.length === 0 ? (
+                                ) : filteredProjectsMobile.length === 0 ? (
                                     <div className="p-8 text-center">
-                                        <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                        <h3 className="text-lg font-medium mb-2 text-gray-900">
-                                            Nenhum projeto encontrado
-                                        </h3>
-                                        <p className="text-gray-600">
-                                            Tente ajustar sua busca.
-                                        </p>
+                                        <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                        <h3 className="text-lg font-medium mb-2 text-gray-900">Nenhum projeto encontrado</h3>
+                                        <p className="text-gray-600">Tente ajustar sua busca.</p>
                                     </div>
                                 ) : (
                                     <div className="p-4 space-y-3">
-                                        {filteredProjects.map((project) => {
-                                            const isSelected = selectedProjects.some(p => p.id === project.id);
+                                        {filteredProjectsMobile.map((project) => {
+                                            const isSelected = selectedProjects.some((p) => p.id === project.id);
                                             return (
                                                 <div
                                                     key={project.id}
-                                                    onClick={() => handleProjectToggle(project)}
+                                                    onClick={() => toggleProject(project)}
                                                     className={`rounded-lg border p-4 cursor-pointer transition-all ${
                                                         isSelected
                                                             ? 'bg-blue-50 border-blue-200 shadow-sm'
@@ -583,7 +523,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isSelected}
-                                                                    onChange={() => handleProjectToggle(project)}
+                                                                    onChange={() => toggleProject(project)}
                                                                     onClick={(e) => e.stopPropagation()}
                                                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                                                 />
@@ -592,15 +532,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                                     {project.name}
                                                                 </h3>
                                                             </div>
-
-                                                            {project.repositoryUrl && (
-                                                                <div className="flex items-center gap-2 text-sm ml-6">
-                                                                    <ExternalLink className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-blue-400' : 'text-gray-400'}`} />
-                                                                    <span className={`truncate ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                                                                        {project.repositoryUrl}
-                                                                    </span>
-                                                                </div>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -610,27 +541,27 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 )}
 
                                 {/* Paginação Mobile */}
-                                {pagination && pagination.totalPages > 1 && !searchTerm && (
+                                {projectPagination && projectPagination.totalPages > 1 && !projectSearchTerm && (
                                     <div className="p-4 border-t border-gray-200">
                                         <div className="flex items-center justify-between">
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => setPage(pagination.currentPage - 1)}
-                                                disabled={pagination.currentPage <= 1}
+                                                onClick={() => setProjectPage(projectPagination.currentPage - 1)}
+                                                disabled={projectPagination.currentPage <= 1}
                                             >
                                                 Anterior
                                             </Button>
 
                                             <span className="text-sm text-gray-600">
-                                                Página {pagination.currentPage} de {pagination.totalPages}
-                                            </span>
+                        Página {projectPagination.currentPage} de {projectPagination.totalPages}
+                      </span>
 
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => setPage(pagination.currentPage + 1)}
-                                                disabled={pagination.currentPage >= pagination.totalPages}
+                                                onClick={() => setProjectPage(projectPagination.currentPage + 1)}
+                                                disabled={projectPagination.currentPage >= projectPagination.totalPages}
                                             >
                                                 Próxima
                                             </Button>
@@ -638,35 +569,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     </div>
                                 )}
                             </div>
-
-                            {/* Paginação Desktop */}
-                            {pagination && pagination.totalPages > 1 && !searchTerm && (
-                                <div className="hidden lg:block p-4 border-t border-gray-200">
-                                    <div className="flex items-center justify-between">
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => setPage(pagination.currentPage - 1)}
-                                            disabled={pagination.currentPage <= 1}
-                                        >
-                                            Anterior
-                                        </Button>
-
-                                        <span className="text-sm text-gray-600">
-                                            Página {pagination.currentPage} de {pagination.totalPages}
-                                        </span>
-
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => setPage(pagination.currentPage + 1)}
-                                            disabled={pagination.currentPage >= pagination.totalPages}
-                                        >
-                                            Próxima
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
