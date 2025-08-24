@@ -23,6 +23,7 @@ export interface Column<T> {
     filterable?: boolean; // Nova propriedade para habilitar filtro
     filterType?: 'text' | 'number' | 'date'; // Tipo de filtro
     render?: (item: T) => React.ReactNode;
+    headerRender?: () => React.ReactNode; // Nova propriedade para customizar header
     width?: string;
     align?: 'left' | 'center' | 'right';
     hideable?: boolean;
@@ -404,7 +405,9 @@ const DataTable = <T extends Record<string, any>>({
                                 style={{width: column.width}}
                             >
                                 <div>
-                                    {column.sortable ? (
+                                    {column.headerRender ? (
+                                        column.headerRender()
+                                    ) : column.sortable ? (
                                         <button
                                             onClick={() => handleSort(column.key)}
                                             className="group flex items-center hover:text-gray-700 focus:outline-none"

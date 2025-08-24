@@ -165,6 +165,24 @@ const TaskForm: React.FC<TaskFormProps> = ({
         });
     };
 
+    const toggleAllProjects = () => {
+        const allSelected = projects.every(p => selectedProjects.some(sp => sp.id === p.id));
+        if (allSelected) {
+            // Deselecionar todos da página atual
+            setSelectedProjects(curr => 
+                curr.filter(sp => !projects.some(p => p.id === sp.id))
+            );
+        } else {
+            // Selecionar todos da página atual que ainda não estão selecionados
+            setSelectedProjects(curr => {
+                const newSelections = projects.filter(p => 
+                    !curr.some(sp => sp.id === p.id)
+                );
+                return [...curr, ...newSelections];
+            });
+        }
+    };
+
     const removeProject = (id: number) => {
         setSelectedProjects((curr) => curr.filter((p) => p.id !== id));
     };
@@ -187,6 +205,22 @@ const TaskForm: React.FC<TaskFormProps> = ({
             title: '',
             width: '48px',
             align: 'center',
+            headerRender: () => {
+                const allSelected = projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id));
+                const someSelected = projects.some(p => selectedProjects.some(sp => sp.id === p.id));
+                return (
+                    <input
+                        type="checkbox"
+                        checked={allSelected}
+                        ref={(el) => {
+                            if (el) el.indeterminate = someSelected && !allSelected;
+                        }}
+                        onChange={toggleAllProjects}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        title={allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                    />
+                );
+            },
             render: (item) => {
                 const checked = selectedProjects.some((p) => p.id === item.id);
                 return (
@@ -205,7 +239,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
             sortable: true,
             filterable: true,
             filterType: 'number',
-            width: '80px',
+            width: '120px',
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -219,7 +253,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '240px',
             render: (item) => (
                 <div className="flex items-center gap-2">
                     <FolderOpen className="w-4 h-4 text-gray-400" />
@@ -228,24 +261,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </span>
                 </div>
             ),
-        },
-        {
-            key: 'repositoryUrl',
-            title: 'Repositório',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '280px',
-            hideable: true,
-            render: (item) =>
-                item.repositoryUrl ? (
-                    <div className="flex items-center gap-2">
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 truncate max-w-[220px]">{item.repositoryUrl}</span>
-                    </div>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                ),
         },
     ];
 
@@ -430,7 +445,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
             {/* Modal Seleção de Projetos (padronizado) */}
             {showProjectModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-6xl">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-2xl">
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
                             <div>
@@ -454,7 +469,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                         {/* Busca Mobile */}
                         <div className="lg:hidden p-4 border-b border-gray-200">
-                            <div className="relative">
+                            <div className="relative mb-3">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     type="text"
@@ -463,6 +478,33 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     onChange={(e) => setProjectSearchTerm(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                                 />
+                            </div>
+                            {/* Botão Selecionar Todos Mobile */}
+                            <div className="flex items-center justify-center">
+                                <button
+                                    type="button"
+                                    onClick={toggleAllProjects}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id))}
+                                        ref={(el) => {
+                                            if (el) {
+                                                const allSelected = projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id));
+                                                const someSelected = projects.some(p => selectedProjects.some(sp => sp.id === p.id));
+                                                el.indeterminate = someSelected && !allSelected;
+                                            }
+                                        }}
+                                        onChange={toggleAllProjects}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    {projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id)) 
+                                        ? 'Desmarcar Todos' 
+                                        : 'Selecionar Todos'
+                                    }
+                                </button>
                             </div>
                         </div>
 
@@ -483,7 +525,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     onClearFilters={clearProjectFilters}
                                     emptyMessage="Nenhum projeto encontrado"
                                     showColumnToggle={false}
-                                    hiddenColumns={['repositoryUrl']} // pode reexibir pelo toggle se habilitar
+                                    hiddenColumns={[]} // só 3 colunas: select, id, name
                                     rowClassName={(item: Project) =>
                                         selectedProjects.some((p) => p.id === item.id) ? 'bg-blue-50' : ''
                                     }
