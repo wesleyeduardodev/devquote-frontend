@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Menu, X } from 'lucide-react';
@@ -15,12 +15,13 @@ interface User {
 interface NavigationItem {
     path: string;
     label: string;
+    screen: string;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user, logout, hasScreenAccess } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
     const handleLogout = (): void => {
@@ -42,15 +43,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         return user.name || user.username || 'Usuário';
     };
 
-    const navigationItems: NavigationItem[] = [
-        { path: '/dashboard', label: 'Dashboard' },
-        { path: '/requesters', label: 'Solicitantes' },
-        { path: '/tasks', label: 'Tarefas' },
-        { path: '/quotes', label: 'Orçamentos' },
-        { path: '/deliveries', label: 'Entregas' },
-        { path: '/projects', label: 'Projetos' },
-        { path: '/billing', label: 'Faturamento' }
+    // Todos os itens de navegação possíveis
+    const allNavigationItems: NavigationItem[] = [
+        { path: '/dashboard', label: 'Dashboard', screen: 'dashboard' },
+        { path: '/requesters', label: 'Solicitantes', screen: 'users' },
+        { path: '/tasks', label: 'Tarefas', screen: 'tasks' },
+        { path: '/quotes', label: 'Orçamentos', screen: 'quotes' },
+        { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
+        { path: '/projects', label: 'Projetos', screen: 'projects' },
+        { path: '/billing', label: 'Faturamento', screen: 'billing' }
     ];
+
+    // Filtra itens baseado nas permissões do usuário
+    const navigationItems = useMemo(() => {
+        return allNavigationItems.filter(item => hasScreenAccess(item.screen));
+    }, [hasScreenAccess]);
 
     const handleNavigate = (path: string) => {
         navigate(path);
