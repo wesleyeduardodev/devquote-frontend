@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Todos os itens de navegação possíveis
     const allNavigationItems: NavigationItem[] = [
-        { path: '/dashboard', label: 'Dashboard', screen: 'dashboard' },
+        { path: '/dashboard', label: 'Dashboard', screen: '' }, // Dashboard sempre acessível
         { path: '/requesters', label: 'Solicitantes', screen: 'users' },
         { path: '/tasks', label: 'Tarefas', screen: 'tasks' },
         { path: '/quotes', label: 'Orçamentos', screen: 'quotes' },
@@ -54,9 +54,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/billing', label: 'Faturamento', screen: 'billing' }
     ];
 
-    // Filtra itens baseado nas permissões do usuário
+    // Filtra itens baseado nas permissões do usuário (Dashboard sempre incluído)
     const navigationItems = useMemo(() => {
-        return allNavigationItems.filter(item => hasScreenAccess(item.screen));
+        return allNavigationItems.filter(item => 
+            item.screen === '' || hasScreenAccess(item.screen)
+        );
     }, [hasScreenAccess]);
 
     const handleNavigate = (path: string) => {
