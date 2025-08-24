@@ -34,6 +34,7 @@ interface UseBillingMonthsReturn {
     createBillingMonth: (data: BillingMonthCreate) => Promise<BillingMonth>;
     updateBillingMonth: (id: number, data: BillingMonthUpdate) => Promise<BillingMonth>;
     deleteBillingMonth: (id: number) => Promise<void>;
+    deleteBulkBillingMonths: (ids: number[]) => Promise<void>;
     linkQuoteToBilling: (quoteBillingMonthId: number, quoteId: number) => Promise<any>;
     unlinkQuoteFromBilling: (linkId: number) => Promise<void>;
 }
@@ -127,6 +128,20 @@ export const useBillingMonths = (): UseBillingMonthsReturn => {
         }
     }, []);
 
+    const deleteBulkBillingMonths = useCallback(async (ids: number[]): Promise<void> => {
+        setLoading(true);
+        setError(null);
+        try {
+            await request('/quote-billing-months/bulk', 'DELETE', ids);
+            setBillingMonths(prev => prev.filter(item => !ids.includes(item.id)));
+        } catch (err: any) {
+            setError(err.message || 'Erro ao excluir períodos de faturamento');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const linkQuoteToBilling = useCallback(async (quoteBillingMonthId: number, quoteId: number): Promise<any> => {
         setLoading(true);
         setError(null);
@@ -169,6 +184,7 @@ export const useBillingMonths = (): UseBillingMonthsReturn => {
         createBillingMonth,
         updateBillingMonth,
         deleteBillingMonth,
+        deleteBulkBillingMonths,
         linkQuoteToBilling,
         unlinkQuoteFromBilling
     };

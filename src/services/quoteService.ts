@@ -75,4 +75,8 @@ export const quoteService = {
         await api.delete(`/quotes/${id}`);
         return true;
     },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/quotes/bulk', { data: ids });
+    }
 };

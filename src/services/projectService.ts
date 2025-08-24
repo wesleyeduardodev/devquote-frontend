@@ -71,5 +71,9 @@ export const projectService = {
 
     delete: async (id: any): Promise<void> => {
         await api.delete(`/projects/${id}`);
+    },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/projects/bulk', { data: ids });
     }
 };

@@ -55,6 +55,10 @@ const billingMonthService = {
     findQuoteLinksByBillingMonth: async (billingMonthId: any): Promise<any> => {
         const res = await api.get(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}`);
         return res.data;
+    },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/quote-billing-months/bulk', { data: ids });
     }
 };
 

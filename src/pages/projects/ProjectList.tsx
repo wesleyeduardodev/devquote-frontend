@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, ExternalLink, Search, Filter, FolderOpen, Calendar, Github } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Search, Filter, FolderOpen, Calendar, Github, Check } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import toast from 'react-hot-toast';
 
 interface Project {
@@ -18,6 +19,9 @@ interface Project {
 const ProjectList: React.FC = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const {
         projects,
@@ -30,7 +34,8 @@ const ProjectList: React.FC = () => {
         setSorting,
         setFilter,
         clearFilters,
-        deleteProject
+        deleteProject,
+        deleteBulkProjects
     } = useProjects();
 
     const handleEdit = (id: number) => {
@@ -59,6 +64,57 @@ const ProjectList: React.FC = () => {
         });
     };
 
+    // Funções de seleção múltipla
+    const toggleItem = (id: number) => {
+        setSelectedItems(prev => 
+            prev.includes(id)
+                ? prev.filter(item => item !== id)
+                : [...prev, id]
+        );
+    };
+
+    const toggleAll = () => {
+        const currentPageIds = projects.map(project => project.id);
+        const allSelected = currentPageIds.every(id => selectedItems.includes(id));
+        
+        if (allSelected) {
+            setSelectedItems(prev => prev.filter(id => !currentPageIds.includes(id)));
+        } else {
+            setSelectedItems(prev => [...new Set([...prev, ...currentPageIds])]);
+        }
+    };
+
+    const clearSelection = () => {
+        setSelectedItems([]);
+    };
+
+    // Estados derivados
+    const selectionState = useMemo(() => {
+        const currentPageIds = projects.map(project => project.id);
+        const selectedFromCurrentPage = selectedItems.filter(id => currentPageIds.includes(id));
+        
+        return {
+            allSelected: currentPageIds.length > 0 && selectedFromCurrentPage.length === currentPageIds.length,
+            someSelected: selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < currentPageIds.length,
+            hasSelection: selectedItems.length > 0,
+            selectedFromCurrentPage
+        };
+    }, [projects, selectedItems]);
+
+    const handleBulkDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await deleteBulkProjects(selectedItems);
+            clearSelection();
+            setShowBulkDeleteModal(false);
+            toast.success(`${selectedItems.length} projeto(s) excluído(s) com sucesso`);
+        } catch (error) {
+            toast.error('Erro ao excluir projetos selecionados');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     // Filtrar projects baseado na busca (apenas para mobile)
     const filteredProjects = projects.filter(project =>
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,6 +122,39 @@ const ProjectList: React.FC = () => {
     );
 
     const columns: Column<Project>[] = [
+        {
+            key: 'select',
+            title: '',
+            width: '50px',
+            align: 'center',
+            headerRender: () => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectionState.allSelected}
+                        ref={(input) => {
+                            if (input) {
+                                input.indeterminate = selectionState.someSelected;
+                            }
+                        }}
+                        onChange={toggleAll}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                    />
+                </div>
+            ),
+            render: (item) => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => toggleItem(item.id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )
+        },
         {
             key: 'id',
             title: 'ID',
@@ -170,16 +259,28 @@ const ProjectList: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                            #{project.id}
-                        </span>
+                <div className="flex items-start gap-3 flex-1">
+                    {/* Checkbox */}
+                    <div className="flex-shrink-0 pt-1">
+                        <input
+                            type="checkbox"
+                            checked={selectedItems.includes(project.id)}
+                            onChange={() => toggleItem(project.id)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2 flex items-center gap-2">
-                        <FolderOpen className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                        {project.name}
-                    </h3>
+                    
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                #{project.id}
+                            </span>
+                        </div>
+                        <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2 flex items-center gap-2">
+                            <FolderOpen className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                            {project.name}
+                        </h3>
+                    </div>
                 </div>
 
                 {/* Ações */}
@@ -251,17 +352,55 @@ const ProjectList: React.FC = () => {
             </div>
 
             {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
-            <div className="lg:hidden">
+            <div className="lg:hidden space-y-4">
                 <Card className="p-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por nome ou URL do repositório..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                        />
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Buscar por nome ou URL do repositório..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            />
+                        </div>
+                        
+                        <div className="flex items-center justify-between gap-3">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={toggleAll}
+                                className="flex items-center gap-2"
+                            >
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectionState.allSelected}
+                                        ref={(input) => {
+                                            if (input) {
+                                                input.indeterminate = selectionState.someSelected;
+                                            }
+                                        }}
+                                        readOnly
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                </div>
+                                <span className="text-sm">Selecionar Todos</span>
+                            </Button>
+                            
+                            {selectionState.hasSelection && (
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={() => setShowBulkDeleteModal(true)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-sm">Excluir ({selectedItems.length})</span>
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </Card>
             </div>
@@ -277,7 +416,37 @@ const ProjectList: React.FC = () => {
             ) : (
                 <>
                     {/* Visualização Desktop - Tabela com filtros originais */}
-                    <div className="hidden lg:block">
+                    <div className="hidden lg:block space-y-4">
+                        {/* Barra de ações para desktop */}
+                        {selectionState.hasSelection && (
+                            <Card className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {selectedItems.length} projeto(s) selecionado(s)
+                                        </span>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={clearSelection}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            Limpar seleção
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Excluir Selecionados
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
+                        
                         <Card className="p-0">
                             <DataTable
                                 data={projects} // Usar dados originais sem filtro de busca
@@ -347,6 +516,16 @@ const ProjectList: React.FC = () => {
                     </div>
                 </>
             )}
+
+            {/* Modal de exclusão em massa */}
+            <BulkDeleteModal
+                isOpen={showBulkDeleteModal}
+                onClose={() => setShowBulkDeleteModal(false)}
+                onConfirm={handleBulkDelete}
+                selectedCount={selectedItems.length}
+                isDeleting={isDeleting}
+                entityName="projeto"
+            />
         </div>
     );
 };

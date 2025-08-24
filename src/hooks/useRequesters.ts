@@ -64,6 +64,7 @@ interface UseRequestersReturn {
     createRequester: (requesterData: RequesterCreate) => Promise<Requester>;
     updateRequester: (id: number, requesterData: RequesterUpdate) => Promise<Requester>;
     deleteRequester: (id: number) => Promise<void>;
+    deleteBulkRequesters: (ids: number[]) => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -156,6 +157,17 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         }
     }, [fetchRequesters]);
 
+    const deleteBulkRequesters = useCallback(async (ids: number[]): Promise<void> => {
+        try {
+            await requesterService.deleteBulk(ids);
+            await fetchRequesters(); // Recarrega a lista após exclusão
+            toast.success(`${ids.length} solicitante${ids.length === 1 ? '' : 's'} excluído${ids.length === 1 ? '' : 's'} com sucesso!`);
+        } catch (err: any) {
+            console.error('Erro ao excluir solicitantes:', err);
+            throw err;
+        }
+    }, [fetchRequesters]);
+
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
@@ -218,6 +230,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         createRequester,
         updateRequester,
         deleteRequester,
+        deleteBulkRequesters,
         setPage,
         setPageSize,
         setSorting,

@@ -80,4 +80,8 @@ export const taskService = {
         await api.delete(`/tasks/full/${id}`);
         return true;
     },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/tasks/bulk', { data: ids });
+    }
 };

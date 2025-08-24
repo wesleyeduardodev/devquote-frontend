@@ -81,4 +81,8 @@ export const deliveryService = {
         await api.delete(`/deliveries/${id}`);
         return true;
     },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/deliveries/bulk', { data: ids });
+    }
 };

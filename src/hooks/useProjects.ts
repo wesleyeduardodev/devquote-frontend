@@ -61,6 +61,7 @@ interface UseProjectsReturn {
     createProject: (projectData: ProjectCreate) => Promise<Project>;
     updateProject: (id: number, projectData: ProjectUpdate) => Promise<Project>;
     deleteProject: (id: number) => Promise<void>;
+    deleteBulkProjects: (ids: number[]) => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -153,6 +154,17 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
         }
     }, [fetchProjects]);
 
+    const deleteBulkProjects = useCallback(async (ids: number[]): Promise<void> => {
+        try {
+            await projectService.deleteBulk(ids);
+            await fetchProjects(); // Recarrega a lista após exclusão
+            toast.success(`${ids.length} projeto${ids.length === 1 ? '' : 's'} excluído${ids.length === 1 ? '' : 's'} com sucesso!`);
+        } catch (err: any) {
+            console.error('Erro ao excluir projetos:', err);
+            throw err;
+        }
+    }, [fetchProjects]);
+
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
@@ -215,6 +227,7 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
         createProject,
         updateProject,
         deleteProject,
+        deleteBulkProjects,
         setPage,
         setPageSize,
         setSorting,

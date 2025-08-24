@@ -67,6 +67,7 @@ interface UseQuotesReturn {
     createQuote: (quoteData: QuoteCreate) => Promise<Quote>;
     updateQuote: (id: number, quoteData: QuoteUpdate) => Promise<Quote>;
     deleteQuote: (id: number) => Promise<void>;
+    deleteBulkQuotes: (ids: number[]) => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -159,6 +160,17 @@ const useQuotes = (initialParams?: UseQuotesParams): UseQuotesReturn => {
         }
     }, [fetchQuotes]);
 
+    const deleteBulkQuotes = useCallback(async (ids: number[]): Promise<void> => {
+        try {
+            await quoteService.deleteBulk(ids);
+            await fetchQuotes(); // Recarrega a lista após exclusão
+            toast.success(`${ids.length} orçamento${ids.length === 1 ? '' : 's'} excluído${ids.length === 1 ? '' : 's'} com sucesso!`);
+        } catch (err: any) {
+            console.error('Erro ao excluir orçamentos:', err);
+            throw err;
+        }
+    }, [fetchQuotes]);
+
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
@@ -221,6 +233,7 @@ const useQuotes = (initialParams?: UseQuotesParams): UseQuotesReturn => {
         createQuote,
         updateQuote,
         deleteQuote,
+        deleteBulkQuotes,
         setPage,
         setPageSize,
         setSorting,

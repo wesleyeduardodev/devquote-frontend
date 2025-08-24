@@ -99,6 +99,7 @@ interface UseTasksReturn {
     createTaskWithSubTasks: (taskData: TaskCreate) => Promise<Task>;
     updateTaskWithSubTasks: (id: number, taskData: TaskUpdate) => Promise<Task>;
     deleteTaskWithSubTasks: (id: number) => Promise<void>;
+    deleteBulkTasks: (ids: number[]) => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -191,6 +192,17 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [fetchTasks]);
 
+    const deleteBulkTasks = useCallback(async (ids: number[]): Promise<void> => {
+        try {
+            await taskService.deleteBulk(ids);
+            await fetchTasks(); // Recarrega a lista após exclusão
+            toast.success(`${ids.length} tarefa${ids.length === 1 ? '' : 's'} excluída${ids.length === 1 ? '' : 's'} com sucesso!`);
+        } catch (err: any) {
+            console.error('Erro ao excluir tarefas:', err);
+            throw err;
+        }
+    }, [fetchTasks]);
+
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
@@ -253,6 +265,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         createTaskWithSubTasks,
         updateTaskWithSubTasks,
         deleteTaskWithSubTasks,
+        deleteBulkTasks,
         setPage,
         setPageSize,
         setSorting,

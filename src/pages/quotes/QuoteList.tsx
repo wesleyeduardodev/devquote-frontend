@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, FileText, DollarSign, Calendar, Hash, Tag, Search, Filter } from 'lucide-react';
+import {
+    Plus,
+    Edit,
+    Trash2,
+    FileText,
+    DollarSign,
+    Calendar,
+    Hash,
+    Tag,
+    Search,
+    Filter,
+} from 'lucide-react';
 import useQuotes from '@/hooks/useQuotes';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import toast from 'react-hot-toast';
 
 interface Quote {
@@ -21,6 +33,9 @@ interface Quote {
 const QuoteList: React.FC = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const {
         quotes,
@@ -33,7 +48,8 @@ const QuoteList: React.FC = () => {
         setSorting,
         setFilter,
         clearFilters,
-        deleteQuote
+        deleteQuote,
+        deleteBulkQuotes, // <-- deve existir no hook
     } = useQuotes();
 
     const handleEdit = (id: number) => {
@@ -58,23 +74,19 @@ const QuoteList: React.FC = () => {
             month: '2-digit',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(value);
-    };
+    const formatCurrency = (value: number) =>
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             PENDING: 'bg-yellow-100 text-yellow-800',
             APPROVED: 'bg-green-100 text-green-800',
             REJECTED: 'bg-red-100 text-red-800',
-            DRAFT: 'bg-gray-100 text-gray-800'
+            DRAFT: 'bg-gray-100 text-gray-800',
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -84,19 +96,98 @@ const QuoteList: React.FC = () => {
             PENDING: 'Pendente',
             APPROVED: 'Aprovado',
             REJECTED: 'Rejeitado',
-            DRAFT: 'Rascunho'
+            DRAFT: 'Rascunho',
         };
         return labels[status] || status;
     };
 
-    // Filtrar quotes baseado na busca (apenas para mobile)
-    const filteredQuotes = quotes.filter(quote =>
+    // ===== Seleção múltipla (igual ao ProjectList) =====
+    const toggleItem = (id: number) => {
+        setSelectedItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+
+    const toggleAll = () => {
+        const currentPageIds = quotes.map((q: Quote) => q.id);
+        const allSelected = currentPageIds.every((id) => selectedItems.includes(id));
+
+        if (allSelected) {
+            setSelectedItems((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+        } else {
+            setSelectedItems((prev) => [...new Set([...prev, ...currentPageIds])]);
+        }
+    };
+
+    const clearSelection = () => setSelectedItems([]);
+
+    const selectionState = useMemo(() => {
+        const currentPageIds = quotes.map((q: Quote) => q.id);
+        const selectedFromCurrentPage = selectedItems.filter((id) => currentPageIds.includes(id));
+
+        return {
+            allSelected:
+                currentPageIds.length > 0 && selectedFromCurrentPage.length === currentPageIds.length,
+            someSelected:
+                selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < currentPageIds.length,
+            hasSelection: selectedItems.length > 0,
+            selectedFromCurrentPage,
+        };
+    }, [quotes, selectedItems]);
+
+    const handleBulkDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await deleteBulkQuotes(selectedItems);
+            const qty = selectedItems.length;
+            clearSelection();
+            setShowBulkDeleteModal(false);
+            toast.success(`${qty} orçamento(s) excluído(s) com sucesso`);
+        } catch (error) {
+            toast.error('Erro ao excluir orçamentos selecionados');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // ===== Busca simples (mobile) =====
+    const filteredQuotes = quotes.filter((quote: Quote) =>
         quote.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         quote.taskCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         getStatusLabel(quote.status).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // ===== Colunas (inclui checkbox de seleção) =====
     const columns: Column<Quote>[] = [
+        {
+            key: 'select',
+            title: '',
+            width: '50px',
+            align: 'center',
+            headerRender: () => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectionState.allSelected}
+                        ref={(input) => {
+                            if (input) input.indeterminate = selectionState.someSelected;
+                        }}
+                        onChange={toggleAll}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                    />
+                </div>
+            ),
+            render: (item) => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => toggleItem(item.id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            ),
+        },
         {
             key: 'id',
             title: 'ID',
@@ -107,9 +198,9 @@ const QuoteList: React.FC = () => {
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                    #{item.id}
-                </span>
-            )
+          #{item.id}
+        </span>
+            ),
         },
         {
             key: 'taskCode',
@@ -122,10 +213,10 @@ const QuoteList: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <Hash className="w-4 h-4 text-gray-400" />
                     <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                        {item.taskCode}
-                    </span>
+            {item.taskCode}
+          </span>
                 </div>
-            )
+            ),
         },
         {
             key: 'taskName',
@@ -138,15 +229,12 @@ const QuoteList: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-gray-400" />
                     <div>
-                        <p
-                            className="font-medium text-gray-900 truncate cursor-help"
-                            title={item.taskName}
-                        >
+                        <p className="font-medium text-gray-900 truncate cursor-help" title={item.taskName}>
                             {item.taskName}
                         </p>
                     </div>
                 </div>
-            )
+            ),
         },
         {
             key: 'status',
@@ -158,9 +246,9 @@ const QuoteList: React.FC = () => {
             align: 'center',
             render: (item) => (
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-                    {getStatusLabel(item.status)}
-                </span>
-            )
+          {getStatusLabel(item.status)}
+        </span>
+            ),
         },
         {
             key: 'totalAmount',
@@ -174,10 +262,10 @@ const QuoteList: React.FC = () => {
                 <div className="flex items-center justify-end gap-1">
                     <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-semibold text-green-600">
-                        {formatCurrency(item.totalAmount)}
-                    </span>
+            {formatCurrency(item.totalAmount)}
+          </span>
                 </div>
-            )
+            ),
         },
         {
             key: 'createdAt',
@@ -189,12 +277,10 @@ const QuoteList: React.FC = () => {
             render: (item) => (
                 <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                        {formatDate(item.createdAt)}
-                    </span>
+                    <span className="text-sm text-gray-600">{formatDate(item.createdAt)}</span>
                 </div>
             ),
-            hideable: true
+            hideable: true,
         },
         {
             key: 'updatedAt',
@@ -206,12 +292,10 @@ const QuoteList: React.FC = () => {
             render: (item) => (
                 <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                        {formatDate(item.updatedAt)}
-                    </span>
+                    <span className="text-sm text-gray-600">{formatDate(item.updatedAt)}</span>
                 </div>
             ),
-            hideable: true
+            hideable: true,
         },
         {
             key: 'actions',
@@ -238,31 +322,43 @@ const QuoteList: React.FC = () => {
                         <Trash2 className="w-4 h-4" />
                     </Button>
                 </div>
-            )
-        }
+            ),
+        },
     ];
 
-    // Componente Card para visualização mobile
+    // ===== Card (mobile) com checkbox + ações =====
     const QuoteCard: React.FC<{ quote: Quote }> = ({ quote }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                            #{quote.id}
-                        </span>
-                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                            {quote.taskCode}
-                        </span>
+                <div className="flex items-start gap-3 flex-1">
+                    {/* Checkbox */}
+                    <div className="flex-shrink-0 pt-1">
+                        <input
+                            type="checkbox"
+                            checked={selectedItems.includes(quote.id)}
+                            onChange={() => toggleItem(quote.id)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">
-                        {quote.taskName}
-                    </h3>
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(quote.status)}`}>
-                            {getStatusLabel(quote.status)}
-                        </span>
+
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                #{quote.id}
+              </span>
+                            <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                {quote.taskCode}
+              </span>
+                        </div>
+                        <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">
+                            {quote.taskName}
+                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(quote.status)}`}>
+                {getStatusLabel(quote.status)}
+              </span>
+                        </div>
                     </div>
                 </div>
 
@@ -296,8 +392,8 @@ const QuoteList: React.FC = () => {
                     <div className="flex items-center gap-1">
                         <DollarSign className="w-4 h-4 text-green-600" />
                         <span className="text-lg font-bold text-green-600">
-                            {formatCurrency(quote.totalAmount)}
-                        </span>
+              {formatCurrency(quote.totalAmount)}
+            </span>
                     </div>
                 </div>
 
@@ -352,7 +448,7 @@ const QuoteList: React.FC = () => {
                         <div className="ml-3 sm:ml-4">
                             <div className="text-xs sm:text-sm font-medium text-gray-500">Pendentes</div>
                             <div className="text-lg sm:text-2xl font-bold text-yellow-600">
-                                {quotes.filter(q => q.status === 'PENDING').length}
+                                {quotes.filter((q: Quote) => q.status === 'PENDING').length}
                             </div>
                         </div>
                     </div>
@@ -366,7 +462,7 @@ const QuoteList: React.FC = () => {
                         <div className="ml-3 sm:ml-4">
                             <div className="text-xs sm:text-sm font-medium text-gray-500">Aprovados</div>
                             <div className="text-lg sm:text-2xl font-bold text-green-600">
-                                {quotes.filter(q => q.status === 'APPROVED').length}
+                                {quotes.filter((q: Quote) => q.status === 'APPROVED').length}
                             </div>
                         </div>
                     </div>
@@ -380,27 +476,56 @@ const QuoteList: React.FC = () => {
                         <div className="ml-3 sm:ml-4">
                             <div className="text-xs sm:text-sm font-medium text-gray-500">Valor Total</div>
                             <div className="text-sm sm:text-lg font-bold text-blue-600">
-                                {formatCurrency(
-                                    quotes.reduce((sum, quote) => sum + quote.totalAmount, 0)
-                                )}
+                                {formatCurrency(quotes.reduce((sum: number, q: Quote) => sum + q.totalAmount, 0))}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
-            <div className="lg:hidden">
+            {/* Filtros Mobile - Busca + seleção e bulk delete */}
+            <div className="lg:hidden space-y-4">
                 <Card className="p-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por tarefa, código ou status..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                        />
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Buscar por tarefa, código ou status..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3">
+                            <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectionState.allSelected}
+                                        ref={(input) => {
+                                            if (input) input.indeterminate = selectionState.someSelected;
+                                        }}
+                                        readOnly
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                </div>
+                                <span className="text-sm">Selecionar Todos</span>
+                            </Button>
+
+                            {selectionState.hasSelection && (
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={() => setShowBulkDeleteModal(true)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-sm">Excluir ({selectedItems.length})</span>
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </Card>
             </div>
@@ -415,8 +540,38 @@ const QuoteList: React.FC = () => {
                 </Card>
             ) : (
                 <>
-                    {/* Visualização Desktop - Tabela com filtros originais */}
-                    <div className="hidden lg:block">
+                    {/* Desktop - Barra de ações quando há seleção */}
+                    <div className="hidden lg:block space-y-4">
+                        {selectionState.hasSelection && (
+                            <Card className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">
+                      {selectedItems.length} orçamento(s) selecionado(s)
+                    </span>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={clearSelection}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            Limpar seleção
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Excluir Selecionados
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Desktop - Tabela */}
                         <Card className="p-0">
                             <DataTable
                                 data={quotes} // Usar dados originais sem filtro de busca
@@ -437,7 +592,7 @@ const QuoteList: React.FC = () => {
                         </Card>
                     </div>
 
-                    {/* Visualização Mobile/Tablet - Cards com busca simples */}
+                    {/* Mobile/Tablet - Cards com busca simples */}
                     <div className="lg:hidden">
                         {filteredQuotes.length === 0 ? (
                             <Card className="p-8 text-center">
@@ -449,7 +604,7 @@ const QuoteList: React.FC = () => {
                             </Card>
                         ) : (
                             <div className="grid gap-4">
-                                {filteredQuotes.map((quote) => (
+                                {filteredQuotes.map((quote: Quote) => (
                                     <QuoteCard key={quote.id} quote={quote} />
                                 ))}
                             </div>
@@ -469,8 +624,8 @@ const QuoteList: React.FC = () => {
                                     </Button>
 
                                     <span className="text-sm text-gray-600">
-                                        Página {pagination.currentPage} de {pagination.totalPages}
-                                    </span>
+                    Página {pagination.currentPage} de {pagination.totalPages}
+                  </span>
 
                                     <Button
                                         size="sm"
@@ -486,6 +641,16 @@ const QuoteList: React.FC = () => {
                     </div>
                 </>
             )}
+
+            {/* Modal de exclusão em massa */}
+            <BulkDeleteModal
+                isOpen={showBulkDeleteModal}
+                onClose={() => setShowBulkDeleteModal(false)}
+                onConfirm={handleBulkDelete}
+                selectedCount={selectedItems.length}
+                isDeleting={isDeleting}
+                entityName="orçamento"
+            />
         </div>
     );
 };

@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Search, Filter, Grid, List, Phone, Mail, Calendar } from 'lucide-react';
+import {
+    Plus,
+    Edit,
+    Trash2,
+    Search,
+    Filter,
+    Phone,
+    Mail,
+    Calendar,
+} from 'lucide-react';
 import { useRequesters } from '@/hooks/useRequesters';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import toast from 'react-hot-toast';
 
 interface Requester {
@@ -18,8 +28,10 @@ interface Requester {
 
 const RequesterList: React.FC = () => {
     const navigate = useNavigate();
-    const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const {
         requesters,
@@ -32,7 +44,8 @@ const RequesterList: React.FC = () => {
         setSorting,
         setFilter,
         clearFilters,
-        deleteRequester
+        deleteRequester,
+        deleteBulkRequesters, // <-- deve existir no hook, igual ao de Projects
     } = useRequesters();
 
     const handleEdit = (id: number) => {
@@ -57,18 +70,104 @@ const RequesterList: React.FC = () => {
             month: '2-digit',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
 
-    // Filtrar requesters baseado na busca
-    const filteredRequesters = requesters.filter(requester =>
-        requester.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        requester.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        requester.phone?.includes(searchTerm)
+    // ===== Seleção múltipla (igual ProjectList) =====
+    const toggleItem = (id: number) => {
+        setSelectedItems((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
+    };
+
+    const toggleAll = () => {
+        const currentPageIds = requesters.map((r) => r.id);
+        const allSelected = currentPageIds.every((id) => selectedItems.includes(id));
+
+        if (allSelected) {
+            setSelectedItems((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+        } else {
+            setSelectedItems((prev) => [...new Set([...prev, ...currentPageIds])]);
+        }
+    };
+
+    const clearSelection = () => setSelectedItems([]);
+
+    const selectionState = useMemo(() => {
+        const currentPageIds = requesters.map((r) => r.id);
+        const selectedFromCurrentPage = selectedItems.filter((id) =>
+            currentPageIds.includes(id)
+        );
+
+        return {
+            allSelected:
+                currentPageIds.length > 0 &&
+                selectedFromCurrentPage.length === currentPageIds.length,
+            someSelected:
+                selectedFromCurrentPage.length > 0 &&
+                selectedFromCurrentPage.length < currentPageIds.length,
+            hasSelection: selectedItems.length > 0,
+            selectedFromCurrentPage,
+        };
+    }, [requesters, selectedItems]);
+
+    const handleBulkDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await deleteBulkRequesters(selectedItems);
+            const qty = selectedItems.length;
+            clearSelection();
+            setShowBulkDeleteModal(false);
+            toast.success(`${qty} solicitante(s) excluído(s) com sucesso`);
+        } catch (error) {
+            toast.error('Erro ao excluir solicitantes selecionados');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // ===== Busca simples (mobile) =====
+    const filteredRequesters = requesters.filter(
+        (r) =>
+            r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.phone?.includes(searchTerm)
     );
 
+    // ===== Colunas da tabela (inclui coluna de seleção) =====
     const columns: Column<Requester>[] = [
+        {
+            key: 'select',
+            title: '',
+            width: '50px',
+            align: 'center',
+            headerRender: () => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectionState.allSelected}
+                        ref={(input) => {
+                            if (input) input.indeterminate = selectionState.someSelected;
+                        }}
+                        onChange={toggleAll}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                    />
+                </div>
+            ),
+            render: (item) => (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => toggleItem(item.id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            ),
+        },
         {
             key: 'id',
             title: 'ID',
@@ -79,9 +178,9 @@ const RequesterList: React.FC = () => {
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                    #{item.id}
-                </span>
-            )
+          #{item.id}
+        </span>
+            ),
         },
         {
             key: 'name',
@@ -93,7 +192,7 @@ const RequesterList: React.FC = () => {
                 <div>
                     <p className="font-medium text-gray-900">{item.name}</p>
                 </div>
-            )
+            ),
         },
         {
             key: 'email',
@@ -103,13 +202,18 @@ const RequesterList: React.FC = () => {
             filterType: 'text',
             render: (item) => (
                 <a
-                    href={`mailto:${item.email}`}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                    onClick={(e) => e.stopPropagation()}
+                    href={item.email ? `mailto:${item.email}` : undefined}
+                    className={`${
+                        item.email ? 'text-blue-600 hover:text-blue-800 hover:underline' : 'text-gray-400'
+                    }`}
+                    onClick={(e) => {
+                        if (!item.email) e.preventDefault();
+                        e.stopPropagation();
+                    }}
                 >
                     {item.email || '-'}
                 </a>
-            )
+            ),
         },
         {
             key: 'phone',
@@ -117,7 +221,7 @@ const RequesterList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            render: (item) => item.phone || '-'
+            render: (item) => item.phone || '-',
         },
         {
             key: 'createdAt',
@@ -126,7 +230,7 @@ const RequesterList: React.FC = () => {
             filterable: true,
             filterType: 'date',
             render: (item) => formatDate(item.createdAt),
-            hideable: true
+            hideable: true,
         },
         {
             key: 'updatedAt',
@@ -135,7 +239,7 @@ const RequesterList: React.FC = () => {
             filterable: true,
             filterType: 'date',
             render: (item) => formatDate(item.updatedAt),
-            hideable: true
+            hideable: true,
         },
         {
             key: 'actions',
@@ -144,12 +248,7 @@ const RequesterList: React.FC = () => {
             width: '120px',
             render: (item) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(item.id)}
-                        title="Editar"
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
                         <Edit className="w-4 h-4" />
                     </Button>
                     <Button
@@ -162,24 +261,34 @@ const RequesterList: React.FC = () => {
                         <Trash2 className="w-4 h-4" />
                     </Button>
                 </div>
-            )
-        }
+            ),
+        },
     ];
 
-    // Componente Card para visualização mobile
+    // ===== Card (mobile) com checkbox de seleção =====
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                            #{requester.id}
-                        </span>
+                <div className="flex items-start gap-3 flex-1">
+                    {/* Checkbox */}
+                    <div className="flex-shrink-0 pt-1">
+                        <input
+                            type="checkbox"
+                            checked={selectedItems.includes(requester.id)}
+                            onChange={() => toggleItem(requester.id)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-lg leading-tight">
-                        {requester.name}
-                    </h3>
+
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                #{requester.id}
+              </span>
+                        </div>
+                        <h3 className="font-semibold text-gray-900 text-lg leading-tight">{requester.name}</h3>
+                    </div>
                 </div>
 
                 {/* Ações */}
@@ -210,10 +319,7 @@ const RequesterList: React.FC = () => {
                 {requester.email && (
                     <div className="flex items-center gap-2 text-sm">
                         <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a
-                            href={`mailto:${requester.email}`}
-                            className="text-blue-600 hover:text-blue-800 hover:underline truncate"
-                        >
+                        <a href={`mailto:${requester.email}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate">
                             {requester.email}
                         </a>
                     </div>
@@ -222,15 +328,26 @@ const RequesterList: React.FC = () => {
                 {requester.phone && (
                     <div className="flex items-center gap-2 text-sm">
                         <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a
-                            href={`tel:${requester.phone}`}
-                            className="text-gray-700 hover:text-blue-600"
-                        >
+                        <a href={`tel:${requester.phone}`} className="text-gray-700 hover:text-blue-600">
                             {requester.phone}
                         </a>
                     </div>
                 )}
             </div>
+
+            {/* Datas (opcional) */}
+            {(requester.createdAt || requester.updatedAt) && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
+                    <Calendar className="w-4 h-4 flex-shrink-0" />
+                    <span>
+            {requester.createdAt
+                ? `Criado em ${formatDate(requester.createdAt)}`
+                : requester.updatedAt
+                    ? `Atualizado em ${formatDate(requester.updatedAt)}`
+                    : '-'}
+          </span>
+                </div>
+            )}
         </div>
     );
 
@@ -251,23 +368,54 @@ const RequesterList: React.FC = () => {
                 </Button>
             </div>
 
-            {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
-            <div className="lg:hidden">
+            {/* Filtros Mobile - Busca simples + seleção e bulk delete */}
+            <div className="lg:hidden space-y-4">
                 <Card className="p-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por nome, email ou telefone..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                        />
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Buscar por nome, email ou telefone..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3">
+                            <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectionState.allSelected}
+                                        ref={(input) => {
+                                            if (input) input.indeterminate = selectionState.someSelected;
+                                        }}
+                                        readOnly
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                </div>
+                                <span className="text-sm">Selecionar Todos</span>
+                            </Button>
+
+                            {selectionState.hasSelection && (
+                                <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={() => setShowBulkDeleteModal(true)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-sm">Excluir ({selectedItems.length})</span>
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </Card>
             </div>
 
-            {/* Conteúdo Responsivo */}
+            {/* Conteúdo */}
             {loading ? (
                 <Card className="p-8">
                     <div className="flex items-center justify-center">
@@ -277,8 +425,38 @@ const RequesterList: React.FC = () => {
                 </Card>
             ) : (
                 <>
-                    {/* Visualização Desktop - Tabela com filtros originais */}
-                    <div className="hidden lg:block">
+                    {/* Desktop - Barra de ações quando há seleção */}
+                    <div className="hidden lg:block space-y-4">
+                        {selectionState.hasSelection && (
+                            <Card className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">
+                      {selectedItems.length} solicitante(s) selecionado(s)
+                    </span>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={clearSelection}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            Limpar seleção
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Excluir Selecionados
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Desktop - Tabela */}
                         <Card className="p-0">
                             <DataTable
                                 data={requesters}
@@ -299,7 +477,7 @@ const RequesterList: React.FC = () => {
                         </Card>
                     </div>
 
-                    {/* Visualização Mobile/Tablet - Cards com busca simples */}
+                    {/* Mobile/Tablet - Cards */}
                     <div className="lg:hidden">
                         {filteredRequesters.length === 0 ? (
                             <Card className="p-8 text-center">
@@ -317,7 +495,7 @@ const RequesterList: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Paginação Simplificada para Mobile */}
+                        {/* Paginação Simplificada (mobile) */}
                         {pagination && pagination.totalPages > 1 && (
                             <Card className="p-4">
                                 <div className="flex items-center justify-between">
@@ -331,8 +509,8 @@ const RequesterList: React.FC = () => {
                                     </Button>
 
                                     <span className="text-sm text-gray-600">
-                                        Página {pagination.currentPage} de {pagination.totalPages}
-                                    </span>
+                    Página {pagination.currentPage} de {pagination.totalPages}
+                  </span>
 
                                     <Button
                                         size="sm"
@@ -348,6 +526,16 @@ const RequesterList: React.FC = () => {
                     </div>
                 </>
             )}
+
+            {/* Modal de exclusão em massa */}
+            <BulkDeleteModal
+                isOpen={showBulkDeleteModal}
+                onClose={() => setShowBulkDeleteModal(false)}
+                onConfirm={handleBulkDelete}
+                selectedCount={selectedItems.length}
+                isDeleting={isDeleting}
+                entityName="solicitante"
+            />
         </div>
     );
 };

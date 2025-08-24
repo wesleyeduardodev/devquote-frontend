@@ -74,4 +74,8 @@ export const requesterService = {
         await api.delete(`/requesters/${id}`);
         return true;
     },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/requesters/bulk', { data: ids });
+    }
 };

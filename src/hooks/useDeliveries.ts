@@ -84,6 +84,7 @@ interface UseDeliveriesReturn {
     createDelivery: (deliveryData: DeliveryCreate) => Promise<Delivery>;
     updateDelivery: (id: number, deliveryData: DeliveryUpdate) => Promise<Delivery>;
     deleteDelivery: (id: number) => Promise<void>;
+    deleteBulkDeliveries: (ids: number[]) => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -176,6 +177,17 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         }
     }, [fetchDeliveries]);
 
+    const deleteBulkDeliveries = useCallback(async (ids: number[]): Promise<void> => {
+        try {
+            await deliveryService.deleteBulk(ids);
+            await fetchDeliveries(); // Recarrega a lista após exclusão
+            toast.success(`${ids.length} entrega${ids.length === 1 ? '' : 's'} excluída${ids.length === 1 ? '' : 's'} com sucesso!`);
+        } catch (err: any) {
+            console.error('Erro ao excluir entregas:', err);
+            throw err;
+        }
+    }, [fetchDeliveries]);
+
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
@@ -238,6 +250,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         createDelivery,
         updateDelivery,
         deleteDelivery,
+        deleteBulkDeliveries,
         setPage,
         setPageSize,
         setSorting,
