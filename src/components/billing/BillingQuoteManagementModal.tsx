@@ -53,6 +53,10 @@ interface BillingQuoteManagementModalProps {
     onDataChange?: () => void;
 }
 
+// Constantes estáveis para evitar re-renders
+const EMPTY_ARRAY: never[] = [];
+const STABLE_CLASS_NAME = "border border-gray-200 rounded-lg";
+
 const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = ({
     isOpen,
     onClose,
@@ -295,21 +299,34 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
         );
     };
 
+    // Componentes memoizados para os checkboxes
+    const LinkedHeaderCheckbox = useCallback(() => (
+        <input
+            type="checkbox"
+            checked={linkedQuotesWithDetails.length > 0 && 
+                linkedQuotesWithDetails.every(item => selectedLinked.includes(item.quoteId))}
+            onChange={handleToggleAllLinked}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        />
+    ), [linkedQuotesWithDetails, selectedLinked, handleToggleAllLinked]);
+
+    const AvailableHeaderCheckbox = useCallback(() => (
+        <input
+            type="checkbox"
+            checked={paginatedAvailableQuotes.length > 0 && 
+                paginatedAvailableQuotes.every(quote => selectedAvailable.includes(quote.id))}
+            onChange={handleToggleAllAvailable}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        />
+    ), [paginatedAvailableQuotes, selectedAvailable, handleToggleAllAvailable]);
+
     // Definições de colunas para tabelas
-    const linkedColumns = [
+    const linkedColumns = useMemo(() => [
         {
             key: 'select',
             label: '',
             width: '50px',
-            headerRender: () => (
-                <input
-                    type="checkbox"
-                    checked={linkedQuotesWithDetails.length > 0 && 
-                        linkedQuotesWithDetails.every(item => selectedLinked.includes(item.quoteId))}
-                    onChange={handleToggleAllLinked}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-            ),
+            headerRender: LinkedHeaderCheckbox,
             render: (item: any) => (
                 <input
                     type="checkbox"
@@ -356,22 +373,14 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                 </span>
             )
         }
-    ];
+    ], [LinkedHeaderCheckbox, selectedLinked, handleToggleLinked, getQuoteStatusColor, getQuoteStatusLabel, formatCurrency]);
 
-    const availableColumns = [
+    const availableColumns = useMemo(() => [
         {
             key: 'select',
             label: '',
             width: '50px',
-            headerRender: () => (
-                <input
-                    type="checkbox"
-                    checked={paginatedAvailableQuotes.length > 0 && 
-                        paginatedAvailableQuotes.every(quote => selectedAvailable.includes(quote.id))}
-                    onChange={handleToggleAllAvailable}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-            ),
+            headerRender: AvailableHeaderCheckbox,
             render: (quote: any) => (
                 <input
                     type="checkbox"
@@ -418,7 +427,7 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                 </span>
             )
         }
-    ];
+    ], [AvailableHeaderCheckbox, selectedAvailable, handleToggleAvailable, getQuoteStatusColor, getQuoteStatusLabel, formatCurrency, getQuoteAmount]);
 
     if (!isOpen || !billingMonth) return null;
 
@@ -593,7 +602,9 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                     <DataTable
                                         columns={linkedColumns}
                                         data={linkedQuotesWithDetails}
-                                        className="border border-gray-200 rounded-lg"
+                                        className={STABLE_CLASS_NAME}
+                                        hiddenColumns={EMPTY_ARRAY}
+                                        showColumnToggle={false}
                                     />
                                 )}
                             </div>
@@ -698,7 +709,9 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                         <DataTable
                                             columns={availableColumns}
                                             data={paginatedAvailableQuotes}
-                                            className="border border-gray-200 rounded-lg"
+                                            className={STABLE_CLASS_NAME}
+                                            hiddenColumns={EMPTY_ARRAY}
+                                            showColumnToggle={false}
                                         />
                                         
                                         {/* Pagination */}

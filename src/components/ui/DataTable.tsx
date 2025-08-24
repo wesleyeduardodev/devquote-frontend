@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
     ChevronLeft,
     ChevronRight,
@@ -89,18 +89,25 @@ const DataTable = <T extends Record<string, any>>({
     const [showColumnMenu, setShowColumnMenu] = useState(false);
     const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
 
+    // Memoiza os valores para evitar re-renders desnecessários
+    const memoizedInitialHiddenColumns = useMemo(() => initialHiddenColumns, [initialHiddenColumns.join(',')]);
+    const memoizedFilters = useMemo(() => filters, [JSON.stringify(filters)]);
+
     // Filtra as colunas visíveis
-    const visibleColumns = columns.filter(column => !hiddenColumns.includes(column.key));
+    const visibleColumns = useMemo(() => 
+        columns.filter(column => !hiddenColumns.includes(column.key)),
+        [columns, hiddenColumns]
+    );
 
     // Atualiza as colunas ocultas quando o prop inicial muda
     useEffect(() => {
-        setHiddenColumns(initialHiddenColumns);
-    }, [initialHiddenColumns]);
+        setHiddenColumns(memoizedInitialHiddenColumns);
+    }, [memoizedInitialHiddenColumns]);
 
     // Atualiza os filtros locais quando os filtros externos mudam
     useEffect(() => {
-        setLocalFilters(filters);
-    }, [filters]);
+        setLocalFilters(memoizedFilters);
+    }, [memoizedFilters]);
 
     const toggleColumn = (columnKey: string) => {
         const newHiddenColumns = hiddenColumns.includes(columnKey)
