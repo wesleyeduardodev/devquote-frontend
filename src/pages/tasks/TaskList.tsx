@@ -14,6 +14,8 @@ import {
     Calendar,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
+import { useResourcePermissions } from '@/hooks/usePermissions';
+import { ResourceGuard, ProtectedButton } from '@/components/auth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -50,6 +52,7 @@ interface Task {
 
 const TaskList: React.FC = () => {
     const navigate = useNavigate();
+    const resourcePermissions = useResourcePermissions();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -369,18 +372,22 @@ const TaskList: React.FC = () => {
             width: '120px',
             render: (item) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
-                        <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(item.id)}
-                        title="Excluir"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <ResourceGuard resource="tasks" operation="UPDATE" showFallback={false}>
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
+                            <Edit className="w-4 h-4" />
+                        </Button>
+                    </ResourceGuard>
+                    <ResourceGuard resource="tasks" operation="DELETE" showFallback={false}>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(item.id)}
+                            title="Excluir"
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    </ResourceGuard>
                 </div>
             ),
         },
@@ -422,24 +429,28 @@ const TaskList: React.FC = () => {
 
                 {/* Ações */}
                 <div className="flex gap-1 ml-2">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(task.id)}
-                        title="Editar"
-                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                    >
-                        <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(task.id)}
-                        title="Excluir"
-                        className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <ResourceGuard resource="tasks" operation="UPDATE" showFallback={false}>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(task.id)}
+                            title="Editar"
+                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                        >
+                            <Edit className="w-4 h-4" />
+                        </Button>
+                    </ResourceGuard>
+                    <ResourceGuard resource="tasks" operation="DELETE" showFallback={false}>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(task.id)}
+                            title="Excluir"
+                            className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    </ResourceGuard>
                 </div>
             </div>
 
@@ -507,14 +518,16 @@ const TaskList: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Tarefas</h1>
                 </div>
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/tasks/create')}
-                    className="flex items-center justify-center sm:justify-start"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Tarefa
-                </Button>
+                <ResourceGuard resource="tasks" operation="CREATE" showFallback={false}>
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate('/tasks/create')}
+                        className="flex items-center justify-center sm:justify-start"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Tarefa
+                    </Button>
+                </ResourceGuard>
             </div>
 
             {/* Filtros Mobile - Busca + seleção e bulk delete */}
@@ -549,15 +562,17 @@ const TaskList: React.FC = () => {
                             </Button>
 
                             {selectionState.hasSelection && (
-                                <Button
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => setShowBulkDeleteModal(true)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span className="text-sm">Excluir ({selectedItems.length})</span>
-                                </Button>
+                                <ResourceGuard resource="tasks" operation="BULK" showFallback={false}>
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span className="text-sm">Excluir ({selectedItems.length})</span>
+                                    </Button>
+                                </ResourceGuard>
                             )}
                         </div>
                     </div>
@@ -592,15 +607,17 @@ const TaskList: React.FC = () => {
                                             Limpar seleção
                                         </Button>
                                     </div>
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => setShowBulkDeleteModal(true)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Excluir Selecionadas
-                                    </Button>
+                                    <ResourceGuard resource="tasks" operation="BULK" showFallback={false}>
+                                        <Button
+                                            size="sm"
+                                            variant="danger"
+                                            onClick={() => setShowBulkDeleteModal(true)}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Excluir Selecionadas
+                                        </Button>
+                                    </ResourceGuard>
                                 </div>
                             </Card>
                         )}

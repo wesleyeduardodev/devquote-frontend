@@ -61,23 +61,101 @@ const AppRoutes: React.FC = () => {
                 <ProtectedRoute>
                     <Layout>
                         <Routes>
+                            {/* Dashboard - Todos têm acesso */}
                             <Route path="/dashboard" element={<Dashboard/>}/>
-                            <Route path="/requesters" element={<RequesterList/>}/>
-                            <Route path="/requesters/create" element={<RequesterCreate/>}/>
-                            <Route path="/requesters/:id/edit" element={<RequesterEdit/>}/>
-                            <Route path="/tasks" element={<TaskList/>}/>
-                            <Route path="/tasks/create" element={<TaskCreate/>}/>
-                            <Route path="/tasks/:id/edit" element={<TaskEdit/>}/>
-                            <Route path="/quotes" element={<QuoteList/>}/>
-                            <Route path="/quotes/create" element={<QuoteCreate/>}/>
-                            <Route path="/quotes/:id/edit" element={<QuoteEdit/>}/>
-                            <Route path="/projects" element={<ProjectList/>}/>
-                            <Route path="/projects/create" element={<ProjectCreate/>}/>
-                            <Route path="/projects/:id/edit" element={<ProjectEdit/>}/>
-                            <Route path="/deliveries" element={<DeliveryList/>}/>
-                            <Route path="/deliveries/create" element={<DeliveryCreate/>}/>
-                            <Route path="/deliveries/:id/edit" element={<DeliveryEdit/>}/>
-                            <Route path="/billing" element={<BillingMonthManagement/>}/>
+                            
+                            {/* Requesters/Users - Apenas ADMIN */}
+                            <Route path="/requesters" element={
+                                <ProtectedRoute requiredScreen="users">
+                                    <RequesterList/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/requesters/create" element={
+                                <ProtectedRoute requiredScreen="users">
+                                    <RequesterCreate/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/requesters/:id/edit" element={
+                                <ProtectedRoute requiredScreen="users">
+                                    <RequesterEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            
+                            {/* Tasks - ADMIN, MANAGER, USER */}
+                            <Route path="/tasks" element={
+                                <ProtectedRoute requiredScreen="tasks">
+                                    <TaskList/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/tasks/create" element={
+                                <ProtectedRoute requiredScreen="tasks">
+                                    <TaskCreate/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/tasks/:id/edit" element={
+                                <ProtectedRoute requiredScreen="tasks">
+                                    <TaskEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            
+                            {/* Quotes - ADMIN, MANAGER */}
+                            <Route path="/quotes" element={
+                                <ProtectedRoute requiredScreen="quotes">
+                                    <QuoteList/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/quotes/create" element={
+                                <ProtectedRoute requiredScreen="quotes">
+                                    <QuoteCreate/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/quotes/:id/edit" element={
+                                <ProtectedRoute requiredScreen="quotes">
+                                    <QuoteEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            
+                            {/* Projects - Apenas ADMIN */}
+                            <Route path="/projects" element={
+                                <ProtectedRoute requiredScreen="projects">
+                                    <ProjectList/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/projects/create" element={
+                                <ProtectedRoute requiredScreen="projects">
+                                    <ProjectCreate/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/projects/:id/edit" element={
+                                <ProtectedRoute requiredScreen="projects">
+                                    <ProjectEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            
+                            {/* Deliveries - ADMIN, MANAGER, USER */}
+                            <Route path="/deliveries" element={
+                                <ProtectedRoute requiredScreen="deliveries">
+                                    <DeliveryList/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/deliveries/create" element={
+                                <ProtectedRoute requiredScreen="deliveries">
+                                    <DeliveryCreate/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/deliveries/:id/edit" element={
+                                <ProtectedRoute requiredScreen="deliveries">
+                                    <DeliveryEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            
+                            {/* Billing - ADMIN, MANAGER */}
+                            <Route path="/billing" element={
+                                <ProtectedRoute requiredScreen="billing">
+                                    <BillingMonthManagement/>
+                                </ProtectedRoute>
+                            }/>
+                            
                             <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
                             <Route path="*" element={<NotFound/>}/>
                         </Routes>

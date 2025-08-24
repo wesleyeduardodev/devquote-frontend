@@ -8,9 +8,12 @@ import {
     FolderOpen,
     Truck,
     CreditCard,
+    BarChart3,
+    Settings,
     X
 } from 'lucide-react';
 import clsx from 'clsx';
+import { useScreenPermissions } from '@/hooks/usePermissions';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -21,11 +24,14 @@ interface NavigationItem {
     path: string;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
+    screen: string;
+    subItems?: NavigationItem[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const screenPermissions = useScreenPermissions();
 
     const isActiveRoute = (path: string): boolean => {
         return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -36,15 +42,23 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         onClose(); // Fechar sidebar no mobile após navegação
     };
 
-    const navigationItems: NavigationItem[] = [
-        {path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard},
-        {path: '/requesters', label: 'Solicitantes', icon: Users},
-        {path: '/tasks', label: 'Tarefas', icon: CheckSquare},
-        {path: '/quotes', label: 'Orçamentos', icon: FileText},
-        {path: '/deliveries', label: 'Entregas', icon: Truck},
-        {path: '/projects', label: 'Projetos', icon: FolderOpen},
-        {path: '/billing', label: 'Faturamento', icon: CreditCard}
+    // Definir todos os itens de navegação com suas respectivas telas
+    const allNavigationItems: NavigationItem[] = [
+        {path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, screen: 'dashboard'},
+        {path: '/requesters', label: 'Solicitantes', icon: Users, screen: 'users'}, // Mapeado para 'users' no backend
+        {path: '/tasks', label: 'Tarefas', icon: CheckSquare, screen: 'tasks'},
+        {path: '/quotes', label: 'Orçamentos', icon: FileText, screen: 'quotes'},
+        {path: '/deliveries', label: 'Entregas', icon: Truck, screen: 'deliveries'},
+        {path: '/projects', label: 'Projetos', icon: FolderOpen, screen: 'projects'},
+        {path: '/billing', label: 'Faturamento', icon: CreditCard, screen: 'billing'},
+        {path: '/reports', label: 'Relatórios', icon: BarChart3, screen: 'reports'},
+        {path: '/settings', label: 'Configurações', icon: Settings, screen: 'settings'}
     ];
+
+    // Filtrar itens baseado nas permissões de tela do usuário
+    const navigationItems = allNavigationItems.filter(item => {
+        return screenPermissions.hasScreenAccess(item.screen);
+    });
 
     return (
         <>

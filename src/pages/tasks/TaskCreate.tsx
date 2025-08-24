@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, X, Check, User, Mail, Phone, Plus, Filter } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useRequesters } from '@/hooks/useRequesters';
+import { ScreenGuard } from '@/components/auth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -212,7 +213,8 @@ const TaskCreate = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
+        <ScreenGuard requiredScreen="tasks">
+            <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center space-x-4">
@@ -442,7 +444,8 @@ const TaskCreate = () => {
                     </div>
                 </div>
             )}
-        </div>
+            </div>
+        </ScreenGuard>
     );
 };
 

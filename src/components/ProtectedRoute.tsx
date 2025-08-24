@@ -5,10 +5,20 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    requiredScreen?: string;
+    requiredScreens?: string[];
+    requireAllScreens?: boolean;
+    fallback?: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated, isLoading } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+    children, 
+    requiredScreen,
+    requiredScreens,
+    requireAllScreens = false,
+    fallback
+}) => {
+    const { isAuthenticated, isLoading, hasScreenAccess, hasAnyScreenAccess } = useAuth();
     const location = useLocation();
 
     if (isLoading) {
@@ -24,6 +34,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    // Verificar permissões de tela se especificadas
+    if (requiredScreen && !hasScreenAccess(requiredScreen)) {
+        if (fallback) {
+            return <>{fallback}</>;
+        }
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    if (requiredScreens && requiredScreens.length > 0) {
+        const hasAccess = requireAllScreens 
+            ? requiredScreens.every(screen => hasScreenAccess(screen))
+            : hasAnyScreenAccess(requiredScreens);
+            
+        if (!hasAccess) {
+            if (fallback) {
+                return <>{fallback}</>;
+            }
+            return <Navigate to="/dashboard" replace />;
+        }
     }
 
     return <>{children}</>;

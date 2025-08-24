@@ -6,11 +6,16 @@ import { useTasks } from '@/hooks/useTasks';
 import useQuotes from '@/hooks/useQuotes';
 import { useProjects } from '@/hooks/useProjects';
 import { useDeliveries } from '@/hooks/useDeliveries';
+import { useScreenPermissions, useResourcePermissions } from '@/hooks/usePermissions';
+import { ResourceGuard } from '@/components/auth';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Dashboard = () => {
+    const screenPermissions = useScreenPermissions();
+    const resourcePermissions = useResourcePermissions();
+    
     const { requesters = [], loading: requestersLoading = true } = useRequesters();
     const { tasks = [], loading: tasksLoading = true } = useTasks();
     const { quotes = [], loading: quotesLoading = true } = useQuotes();
@@ -72,13 +77,15 @@ const Dashboard = () => {
         }).format(value);
     };
 
-    const stats = [
+    // Filtrar estatísticas baseado nas permissões
+    const allStats = [
         {
             title: 'Total de Solicitantes',
             value: requestersLoading ? '-' : requesters.length,
             icon: Users,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100',
+            screen: 'users'
         },
         {
             title: 'Total de Tarefas',
@@ -86,6 +93,7 @@ const Dashboard = () => {
             icon: CheckSquare,
             color: 'text-green-600',
             bgColor: 'bg-green-100',
+            screen: 'tasks'
         },
         {
             title: 'Valor Total Tarefas',
@@ -93,6 +101,7 @@ const Dashboard = () => {
             icon: DollarSign,
             color: 'text-purple-600',
             bgColor: 'bg-purple-100',
+            screen: 'tasks'
         },
         {
             title: 'Total de Orçamentos',
@@ -100,6 +109,7 @@ const Dashboard = () => {
             icon: FileText,
             color: 'text-yellow-600',
             bgColor: 'bg-yellow-100',
+            screen: 'quotes'
         },
         {
             title: 'Valor Total Orçamentos',
@@ -107,6 +117,7 @@ const Dashboard = () => {
             icon: DollarSign,
             color: 'text-amber-600',
             bgColor: 'bg-amber-100',
+            screen: 'quotes'
         },
         {
             title: 'Total de Projetos',
@@ -114,6 +125,7 @@ const Dashboard = () => {
             icon: FolderGit2,
             color: 'text-indigo-600',
             bgColor: 'bg-indigo-100',
+            screen: 'projects'
         },
         {
             title: 'Total de Entregas',
@@ -121,8 +133,12 @@ const Dashboard = () => {
             icon: Truck,
             color: 'text-orange-600',
             bgColor: 'bg-orange-100',
+            screen: 'deliveries'
         },
     ];
+
+    // Filtrar stats baseado nas permissões
+    const stats = allStats.filter(stat => screenPermissions.hasScreenAccess(stat.screen));
 
     return (
         <div className="p-6 space-y-8">
@@ -153,138 +169,168 @@ const Dashboard = () => {
 
             {/* Ações rápidas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-                <Card title="Solicitantes" subtitle="Gerencie os solicitantes do sistema">
-                    <div className="space-y-4">
-                        {requestersLoading ? (
-                            <div className="text-gray-600">
-                                <LoadingSpinner size="sm" />
+                {screenPermissions.hasScreenAccess('users') && (
+                    <Card title="Solicitantes" subtitle="Gerencie os solicitantes do sistema">
+                        <div className="space-y-4">
+                            {requestersLoading ? (
+                                <div className="text-gray-600">
+                                    <LoadingSpinner size="sm" />
+                                </div>
+                            ) : (
+                                <p className="text-gray-600">
+                                    {requesters.length} solicitante{requesters.length !== 1 ? 's' : ''} cadastrado{requesters.length !== 1 ? 's' : ''}
+                                </p>
+                            )}
+
+                            <div className="flex space-x-3">
+                                <ResourceGuard resource="users" operation="READ" showFallback={false}>
+                                    <Link to="/requesters">
+                                        <Button variant="outline" size="sm">Ver Todos</Button>
+                                    </Link>
+                                </ResourceGuard>
+                                <ResourceGuard resource="users" operation="CREATE" showFallback={false}>
+                                    <Link to="/requesters/create">
+                                        <Button size="sm">
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Novo
+                                        </Button>
+                                    </Link>
+                                </ResourceGuard>
                             </div>
-                        ) : (
-                            <p className="text-gray-600">
-                                {requesters.length} solicitante{requesters.length !== 1 ? 's' : ''} cadastrado{requesters.length !== 1 ? 's' : ''}
-                            </p>
-                        )}
+                        </div>
+                    </Card>
+                )}
 
-                        <div className="flex space-x-3">
-                            <Link to="/requesters">
-                                <Button variant="outline" size="sm">Ver Todos</Button>
-                            </Link>
-                            <Link to="/requesters/create">
-                                <Button size="sm">
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Novo
-                                </Button>
-                            </Link>
+{screenPermissions.hasScreenAccess('tasks') && (
+                    <Card title="Tarefas" subtitle="Gerencie tarefas e subtarefas">
+                        <div className="space-y-4">
+                            <div className="text-gray-600">
+                                {tasksLoading ? (
+                                    <LoadingSpinner size="sm" />
+                                ) : (
+                                    <div className="space-y-1">
+                                        <p>{taskStats.total} tarefa{taskStats.total !== 1 ? 's' : ''}</p>
+                                        <p className="text-xs">{taskStats.completedTasks} concluída{taskStats.completedTasks !== 1 ? 's' : ''}</p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex space-x-3">
+                                <ResourceGuard resource="tasks" operation="READ" showFallback={false}>
+                                    <Link to="/tasks">
+                                        <Button variant="outline" size="sm">Ver Todas</Button>
+                                    </Link>
+                                </ResourceGuard>
+                                <ResourceGuard resource="tasks" operation="CREATE" showFallback={false}>
+                                    <Link to="/tasks/create">
+                                        <Button size="sm">
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Nova
+                                        </Button>
+                                    </Link>
+                                </ResourceGuard>
+                            </div>
                         </div>
-                    </div>
-                </Card>
+                    </Card>
+                )}
 
-                <Card title="Tarefas" subtitle="Gerencie tarefas e subtarefas">
-                    <div className="space-y-4">
-                        <div className="text-gray-600">
-                            {tasksLoading ? (
-                                <LoadingSpinner size="sm" />
-                            ) : (
-                                <div className="space-y-1">
-                                    <p>{taskStats.total} tarefa{taskStats.total !== 1 ? 's' : ''}</p>
-                                    <p className="text-xs">{taskStats.completedTasks} concluída{taskStats.completedTasks !== 1 ? 's' : ''}</p>
-                                </div>
-                            )}
+{screenPermissions.hasScreenAccess('quotes') && (
+                    <Card title="Orçamentos" subtitle="Gerencie os orçamentos do sistema">
+                        <div className="space-y-4">
+                            <div className="text-gray-600">
+                                {quotesLoading ? (
+                                    <LoadingSpinner size="sm" />
+                                ) : (
+                                    <div className="space-y-1">
+                                        <p>{quoteStats.total} orçamento{quoteStats.total !== 1 ? 's' : ''}</p>
+                                        <p className="text-xs font-semibold text-primary-600">
+                                            Total: {formatCurrency(quoteStats.totalValue)}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex space-x-3">
+                                <ResourceGuard resource="quotes" operation="READ" showFallback={false}>
+                                    <Link to="/quotes">
+                                        <Button variant="outline" size="sm">Ver Todos</Button>
+                                    </Link>
+                                </ResourceGuard>
+                                <ResourceGuard resource="quotes" operation="CREATE" showFallback={false}>
+                                    <Link to="/quotes/create">
+                                        <Button size="sm">
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Novo
+                                        </Button>
+                                    </Link>
+                                </ResourceGuard>
+                            </div>
                         </div>
-                        <div className="flex space-x-3">
-                            <Link to="/tasks">
-                                <Button variant="outline" size="sm">Ver Todas</Button>
-                            </Link>
-                            <Link to="/tasks/create">
-                                <Button size="sm">
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Nova
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </Card>
+                    </Card>
+                )}
 
-                <Card title="Orçamentos" subtitle="Gerencie os orçamentos do sistema">
-                    <div className="space-y-4">
-                        <div className="text-gray-600">
-                            {quotesLoading ? (
-                                <LoadingSpinner size="sm" />
-                            ) : (
-                                <div className="space-y-1">
-                                    <p>{quoteStats.total} orçamento{quoteStats.total !== 1 ? 's' : ''}</p>
-                                    <p className="text-xs font-semibold text-primary-600">
-                                        Total: {formatCurrency(quoteStats.totalValue)}
-                                    </p>
-                                </div>
-                            )}
+{screenPermissions.hasScreenAccess('projects') && (
+                    <Card title="Projetos" subtitle="Gerencie os projetos do sistema">
+                        <div className="space-y-4">
+                            <div className="text-gray-600">
+                                {projectsLoading ? (
+                                    <LoadingSpinner size="sm" />
+                                ) : (
+                                    <p>{projects.length} projeto{projects.length !== 1 ? 's' : ''} cadastrado{projects.length !== 1 ? 's' : ''}</p>
+                                )}
+                            </div>
+                            <div className="flex space-x-3">
+                                <ResourceGuard resource="projects" operation="READ" showFallback={false}>
+                                    <Link to="/projects">
+                                        <Button variant="outline" size="sm">Ver Todos</Button>
+                                    </Link>
+                                </ResourceGuard>
+                                <ResourceGuard resource="projects" operation="CREATE" showFallback={false}>
+                                    <Link to="/projects/create">
+                                        <Button size="sm">
+                                            <Plus className="w-4 h-4 mr-1" />
+                                            Novo
+                                        </Button>
+                                    </Link>
+                                </ResourceGuard>
+                            </div>
                         </div>
-                        <div className="flex space-x-3">
-                            <Link to="/quotes">
-                                <Button variant="outline" size="sm">Ver Todos</Button>
-                            </Link>
-                            <Link to="/quotes/create">
-                                <Button size="sm">
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Novo
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </Card>
-
-                <Card title="Projetos" subtitle="Gerencie os projetos do sistema">
-                    <div className="space-y-4">
-                        <div className="text-gray-600">
-                            {projectsLoading ? (
-                                <LoadingSpinner size="sm" />
-                            ) : (
-                                <p>{projects.length} projeto{projects.length !== 1 ? 's' : ''} cadastrado{projects.length !== 1 ? 's' : ''}</p>
-                            )}
-                        </div>
-                        <div className="flex space-x-3">
-                            <Link to="/projects">
-                                <Button variant="outline" size="sm">Ver Todos</Button>
-                            </Link>
-                            <Link to="/projects/create">
-                                <Button size="sm">
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Novo
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </Card>
+                    </Card>
+                )}
             </div>
 
             {/* Entregas - Card separado */}
-            <Card title="Entregas" subtitle="Gerencie as entregas dos projetos">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-orange-600">
-                            {deliveriesLoading ? '-' : deliveryStats.total}
+            {screenPermissions.hasScreenAccess('deliveries') && (
+                <Card title="Entregas" subtitle="Gerencie as entregas dos projetos">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-orange-600">
+                                {deliveriesLoading ? '-' : deliveryStats.total}
+                            </div>
+                            <div className="text-sm text-gray-600">Total de Entregas</div>
                         </div>
-                        <div className="text-sm text-gray-600">Total de Entregas</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                            {deliveriesLoading ? '-' : deliveryStats.approved}
+                        <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                                {deliveriesLoading ? '-' : deliveryStats.approved}
+                            </div>
+                            <div className="text-sm text-gray-600">Entregas Aprovadas</div>
                         </div>
-                        <div className="text-sm text-gray-600">Entregas Aprovadas</div>
+                        <div className="flex space-x-3 justify-center">
+                            <ResourceGuard resource="deliveries" operation="READ" showFallback={false}>
+                                <Link to="/deliveries">
+                                    <Button variant="outline" size="sm">Ver Todas</Button>
+                                </Link>
+                            </ResourceGuard>
+                            <ResourceGuard resource="deliveries" operation="CREATE" showFallback={false}>
+                                <Link to="/deliveries/create">
+                                    <Button size="sm">
+                                        <Plus className="w-4 h-4 mr-1" />
+                                        Nova Entrega
+                                    </Button>
+                                </Link>
+                            </ResourceGuard>
+                        </div>
                     </div>
-                    <div className="flex space-x-3 justify-center">
-                        <Link to="/deliveries">
-                            <Button variant="outline" size="sm">Ver Todas</Button>
-                        </Link>
-                        <Link to="/deliveries/create">
-                            <Button size="sm">
-                                <Plus className="w-4 h-4 mr-1" />
-                                Nova Entrega
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </Card>
+                </Card>
+            )}
 
             {/* Resumo do Sistema */}
             <Card title="Resumo do Sistema">
