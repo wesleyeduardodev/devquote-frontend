@@ -210,6 +210,11 @@ const BillingManagement: React.FC = () => {
             const matchesMonth = monthFilter === '' || billing.month.toString() === monthFilter;
 
             return matchesSearch && matchesStatus && matchesYear && matchesMonth;
+        }).sort((a, b) => {
+            // Garantir ordenação: ano DESC, mês DESC, id DESC
+            if (a.year !== b.year) return b.year - a.year;
+            if (a.month !== b.month) return b.month - a.month;
+            return b.id - a.id;
         });
     }, [billingMonths, searchTerm, statusFilter, yearFilter, monthFilter, getMonthLabel]);
 

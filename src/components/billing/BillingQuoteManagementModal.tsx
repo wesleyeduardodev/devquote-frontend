@@ -23,6 +23,9 @@ import {
     TrendingUp,
     ChevronLeft,
     ChevronRight,
+    Settings,
+    Save,
+    XCircle,
 } from 'lucide-react';
 
 import DataTable from '../ui/DataTable';
@@ -84,6 +87,10 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
     const [linking, setLinking] = useState(false);
     const [unlinking, setUnlinking] = useState(false);
     
+    // Status do período
+    const [currentStatus, setCurrentStatus] = useState(billingMonth?.status || '');
+    const [statusLoading, setStatusLoading] = useState(false);
+    
     // Bulk delete modal
     const [showUnlinkModal, setShowUnlinkModal] = useState(false);
     
@@ -96,6 +103,15 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
     const monthNames = [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    const statusOptions = [
+        { value: 'PENDENTE', label: 'Pendente', color: 'amber', icon: Clock },
+        { value: 'PROCESSANDO', label: 'Processando', color: 'blue', icon: AlertCircle },
+        { value: 'FATURADO', label: 'Faturado', color: 'purple', icon: FileText },
+        { value: 'PAGO', label: 'Pago', color: 'green', icon: CheckCircle },
+        { value: 'ATRASADO', label: 'Atrasado', color: 'red', icon: XCircle },
+        { value: 'CANCELADO', label: 'Cancelado', color: 'gray', icon: X }
     ];
 
     const getMonthName = (month: number) => monthNames[month - 1] || month.toString();
@@ -131,6 +147,31 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
         return labels[status] || status;
     };
 
+    const getBillingStatusConfig = (status: string) => {
+        return statusOptions.find(s => s.value === status) || statusOptions[0];
+    };
+
+    const StatusBadge = ({ status }: { status: string }) => {
+        const config = getBillingStatusConfig(status);
+        const Icon = config.icon;
+
+        const colorClasses = {
+            amber: 'bg-amber-100 text-amber-800 border-amber-200',
+            blue: 'bg-blue-100 text-blue-800 border-blue-200',
+            purple: 'bg-purple-100 text-purple-800 border-purple-200',
+            green: 'bg-green-100 text-green-800 border-green-200',
+            red: 'bg-red-100 text-red-800 border-red-200',
+            gray: 'bg-gray-100 text-gray-800 border-gray-200'
+        };
+
+        return (
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border ${colorClasses[config.color as keyof typeof colorClasses]}`}>
+                <Icon className="w-3 h-3" />
+                {config.label}
+            </span>
+        );
+    };
+
     // Carrega orçamentos vinculados
     const fetchLinkedQuotes = useCallback(async () => {
         if (!billingMonth?.id) return;
@@ -157,6 +198,7 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
             setSearchTerm('');
             setStatusFilter('APPROVED');
             setCurrentPage(0);
+            setCurrentStatus(billingMonth.status);
         }
     }, [isOpen, billingMonth, fetchLinkedQuotes]);
 
@@ -270,6 +312,29 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
             setUnlinking(false);
         }
     }, [billingMonth, selectedLinked, fetchLinkedQuotes, onDataChange]);
+
+    // Handler para atualizar status do período
+    const handleUpdateStatus = useCallback(async (newStatus: string) => {
+        if (!billingMonth || newStatus === currentStatus) return;
+        
+        setStatusLoading(true);
+        try {
+            await billingMonthService.update(billingMonth.id, {
+                month: billingMonth.month,
+                year: billingMonth.year,
+                status: newStatus,
+                paymentDate: billingMonth.paymentDate
+            });
+            setCurrentStatus(newStatus);
+            onDataChange?.();
+            toast.success('Status do período atualizado com sucesso!');
+        } catch (error: any) {
+            console.error('Erro ao atualizar status:', error);
+            toast.error('Erro ao atualizar status do período');
+        } finally {
+            setStatusLoading(false);
+        }
+    }, [billingMonth, currentStatus, onDataChange]);
 
     // Seleção múltipla para orçamentos vinculados
     const handleToggleLinked = (id: number) => {
@@ -442,14 +507,38 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                 <h2 className="text-2xl font-bold text-gray-900">
                                     Gerenciar Orçamentos
                                 </h2>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Calendar className="w-5 h-5 text-blue-600" />
-                                    <span className="text-lg font-semibold text-blue-600">
-                                        {getMonthName(billingMonth.month)} {billingMonth.year}
-                                    </span>
-                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 ml-2">
-                                        #{billingMonth.id}
-                                    </span>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-5 h-5 text-blue-600" />
+                                        <span className="text-lg font-semibold text-blue-600">
+                                            {getMonthName(billingMonth.month)} {billingMonth.year}
+                                        </span>
+                                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                            #{billingMonth.id}
+                                        </span>
+                                    </div>
+                                    
+                                    {/* Status editável */}
+                                    <div className="flex items-center gap-2">
+                                        <StatusBadge status={currentStatus} />
+                                        <div className="flex items-center gap-1">
+                                            <select
+                                                value={currentStatus}
+                                                onChange={(e) => handleUpdateStatus(e.target.value)}
+                                                disabled={statusLoading}
+                                                className="text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                                            >
+                                                {statusOptions.map(option => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {statusLoading && (
+                                                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <button
