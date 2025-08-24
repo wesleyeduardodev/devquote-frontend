@@ -58,7 +58,7 @@ const DeliveryEdit = () => {
         clearFilters: clearQuoteFilters
     } = useQuotes({
         page: 0,
-        size: 5,
+        size: 50, // Aumentar para pegar mais quotes
         sort: [{ field: 'id', direction: 'desc' }],
         filters: {}
     });
@@ -77,7 +77,7 @@ const DeliveryEdit = () => {
         clearFilters: clearProjectFilters
     } = useProjects({
         page: 0,
-        size: 5,
+        size: 50, // Aumentar para pegar mais projetos
         sort: [{ field: 'name', direction: 'asc' }],
         filters: {}
     });
@@ -109,20 +109,40 @@ const DeliveryEdit = () => {
 
     // Quando tivermos a delivery e os quotes/projects carregados, tentamos "casar" os IDs
     useEffect(() => {
-        if (!delivery || !Array.isArray(quotes) || quotes.length === 0) return;
-        // Buscar pelo taskCode na resposta da API de delivery
-        const found = quotes.find((q: any) => q.taskCode === delivery.taskCode);
+        if (!delivery || !delivery.quoteId || !Array.isArray(quotes) || quotes.length === 0) return;
+        // Buscar pelo ID na resposta da API de delivery
+        const found = quotes.find((q: any) => q.id === delivery.quoteId);
         if (found) {
             setSelectedQuote(found);
+        } else {
+            // Se não encontrou na lista paginada, criar um quote "mock" com os dados da delivery
+            setSelectedQuote({
+                id: delivery.quoteId,
+                taskName: delivery.taskName || 'Carregando...',
+                taskCode: delivery.taskCode || 'Carregando...',
+                status: 'PENDING',
+                totalAmount: 0,
+                createdAt: '',
+                updatedAt: ''
+            });
         }
     }, [delivery, quotes]);
 
     useEffect(() => {
-        if (!delivery || !Array.isArray(projects) || projects.length === 0) return;
-        // Buscar pelo nome do projeto na resposta da API de delivery
-        const found = projects.find((p: any) => p.name === delivery.projectName);
+        if (!delivery || !delivery.projectId || !Array.isArray(projects) || projects.length === 0) return;
+        // Buscar pelo ID na resposta da API de delivery
+        const found = projects.find((p: any) => p.id === delivery.projectId);
         if (found) {
             setSelectedProject(found);
+        } else {
+            // Se não encontrou na lista paginada, criar um project "mock" com os dados da delivery
+            setSelectedProject({
+                id: delivery.projectId,
+                name: delivery.projectName || 'Carregando...',
+                repositoryUrl: undefined,
+                createdAt: undefined,
+                updatedAt: undefined
+            });
         }
     }, [delivery, projects]);
 
