@@ -4,6 +4,7 @@ import clsx from 'clsx';
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
     error?: string;
+    helpText?: string;
     className?: string;
     required?: boolean;
     rows?: number;
@@ -12,6 +13,7 @@ interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(({
                                                                      label,
                                                                      error,
+                                                                     helpText,
                                                                      className,
                                                                      required,
                                                                      rows = 4,
@@ -39,6 +41,9 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(({
                 )}
                 {...props}
             />
+            {helpText && !error && (
+                <p className="mt-1 text-sm text-gray-500">{helpText}</p>
+            )}
             {error && (
                 <p className="mt-1 text-sm text-red-600">{error}</p>
             )}

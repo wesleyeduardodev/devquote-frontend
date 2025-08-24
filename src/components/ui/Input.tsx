@@ -4,6 +4,7 @@ import clsx from 'clsx';
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
+    helpText?: string;
     className?: string;
     required?: boolean;
 }
@@ -11,6 +12,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const Input = forwardRef<HTMLInputElement, InputProps>(({
                                                             label,
                                                             error,
+                                                            helpText,
                                                             className,
                                                             required,
                                                             ...props
@@ -36,6 +38,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
                 )}
                 {...props}
             />
+            {helpText && !error && (
+                <p className="mt-1 text-sm text-gray-500">{helpText}</p>
+            )}
             {error && (
                 <p className="mt-1 text-sm text-red-600">{error}</p>
             )}
