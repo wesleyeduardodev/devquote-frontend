@@ -59,6 +59,47 @@ const billingMonthService = {
 
     deleteBulk: async (ids: number[]): Promise<void> => {
         await api.delete('/quote-billing-months/bulk', { data: ids });
+    },
+
+    // Novos métodos para paginação e estatísticas
+    findAllPaginated: async (params: {
+        page?: number;
+        size?: number;
+        sortBy?: string;
+        sortDirection?: string;
+        month?: number;
+        year?: number;
+        status?: string;
+    }): Promise<any> => {
+        const res = await api.get('/quote-billing-months/paginated', { params });
+        return res.data;
+    },
+
+    getStatistics: async (): Promise<any> => {
+        const res = await api.get('/quote-billing-months/statistics');
+        return res.data;
+    },
+
+    // Novos métodos para gerenciamento em lote de vínculos
+    bulkLinkQuotes: async (requests: any[]): Promise<any> => {
+        const res = await api.post('/quote-billing-month-quotes/bulk-link', requests);
+        return res.data;
+    },
+
+    bulkUnlinkQuotes: async (billingMonthId: number, quoteIds: number[]): Promise<void> => {
+        await api.delete(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}/bulk`, { 
+            data: quoteIds 
+        });
+    },
+
+    findQuoteLinksPaginated: async (billingMonthId: number, params: {
+        page?: number;
+        size?: number;
+        sortBy?: string;
+        sortDirection?: string;
+    }): Promise<any> => {
+        const res = await api.get(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}/paginated`, { params });
+        return res.data;
     }
 };
 

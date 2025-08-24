@@ -25,7 +25,8 @@ import useQuotes from '../../hooks/useQuotes';
 import billingMonthService from '../../services/billingMonthService';
 
 // Modal de confirmação (mesmo usado nas outras telas)
-import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
+import BillingQuoteManagementModal from '../../components/billing/BillingQuoteManagementModal';
 
 type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
@@ -95,7 +96,7 @@ const BillingManagement: React.FC = () => {
     // Modais
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [showQuoteSelectModal, setShowQuoteSelectModal] = useState(false);
+    const [showQuoteManagementModal, setShowQuoteManagementModal] = useState(false);
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
@@ -105,14 +106,6 @@ const BillingManagement: React.FC = () => {
     const [yearFilter, setYearFilter] = useState('');
     const [monthFilter, setMonthFilter] = useState('');
 
-    // Vínculos
-    const [links, setLinks] = useState<QuoteLink[]>([]);
-    const [linksLoading, setLinksLoading] = useState(false);
-    const [linking, setLinking] = useState(false);
-
-    // Filtros do modal de seleção de orçamento
-    const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
-    const [quoteStatusFilter, setQuoteStatusFilter] = useState('APPROVED');
 
     // Form
     const [formData, setFormData] = useState<{
@@ -230,54 +223,6 @@ const BillingManagement: React.FC = () => {
         return { total, paid, pending, processing };
     }, [filteredBillingMonths, totals]);
 
-    const approvedQuotes = useMemo(() => {
-        return quotes.filter(q => q.status === 'APROVADO' || q.status === 'APPROVED');
-    }, [quotes]);
-
-    const availableQuotes = useMemo(() => {
-        const linkedIds = new Set(links.map(l => l.quoteId));
-        return approvedQuotes.filter(q => !linkedIds.has(q.id));
-    }, [approvedQuotes, links]);
-
-    const filteredQuotesForSelection = useMemo(() => {
-        return availableQuotes.filter(quote => {
-            const matchesSearch = quoteSearchTerm === '' ||
-                quote.taskName?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) ||
-                quote.taskCode?.toLowerCase().includes(quoteSearchTerm.toLowerCase()) ||
-                quote.id.toString().includes(quoteSearchTerm);
-            const matchesStatus = quoteStatusFilter === '' || quote.status === quoteStatusFilter;
-
-            return matchesSearch && matchesStatus;
-        });
-    }, [availableQuotes, quoteSearchTerm, quoteStatusFilter]);
-
-    const linkedQuotesDetailed = useMemo(() => {
-        const byId = new Map(quotes.map(q => [q.id, q]));
-        return links
-            .map(lk => {
-                const q = byId.get(lk.quoteId);
-                if (!q) return null;
-                return {
-                    linkId: lk.id,
-                    quoteId: lk.quoteId,
-                    id: q.id,
-                    totalAmount: getQuoteAmount(q),
-                    quote: q
-                };
-            })
-            .filter(Boolean) as Array<{
-            linkId: number;
-            quoteId: number;
-            id: number;
-            totalAmount: number;
-            quote: any;
-        }>;
-    }, [links, quotes, getQuoteAmount]);
-
-    const totalLinkedAmount = useMemo(
-        () => linkedQuotesDetailed.reduce((acc, q) => acc + (q.totalAmount ?? 0), 0),
-        [linkedQuotesDetailed]
-    );
 
     const validateCreate = useCallback((): boolean => {
         const e: Partial<Record<'month' | 'year', string>> = {};
@@ -313,19 +258,12 @@ const BillingManagement: React.FC = () => {
 
     const handleShowDetails = useCallback(async (billing: BillingMonth) => {
         setSelectedBilling(billing);
-        setShowDetailsModal(true);
-        setLinks([]);
-        setLinksLoading(true);
-        try {
-            const data = await billingMonthService.findQuoteLinksByBillingMonth(billing.id) as QuoteLink[] | undefined;
-            setLinks(data ?? []);
-        } catch (error: any) {
-            console.error('Erro ao carregar vínculos:', error);
-            toast.error(error?.response?.data?.message ?? 'Erro ao carregar vínculos');
-        } finally {
-            setLinksLoading(false);
-        }
+        setShowQuoteManagementModal(true);
     }, []);
+
+    const handleDataChange = useCallback(async () => {
+        await loadTotals();
+    }, [loadTotals]);
 
     const handleDeleteBilling = useCallback(async (billing: BillingMonth) => {
         const hasValue = (totals[billing.id] ?? 0) > 0;
@@ -352,56 +290,6 @@ const BillingManagement: React.FC = () => {
         }
     }, [totals, getMonthLabel]);
 
-    const handleOpenQuoteSelection = useCallback(() => {
-        setShowDetailsModal(false);
-        setShowQuoteSelectModal(true);
-        setQuoteSearchTerm('');
-        setQuoteStatusFilter('APPROVED');
-    }, []);
-
-    const handleLinkQuote = useCallback(async (quoteId: number) => {
-        if (!selectedBilling) {
-            toast.error('Erro: Período não selecionado.');
-            return;
-        }
-        setLinking(true);
-        try {
-            await billingMonthService.createQuoteLink({
-                quoteBillingMonthId: selectedBilling.id,
-                quoteId: quoteId,
-            });
-            const data = await billingMonthService.findQuoteLinksByBillingMonth(selectedBilling.id) as QuoteLink[] | undefined;
-            setLinks(data ?? []);
-            setShowQuoteSelectModal(false);
-            setQuoteSearchTerm('');
-            setQuoteStatusFilter('APPROVED');
-            setShowDetailsModal(true);
-            await loadTotals();
-            toast.success('Orçamento vinculado com sucesso!');
-        } catch (error: any) {
-            console.error('Erro ao vincular orçamento:', error);
-            toast.error(error?.response?.data?.message ?? 'Erro ao vincular orçamento');
-        } finally {
-            setLinking(false);
-        }
-    }, [selectedBilling, loadTotals]);
-
-    const handleUnlinkQuote = useCallback(async (linkId: number) => {
-        if (!selectedBilling) return;
-        if (!window.confirm('Deseja realmente remover este vínculo?')) return;
-        setLinking(true);
-        try {
-            await billingMonthService.deleteQuoteLink(linkId);
-            setLinks(prev => prev.filter(l => l.id !== linkId));
-            await loadTotals();
-            toast.success('Vínculo removido!');
-        } catch (error: any) {
-            console.error('Erro ao desvincular orçamento:', error);
-            toast.error(error?.response?.data?.message ?? 'Erro ao desvincular orçamento');
-        } finally {
-            setLinking(false);
-        }
-    }, [selectedBilling, loadTotals]);
 
     const clearAllFilters = useCallback(() => {
         setSearchTerm('');
@@ -571,7 +459,7 @@ const BillingManagement: React.FC = () => {
                         <button
                             onClick={() => handleShowDetails(billing)}
                             className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
-                            title="Detalhes"
+                            title="Gerenciar Orçamentos"
                         >
                             <Eye className="w-5 h-5" />
                         </button>
@@ -600,47 +488,6 @@ const BillingManagement: React.FC = () => {
         );
     };
 
-    const QuoteCard: React.FC<{ quote: any }> = ({ quote }) => (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-              #{quote.id}
-            </span>
-                        {quote.taskCode && (
-                            <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                {quote.taskCode}
-              </span>
-                        )}
-                    </div>
-                    {quote.taskName && (
-                        <h4 className="font-semibold text-gray-900 text-base leading-tight mb-2">
-                            {quote.taskName}
-                        </h4>
-                    )}
-                    <div className="space-y-1">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getQuoteStatusColor(quote.status)}`}>
-              {getQuoteStatusLabel(quote.status)}
-            </span>
-                        <div className="text-sm mt-1">
-                            <span className="text-gray-600">Valor: </span>
-                            <span className="font-semibold text-green-600">{formatCurrency(getQuoteAmount(quote))}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button
-                    onClick={() => handleLinkQuote(quote.id)}
-                    disabled={linking}
-                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors ml-3"
-                >
-                    {linking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-                    Vincular
-                </button>
-            </div>
-        </div>
-    );
     // --------------------------------------------------------------
 
     return (
@@ -942,7 +789,7 @@ const BillingManagement: React.FC = () => {
                                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                                                         >
                                                             <Eye className="w-4 h-4" />
-                                                            Detalhes
+                                                            Gerenciar
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteBilling(billing)}
@@ -1089,155 +936,13 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Quote Selection Modal */}
-                {showQuoteSelectModal && selectedBilling && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-                            <div className="p-4 sm:p-6 border-b border-gray-100">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">
-                                            Selecionar Orçamento para {getMonthLabel(selectedBilling.month)} {selectedBilling.year}
-                                        </h3>
-                                        <p className="text-gray-600 mt-1">Escolha um orçamento aprovado para vincular a este período</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => {
-                                                setShowQuoteSelectModal(false);
-                                                setShowDetailsModal(true);
-                                            }}
-                                            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                        >
-                                            <Eye className="w-4 h-4" />
-                                            Voltar aos Detalhes
-                                        </button>
-                                        <button
-                                            onClick={() => setShowQuoteSelectModal(false)}
-                                            className="text-gray-400 hover:text-gray-600"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Filtros do modal */}
-                            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                            <input
-                                                type="text"
-                                                placeholder="Buscar por ID, código ou nome da tarefa..."
-                                                value={quoteSearchTerm}
-                                                onChange={(e) => setQuoteSearchTerm(e.target.value)}
-                                                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                        <select
-                                            value={quoteStatusFilter}
-                                            onChange={(e) => setQuoteStatusFilter(e.target.value)}
-                                            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        >
-                                            <option value="">Todos os status</option>
-                                            <option value="APPROVED">Aprovado</option>
-                                            <option value="PENDING">Pendente</option>
-                                            <option value="DRAFT">Rascunho</option>
-                                            <option value="REJECTED">Rejeitado</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-4 sm:p-6 max-h-[calc(90vh-240px)] overflow-y-auto">
-                                {/* Desktop: tabela */}
-                                <div className="hidden lg:block overflow-x-auto">
-                                    {/* ... (sem alterações) */}
-                                </div>
-
-                                {/* Mobile/Tablet: Cards */}
-                                <div className="lg:hidden">
-                                    {/* ... (sem alterações) */}
-                                </div>
-                            </div>
-
-                            {/* Footer Desktop do modal */}
-                            <div className="hidden lg:flex p-6 border-t border-gray-100 justify-between">
-                                <button
-                                    onClick={() => {
-                                        setShowQuoteSelectModal(false);
-                                        setShowDetailsModal(true);
-                                    }}
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    <Eye className="w-4 h-4" />
-                                    Voltar aos Detalhes
-                                </button>
-                                <button
-                                    onClick={() => setShowQuoteSelectModal(false)}
-                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    Fechar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Details Modal */}
-                {showDetailsModal && selectedBilling && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                            {/* ... conteúdo original do modal de detalhes, sem alterações funcionais ... */}
-                            {/* (mantive tudo igual; só o fluxo de seleção/bulk é novo fora deste modal) */}
-                            {/* ---------------------- */}
-                            <div className="p-4 sm:p-6 border-b border-gray-100">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                Faturamento: {getMonthLabel(selectedBilling.month)} {selectedBilling.year}
-                                            </h3>
-                                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                        #{selectedBilling.id}
-                      </span>
-                                            <StatusBadge status={selectedBilling.status} />
-                                        </div>
-                                        <p className="text-gray-600">Gerencie os orçamentos vinculados a este período</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowDetailsModal(false)}
-                                        className="text-gray-400 hover:text-gray-600"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* (restante do modal igual ao seu código) */}
-                            {/* ---------------------- */}
-                            <div className="p-4 sm:p-6 max-h-[calc(90vh-140px)] overflow-y-auto space-y-6">
-                                {/* Info do período, Vincular novo orçamento, Orçamentos vinculados */}
-                                {/* ... conteúdo original ... */}
-                            </div>
-
-                            <div className="p-4 sm:p-6 border-t border-gray-100 flex justify-end">
-                                <button
-                                    onClick={() => setShowDetailsModal(false)}
-                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    Fechar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* Novo Modal de Gerenciamento de Orçamentos */}
+                <BillingQuoteManagementModal
+                    isOpen={showQuoteManagementModal}
+                    onClose={() => setShowQuoteManagementModal(false)}
+                    billingMonth={selectedBilling}
+                    onDataChange={handleDataChange}
+                />
 
                 {/* Modal de exclusão em massa */}
                 <BulkDeleteModal
