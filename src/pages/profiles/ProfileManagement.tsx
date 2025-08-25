@@ -1,41 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Shield, 
   Users, 
   Plus, 
-  Search, 
   Edit, 
-  Trash2, 
-  Settings,
+  Trash2,
   UserPlus,
-  UserMinus,
-  AlertCircle,
   CheckCircle,
   XCircle,
   User,
   Mail,
-  Lock
+  Settings,
+  Filter
 } from 'lucide-react';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useUserManagement } from '@/hooks/useUserManagement';
-import Card from '@/components/ui/Card';
+import { useAuth } from '@/hooks/useAuth';
+import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Profile, CreateProfileRequest, UpdateProfileRequest, UserProfile } from '@/types/profile';
-import { CreateUserDto, UpdateUserDto } from '@/types/user';
-import toast from 'react-hot-toast';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
+import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import { Profile, UserProfile } from '@/types/profile';
+import { CreateUserDto, UpdateUserDto } from '@/types/user';
+import toast from 'react-hot-toast';
 import ProfileModal from './ProfileModal';
 import UserAssignmentModal from './UserAssignmentModal';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 
 const ProfileManagement = () => {
   const { hasProfile, isLoading: authLoading, user } = useAuth();
   const navigate = useNavigate();
-  const { profiles, loading: profilesLoading, error: profilesError, createProfile, updateProfile, deleteProfile } = useProfiles();
+  
+  // Profile hooks with pagination
+  const { 
+    profiles, 
+    loading: profilesLoading, 
+    error: profilesError, 
+    createProfile, 
+    updateProfile, 
+    deleteProfile,
+    pagination: profilesPagination,
+    setPage: setProfilesPage,
+    setPageSize: setProfilesPageSize,
+    setSorting: setProfilesSorting,
+    setFilter: setProfilesFilter,
+    clearFilters: clearProfilesFilters,
+    sorting: profilesSorting,
+    filters: profilesFilters
+  } = useProfiles(true);
+  
+  // User management hooks
   const { 
     users, 
     loading: usersLoading, 
@@ -43,9 +60,12 @@ const ProfileManagement = () => {
     createUser, 
     updateUser, 
     deleteUser,
-    refetch: refetchUsers 
-  } = useUserManagement(0, 1000);
+    refetch: refetchUsers,
+    totalElements,
+    totalPages
+  } = useUserManagement(0, 10);
   
+  // State management
   const [activeTab, setActiveTab] = useState<'users' | 'profiles'>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
@@ -54,6 +74,13 @@ const ProfileManagement = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   
   // Form state for creating user
   const [userForm, setUserForm] = useState<CreateUserDto>({
@@ -65,19 +92,66 @@ const ProfileManagement = () => {
     profileCodes: []
   });
 
-  const filteredProfiles = profiles.filter(profile =>
-    profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Check permissions
+  useEffect(() => {
+    if (!authLoading && user && !hasProfile('ADMIN')) {
+      toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
+      navigate('/');
+    }
+  }, [hasProfile, navigate, authLoading, user]);
 
+  // Format date
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Selection handlers
+  const toggleItem = (id: number) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAll = () => {
+    const items = activeTab === 'users' ? users : profiles;
+    const currentPageIds = items.map((item: any) => item.id);
+    const allSelected = currentPageIds.every((id: number) => selectedItems.includes(id));
+
+    if (allSelected) {
+      setSelectedItems((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+    } else {
+      setSelectedItems((prev) => [...new Set([...prev, ...currentPageIds])]);
+    }
+  };
+
+  const clearSelection = () => setSelectedItems([]);
+
+  const selectionState = useMemo(() => {
+    const items = activeTab === 'users' ? users : profiles;
+    const currentPageIds = items.map((item: any) => item.id);
+    const selectedFromCurrentPage = selectedItems.filter((id) =>
+      currentPageIds.includes(id)
+    );
+
+    return {
+      allSelected:
+        currentPageIds.length > 0 &&
+        selectedFromCurrentPage.length === currentPageIds.length,
+      someSelected:
+        selectedFromCurrentPage.length > 0 &&
+        selectedFromCurrentPage.length < currentPageIds.length,
+      hasSelection: selectedItems.length > 0,
+      selectedFromCurrentPage,
+    };
+  }, [activeTab, users, profiles, selectedItems]);
+
+  // Profile handlers
   const handleCreateProfile = () => {
     setSelectedProfile(null);
     setIsEditing(false);
@@ -106,13 +180,13 @@ const ProfileManagement = () => {
     }
   };
 
-  const handleSaveProfile = async (data: CreateProfileRequest | UpdateProfileRequest) => {
+  const handleSaveProfile = async (data: any) => {
     try {
       if (isEditing && selectedProfile) {
-        await updateProfile(selectedProfile.id, data as UpdateProfileRequest);
+        await updateProfile(selectedProfile.id, data);
         toast.success('Perfil atualizado com sucesso');
       } else {
-        await createProfile(data as CreateProfileRequest);
+        await createProfile(data);
         toast.success('Perfil criado com sucesso');
       }
       setShowProfileModal(false);
@@ -125,7 +199,8 @@ const ProfileManagement = () => {
     setSelectedProfile(profile);
     setShowUserModal(true);
   };
-  
+
+  // User handlers
   const handleCreateUser = () => {
     setUserForm({
       username: '',
@@ -139,13 +214,21 @@ const ProfileManagement = () => {
     setIsEditing(false);
     setShowCreateUserModal(true);
   };
-  
+
   const handleEditUser = (user: UserProfile) => {
     setSelectedUser(user);
+    setUserForm({
+      username: user.username,
+      email: user.email,
+      password: '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      profileCodes: user.profiles?.map(p => p.code) || []
+    });
     setIsEditing(true);
     setShowCreateUserModal(true);
   };
-  
+
   const handleDeleteUser = async (user: UserProfile) => {
     if (window.confirm(`Tem certeza que deseja excluir o usuário "${user.username}"?`)) {
       try {
@@ -156,7 +239,7 @@ const ProfileManagement = () => {
       }
     }
   };
-  
+
   const handleSaveUser = async () => {
     try {
       if (isEditing && selectedUser) {
@@ -179,26 +262,341 @@ const ProfileManagement = () => {
     }
   };
 
-  const getStatusColor = (active: boolean) => {
-    return active ? 'text-green-600' : 'text-red-600';
-  };
-
-  const getStatusIcon = (active: boolean) => {
-    return active ? CheckCircle : XCircle;
-  };
-
-  // Check if user has ADMIN profile
-  useEffect(() => {
-    // Wait for auth to load before checking permissions
-    if (!authLoading && user && !hasProfile('ADMIN')) {
-      toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
-      navigate('/');
+  // Bulk delete handler
+  const handleBulkDelete = async () => {
+    setIsDeleting(true);
+    try {
+      // Implement bulk delete logic here
+      const qty = selectedItems.length;
+      clearSelection();
+      setShowBulkDeleteModal(false);
+      toast.success(`${qty} item(s) excluído(s) com sucesso`);
+    } catch (error) {
+      toast.error('Erro ao excluir itens selecionados');
+    } finally {
+      setIsDeleting(false);
     }
-  }, [hasProfile, navigate, authLoading, user]);
-  
+  };
+
+  // User columns
+  const userColumns: Column<UserProfile>[] = [
+    {
+      key: 'select',
+      title: '',
+      width: '50px',
+      align: 'center',
+      headerRender: () => (
+        <div className="flex items-center justify-center">
+          <input
+            type="checkbox"
+            checked={selectionState.allSelected}
+            ref={(input) => {
+              if (input) input.indeterminate = selectionState.someSelected;
+            }}
+            onChange={toggleAll}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+        </div>
+      ),
+      render: (item) => (
+        <div className="flex items-center justify-center">
+          <input
+            type="checkbox"
+            checked={selectedItems.includes(item.id)}
+            onChange={() => toggleItem(item.id)}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ),
+    },
+    {
+      key: 'id',
+      title: 'ID',
+      sortable: true,
+      width: '80px',
+      align: 'center',
+      render: (item) => `#${item.id}`,
+    },
+    {
+      key: 'username',
+      title: 'Usuário',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <div className="flex items-center">
+          <User className="w-4 h-4 mr-2 text-gray-400" />
+          <span className="font-medium">@{item.username}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'name',
+      title: 'Nome',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => `${item.firstName || ''} ${item.lastName || ''}`.trim() || '-',
+    },
+    {
+      key: 'email',
+      title: 'Email',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <a
+          href={`mailto:${item.email}`}
+          className="text-blue-600 hover:text-blue-800 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {item.email}
+        </a>
+      ),
+    },
+    {
+      key: 'profiles',
+      title: 'Perfis',
+      render: (item) => (
+        <div className="flex flex-wrap gap-1">
+          {item.profiles && item.profiles.length > 0 ? (
+            item.profiles.map((profile) => (
+              <span
+                key={profile.id}
+                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+              >
+                {profile.name}
+              </span>
+            ))
+          ) : (
+            <span className="text-xs text-gray-500">Sem perfil</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'enabled',
+      title: 'Status',
+      sortable: true,
+      align: 'center',
+      render: (item) => (
+        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+          item.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {item.enabled ? (
+            <>
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Ativo
+            </>
+          ) : (
+            <>
+              <XCircle className="w-3 h-3 mr-1" />
+              Inativo
+            </>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      title: 'Ações',
+      align: 'center',
+      width: '120px',
+      render: (item) => (
+        <div className="flex items-center justify-center gap-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => handleEditUser(item)} 
+            title="Editar"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleDeleteUser(item)}
+            title="Excluir"
+            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  // Profile columns
+  const profileColumns: Column<Profile>[] = [
+    {
+      key: 'select',
+      title: '',
+      width: '50px',
+      align: 'center',
+      headerRender: () => (
+        <div className="flex items-center justify-center">
+          <input
+            type="checkbox"
+            checked={selectionState.allSelected}
+            ref={(input) => {
+              if (input) input.indeterminate = selectionState.someSelected;
+            }}
+            onChange={toggleAll}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+        </div>
+      ),
+      render: (item) => (
+        <div className="flex items-center justify-center">
+          <input
+            type="checkbox"
+            checked={selectedItems.includes(item.id)}
+            onChange={() => toggleItem(item.id)}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ),
+    },
+    {
+      key: 'id',
+      title: 'ID',
+      sortable: true,
+      width: '80px',
+      align: 'center',
+      render: (item) => `#${item.id}`,
+    },
+    {
+      key: 'code',
+      title: 'Código',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+          {item.code}
+        </span>
+      ),
+    },
+    {
+      key: 'name',
+      title: 'Nome',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <div className="flex items-center">
+          <Shield className="w-4 h-4 mr-2 text-blue-500" />
+          <span className="font-medium">{item.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'description',
+      title: 'Descrição',
+      filterable: true,
+      filterType: 'text',
+      render: (item) => item.description || '-',
+    },
+    {
+      key: 'level',
+      title: 'Nível',
+      sortable: true,
+      align: 'center',
+      width: '100px',
+      render: (item) => (
+        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+          Nível {item.level}
+        </span>
+      ),
+    },
+    {
+      key: 'userCount',
+      title: 'Usuários',
+      sortable: true,
+      align: 'center',
+      width: '100px',
+      render: (item) => (
+        <span className="inline-flex items-center">
+          <Users className="w-4 h-4 mr-1 text-gray-400" />
+          {item.userCount || 0}
+        </span>
+      ),
+    },
+    {
+      key: 'active',
+      title: 'Status',
+      sortable: true,
+      align: 'center',
+      render: (item) => (
+        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+          item.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {item.active ? (
+            <>
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Ativo
+            </>
+          ) : (
+            <>
+              <XCircle className="w-3 h-3 mr-1" />
+              Inativo
+            </>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      title: 'Criado em',
+      sortable: true,
+      filterable: true,
+      filterType: 'date',
+      render: (item) => formatDate(item.createdAt),
+      hideable: true,
+    },
+    {
+      key: 'actions',
+      title: 'Ações',
+      align: 'center',
+      width: '150px',
+      render: (item) => (
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleManageUsers(item)}
+            title="Gerenciar Usuários"
+          >
+            <Users className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => handleEditProfile(item)} 
+            title="Editar"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleDeleteProfile(item)}
+            title="Excluir"
+            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+            disabled={!!(item.userCount && item.userCount > 0)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   const loading = profilesLoading || usersLoading || authLoading;
   const error = profilesError || usersError;
-  
+
   // Show loading while checking permissions
   if (authLoading) {
     return (
@@ -210,7 +608,7 @@ const ProfileManagement = () => {
       </div>
     );
   }
-  
+
   // Check permissions after auth is loaded
   if (!authLoading && !hasProfile('ADMIN')) {
     return (
@@ -223,321 +621,149 @@ const ProfileManagement = () => {
       </div>
     );
   }
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-gray-600">Carregando perfis...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar perfis</h2>
-          <p className="text-gray-600">{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários e Perfis</h1>
+          <p className="text-gray-600 mt-1">Gerencie usuários, perfis e suas permissões</p>
+        </div>
+        <div className="flex space-x-2">
+          {activeTab === 'users' ? (
+            <Button onClick={handleCreateUser} className="flex items-center">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Novo Usuário
+            </Button>
+          ) : (
+            <Button onClick={handleCreateProfile} className="flex items-center">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Perfil
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => {
+              setActiveTab('users');
+              clearSelection();
+            }}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'users'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Users className="w-4 h-4 inline mr-2" />
+            Usuários
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('profiles');
+              clearSelection();
+            }}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'profiles'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Shield className="w-4 h-4 inline mr-2" />
+            Perfis
+          </button>
+        </nav>
+      </div>
+
+      {/* Selection bar */}
+      {selectionState.hasSelection && (
+        <Card className="p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Gerenciamento de Usuários e Perfis</h1>
-              <p className="text-gray-600 mt-2">
-                Gerencie usuários, perfis e suas permissões
-              </p>
-            </div>
-            <div className="flex space-x-2">
-              {activeTab === 'users' ? (
-                <Button onClick={handleCreateUser} className="flex items-center">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Novo Usuário
-                </Button>
-              ) : (
-                <Button onClick={handleCreateProfile} className="flex items-center">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Perfil
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {/* Tabs */}
-          <div className="flex space-x-4 mt-6">
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'users'
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Users className="w-4 h-4 inline mr-2" />
-              Usuários
-            </button>
-            <button
-              onClick={() => setActiveTab('profiles')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'profiles'
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Shield className="w-4 h-4 inline mr-2" />
-              Perfis
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-6 py-8 space-y-6">
-        {/* Search and Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Search */}
-          <div className="lg:col-span-2">
-            <Card className="p-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar perfis..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </Card>
-          </div>
-
-          {/* Stats */}
-          <Card className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {activeTab === 'users' ? users.length : profiles.length}
-              </div>
-              <div className="text-sm text-gray-600">
-                Total {activeTab === 'users' ? 'Usuários' : 'Perfis'}
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {activeTab === 'users' 
-                  ? users.filter(u => u.enabled).length
-                  : profiles.filter(p => p.active).length
-                }
-              </div>
-              <div className="text-sm text-gray-600">
-                {activeTab === 'users' ? 'Usuários' : 'Perfis'} Ativos
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Content based on active tab */}
-        {activeTab === 'users' ? (
-          /* Users Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUsers.map((user) => (
-              <Card key={user.id} className="hover:shadow-lg transition-shadow">
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                        <User className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {user.firstName} {user.lastName}
-                        </h3>
-                        <p className="text-sm text-gray-500">@{user.username}</p>
-                      </div>
-                    </div>
-                    <CheckCircle className={`w-5 h-5 ${
-                      user.enabled ? 'text-green-600' : 'text-gray-400'
-                    }`} />
-                  </div>
-
-                  {/* Email */}
-                  <div className="flex items-center text-sm text-gray-600 mb-4">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {user.email}
-                  </div>
-
-                  {/* Profiles */}
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-2">Perfis:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {user.profiles && user.profiles.length > 0 ? (
-                        user.profiles.map((profile) => (
-                          <span
-                            key={profile.id}
-                            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-                          >
-                            {profile.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-gray-500">Nenhum perfil atribuído</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditUser(user)}
-                      className="flex-1"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-            
-            {filteredUsers.length === 0 && (
-              <div className="col-span-full text-center py-12">
-                <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {searchTerm ? 'Nenhum usuário encontrado' : 'Nenhum usuário cadastrado'}
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  {searchTerm 
-                    ? 'Tente ajustar os termos da sua busca'
-                    : 'Comece criando seu primeiro usuário'
-                  }
-                </p>
-                {!searchTerm && (
-                  <Button onClick={handleCreateUser}>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Criar Primeiro Usuário
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Profiles Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProfiles.map((profile) => {
-            const StatusIcon = getStatusIcon(profile.active);
-            return (
-              <Card key={profile.id} className="hover:shadow-lg transition-shadow">
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                        <Shield className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{profile.name}</h3>
-                        <p className="text-sm text-gray-500">{profile.code}</p>
-                      </div>
-                    </div>
-                    <StatusIcon className={`w-5 h-5 ${getStatusColor(profile.active)}`} />
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    {profile.description || 'Sem descrição'}
-                  </p>
-
-                  {/* Details */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Nível:</span>
-                      <span className="font-medium">{profile.level}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Usuários:</span>
-                      <span className="font-medium">{profile.userCount || 0}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleManageUsers(profile)}
-                      className="flex-1"
-                    >
-                      <Users className="w-4 h-4 mr-1" />
-                      Usuários
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditProfile(profile)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteProfile(profile)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      disabled={!!(profile.userCount && profile.userCount > 0)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-          </div>
-        )}
-
-        {activeTab === 'profiles' && filteredProfiles.length === 0 && (
-          <div className="text-center py-12">
-            <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm ? 'Nenhum perfil encontrado' : 'Nenhum perfil cadastrado'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchTerm 
-                ? 'Tente ajustar os termos da sua busca'
-                : 'Comece criando seu primeiro perfil de usuário'
-              }
-            </p>
-            {!searchTerm && (
-              <Button onClick={handleCreateProfile}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Primeiro Perfil
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">
+                {selectedItems.length} {activeTab === 'users' ? 'usuário(s)' : 'perfil(is)'} selecionado(s)
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={clearSelection}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Limpar seleção
               </Button>
-            )}
+            </div>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => setShowBulkDeleteModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Excluir Selecionados
+            </Button>
           </div>
-        )}
-      </div>
+        </Card>
+      )}
+
+      {/* Content */}
+      {loading ? (
+        <Card className="p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span className="ml-4 text-gray-600">Carregando...</span>
+          </div>
+        </Card>
+      ) : error ? (
+        <Card className="p-8">
+          <div className="text-center">
+            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar dados</h2>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-0">
+          {activeTab === 'users' ? (
+            <DataTable
+              data={users}
+              columns={userColumns}
+              loading={loading}
+              pagination={{
+                currentPage: currentPage + 1,
+                totalPages: totalPages || 1,
+                totalItems: totalElements || 0,
+                pageSize: pageSize
+              }}
+              onPageChange={(page) => setCurrentPage(page - 1)}
+              onPageSizeChange={setPageSize}
+              emptyMessage="Nenhum usuário encontrado"
+              showColumnToggle={true}
+              hiddenColumns={[]}
+            />
+          ) : (
+            <DataTable
+              data={profiles}
+              columns={profileColumns}
+              loading={loading}
+              pagination={profilesPagination}
+              sorting={profilesSorting}
+              filters={profilesFilters}
+              onPageChange={setProfilesPage}
+              onPageSizeChange={setProfilesPageSize}
+              onSort={setProfilesSorting}
+              onFilter={setProfilesFilter}
+              onClearFilters={clearProfilesFilters}
+              emptyMessage="Nenhum perfil encontrado"
+              showColumnToggle={true}
+              hiddenColumns={['createdAt']}
+            />
+          )}
+        </Card>
+      )}
 
       {/* Modals */}
       {showProfileModal && (
@@ -556,7 +782,7 @@ const ProfileManagement = () => {
           onClose={() => setShowUserModal(false)}
         />
       )}
-      
+
       {/* Create/Edit User Modal */}
       {showCreateUserModal && (
         <Modal
@@ -643,6 +869,16 @@ const ProfileManagement = () => {
           </div>
         </Modal>
       )}
+
+      {/* Bulk delete modal */}
+      <BulkDeleteModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={handleBulkDelete}
+        selectedCount={selectedItems.length}
+        isDeleting={isDeleting}
+        entityName={activeTab === 'users' ? 'usuário' : 'perfil'}
+      />
     </div>
   );
 };

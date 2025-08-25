@@ -1,18 +1,68 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
 import type { Profile, CreateProfileRequest, UpdateProfileRequest } from '@/types/profile';
+import type { SortInfo, FilterValues } from '@/components/ui/DataTable';
 
-export const useProfiles = () => {
+interface PagedResponse<T> {
+  content: T[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalElements: number;
+  first: boolean;
+  last: boolean;
+}
+
+export const useProfiles = (paginated: boolean = false) => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  
+  // Sorting state
+  const [sorting, setSorting] = useState<SortInfo[]>([]);
+  
+  // Filter state
+  const [filters, setFilters] = useState<FilterValues>({});
 
   const fetchProfiles = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get<Profile[]>('/permissions/profiles');
-      setProfiles(response.data);
+      
+      if (paginated) {
+        // Build query params
+        const params = new URLSearchParams({
+          paginated: 'true',
+          page: page.toString(),
+          size: pageSize.toString(),
+        });
+        
+        // Add filters
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) {
+            params.append(key, value);
+          }
+        });
+        
+        // Add sorting
+        sorting.forEach(sort => {
+          params.append('sort', `${sort.field},${sort.direction}`);
+        });
+        
+        const response = await api.get<PagedResponse<Profile>>(`/permissions/profiles?${params}`);
+        setProfiles(response.data.content);
+        setTotalPages(response.data.totalPages);
+        setTotalElements(response.data.totalElements);
+      } else {
+        const response = await api.get<Profile[]>('/permissions/profiles');
+        setProfiles(response.data);
+      }
     } catch (err: any) {
       console.error('Error fetching profiles:', err);
       setError(err.message || 'Erro ao carregar perfis');
@@ -63,9 +113,22 @@ export const useProfiles = () => {
     }
   };
 
+  const setFilter = (field: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value || undefined
+    }));
+    setPage(0); // Reset to first page when filtering
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    setPage(0); // Reset to first page
+  };
+
   useEffect(() => {
     fetchProfiles();
-  }, []);
+  }, [page, pageSize, sorting, filters, paginated]);
 
   const refetch = () => {
     fetchProfiles();
@@ -79,6 +142,27 @@ export const useProfiles = () => {
     updateProfile,
     deleteProfile,
     getProfile,
-    refetch
+    refetch,
+    // Pagination
+    pagination: paginated ? {
+      currentPage: page,
+      totalPages,
+      pageSize,
+      totalElements,
+      first: page === 0,
+      last: page === totalPages - 1
+    } : null,
+    setPage,
+    setPageSize,
+    // Sorting
+    sorting,
+    setSorting: (field: string, direction: 'asc' | 'desc') => {
+      setSorting([{ field, direction }]);
+      setPage(0); // Reset to first page when sorting
+    },
+    // Filters
+    filters,
+    setFilter,
+    clearFilters
   };
 };
