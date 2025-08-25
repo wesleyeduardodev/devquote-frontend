@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Shield, 
-  Users, 
-  Plus, 
-  Edit, 
+import {
+  Shield,
+  Users,
+  Plus,
+  Edit,
   Trash2,
   UserPlus,
   CheckCircle,
@@ -14,7 +14,6 @@ import {
   Settings,
   Filter
 } from 'lucide-react';
-import { useProfiles } from '@/hooks/useProfiles';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
@@ -27,39 +26,20 @@ import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import { Profile, UserProfile } from '@/types/profile';
 import { CreateUserDto, UpdateUserDto } from '@/types/user';
 import toast from 'react-hot-toast';
-import ProfileModal from './ProfileModal';
-import UserAssignmentModal from './UserAssignmentModal';
 
 const ProfileManagement = () => {
   const { hasProfile, isLoading: authLoading, user } = useAuth();
   const navigate = useNavigate();
-  
-  // Profile hooks with pagination
-  const { 
-    profiles, 
-    loading: profilesLoading, 
-    error: profilesError, 
-    createProfile, 
-    updateProfile, 
-    deleteProfile,
-    deleteBulkProfiles,
-    pagination: profilesPagination,
-    setPage: setProfilesPage,
-    setPageSize: setProfilesPageSize,
-    setSorting: setProfilesSorting,
-    setFilter: setProfilesFilter,
-    clearFilters: clearProfilesFilters,
-    sorting: profilesSorting,
-    filters: profilesFilters
-  } = useProfiles(true, { size: 5 });
-  
+
+  // Removido hook de perfis - agora apenas gerencia usuários
+
   // User management hooks
-  const { 
-    users, 
-    loading: usersLoading, 
-    error: usersError, 
-    createUser, 
-    updateUser, 
+  const {
+    users,
+    loading: usersLoading,
+    error: usersError,
+    createUser,
+    updateUser,
     deleteUser,
     deleteBulkUsers,
     pagination: usersPagination,
@@ -72,9 +52,9 @@ const ProfileManagement = () => {
     filters: usersFilters,
     refetch: refetchUsers
   } = useUserManagement();
-  
+
   // State management
-  const [activeTab, setActiveTab] = useState<'users' | 'profiles'>('users');
+  // Removido activeTab - agora apenas gerencia usuários
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -85,8 +65,8 @@ const ProfileManagement = () => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
-  
+
+
   // Form state for creating user
   const [userForm, setUserForm] = useState<CreateUserDto>({
     username: '',
@@ -124,7 +104,7 @@ const ProfileManagement = () => {
   };
 
   const toggleAll = () => {
-    const items = activeTab === 'users' ? users : profiles;
+    const items = users;
     const currentPageIds = items.map((item: any) => item.id);
     const allSelected = currentPageIds.every((id: number) => selectedItems.includes(id));
 
@@ -138,7 +118,7 @@ const ProfileManagement = () => {
   const clearSelection = () => setSelectedItems([]);
 
   const selectionState = useMemo(() => {
-    const items = activeTab === 'users' ? users : profiles;
+    const items = users;
     const currentPageIds = items.map((item: any) => item.id);
     const selectedFromCurrentPage = selectedItems.filter((id) =>
       currentPageIds.includes(id)
@@ -154,7 +134,7 @@ const ProfileManagement = () => {
       hasSelection: selectedItems.length > 0,
       selectedFromCurrentPage,
     };
-  }, [activeTab, users, profiles, selectedItems]);
+  }, [users, selectedItems]);
 
   // Profile handlers
   const handleCreateProfile = () => {
@@ -256,14 +236,14 @@ const ProfileManagement = () => {
           enabled: true,
           profileCodes: userForm.profileCodes
         };
-        
+
         // Verifica se está alterando o username do próprio usuário logado
-        const isChangingOwnUsername = user?.id === selectedUser.id && 
+        const isChangingOwnUsername = user?.id === selectedUser.id &&
                                       selectedUser.username !== userForm.username;
-        
+
         await updateUser(selectedUser.id, updateData);
         toast.success('Usuário atualizado com sucesso');
-        
+
         // Se alterou o próprio username, faz logout
         if (isChangingOwnUsername) {
           toast.info('Username alterado. Redirecionando para login...');
@@ -288,17 +268,13 @@ const ProfileManagement = () => {
   const handleBulkDelete = async () => {
     setIsDeleting(true);
     try {
-      if (activeTab === 'users') {
-        await deleteBulkUsers(selectedItems);
-      } else {
-        await deleteBulkProfiles(selectedItems);
-      }
+      await deleteBulkUsers(selectedItems);
       const qty = selectedItems.length;
       clearSelection();
       setShowBulkDeleteModal(false);
-      toast.success(`${qty} ${activeTab === 'users' ? 'usuário(s)' : 'perfil(is)'} excluído(s) com sucesso`);
+      toast.success(`${qty} usuário(s) excluído(s) com sucesso`);
     } catch (error) {
-      toast.error(`Erro ao excluir ${activeTab === 'users' ? 'usuários' : 'perfis'} selecionados`);
+      toast.error(`Erro ao excluir usuários selecionados`);
     } finally {
       setIsDeleting(false);
     }
@@ -435,10 +411,10 @@ const ProfileManagement = () => {
       width: '120px',
       render: (item) => (
         <div className="flex items-center justify-center gap-1">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => handleEditUser(item)} 
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleEditUser(item)}
             title="Editar"
           >
             <Edit className="w-4 h-4" />
@@ -448,8 +424,8 @@ const ProfileManagement = () => {
             variant="ghost"
             onClick={() => handleDeleteUser(item)}
             title={user?.id === item.id ? "Você não pode excluir sua própria conta" : "Excluir"}
-            className={user?.id === item.id 
-              ? "text-gray-400 cursor-not-allowed" 
+            className={user?.id === item.id
+              ? "text-gray-400 cursor-not-allowed"
               : "text-red-600 hover:text-red-800 hover:bg-red-50"}
             disabled={user?.id === item.id}
           >
@@ -604,10 +580,10 @@ const ProfileManagement = () => {
           >
             <Users className="w-4 h-4" />
           </Button>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => handleEditProfile(item)} 
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleEditProfile(item)}
             title="Editar"
           >
             <Edit className="w-4 h-4" />
@@ -627,8 +603,8 @@ const ProfileManagement = () => {
     },
   ];
 
-  const loading = profilesLoading || usersLoading || authLoading;
-  const error = profilesError || usersError;
+  const loading = usersLoading || authLoading;
+  const error = usersError;
 
   // Show loading while checking permissions
   if (authLoading) {
@@ -660,57 +636,16 @@ const ProfileManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários e Perfis</h1>
-          <p className="text-gray-600 mt-1">Gerencie usuários, perfis e suas permissões</p>
+          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
         </div>
         <div className="flex space-x-2">
-          {activeTab === 'users' ? (
-            <Button onClick={handleCreateUser} className="flex items-center">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Novo Usuário
-            </Button>
-          ) : (
-            <Button onClick={handleCreateProfile} className="flex items-center">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Perfil
-            </Button>
-          )}
+          <Button onClick={handleCreateUser} className="flex items-center">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Novo Usuário
+          </Button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => {
-              setActiveTab('users');
-              clearSelection();
-            }}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'users'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Users className="w-4 h-4 inline mr-2" />
-            Usuários
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('profiles');
-              clearSelection();
-            }}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'profiles'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Shield className="w-4 h-4 inline mr-2" />
-            Perfis
-          </button>
-        </nav>
-      </div>
 
       {/* Selection bar */}
       {selectionState.hasSelection && (
@@ -718,7 +653,7 @@ const ProfileManagement = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-gray-700">
-                {selectedItems.length} {activeTab === 'users' ? 'usuário(s)' : 'perfil(is)'} selecionado(s)
+                {selectedItems.length} usuário(s) selecionado(s)
               </span>
               <Button
                 size="sm"
@@ -760,7 +695,7 @@ const ProfileManagement = () => {
         </Card>
       ) : (
         <Card className="p-0">
-          {activeTab === 'users' ? (
+          {(
             <DataTable
               data={users}
               columns={userColumns}
@@ -777,51 +712,11 @@ const ProfileManagement = () => {
               showColumnToggle={true}
               hiddenColumns={[]}
             />
-          ) : (
-            <DataTable
-              data={profiles}
-              columns={profileColumns}
-              loading={loading}
-              pagination={profilesPagination ? {
-                currentPage: profilesPagination.currentPage,
-                totalPages: profilesPagination.totalPages,
-                totalElements: profilesPagination.totalElements,
-                pageSize: profilesPagination.pageSize,
-                first: profilesPagination.first,
-                last: profilesPagination.last
-              } : null}
-              sorting={profilesSorting}
-              filters={profilesFilters}
-              onPageChange={setProfilesPage}
-              onPageSizeChange={setProfilesPageSize}
-              onSort={setProfilesSorting}
-              onFilter={setProfilesFilter}
-              onClearFilters={clearProfilesFilters}
-              emptyMessage="Nenhum perfil encontrado"
-              showColumnToggle={true}
-              hiddenColumns={['createdAt']}
-            />
           )}
         </Card>
       )}
 
       {/* Modals */}
-      {showProfileModal && (
-        <ProfileModal
-          profile={selectedProfile}
-          isEditing={isEditing}
-          onSave={handleSaveProfile}
-          onClose={() => setShowProfileModal(false)}
-        />
-      )}
-
-      {showUserModal && selectedProfile && (
-        <UserAssignmentModal
-          profile={selectedProfile}
-          users={users}
-          onClose={() => setShowUserModal(false)}
-        />
-      )}
 
       {/* Create/Edit User Modal */}
       {showCreateUserModal && (
@@ -847,17 +742,17 @@ const ProfileManagement = () => {
                 required
               />
             </div>
-            
+
             <Input
               label="Nome de Usuário"
               value={userForm.username}
               onChange={(e) => setUserForm({...userForm, username: e.target.value})}
               placeholder="joaosilva"
               required
-              helpText={isEditing && user?.username === selectedUser?.username ? 
+              helpText={isEditing && user?.username === selectedUser?.username ?
                 "⚠️ Alterar o username fará logout automático" : ""}
             />
-            
+
             <Input
               label="Email"
               type="email"
@@ -866,7 +761,7 @@ const ProfileManagement = () => {
               placeholder="joao@example.com"
               required
             />
-            
+
             {!isEditing && (
               <Input
                 label="Senha"
@@ -877,7 +772,7 @@ const ProfileManagement = () => {
                 required
               />
             )}
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Perfil
@@ -894,7 +789,7 @@ const ProfileManagement = () => {
                 <option value="USER">Usuário</option>
               </select>
             </div>
-            
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button
                 variant="outline"
@@ -917,7 +812,7 @@ const ProfileManagement = () => {
         onConfirm={handleBulkDelete}
         selectedCount={selectedItems.length}
         isDeleting={isDeleting}
-        entityName={activeTab === 'users' ? 'usuário' : 'perfil'}
+        entityName="usuário"
       />
     </div>
   );
