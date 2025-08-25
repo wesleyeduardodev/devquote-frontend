@@ -12,6 +12,7 @@ import {
     User,
     Video,
     Calendar,
+    Eye,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +20,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import toast from 'react-hot-toast';
 
 interface SubTask {
@@ -61,6 +63,8 @@ const TaskList: React.FC = () => {
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
 
     const {
         tasks,
@@ -79,6 +83,39 @@ const TaskList: React.FC = () => {
 
     const handleEdit = (id: number) => {
         navigate(`/tasks/${id}/edit`);
+    };
+
+    const handleView = (task: Task) => {
+        // Mapear a estrutura da task para o formato esperado pelo modal
+        const taskForModal = {
+            id: task.id,
+            name: task.title,
+            code: task.code,
+            description: task.description,
+            status: task.status,
+            priority: undefined, // Como não temos prioridade na estrutura atual
+            estimatedHours: undefined,
+            actualHours: undefined,
+            requesterName: task.requesterName,
+            projectName: undefined,
+            projects: undefined, // Pode ser preenchido se houver dados de projetos
+            link: task.link,
+            meetingLink: task.meetingLink,
+            notes: task.notes,
+            subtasks: task.subTasks?.map(subtask => ({
+                id: subtask.id || 0,
+                title: subtask.title,
+                description: subtask.description || subtask.title,
+                completed: subtask.status === 'COMPLETED',
+                status: subtask.status,
+                createdAt: subtask.createdAt
+            })),
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt
+        };
+        
+        setSelectedTask(taskForModal);
+        setShowDetailModal(true);
     };
 
     const handleDelete = async (id: number) => {
@@ -371,29 +408,42 @@ const TaskList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true,
         },
-        // Coluna de ações - apenas para ADMIN
-        ...(isAdmin ? [{
+        // Coluna de ações
+        {
             key: 'actions',
             title: 'Ações',
             align: 'center' as const,
-            width: '120px',
+            width: isAdmin ? '150px' : '80px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
-                        <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(item.id)}
-                        title="Excluir"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => handleView(item)} 
+                        title="Visualizar detalhes"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                     >
-                        <Trash2 className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                     </Button>
+                    {isAdmin && (
+                        <>
+                            <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
+                                <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(item.id)}
+                                title="Excluir"
+                                className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </>
+                    )}
                 </div>
             ),
-        }] : []),
+        },
     ];
 
     // ===== Card (mobile) com checkbox + ações =====
@@ -432,29 +482,40 @@ const TaskList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações - apenas para ADMIN */}
-                {isAdmin && (
-                    <div className="flex gap-1 ml-2">
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(task.id)}
-                            title="Editar"
-                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                        >
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(task.id)}
-                            title="Excluir"
-                            className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
-                )}
+                {/* Ações */}
+                <div className="flex gap-1 ml-2">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleView(task)}
+                        title="Visualizar detalhes"
+                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                    >
+                        <Eye className="w-4 h-4" />
+                    </Button>
+                    {isAdmin && (
+                        <>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(task.id)}
+                                title="Editar"
+                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                            >
+                                <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(task.id)}
+                                title="Excluir"
+                                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Informações da Task */}
@@ -707,6 +768,16 @@ const TaskList: React.FC = () => {
                 selectedCount={selectedItems.length}
                 isDeleting={isDeleting}
                 entityName="tarefa"
+            />
+
+            {/* Modal de detalhes da tarefa */}
+            <TaskDetailModal
+                task={selectedTask}
+                isOpen={showDetailModal}
+                onClose={() => {
+                    setShowDetailModal(false);
+                    setSelectedTask(null);
+                }}
             />
         </div>
     );
