@@ -51,7 +51,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/quotes', label: 'Orçamentos', screen: 'quotes' },
         { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
         { path: '/projects', label: 'Projetos', screen: 'projects' },
-        { path: '/billing', label: 'Faturamento', screen: 'billing' }
+        { path: '/billing', label: 'Faturamento', screen: 'billing' },
+        { path: '/profiles', label: 'Perfis', screen: 'settings' }
     ];
 
     // Filtra itens baseado nas permissões do usuário (Dashboard sempre incluído)

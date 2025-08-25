@@ -29,6 +29,67 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 const Dashboard = () => {
   const { stats, loading, error } = useDashboard();
   const { user, hasScreenAccess } = useAuth();
+  
+  // DEBUG FUNCTION - TEMPORARY
+  const debugAuth = async () => {
+    try {
+      const token = localStorage.getItem('auth.token');
+      console.log('Token exists:', !!token);
+      console.log('Token value:', token);
+      
+      const response = await fetch('http://localhost:8080/api/auth/debug', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      console.log('=== DEBUG AUTH RESPONSE ===');
+      console.log('Authorities:', data.authorities);
+      console.log('Has ROLE_ADMIN:', data.hasRoleAdmin);
+      console.log('Has ADMIN:', data.hasAdmin);
+      console.log('Full response:', data);
+      
+      // Check stored permissions
+      const storedPermissions = localStorage.getItem('auth.permissions');
+      console.log('=== STORED PERMISSIONS ===');
+      console.log('Raw:', storedPermissions);
+      if (storedPermissions) {
+        const parsed = JSON.parse(storedPermissions);
+        console.log('Parsed:', parsed);
+        console.log('Profiles:', parsed.profiles);
+      }
+      
+      alert('Check console for debug info (F12)');
+    } catch (error) {
+      console.error('Debug error:', error);
+      alert('Error - check console');
+    }
+  };
+  
+  // Force reload permissions
+  const reloadPermissions = async () => {
+    try {
+      const token = localStorage.getItem('auth.token');
+      const response = await fetch('http://localhost:8080/api/auth/permissions', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const permissions = await response.json();
+      console.log('=== RELOADED PERMISSIONS ===');
+      console.log(permissions);
+      
+      // Save to localStorage
+      localStorage.setItem('auth.permissions', JSON.stringify(permissions));
+      
+      alert('Permissions reloaded! Refresh the page.');
+    } catch (error) {
+      console.error('Error reloading permissions:', error);
+      alert('Error - check console');
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -78,14 +139,30 @@ const Dashboard = () => {
                 Bem-vindo de volta, {user?.username || 'Usuário'}!
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">
-                {new Date().toLocaleDateString('pt-BR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+            <div className="flex items-center space-x-4">
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={debugAuth} 
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                >
+                  DEBUG AUTH
+                </Button>
+                <Button 
+                  onClick={reloadPermissions} 
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                >
+                  RELOAD PERMISSIONS
+                </Button>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">
+                  {new Date().toLocaleDateString('pt-BR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
               </div>
             </div>
           </div>

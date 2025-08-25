@@ -161,12 +161,14 @@ export function AuthProvider({children}: { children: ReactNode }) {
         
         // Profile-based checks
         hasProfile: (profile: string) => {
-            return permissions?.profiles.some(p => p.code === profile && p.active) ?? false;
+            if (!permissions?.profiles) return false;
+            return permissions.profiles.some(p => p.code === profile && p.active);
         },
         hasAnyProfile: (profiles: string[]) => {
+            if (!permissions?.profiles) return false;
             return profiles.some(profile => 
-                permissions?.profiles.some(p => p.code === profile && p.active)
-            ) ?? false;
+                permissions.profiles.some(p => p.code === profile && p.active)
+            );
         },
         
         // Screen-based checks

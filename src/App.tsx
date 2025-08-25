@@ -22,6 +22,7 @@ import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
+import ProfileManagement from './pages/profiles/ProfileManagement';
 import NotFound from './pages/NotFound';
 
 interface RedirectIfAuthenticatedProps {
@@ -153,6 +154,13 @@ const AppRoutes: React.FC = () => {
                             <Route path="/billing" element={
                                 <ProtectedRoute requiredScreen="billing">
                                     <BillingMonthManagement/>
+                                </ProtectedRoute>
+                            }/>
+                            
+                            {/* Profile Management - Apenas ADMIN */}
+                            <Route path="/profiles" element={
+                                <ProtectedRoute requiredScreen="settings">
+                                    <ProfileManagement/>
                                 </ProtectedRoute>
                             }/>
                             
