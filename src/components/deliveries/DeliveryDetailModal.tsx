@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     X,
     User,
@@ -17,7 +17,9 @@ import {
     Play,
     Flag,
     Database,
-    Code
+    Code,
+    Copy,
+    Check
 } from 'lucide-react';
 
 interface Delivery {
@@ -54,10 +56,39 @@ interface DeliveryDetailModalProps {
 }
 
 const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isOpen, onClose }) => {
+    const [isCopied, setIsCopied] = useState(false);
+
     if (!isOpen || !delivery) return null;
 
     // Debug: log dos dados da entrega
     console.log('DeliveryDetailModal - dados da entrega:', delivery);
+
+    const handleCopyScript = async () => {
+        const scriptContent = delivery.script || `-- Insira aqui o script SQL para a entrega
+CREATE TABLE exemplo (
+  id BIGINT PRIMARY KEY,
+  nome VARCHAR(255) NOT NULL
+);
+
+INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`;
+
+        try {
+            await navigator.clipboard.writeText(scriptContent);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000); // Reset após 2 segundos
+        } catch (err) {
+            console.error('Erro ao copiar script:', err);
+            // Fallback para navegadores mais antigos
+            const textArea = document.createElement('textarea');
+            textArea.value = scriptContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        }
+    };
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';
@@ -312,10 +343,33 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         {/* Script SQL */}
                         {(delivery.script || true) && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Database className="w-5 h-5 text-blue-600" />
-                                    Script de Banco de Dados
-                                </h3>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                        <Database className="w-5 h-5 text-blue-600" />
+                                        Script de Banco de Dados
+                                    </h3>
+                                    <button
+                                        onClick={handleCopyScript}
+                                        className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-all ${
+                                            isCopied 
+                                                ? 'bg-green-100 text-green-700 border border-green-200' 
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                                        }`}
+                                        title="Copiar script"
+                                    >
+                                        {isCopied ? (
+                                            <>
+                                                <Check className="w-4 h-4" />
+                                                Copiado!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy className="w-4 h-4" />
+                                                Copiar
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                                         <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">
