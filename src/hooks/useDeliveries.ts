@@ -10,6 +10,7 @@ interface Delivery {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
+    script?: string;
     notes?: string;
     status: string;
     startedAt?: string;
