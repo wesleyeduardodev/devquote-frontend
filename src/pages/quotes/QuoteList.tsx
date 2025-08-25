@@ -13,6 +13,7 @@ import {
     Filter,
 } from 'lucide-react';
 import useQuotes from '@/hooks/useQuotes';
+import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -32,6 +33,12 @@ interface Quote {
 
 const QuoteList: React.FC = () => {
     const navigate = useNavigate();
+    const { hasProfile } = useAuth();
+    
+    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    const isAdmin = hasProfile('ADMIN');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -157,7 +164,8 @@ const QuoteList: React.FC = () => {
 
     // ===== Colunas (inclui checkbox de seleção) =====
     const columns: Column<Quote>[] = [
-        {
+        // Checkbox de seleção - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'select',
             title: '',
             width: '50px',
@@ -187,7 +195,8 @@ const QuoteList: React.FC = () => {
                     />
                 </div>
             ),
-        },
+        }] : []),
+        // Colunas que todos podem ver
         {
             key: 'id',
             title: 'ID',
@@ -297,12 +306,13 @@ const QuoteList: React.FC = () => {
             ),
             hideable: true,
         },
-        {
+        // Coluna de ações - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'actions',
             title: 'Ações',
-            align: 'center',
+            align: 'center' as const,
             width: '120px',
-            render: (item) => (
+            render: (item: Quote) => (
                 <div className="flex items-center justify-center gap-1">
                     <Button
                         size="sm"
@@ -323,7 +333,7 @@ const QuoteList: React.FC = () => {
                     </Button>
                 </div>
             ),
-        },
+        }] : []),
     ];
 
     // ===== Card (mobile) com checkbox + ações =====
@@ -332,15 +342,17 @@ const QuoteList: React.FC = () => {
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox */}
-                    <div className="flex-shrink-0 pt-1">
-                        <input
-                            type="checkbox"
-                            checked={selectedItems.includes(quote.id)}
-                            onChange={() => toggleItem(quote.id)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                    </div>
+                    {/* Checkbox - apenas para ADMIN */}
+                    {isAdmin && (
+                        <div className="flex-shrink-0 pt-1">
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.includes(quote.id)}
+                                onChange={() => toggleItem(quote.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                        </div>
+                    )}
 
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -362,27 +374,29 @@ const QuoteList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações */}
-                <div className="flex gap-1 ml-2">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(quote.id)}
-                        title="Editar"
-                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                    >
-                        <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(quote.id)}
-                        title="Excluir"
-                        className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
-                </div>
+                {/* Ações - apenas para ADMIN */}
+                {isAdmin && (
+                    <div className="flex gap-1 ml-2">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(quote.id)}
+                            title="Editar"
+                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                        >
+                            <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(quote.id)}
+                            title="Excluir"
+                            className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Informações do Orçamento */}
@@ -412,16 +426,23 @@ const QuoteList: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Orçamentos</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {isAdmin ? 'Gerenciamento de Orçamentos' : 'Visualização de Orçamentos'}
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        {isAdmin ? 'Gerencie os orçamentos cadastrados' : 'Visualize os orçamentos cadastrados'}
+                    </p>
                 </div>
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/quotes/create')}
-                    className="flex items-center justify-center sm:justify-start"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Orçamento
-                </Button>
+                {isAdmin && (
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate('/quotes/create')}
+                        className="flex items-center justify-center sm:justify-start"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Orçamento
+                    </Button>
+                )}
             </div>
 
             {/* Estatísticas - Responsivas */}
@@ -498,34 +519,36 @@ const QuoteList: React.FC = () => {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between gap-3">
-                            <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectionState.allSelected}
-                                        ref={(input) => {
-                                            if (input) input.indeterminate = selectionState.someSelected;
-                                        }}
-                                        readOnly
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                </div>
-                                <span className="text-sm">Selecionar Todos</span>
-                            </Button>
-
-                            {selectionState.hasSelection && (
-                                <Button
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => setShowBulkDeleteModal(true)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span className="text-sm">Excluir ({selectedItems.length})</span>
+                        {isAdmin && (
+                            <div className="flex items-center justify-between gap-3">
+                                <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectionState.allSelected}
+                                            ref={(input) => {
+                                                if (input) input.indeterminate = selectionState.someSelected;
+                                            }}
+                                            readOnly
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <span className="text-sm">Selecionar Todos</span>
                                 </Button>
-                            )}
-                        </div>
+
+                                {selectionState.hasSelection && (
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span className="text-sm">Excluir ({selectedItems.length})</span>
+                                    </Button>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </Card>
             </div>
@@ -542,7 +565,7 @@ const QuoteList: React.FC = () => {
                 <>
                     {/* Desktop - Barra de ações quando há seleção */}
                     <div className="hidden lg:block space-y-4">
-                        {selectionState.hasSelection && (
+                        {isAdmin && selectionState.hasSelection && (
                             <Card className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

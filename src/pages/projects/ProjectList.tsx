@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, ExternalLink, Search, Filter, FolderOpen, Calendar, Github, Check } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -18,6 +19,12 @@ interface Project {
 
 const ProjectList: React.FC = () => {
     const navigate = useNavigate();
+    const { hasProfile } = useAuth();
+    
+    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    const isAdmin = hasProfile('ADMIN');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -122,7 +129,8 @@ const ProjectList: React.FC = () => {
     );
 
     const columns: Column<Project>[] = [
-        {
+        // Checkbox de seleção - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'select',
             title: '',
             width: '50px',
@@ -154,7 +162,8 @@ const ProjectList: React.FC = () => {
                     />
                 </div>
             )
-        },
+        }] : []),
+        // Colunas que todos podem ver
         {
             key: 'id',
             title: 'ID',
@@ -225,12 +234,13 @@ const ProjectList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true
         },
-        {
+        // Coluna de ações - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'actions',
             title: 'Ações',
-            align: 'center',
+            align: 'center' as const,
             width: '120px',
-            render: (item) => (
+            render: (item: Project) => (
                 <div className="flex items-center justify-center gap-1">
                     <Button
                         size="sm"
@@ -251,7 +261,7 @@ const ProjectList: React.FC = () => {
                     </Button>
                 </div>
             )
-        }
+        }] : [])
     ];
 
     // Componente Card para visualização mobile
@@ -260,15 +270,17 @@ const ProjectList: React.FC = () => {
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox */}
-                    <div className="flex-shrink-0 pt-1">
-                        <input
-                            type="checkbox"
-                            checked={selectedItems.includes(project.id)}
-                            onChange={() => toggleItem(project.id)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                    </div>
+                    {/* Checkbox - apenas para ADMIN */}
+                    {isAdmin && (
+                        <div className="flex-shrink-0 pt-1">
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.includes(project.id)}
+                                onChange={() => toggleItem(project.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                        </div>
+                    )}
                     
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -283,8 +295,9 @@ const ProjectList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações */}
-                <div className="flex gap-1 ml-2">
+                {/* Ações - apenas para ADMIN */}
+                {isAdmin && (
+                    <div className="flex gap-1 ml-2">
                     <Button
                         size="sm"
                         variant="ghost"
@@ -303,7 +316,8 @@ const ProjectList: React.FC = () => {
                     >
                         <Trash2 className="w-4 h-4" />
                     </Button>
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Informações do Projeto */}
@@ -339,16 +353,23 @@ const ProjectList: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Projetos</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {isAdmin ? 'Gerenciamento de Projetos' : 'Visualização de Projetos'}
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        {isAdmin ? 'Gerencie os projetos cadastrados' : 'Visualize os projetos cadastrados'}
+                    </p>
                 </div>
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/projects/create')}
-                    className="flex items-center justify-center sm:justify-start"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Projeto
-                </Button>
+                {isAdmin && (
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate('/projects/create')}
+                        className="flex items-center justify-center sm:justify-start"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Projeto
+                    </Button>
+                )}
             </div>
 
             {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
@@ -389,7 +410,7 @@ const ProjectList: React.FC = () => {
                                 <span className="text-sm">Selecionar Todos</span>
                             </Button>
                             
-                            {selectionState.hasSelection && (
+                            {isAdmin && selectionState.hasSelection && (
                                 <Button
                                     size="sm"
                                     variant="danger"
@@ -418,7 +439,7 @@ const ProjectList: React.FC = () => {
                     {/* Visualização Desktop - Tabela com filtros originais */}
                     <div className="hidden lg:block space-y-4">
                         {/* Barra de ações para desktop */}
-                        {selectionState.hasSelection && (
+                        {isAdmin && selectionState.hasSelection && (
                             <Card className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

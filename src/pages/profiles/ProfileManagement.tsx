@@ -30,6 +30,10 @@ import toast from 'react-hot-toast';
 const ProfileManagement = () => {
   const { hasProfile, isLoading: authLoading, user } = useAuth();
   const navigate = useNavigate();
+  
+  // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+  const isAdmin = hasProfile('ADMIN');
+  const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
 
   // Removido hook de perfis - agora apenas gerencia usuários
 
@@ -77,10 +81,10 @@ const ProfileManagement = () => {
     profileCodes: []
   });
 
-  // Check permissions
+  // Check permissions - permite ADMIN, MANAGER e USER
   useEffect(() => {
-    if (!authLoading && user && !hasProfile('ADMIN')) {
-      toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
+    if (!authLoading && user && !hasProfile('ADMIN') && !hasProfile('MANAGER') && !hasProfile('USER')) {
+      toast.error('Acesso negado. Você não tem permissão para acessar esta página.');
       navigate('/');
     }
   }, [hasProfile, navigate, authLoading, user]);
@@ -280,8 +284,8 @@ const ProfileManagement = () => {
     }
   };
 
-  // User columns
-  const userColumns: Column<UserProfile>[] = [
+  // User columns - versão completa para ADMIN
+  const adminUserColumns: Column<UserProfile>[] = [
     {
       key: 'select',
       title: '',
@@ -435,6 +439,88 @@ const ProfileManagement = () => {
       ),
     },
   ];
+
+  // User columns - versão somente leitura para MANAGER e USER
+  const readOnlyUserColumns: Column<UserProfile>[] = [
+    {
+      key: 'id',
+      title: 'ID',
+      sortable: true,
+      width: '80px',
+      render: (item) => `#${item.id}`,
+    },
+    {
+      key: 'username',
+      title: 'Usuário',
+      sortable: true,
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-gray-400" />
+          <span className="font-medium">{item.username}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'name',
+      title: 'Nome',
+      sortable: true,
+      render: (item) => item.firstName || item.name || '-',
+    },
+    {
+      key: 'email',
+      title: 'Email',
+      sortable: true,
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <Mail className="w-4 h-4 text-gray-400" />
+          <span>{item.email}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'profiles',
+      title: 'Perfis',
+      render: (item) => (
+        <div className="flex gap-1 flex-wrap">
+          {item.roles?.map((role) => (
+            <span
+              key={role}
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
+              {role === 'ADMIN' ? 'Administrador' : role === 'MANAGER' ? 'Gerente' : 'Usuário'}
+            </span>
+          )) || '-'}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      sortable: true,
+      render: (item) => (
+        <span
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            item.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}
+        >
+          {item.enabled ? (
+            <>
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Ativo
+            </>
+          ) : (
+            <>
+              <XCircle className="w-3 h-3 mr-1" />
+              Inativo
+            </>
+          )}
+        </span>
+      ),
+    },
+  ];
+
+  // Escolhe as colunas baseado no perfil do usuário
+  const userColumns = isAdmin ? adminUserColumns : readOnlyUserColumns;
 
   // Profile columns
   const profileColumns: Column<Profile>[] = [
@@ -636,19 +722,26 @@ const ProfileManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isAdmin ? 'Gerenciamento de Usuários' : 'Visualização de Usuários'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {isAdmin ? 'Gerencie usuários e suas permissões' : 'Visualize usuários cadastrados'}
+          </p>
         </div>
-        <div className="flex space-x-2">
-          <Button onClick={handleCreateUser} className="flex items-center">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Novo Usuário
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex space-x-2">
+            <Button onClick={handleCreateUser} className="flex items-center">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Novo Usuário
+            </Button>
+          </div>
+        )}
       </div>
 
 
-      {/* Selection bar */}
-      {selectionState.hasSelection && (
+      {/* Selection bar - apenas para ADMIN */}
+      {isAdmin && selectionState.hasSelection && (
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

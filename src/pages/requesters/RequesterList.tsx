@@ -11,6 +11,7 @@ import {
     Calendar,
 } from 'lucide-react';
 import { useRequesters } from '@/hooks/useRequesters';
+import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -28,6 +29,12 @@ interface Requester {
 
 const RequesterList: React.FC = () => {
     const navigate = useNavigate();
+    const { hasProfile } = useAuth();
+    
+    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    const isAdmin = hasProfile('ADMIN');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -137,7 +144,8 @@ const RequesterList: React.FC = () => {
 
     // ===== Colunas da tabela (inclui coluna de seleção) =====
     const columns: Column<Requester>[] = [
-        {
+        // Checkbox de seleção - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'select',
             title: '',
             width: '50px',
@@ -167,7 +175,8 @@ const RequesterList: React.FC = () => {
                     />
                 </div>
             ),
-        },
+        }] : []),
+        // Colunas que todos podem ver
         {
             key: 'id',
             title: 'ID',
@@ -241,12 +250,13 @@ const RequesterList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true,
         },
-        {
+        // Coluna de ações - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'actions',
             title: 'Ações',
-            align: 'center',
+            align: 'center' as const,
             width: '120px',
-            render: (item) => (
+            render: (item: Requester) => (
                 <div className="flex items-center justify-center gap-1">
                     <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
                         <Edit className="w-4 h-4" />
@@ -262,7 +272,7 @@ const RequesterList: React.FC = () => {
                     </Button>
                 </div>
             ),
-        },
+        }] : []),
     ];
 
     // ===== Card (mobile) com checkbox de seleção =====
@@ -271,15 +281,17 @@ const RequesterList: React.FC = () => {
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox */}
-                    <div className="flex-shrink-0 pt-1">
-                        <input
-                            type="checkbox"
-                            checked={selectedItems.includes(requester.id)}
-                            onChange={() => toggleItem(requester.id)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                    </div>
+                    {/* Checkbox - apenas para ADMIN */}
+                    {isAdmin && (
+                        <div className="flex-shrink-0 pt-1">
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.includes(requester.id)}
+                                onChange={() => toggleItem(requester.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                        </div>
+                    )}
 
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -291,27 +303,29 @@ const RequesterList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações */}
-                <div className="flex gap-1 ml-2">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(requester.id)}
-                        title="Editar"
-                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                    >
-                        <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(requester.id)}
-                        title="Excluir"
-                        className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
-                </div>
+                {/* Ações - apenas para ADMIN */}
+                {isAdmin && (
+                    <div className="flex gap-1 ml-2">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(requester.id)}
+                            title="Editar"
+                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                        >
+                            <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(requester.id)}
+                            title="Excluir"
+                            className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Informações de Contato */}
@@ -356,16 +370,23 @@ const RequesterList: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Solicitantes</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {isAdmin ? 'Gerenciamento de Solicitantes' : 'Visualização de Solicitantes'}
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        {isAdmin ? 'Gerencie os solicitantes cadastrados' : 'Visualize os solicitantes cadastrados'}
+                    </p>
                 </div>
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/requesters/create')}
-                    className="flex items-center justify-center sm:justify-start"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Solicitante
-                </Button>
+                {isAdmin && (
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate('/requesters/create')}
+                        className="flex items-center justify-center sm:justify-start"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Solicitante
+                    </Button>
+                )}
             </div>
 
             {/* Filtros Mobile - Busca simples + seleção e bulk delete */}
@@ -399,7 +420,7 @@ const RequesterList: React.FC = () => {
                                 <span className="text-sm">Selecionar Todos</span>
                             </Button>
 
-                            {selectionState.hasSelection && (
+                            {isAdmin && selectionState.hasSelection && (
                                 <Button
                                     size="sm"
                                     variant="danger"
@@ -427,7 +448,7 @@ const RequesterList: React.FC = () => {
                 <>
                     {/* Desktop - Barra de ações quando há seleção */}
                     <div className="hidden lg:block space-y-4">
-                        {selectionState.hasSelection && (
+                        {isAdmin && selectionState.hasSelection && (
                             <Card className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

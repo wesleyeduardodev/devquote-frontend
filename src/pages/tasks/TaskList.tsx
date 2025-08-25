@@ -14,8 +14,7 @@ import {
     Calendar,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
-import { useResourcePermissions } from '@/hooks/usePermissions';
-import { ResourceGuard, ProtectedButton } from '@/components/auth';
+import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -52,7 +51,12 @@ interface Task {
 
 const TaskList: React.FC = () => {
     const navigate = useNavigate();
-    const resourcePermissions = useResourcePermissions();
+    const { hasProfile } = useAuth();
+    
+    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    const isAdmin = hasProfile('ADMIN');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -184,7 +188,8 @@ const TaskList: React.FC = () => {
 
     // ===== Colunas (inclui checkbox de seleção) =====
     const columns: Column<Task>[] = [
-        {
+        // Checkbox de seleção - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'select',
             title: '',
             width: '50px',
@@ -214,7 +219,8 @@ const TaskList: React.FC = () => {
                     />
                 </div>
             ),
-        },
+        }] : []),
+        // Colunas que todos podem ver
         {
             key: 'id',
             title: 'ID',
@@ -365,32 +371,29 @@ const TaskList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true,
         },
-        {
+        // Coluna de ações - apenas para ADMIN
+        ...(isAdmin ? [{
             key: 'actions',
             title: 'Ações',
-            align: 'center',
+            align: 'center' as const,
             width: '120px',
-            render: (item) => (
+            render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
-                    <ResourceGuard resource="tasks" operation="UPDATE" showFallback={false}>
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                    </ResourceGuard>
-                    <ResourceGuard resource="tasks" operation="DELETE" showFallback={false}>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(item.id)}
-                            title="Excluir"
-                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </ResourceGuard>
+                    <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
+                        <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(item.id)}
+                        title="Excluir"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
                 </div>
             ),
-        },
+        }] : []),
     ];
 
     // ===== Card (mobile) com checkbox + ações =====
@@ -399,15 +402,17 @@ const TaskList: React.FC = () => {
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox */}
-                    <div className="flex-shrink-0 pt-1">
-                        <input
-                            type="checkbox"
-                            checked={selectedItems.includes(task.id)}
-                            onChange={() => toggleItem(task.id)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                    </div>
+                    {/* Checkbox - apenas para ADMIN */}
+                    {isAdmin && (
+                        <div className="flex-shrink-0 pt-1">
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.includes(task.id)}
+                                onChange={() => toggleItem(task.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                        </div>
+                    )}
 
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -427,9 +432,9 @@ const TaskList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações */}
-                <div className="flex gap-1 ml-2">
-                    <ResourceGuard resource="tasks" operation="UPDATE" showFallback={false}>
+                {/* Ações - apenas para ADMIN */}
+                {isAdmin && (
+                    <div className="flex gap-1 ml-2">
                         <Button
                             size="sm"
                             variant="ghost"
@@ -439,8 +444,6 @@ const TaskList: React.FC = () => {
                         >
                             <Edit className="w-4 h-4" />
                         </Button>
-                    </ResourceGuard>
-                    <ResourceGuard resource="tasks" operation="DELETE" showFallback={false}>
                         <Button
                             size="sm"
                             variant="ghost"
@@ -450,8 +453,8 @@ const TaskList: React.FC = () => {
                         >
                             <Trash2 className="w-4 h-4" />
                         </Button>
-                    </ResourceGuard>
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Informações da Task */}
@@ -516,9 +519,14 @@ const TaskList: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Tarefas</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {isAdmin ? 'Gerenciamento de Tarefas' : 'Visualização de Tarefas'}
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        {isAdmin ? 'Gerencie as tarefas cadastradas' : 'Visualize as tarefas cadastradas'}
+                    </p>
                 </div>
-                <ResourceGuard resource="tasks" operation="CREATE" showFallback={false}>
+                {isAdmin && (
                     <Button
                         variant="primary"
                         onClick={() => navigate('/tasks/create')}
@@ -527,7 +535,7 @@ const TaskList: React.FC = () => {
                         <Plus className="w-4 h-4 mr-2" />
                         Nova Tarefa
                     </Button>
-                </ResourceGuard>
+                )}
             </div>
 
             {/* Filtros Mobile - Busca + seleção e bulk delete */}
@@ -545,24 +553,24 @@ const TaskList: React.FC = () => {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between gap-3">
-                            <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectionState.allSelected}
-                                        ref={(input) => {
-                                            if (input) input.indeterminate = selectionState.someSelected;
-                                        }}
-                                        readOnly
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                </div>
-                                <span className="text-sm">Selecionar Todos</span>
-                            </Button>
+                        {isAdmin && (
+                            <div className="flex items-center justify-between gap-3">
+                                <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectionState.allSelected}
+                                            ref={(input) => {
+                                                if (input) input.indeterminate = selectionState.someSelected;
+                                            }}
+                                            readOnly
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <span className="text-sm">Selecionar Todos</span>
+                                </Button>
 
-                            {selectionState.hasSelection && (
-                                <ResourceGuard resource="tasks" operation="BULK" showFallback={false}>
+                                {selectionState.hasSelection && (
                                     <Button
                                         size="sm"
                                         variant="danger"
@@ -572,9 +580,9 @@ const TaskList: React.FC = () => {
                                         <Trash2 className="w-4 h-4" />
                                         <span className="text-sm">Excluir ({selectedItems.length})</span>
                                     </Button>
-                                </ResourceGuard>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </Card>
             </div>
@@ -591,7 +599,7 @@ const TaskList: React.FC = () => {
                 <>
                     {/* Desktop - Barra de ações quando há seleção */}
                     <div className="hidden lg:block space-y-4">
-                        {selectionState.hasSelection && (
+                        {isAdmin && selectionState.hasSelection && (
                             <Card className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -607,17 +615,15 @@ const TaskList: React.FC = () => {
                                             Limpar seleção
                                         </Button>
                                     </div>
-                                    <ResourceGuard resource="tasks" operation="BULK" showFallback={false}>
-                                        <Button
-                                            size="sm"
-                                            variant="danger"
-                                            onClick={() => setShowBulkDeleteModal(true)}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                            Excluir Selecionadas
-                                        </Button>
-                                    </ResourceGuard>
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Excluir Selecionadas
+                                    </Button>
                                 </div>
                             </Card>
                         )}
