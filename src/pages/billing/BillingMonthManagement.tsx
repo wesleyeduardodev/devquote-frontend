@@ -22,6 +22,7 @@ import {
 
 // Hooks e serviços existentes
 import useQuotes from '../../hooks/useQuotes';
+import { useAuth } from '../../hooks/useAuth';
 import billingMonthService from '../../services/billingMonthService';
 
 // Modal de confirmação (mesmo usado nas outras telas)
@@ -80,6 +81,12 @@ const statusOptions = [
 ] as const;
 
 const BillingManagement: React.FC = () => {
+    const { hasProfile } = useAuth();
+    
+    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    const isAdmin = hasProfile('ADMIN');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    
     // Lista e carregamento
     const [billingMonths, setBillingMonths] = useState<BillingMonth[]>([]);
     const [loadingList, setLoadingList] = useState(true);
@@ -429,15 +436,17 @@ const BillingManagement: React.FC = () => {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-2">
                     <div className="flex items-start gap-3">
-                        {/* Checkbox */}
-                        <div className="pt-1">
-                            <input
-                                type="checkbox"
-                                checked={selectedItems.includes(billing.id)}
-                                onChange={() => toggleItem(billing.id)}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                        </div>
+                        {/* Checkbox - apenas para ADMIN */}
+                        {isAdmin && (
+                            <div className="pt-1">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedItems.includes(billing.id)}
+                                    onChange={() => toggleItem(billing.id)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                            </div>
+                        )}
 
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -468,13 +477,15 @@ const BillingManagement: React.FC = () => {
                         >
                             <Eye className="w-5 h-5" />
                         </button>
-                        <button
-                            onClick={() => handleDeleteBilling(billing)}
-                            className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                            title="Excluir"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
+                        {isAdmin && (
+                            <button
+                                onClick={() => handleDeleteBilling(billing)}
+                                className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                title="Excluir"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -641,13 +652,15 @@ const BillingManagement: React.FC = () => {
                                 >
                                     Limpar seleção
                                 </button>
-                                <button
-                                    onClick={() => setShowBulkDeleteModal(true)}
-                                    className="inline-flex items-center gap-2 px-3 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    Excluir Selecionados
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => setShowBulkDeleteModal(true)}
+                                        className="inline-flex items-center gap-2 px-3 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Excluir Selecionados
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -672,17 +685,19 @@ const BillingManagement: React.FC = () => {
                                 onClick={toggleAll}
                                 className="inline-flex items-center gap-2 px-3 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                             >
-                                <input
-                                    type="checkbox"
-                                    checked={selectionState.allSelected}
-                                    ref={(input) => { if (input) input.indeterminate = selectionState.someSelected; }}
-                                    readOnly
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
+                                {isAdmin && (
+                                    <input
+                                        type="checkbox"
+                                        checked={selectionState.allSelected}
+                                        ref={(input) => { if (input) input.indeterminate = selectionState.someSelected; }}
+                                        readOnly
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                )}
                                 Selecionar Todos
                             </button>
 
-                            {selectionState.hasSelection && (
+                            {isAdmin && selectionState.hasSelection && (
                                 <button
                                     onClick={() => setShowBulkDeleteModal(true)}
                                     className="inline-flex items-center gap-2 px-3 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
@@ -714,14 +729,16 @@ const BillingManagement: React.FC = () => {
                                     {/* Checkbox header */}
                                     <th className="px-4 py-3 w-[48px]">
                                         <div className="flex items-center justify-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectionState.allSelected}
-                                                ref={(input) => { if (input) input.indeterminate = selectionState.someSelected; }}
-                                                onChange={toggleAll}
-                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                                title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
-                                            />
+                                            {isAdmin && (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectionState.allSelected}
+                                                    ref={(input) => { if (input) input.indeterminate = selectionState.someSelected; }}
+                                                    onChange={toggleAll}
+                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                    title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                                                />
+                                            )}
                                         </div>
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
@@ -747,12 +764,14 @@ const BillingManagement: React.FC = () => {
                                                 {/* Checkbox cell */}
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-center justify-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedItems.includes(billing.id)}
-                                                            onChange={() => toggleItem(billing.id)}
-                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                                        />
+                                                        {isAdmin && (
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedItems.includes(billing.id)}
+                                                                onChange={() => toggleItem(billing.id)}
+                                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                            />
+                                                        )}
                                                     </div>
                                                 </td>
 
@@ -796,14 +815,16 @@ const BillingManagement: React.FC = () => {
                                                             <Eye className="w-4 h-4" />
                                                             Gerenciar
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleDeleteBilling(billing)}
-                                                            disabled={loadingList}
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                            Excluir
-                                                        </button>
+                                                        {isAdmin && (
+                                                            <button
+                                                                onClick={() => handleDeleteBilling(billing)}
+                                                                disabled={loadingList}
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                                Excluir
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
