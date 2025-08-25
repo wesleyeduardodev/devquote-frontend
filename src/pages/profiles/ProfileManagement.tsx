@@ -313,8 +313,12 @@ const ProfileManagement = () => {
             type="checkbox"
             checked={selectedItems.includes(item.id)}
             onChange={() => toggleItem(item.id)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className={`w-4 h-4 border-gray-300 rounded focus:ring-blue-500 ${
+              user?.id === item.id ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600'
+            }`}
             onClick={(e) => e.stopPropagation()}
+            disabled={user?.id === item.id}
+            title={user?.id === item.id ? "Você não pode selecionar sua própria conta" : ""}
           />
         </div>
       ),
@@ -426,8 +430,11 @@ const ProfileManagement = () => {
             size="sm"
             variant="ghost"
             onClick={() => handleDeleteUser(item)}
-            title="Excluir"
-            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+            title={user?.id === item.id ? "Você não pode excluir sua própria conta" : "Excluir"}
+            className={user?.id === item.id 
+              ? "text-gray-400 cursor-not-allowed" 
+              : "text-red-600 hover:text-red-800 hover:bg-red-50"}
+            disabled={user?.id === item.id}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
