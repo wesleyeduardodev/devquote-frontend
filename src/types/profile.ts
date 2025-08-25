@@ -31,9 +31,13 @@ export interface UserProfile {
   id: number;
   username: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
   name?: string;
-  active: boolean;
+  enabled: boolean;
+  active?: boolean; // Para compatibilidade
   profiles: Profile[];
+  roles: string[]; // Para mapear os códigos dos perfis
   createdAt: string;
   updatedAt: string;
 }

@@ -228,7 +228,7 @@ const ProfileManagement = () => {
       password: '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
-      profileCodes: user.profiles?.map(p => p.code) || []
+      profileCodes: user.roles || [] // Usa os códigos dos perfis diretamente
     });
     setIsEditing(true);
     setShowCreateUserModal(true);
@@ -249,13 +249,30 @@ const ProfileManagement = () => {
     try {
       if (isEditing && selectedUser) {
         const updateData: UpdateUserDto = {
+          username: userForm.username,
+          email: userForm.email,
           firstName: userForm.firstName,
           lastName: userForm.lastName,
           enabled: true,
           profileCodes: userForm.profileCodes
         };
+        
+        // Verifica se está alterando o username do próprio usuário logado
+        const isChangingOwnUsername = user?.id === selectedUser.id && 
+                                      selectedUser.username !== userForm.username;
+        
         await updateUser(selectedUser.id, updateData);
         toast.success('Usuário atualizado com sucesso');
+        
+        // Se alterou o próprio username, faz logout
+        if (isChangingOwnUsername) {
+          toast.info('Username alterado. Redirecionando para login...');
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login';
+          }, 2000);
+        }
       } else {
         await createUser(userForm);
         toast.success('Usuário criado com sucesso');
@@ -831,34 +848,34 @@ const ProfileManagement = () => {
               />
             </div>
             
+            <Input
+              label="Nome de Usuário"
+              value={userForm.username}
+              onChange={(e) => setUserForm({...userForm, username: e.target.value})}
+              placeholder="joaosilva"
+              required
+              helpText={isEditing && user?.username === selectedUser?.username ? 
+                "⚠️ Alterar o username fará logout automático" : ""}
+            />
+            
+            <Input
+              label="Email"
+              type="email"
+              value={userForm.email}
+              onChange={(e) => setUserForm({...userForm, email: e.target.value})}
+              placeholder="joao@example.com"
+              required
+            />
+            
             {!isEditing && (
-              <>
-                <Input
-                  label="Nome de Usuário"
-                  value={userForm.username}
-                  onChange={(e) => setUserForm({...userForm, username: e.target.value})}
-                  placeholder="joaosilva"
-                  required
-                />
-                
-                <Input
-                  label="Email"
-                  type="email"
-                  value={userForm.email}
-                  onChange={(e) => setUserForm({...userForm, email: e.target.value})}
-                  placeholder="joao@example.com"
-                  required
-                />
-                
-                <Input
-                  label="Senha"
-                  type="password"
-                  value={userForm.password}
-                  onChange={(e) => setUserForm({...userForm, password: e.target.value})}
-                  placeholder="••••••••"
-                  required
-                />
-              </>
+              <Input
+                label="Senha"
+                type="password"
+                value={userForm.password}
+                onChange={(e) => setUserForm({...userForm, password: e.target.value})}
+                placeholder="••••••••"
+                required
+              />
             )}
             
             <div>

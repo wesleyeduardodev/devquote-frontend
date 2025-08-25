@@ -1,4 +1,6 @@
 import api from './api';
+import { Profile, UserProfile } from '@/types/profile';
+import { profileService } from './profileService';
 
 interface SortInfo {
     field: string;
@@ -21,10 +23,60 @@ interface PaginatedParams {
     filters?: FilterParams;
 }
 
+// Cache para os perfis para evitar múltiplas chamadas
+let profilesCache: Profile[] | null = null;
+
+// Função para buscar os perfis (com cache)
+const getProfiles = async (): Promise<Profile[]> => {
+    if (!profilesCache) {
+        try {
+            profilesCache = await profileService.getAll();
+        } catch (error) {
+            console.error('Erro ao buscar perfis:', error);
+            profilesCache = [];
+        }
+    }
+    return profilesCache;
+};
+
+// Função para mapear usuário do backend para frontend
+const mapUserFromBackend = async (backendUser: any): Promise<UserProfile> => {
+    const profiles = await getProfiles();
+    
+    // Mapeia os códigos dos perfis para objetos Profile completos
+    const userProfiles = backendUser.roles?.map((roleCode: string) => 
+        profiles.find(p => p.code === roleCode)
+    ).filter(Boolean) || [];
+    
+    return {
+        id: backendUser.id,
+        username: backendUser.username,
+        email: backendUser.email,
+        firstName: backendUser.firstName || '',
+        lastName: backendUser.lastName || '',
+        name: backendUser.firstName && backendUser.lastName 
+            ? `${backendUser.firstName} ${backendUser.lastName}` 
+            : (backendUser.firstName || ''),
+        enabled: backendUser.enabled,
+        active: backendUser.enabled, // Para compatibilidade
+        profiles: userProfiles,
+        roles: backendUser.roles || [],
+        createdAt: backendUser.createdAt,
+        updatedAt: backendUser.updatedAt
+    };
+};
+
 export const userManagementService = {
-    getAll: async (): Promise<any> => {
+    getAll: async (): Promise<UserProfile[]> => {
         const response = await api.get('/admin/users');
-        return response.data;
+        const users = response.data;
+        
+        // Mapeia cada usuário para o formato correto
+        const mappedUsers = await Promise.all(
+            users.map((user: any) => mapUserFromBackend(user))
+        );
+        
+        return mappedUsers;
     },
 
     getAllPaginated: async (params: PaginatedParams): Promise<any> => {
@@ -52,22 +104,32 @@ export const userManagementService = {
         }
 
         const response = await api.get(`/admin/users?${queryParams.toString()}`);
-        return response.data;
+        const data = response.data;
+        
+        // Mapeia os usuários na resposta paginada
+        const mappedUsers = await Promise.all(
+            data.content.map((user: any) => mapUserFromBackend(user))
+        );
+        
+        return {
+            ...data,
+            content: mappedUsers
+        };
     },
 
-    getById: async (id: number): Promise<any> => {
+    getById: async (id: number): Promise<UserProfile> => {
         const response = await api.get(`/admin/users/${id}`);
-        return response.data;
+        return mapUserFromBackend(response.data);
     },
 
-    create: async (data: any): Promise<any> => {
+    create: async (data: any): Promise<UserProfile> => {
         const response = await api.post('/admin/users', data);
-        return response.data;
+        return mapUserFromBackend(response.data);
     },
 
-    update: async (id: number, data: any): Promise<any> => {
+    update: async (id: number, data: any): Promise<UserProfile> => {
         const response = await api.put(`/admin/users/${id}`, data);
-        return response.data;
+        return mapUserFromBackend(response.data);
     },
 
     updatePermissions: async (id: number, data: any): Promise<any> => {
