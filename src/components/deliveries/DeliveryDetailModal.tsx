@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-    X, 
-    User, 
-    FileText, 
-    Calendar, 
-    Clock, 
+import {
+    X,
+    User,
+    FileText,
+    Calendar,
+    Clock,
     CheckCircle2,
     Activity,
     Target,
@@ -199,12 +199,6 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                     Projeto
                                 </h3>
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
-                                    {delivery.projectId && (
-                                        <div>
-                                            <span className="text-sm font-medium text-green-900">ID:</span>
-                                            <span className="text-sm text-green-800 ml-2">#{delivery.projectId}</span>
-                                        </div>
-                                    )}
                                     {delivery.projectName && (
                                         <div>
                                             <span className="text-sm font-medium text-green-900">Nome:</span>
@@ -251,7 +245,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-2">
                                         <Flag className="w-4 h-4 text-gray-400" />
                                         <div>
@@ -283,7 +277,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                                 </code>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-2">
                                             <GitBranch className="w-4 h-4 text-gray-400" />
                                             <div>
