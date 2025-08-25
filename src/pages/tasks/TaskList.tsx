@@ -57,7 +57,9 @@ const TaskList: React.FC = () => {
     
     // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
+    const isManager = hasProfile('MANAGER');
     const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
     
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -108,8 +110,10 @@ const TaskList: React.FC = () => {
                 description: subtask.description || subtask.title,
                 completed: subtask.status === 'COMPLETED',
                 status: subtask.status,
+                amount: subtask.amount,
                 createdAt: subtask.createdAt
             })),
+            totalAmount: calculateTaskTotal(task.subTasks),
             createdAt: task.createdAt,
             updatedAt: task.updatedAt
         };
@@ -376,20 +380,21 @@ const TaskList: React.FC = () => {
                 </div>
             ),
         },
-        {
+        // Coluna de valor total - apenas para ADMIN e MANAGER
+        ...(canViewValues ? [{
             key: 'total',
             title: 'Valor Total',
             width: '120px',
-            align: 'right',
-            render: (item) => (
+            align: 'right' as const,
+            render: (item: Task) => (
                 <div className="flex items-center justify-end gap-1">
                     <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-600">
-            {formatCurrency(calculateTaskTotal(item.subTasks))}
-          </span>
+                        {formatCurrency(calculateTaskTotal(item.subTasks))}
+                    </span>
                 </div>
             ),
-        },
+        }] : []),
         {
             key: 'createdAt',
             title: 'Criado em',
@@ -533,12 +538,14 @@ const TaskList: React.FC = () => {
                         <span className="text-gray-600">{task.subTasks?.length || 0} subtarefa(s)</span>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <DollarSign className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-medium text-green-600">
-              {formatCurrency(calculateTaskTotal(task.subTasks))}
-            </span>
-                    </div>
+                    {canViewValues && (
+                        <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-600">
+                                {formatCurrency(calculateTaskTotal(task.subTasks))}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Links */}
@@ -778,6 +785,7 @@ const TaskList: React.FC = () => {
                     setShowDetailModal(false);
                     setSelectedTask(null);
                 }}
+                canViewValues={canViewValues}
             />
         </div>
     );

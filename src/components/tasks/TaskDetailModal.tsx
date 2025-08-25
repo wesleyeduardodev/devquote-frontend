@@ -16,7 +16,8 @@ import {
     Video,
     StickyNote,
     FolderOpen,
-    Link
+    Link,
+    DollarSign
 } from 'lucide-react';
 
 interface Subtask {
@@ -25,6 +26,7 @@ interface Subtask {
     description: string;
     completed: boolean;
     status?: string;
+    amount?: number;
     createdAt?: string;
 }
 
@@ -50,6 +52,7 @@ interface Task {
     meetingLink?: string;
     notes?: string;
     subtasks?: Subtask[];
+    totalAmount?: number;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -58,9 +61,10 @@ interface TaskDetailModalProps {
     task: Task | null;
     isOpen: boolean;
     onClose: () => void;
+    canViewValues?: boolean;
 }
 
-const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose }) => {
+const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose, canViewValues = false }) => {
     if (!isOpen || !task) return null;
 
     const formatDate = (dateString?: string) => {
@@ -73,6 +77,17 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const formatCurrency = (value: number) =>
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+    // Calcula o total das subtarefas se não estiver disponível
+    const calculateTaskTotal = () => {
+        if (task.totalAmount !== undefined) {
+            return task.totalAmount;
+        }
+        return task.subtasks?.reduce((total, subtask) => total + (subtask.amount || 0), 0) || 0;
     };
 
     const getStatusColor = (status: string) => {
@@ -221,7 +236,17 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Nome da Tarefa</p>
-                                    <p className="text-base font-medium text-gray-900">{task.name}</p>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-base font-medium text-gray-900">{task.name}</p>
+                                        {canViewValues && (
+                                            <div className="flex items-center gap-2">
+                                                <DollarSign className="w-4 h-4 text-green-600" />
+                                                <span className="text-lg font-bold text-green-600">
+                                                    {formatCurrency(calculateTaskTotal())}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 
                                 {task.description && (
@@ -382,32 +407,45 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                         )}
                                                     </div>
                                                     <div className="flex-1">
-                                                        {subtask.title && (
-                                                            <p className={`text-sm font-medium mb-1 ${
-                                                                subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
-                                                            }`}>
-                                                                {subtask.title}
-                                                            </p>
-                                                        )}
-                                                        {subtask.description && (
-                                                            <p className={`text-sm ${
-                                                                subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
-                                                            }`}>
-                                                                {subtask.description}
-                                                            </p>
-                                                        )}
-                                                        {subtask.status && (
-                                                            <div className="mt-2">
+                                                        <div className="flex items-start justify-between mb-1">
+                                                            <div className="flex-1">
+                                                                {subtask.title && (
+                                                                    <p className={`text-sm font-medium mb-1 ${
+                                                                        subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                                                                    }`}>
+                                                                        {subtask.title}
+                                                                    </p>
+                                                                )}
+                                                                {subtask.description && (
+                                                                    <p className={`text-sm ${
+                                                                        subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
+                                                                    }`}>
+                                                                        {subtask.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            {canViewValues && subtask.amount !== undefined && (
+                                                                <div className="ml-3 flex items-center gap-1">
+                                                                    <DollarSign className="w-3 h-3 text-green-600" />
+                                                                    <span className="text-sm font-semibold text-green-600">
+                                                                        {formatCurrency(subtask.amount)}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        <div className="flex items-center gap-3 mt-2">
+                                                            {subtask.status && (
                                                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(subtask.status)}`}>
                                                                     {getStatusLabel(subtask.status)}
                                                                 </span>
-                                                            </div>
-                                                        )}
-                                                        {subtask.createdAt && (
-                                                            <p className="text-xs text-gray-400 mt-2">
-                                                                Criada em {formatDate(subtask.createdAt)}
-                                                            </p>
-                                                        )}
+                                                            )}
+                                                            {subtask.createdAt && (
+                                                                <p className="text-xs text-gray-400">
+                                                                    Criada em {formatDate(subtask.createdAt)}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
