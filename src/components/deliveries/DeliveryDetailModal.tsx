@@ -167,20 +167,14 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
                     {/* Delivery Details Section */}
                     <div className="px-6 py-6 space-y-6">
-                        {/* Orçamento Selecionado */}
+                        {/* Orçamento */}
                         {(delivery.quoteId || delivery.quoteName) && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-blue-600" />
-                                    Orçamento Selecionado
+                                    Orçamento
                                 </h3>
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                                    {delivery.quoteId && (
-                                        <div>
-                                            <span className="text-sm font-medium text-blue-900">ID:</span>
-                                            <span className="text-sm text-blue-800 ml-2">#{delivery.quoteId}</span>
-                                        </div>
-                                    )}
                                     {delivery.quoteCode && (
                                         <div>
                                             <span className="text-sm font-medium text-blue-900">Código:</span>
@@ -193,28 +187,16 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                             <span className="text-sm text-blue-800 ml-2">{delivery.quoteName}</span>
                                         </div>
                                     )}
-                                    {delivery.quoteStatus && (
-                                        <div>
-                                            <span className="text-sm font-medium text-blue-900">Status:</span>
-                                            <span className="text-sm text-blue-800 ml-2">{delivery.quoteStatus}</span>
-                                        </div>
-                                    )}
-                                    {delivery.quoteValue && (
-                                        <div>
-                                            <span className="text-sm font-medium text-blue-900">Valor:</span>
-                                            <span className="text-sm font-semibold text-blue-800 ml-2">{formatCurrency(delivery.quoteValue)}</span>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         )}
 
-                        {/* Projeto Selecionado */}
+                        {/* Projeto */}
                         {(delivery.projectId || delivery.projectName) && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                     <Package className="w-5 h-5 text-blue-600" />
-                                    Projeto Selecionado
+                                    Projeto
                                 </h3>
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                                     {delivery.projectId && (
@@ -317,16 +299,15 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                         <div>
                                             <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
                                                 <ExternalLink className="w-3 h-3" />
-                                                Pull Request
+                                                Link da Entrega
                                             </p>
                                             <a
                                                 href={delivery.pullRequest || 'https://github.com/user/repo/pull/123'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                                                className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
                                             >
-                                                <ExternalLink className="w-4 h-4" />
-                                                Ver Pull Request
+                                                {delivery.pullRequest || 'https://github.com/user/repo/pull/123'}
                                             </a>
                                         </div>
                                     )}
