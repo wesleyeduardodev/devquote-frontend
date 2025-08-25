@@ -157,29 +157,6 @@ const ProfileManagement = () => {
     }
   };
   
-  // DEBUG FUNCTION - TEMPORARY
-  const debugAuth = async () => {
-    try {
-      const token = localStorage.getItem('auth.token');
-      console.log('Token exists:', !!token);
-      
-      const response = await fetch('http://localhost:8080/api/auth/debug', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      const data = await response.json();
-      console.log('=== DEBUG AUTH RESPONSE ===');
-      console.log('Authorities:', data.authorities);
-      console.log('Has ROLE_ADMIN:', data.hasRoleAdmin);
-      console.log('Full response:', data);
-      alert('Check console for debug info');
-    } catch (error) {
-      console.error('Debug error:', error);
-    }
-  };
-  
   const handleSaveUser = async () => {
     try {
       if (isEditing && selectedUser) {
@@ -283,9 +260,6 @@ const ProfileManagement = () => {
               </p>
             </div>
             <div className="flex space-x-2">
-              <Button onClick={debugAuth} className="bg-red-600 hover:bg-red-700">
-                DEBUG AUTH
-              </Button>
               {activeTab === 'users' ? (
                 <Button onClick={handleCreateUser} className="flex items-center">
                   <UserPlus className="w-4 h-4 mr-2" />
