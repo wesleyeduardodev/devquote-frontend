@@ -42,6 +42,7 @@ const ProfileManagement = () => {
     createProfile, 
     updateProfile, 
     deleteProfile,
+    deleteBulkProfiles,
     pagination: profilesPagination,
     setPage: setProfilesPage,
     setPageSize: setProfilesPageSize,
@@ -50,7 +51,7 @@ const ProfileManagement = () => {
     clearFilters: clearProfilesFilters,
     sorting: profilesSorting,
     filters: profilesFilters
-  } = useProfiles(true);
+  } = useProfiles(true, { size: 5 });
   
   // User management hooks
   const { 
@@ -60,10 +61,17 @@ const ProfileManagement = () => {
     createUser, 
     updateUser, 
     deleteUser,
-    refetch: refetchUsers,
-    totalElements,
-    totalPages
-  } = useUserManagement(0, 10);
+    deleteBulkUsers,
+    pagination: usersPagination,
+    setPage: setUsersPage,
+    setPageSize: setUsersPageSize,
+    setSorting: setUsersSorting,
+    setFilter: setUsersFilter,
+    clearFilters: clearUsersFilters,
+    sorting: usersSorting,
+    filters: usersFilters,
+    refetch: refetchUsers
+  } = useUserManagement();
   
   // State management
   const [activeTab, setActiveTab] = useState<'users' | 'profiles'>('users');
@@ -78,9 +86,6 @@ const ProfileManagement = () => {
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
   
   // Form state for creating user
   const [userForm, setUserForm] = useState<CreateUserDto>({
@@ -266,13 +271,17 @@ const ProfileManagement = () => {
   const handleBulkDelete = async () => {
     setIsDeleting(true);
     try {
-      // Implement bulk delete logic here
+      if (activeTab === 'users') {
+        await deleteBulkUsers(selectedItems);
+      } else {
+        await deleteBulkProfiles(selectedItems);
+      }
       const qty = selectedItems.length;
       clearSelection();
       setShowBulkDeleteModal(false);
-      toast.success(`${qty} item(s) excluído(s) com sucesso`);
+      toast.success(`${qty} ${activeTab === 'users' ? 'usuário(s)' : 'perfil(is)'} excluído(s) com sucesso`);
     } catch (error) {
-      toast.error('Erro ao excluir itens selecionados');
+      toast.error(`Erro ao excluir ${activeTab === 'users' ? 'usuários' : 'perfis'} selecionados`);
     } finally {
       setIsDeleting(false);
     }
@@ -327,7 +336,7 @@ const ProfileManagement = () => {
       render: (item) => (
         <div className="flex items-center">
           <User className="w-4 h-4 mr-2 text-gray-400" />
-          <span className="font-medium">@{item.username}</span>
+          <span className="font-medium">{item.username}</span>
         </div>
       ),
     },
@@ -732,14 +741,14 @@ const ProfileManagement = () => {
               data={users}
               columns={userColumns}
               loading={loading}
-              pagination={{
-                currentPage: currentPage + 1,
-                totalPages: totalPages || 1,
-                totalItems: totalElements || 0,
-                pageSize: pageSize
-              }}
-              onPageChange={(page) => setCurrentPage(page - 1)}
-              onPageSizeChange={setPageSize}
+              pagination={usersPagination}
+              sorting={usersSorting}
+              filters={usersFilters}
+              onPageChange={setUsersPage}
+              onPageSizeChange={setUsersPageSize}
+              onSort={setUsersSorting}
+              onFilter={setUsersFilter}
+              onClearFilters={clearUsersFilters}
               emptyMessage="Nenhum usuário encontrado"
               showColumnToggle={true}
               hiddenColumns={[]}
@@ -749,7 +758,14 @@ const ProfileManagement = () => {
               data={profiles}
               columns={profileColumns}
               loading={loading}
-              pagination={profilesPagination}
+              pagination={profilesPagination ? {
+                currentPage: profilesPagination.currentPage,
+                totalPages: profilesPagination.totalPages,
+                totalElements: profilesPagination.totalElements,
+                pageSize: profilesPagination.pageSize,
+                first: profilesPagination.first,
+                last: profilesPagination.last
+              } : null}
               sorting={profilesSorting}
               filters={profilesFilters}
               onPageChange={setProfilesPage}
