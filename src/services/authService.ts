@@ -1,6 +1,13 @@
 import api from './api';
 import type { AuthLoginRequest, AuthLoginResponse, UserPermissions } from '@/types/auth';
 
+interface UpdateProfileRequest {
+  name: string;
+  email: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
 export class AuthService {
   static async login(credentials: AuthLoginRequest): Promise<AuthLoginResponse> {
     const response = await api.post<AuthLoginResponse>('/auth/login', credentials);
@@ -36,6 +43,10 @@ export class AuthService {
     ]);
 
     return { allowedScreens, permissions };
+  }
+
+  static async updateProfile(data: UpdateProfileRequest): Promise<void> {
+    await api.put('/auth/profile', data);
   }
 
   static clearStoredAuth(): void {

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Settings, User, LogOut } from 'lucide-react';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -23,6 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const location = useLocation();
     const { user, logout, hasScreenAccess } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+    const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
 
     const handleLogout = (): void => {
         logout();
@@ -100,12 +101,61 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             <span className="text-gray-700 text-sm hidden sm:inline">
                                 Olá, {getUserDisplayName(user)}
                             </span>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg transition-colors text-sm font-medium"
-                            >
-                                Sair
-                            </button>
+                            
+                            {/* User Menu Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowUserMenu(!showUserMenu)}
+                                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                                    aria-label="Menu do usuário"
+                                >
+                                    <div className="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                        <User className="h-4 w-4 text-primary-600" />
+                                    </div>
+                                </button>
+                                
+                                {/* Dropdown Menu */}
+                                {showUserMenu && (
+                                    <>
+                                        <div 
+                                            className="fixed inset-0 z-40" 
+                                            onClick={() => setShowUserMenu(false)}
+                                        />
+                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                                            <div className="p-3 border-b border-gray-100">
+                                                <div className="font-medium text-gray-900">{getUserDisplayName(user)}</div>
+                                                <div className="text-sm text-gray-500">{user?.email}</div>
+                                            </div>
+                                            
+                                            <div className="py-1">
+                                                <button
+                                                    onClick={() => {
+                                                        setShowUserMenu(false);
+                                                        navigate('/settings');
+                                                    }}
+                                                    className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                >
+                                                    <Settings className="h-4 w-4 mr-2" />
+                                                    Configurações
+                                                </button>
+                                                
+                                                <div className="border-t border-gray-100 my-1" />
+                                                
+                                                <button
+                                                    onClick={() => {
+                                                        setShowUserMenu(false);
+                                                        handleLogout();
+                                                    }}
+                                                    className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                >
+                                                    <LogOut className="h-4 w-4 mr-2" />
+                                                    Sair
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,6 +233,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                         </button>
                                     </li>
                                 ))}
+                            </ul>
+                            
+                            {/* Separator */}
+                            <div className="border-t border-gray-200 my-4" />
+                            
+                            {/* Settings and Logout */}
+                            <ul className="space-y-2">
+                                <li>
+                                    <button
+                                        onClick={() => handleNavigate('/settings')}
+                                        className="w-full text-left px-3 py-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-600 transition-colors flex items-center"
+                                    >
+                                        <Settings className="h-4 w-4 mr-2" />
+                                        Configurações
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full text-left px-3 py-3 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center"
+                                    >
+                                        <LogOut className="h-4 w-4 mr-2" />
+                                        Sair
+                                    </button>
+                                </li>
                             </ul>
                         </nav>
                     </div>

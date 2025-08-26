@@ -23,6 +23,7 @@ import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import ProfileManagement from './pages/profiles/ProfileManagement';
+import { UserSettings } from './pages/UserSettings';
 import NotFound from './pages/NotFound';
 
 interface RedirectIfAuthenticatedProps {
@@ -163,6 +164,9 @@ const AppRoutes: React.FC = () => {
                                     <ProfileManagement/>
                                 </ProtectedRoute>
                             }/>
+                            
+                            {/* User Settings - Todos os usuários autenticados */}
+                            <Route path="/settings" element={<UserSettings/>}/>
                             
                             <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
                             <Route path="*" element={<NotFound/>}/>
