@@ -68,6 +68,7 @@ interface UseQuotesReturn {
     updateQuote: (id: number, quoteData: QuoteUpdate) => Promise<Quote>;
     deleteQuote: (id: number) => Promise<void>;
     deleteBulkQuotes: (ids: number[]) => Promise<void>;
+    updateQuoteStatus: (id: number, status: string) => Promise<Quote>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -171,6 +172,18 @@ const useQuotes = (initialParams?: UseQuotesParams): UseQuotesReturn => {
         }
     }, [fetchQuotes]);
 
+    const updateQuoteStatus = useCallback(async (id: number, status: string): Promise<Quote> => {
+        try {
+            const updatedQuote = await quoteService.updateStatus(id, status);
+            await fetchQuotes(); // Recarrega a lista após atualização
+            toast.success('Status do orçamento atualizado com sucesso!');
+            return updatedQuote;
+        } catch (err: any) {
+            console.error('Erro ao atualizar status do orçamento:', err);
+            throw err;
+        }
+    }, [fetchQuotes]);
+
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
@@ -234,6 +247,7 @@ const useQuotes = (initialParams?: UseQuotesParams): UseQuotesReturn => {
         updateQuote,
         deleteQuote,
         deleteBulkQuotes,
+        updateQuoteStatus,
         setPage,
         setPageSize,
         setSorting,

@@ -60,9 +60,6 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
     if (!isOpen || !delivery) return null;
 
-    // Debug: log dos dados da entrega
-    console.log('DeliveryDetailModal - dados da entrega:', delivery);
-
     const handleCopyScript = async () => {
         const scriptContent = delivery.script || `-- Insira aqui o script SQL para a entrega
 CREATE TABLE exemplo (

@@ -11,6 +11,7 @@ import {
     Tag,
     Search,
     Filter,
+    Settings,
 } from 'lucide-react';
 import useQuotes from '@/hooks/useQuotes';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +19,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import StatusChangeModal from '@/components/ui/StatusChangeModal';
 import toast from 'react-hot-toast';
 
 interface Quote {
@@ -35,14 +37,20 @@ const QuoteList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile } = useAuth();
     
-    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    // Verifica se o usuário pode gerenciar (ADMIN) ou alterar status (ADMIN/MANAGER)
     const isAdmin = hasProfile('ADMIN');
-    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    const canChangeStatus = hasProfile('ADMIN') || hasProfile('MANAGER');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura para CRUD
     
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    
+    // Status change modal
+    const [showStatusModal, setShowStatusModal] = useState(false);
+    const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
     const {
         quotes,
@@ -56,7 +64,8 @@ const QuoteList: React.FC = () => {
         setFilter,
         clearFilters,
         deleteQuote,
-        deleteBulkQuotes, // <-- deve existir no hook
+        deleteBulkQuotes,
+        updateQuoteStatus,
     } = useQuotes();
 
     const handleEdit = (id: number) => {
@@ -70,6 +79,26 @@ const QuoteList: React.FC = () => {
             } catch (error) {
                 toast.error('Erro ao excluir orçamento');
             }
+        }
+    };
+
+    const handleStatusChange = (quote: Quote) => {
+        setSelectedQuote(quote);
+        setShowStatusModal(true);
+    };
+
+    const handleStatusConfirm = async (status: string) => {
+        if (!selectedQuote) return;
+        
+        setIsUpdatingStatus(true);
+        try {
+            await updateQuoteStatus(selectedQuote.id, status);
+            setShowStatusModal(false);
+            setSelectedQuote(null);
+        } catch (error) {
+            toast.error('Erro ao atualizar status do orçamento');
+        } finally {
+            setIsUpdatingStatus(false);
         }
     };
 
@@ -306,8 +335,8 @@ const QuoteList: React.FC = () => {
             ),
             hideable: true,
         },
-        // Coluna de ações - apenas para ADMIN
-        ...(isAdmin ? [{
+        // Coluna de ações - ADMIN (CRUD) e MANAGER (apenas status)
+        ...(canChangeStatus ? [{
             key: 'actions',
             title: 'Ações',
             align: 'center' as const,
@@ -317,20 +346,33 @@ const QuoteList: React.FC = () => {
                     <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleEdit(item.id)}
-                        title="Editar orçamento"
+                        onClick={() => handleStatusChange(item)}
+                        title="Alterar status"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                     >
-                        <Edit className="w-4 h-4" />
+                        <Settings className="w-4 h-4" />
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(item.id)}
-                        title="Excluir orçamento"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isAdmin && (
+                        <>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(item.id)}
+                                title="Editar orçamento"
+                            >
+                                <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(item.id)}
+                                title="Excluir orçamento"
+                                className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </>
+                    )}
                 </div>
             ),
         }] : []),
@@ -374,27 +416,40 @@ const QuoteList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações - apenas para ADMIN */}
-                {isAdmin && (
+                {/* Ações - ADMIN (CRUD) e MANAGER (apenas status) */}
+                {canChangeStatus && (
                     <div className="flex gap-1 ml-2">
                         <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleEdit(quote.id)}
-                            title="Editar"
+                            onClick={() => handleStatusChange(quote)}
+                            title="Alterar status"
                             className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                         >
-                            <Edit className="w-4 h-4" />
+                            <Settings className="w-4 h-4" />
                         </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(quote.id)}
-                            title="Excluir"
-                            className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {isAdmin && (
+                            <>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(quote.id)}
+                                    title="Editar"
+                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDelete(quote.id)}
+                                    title="Excluir"
+                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
@@ -427,10 +482,10 @@ const QuoteList: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
-                        {isAdmin ? 'Gerenciamento de Orçamentos' : 'Visualização de Orçamentos'}
+                        {isAdmin ? 'Gerenciamento de Orçamentos' : canChangeStatus ? 'Orçamentos' : 'Visualização de Orçamentos'}
                     </h1>
                     <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie os orçamentos cadastrados' : 'Visualize os orçamentos cadastrados'}
+                        {isAdmin ? 'Gerencie os orçamentos cadastrados' : canChangeStatus ? 'Visualize e altere o status dos orçamentos' : 'Visualize os orçamentos cadastrados'}
                     </p>
                 </div>
                 {isAdmin && (
@@ -673,6 +728,18 @@ const QuoteList: React.FC = () => {
                 selectedCount={selectedItems.length}
                 isDeleting={isDeleting}
                 entityName="orçamento"
+            />
+
+            {/* Modal de alteração de status */}
+            <StatusChangeModal
+                isOpen={showStatusModal}
+                quote={selectedQuote}
+                onClose={() => {
+                    setShowStatusModal(false);
+                    setSelectedQuote(null);
+                }}
+                onConfirm={handleStatusConfirm}
+                isLoading={isUpdatingStatus}
             />
         </div>
     );

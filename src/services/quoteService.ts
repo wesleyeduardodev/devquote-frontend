@@ -78,5 +78,10 @@ export const quoteService = {
 
     deleteBulk: async (ids: number[]): Promise<void> => {
         await api.delete('/quotes/bulk', { data: ids });
+    },
+
+    updateStatus: async (id: number, status: string): Promise<any> => {
+        const response = await api.patch(`/quotes/${id}/status?status=${status}`);
+        return response.data;
     }
 };
