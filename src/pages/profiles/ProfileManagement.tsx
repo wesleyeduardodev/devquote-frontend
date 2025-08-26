@@ -76,8 +76,7 @@ const ProfileManagement = () => {
     username: '',
     email: '',
     password: '',
-    firstName: '',
-    lastName: '',
+    name: '',
     profileCodes: []
   });
 
@@ -195,8 +194,7 @@ const ProfileManagement = () => {
       username: '',
       email: '',
       password: '',
-      firstName: '',
-      lastName: '',
+      name: '',
       profileCodes: []
     });
     setSelectedUser(null);
@@ -210,8 +208,7 @@ const ProfileManagement = () => {
       username: user.username,
       email: user.email,
       password: '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
+      name: user.name || '',
       profileCodes: user.roles || [] // Usa os códigos dos perfis diretamente
     });
     setIsEditing(true);
@@ -235,8 +232,7 @@ const ProfileManagement = () => {
         const updateData: UpdateUserDto = {
           username: userForm.username,
           email: userForm.email,
-          firstName: userForm.firstName,
-          lastName: userForm.lastName,
+          name: userForm.name,
           enabled: true,
           profileCodes: userForm.profileCodes
         };
@@ -347,7 +343,7 @@ const ProfileManagement = () => {
       sortable: true,
       filterable: true,
       filterType: 'text',
-      render: (item) => `${item.firstName || ''} ${item.lastName || ''}`.trim() || '-',
+      render: (item) => item.name || '-',
     },
     {
       key: 'email',
@@ -464,7 +460,7 @@ const ProfileManagement = () => {
       key: 'name',
       title: 'Nome',
       sortable: true,
-      render: (item) => item.firstName || item.name || '-',
+      render: (item) => item.name || '-',
     },
     {
       key: 'email',
@@ -819,22 +815,13 @@ const ProfileManagement = () => {
           title={isEditing ? 'Editar Usuário' : 'Criar Novo Usuário'}
         >
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Nome"
-                value={userForm.firstName}
-                onChange={(e) => setUserForm({...userForm, firstName: e.target.value})}
-                placeholder="João"
-                required
-              />
-              <Input
-                label="Sobrenome"
-                value={userForm.lastName}
-                onChange={(e) => setUserForm({...userForm, lastName: e.target.value})}
-                placeholder="Silva"
-                required
-              />
-            </div>
+            <Input
+              label="Nome Completo"
+              value={userForm.name}
+              onChange={(e) => setUserForm({...userForm, name: e.target.value})}
+              placeholder="João Silva"
+              required
+            />
 
             <Input
               label="Nome de Usuário"
@@ -853,6 +840,7 @@ const ProfileManagement = () => {
               onChange={(e) => setUserForm({...userForm, email: e.target.value})}
               placeholder="joao@example.com"
               required
+              error={userForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) ? 'Email inválido' : undefined}
             />
 
             {!isEditing && (

@@ -110,6 +110,7 @@ export const UserSettings: React.FC = () => {
       logout();
       navigate('/login');
     } catch (error: any) {
+      console.error('Error updating profile:', error.response?.data || error);
       toast.error(error.response?.data?.message || 'Falha ao atualizar perfil');
     } finally {
       setLoading(false);

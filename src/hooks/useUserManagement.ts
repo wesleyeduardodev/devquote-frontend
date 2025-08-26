@@ -23,8 +23,7 @@ interface FilterParams {
   id?: string;
   username?: string;
   email?: string;
-  firstName?: string;
-  lastName?: string;
+  name?: string;
   enabled?: string;
 }
 

@@ -11,8 +11,7 @@ interface FilterParams {
     id?: string;
     username?: string;
     email?: string;
-    firstName?: string;
-    lastName?: string;
+    name?: string;
     enabled?: string;
 }
 
@@ -52,11 +51,9 @@ const mapUserFromBackend = async (backendUser: any): Promise<UserProfile> => {
         id: backendUser.id,
         username: backendUser.username,
         email: backendUser.email,
-        firstName: backendUser.firstName || '',
-        lastName: backendUser.lastName || '',
-        name: backendUser.firstName && backendUser.lastName 
-            ? `${backendUser.firstName} ${backendUser.lastName}` 
-            : (backendUser.firstName || ''),
+        firstName: '', // Deprecated
+        lastName: '', // Deprecated
+        name: backendUser.name || '',
         enabled: backendUser.enabled,
         active: backendUser.enabled, // Para compatibilidade
         profiles: userProfiles,
