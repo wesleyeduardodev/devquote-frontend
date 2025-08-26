@@ -336,6 +336,7 @@ const QuoteList: React.FC = () => {
             hideable: true,
         },
         // Coluna de ações - ADMIN (CRUD) e MANAGER (apenas status)
+        // Coluna de ações - ADMIN (CRUD) e MANAGER (apenas status)
         ...(canChangeStatus ? [{
             key: 'actions',
             title: 'Ações',
