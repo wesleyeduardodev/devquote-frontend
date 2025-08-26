@@ -89,11 +89,14 @@ export function AuthProvider({children}: { children: ReactNode }) {
         try {
             const response = await AuthService.login(data);
             
+            // Store token first so it's available for subsequent requests
+            window.localStorage.setItem('auth.token', response.token);
+            
             // Fetch detailed user info including name
             let userName = '';
             try {
                 const userInfo = await AuthService.getCurrentUser();
-                userName = userInfo.firstName || '';
+                userName = userInfo.name || '';
             } catch (error) {
                 console.warn('Failed to fetch user info:', error);
             }
@@ -110,7 +113,6 @@ export function AuthProvider({children}: { children: ReactNode }) {
             };
 
             // Store user data
-            window.localStorage.setItem('auth.token', newUser.token);
             window.localStorage.setItem('auth.user', JSON.stringify(newUser));
             setUser(newUser);
 

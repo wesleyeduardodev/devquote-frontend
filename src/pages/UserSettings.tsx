@@ -50,11 +50,11 @@ export const UserSettings: React.FC = () => {
           const currentUser = await AuthService.getCurrentUser();
 
           // Update form data with the fetched user info
-          if (currentUser && currentUser.firstName) {
+          if (currentUser && currentUser.name) {
             setFormData(prev => ({
               ...prev,
               username: currentUser.username || prev.username,
-              name: currentUser.firstName || prev.name,
+              name: currentUser.name || prev.name,
               email: currentUser.email || prev.email
             }));
           }
