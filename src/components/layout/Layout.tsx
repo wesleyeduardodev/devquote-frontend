@@ -21,7 +21,7 @@ interface NavigationItem {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout, hasScreenAccess } = useAuth();
+    const { user, logout, hasScreenAccess, hasProfile } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
     const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
 
@@ -47,21 +47,35 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     // Todos os itens de navegação possíveis
     const allNavigationItems: NavigationItem[] = [
         { path: '/dashboard', label: 'Dashboard', screen: '' }, // Dashboard sempre acessível
-        { path: '/requesters', label: 'Solicitantes', screen: 'users' },
+        { path: '/requesters', label: 'Solicitantes', screen: 'requesters' }, // Apenas ADMIN
         { path: '/tasks', label: 'Tarefas', screen: 'tasks' },
         { path: '/quotes', label: 'Orçamentos', screen: 'quotes' },
         { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
-        { path: '/projects', label: 'Projetos', screen: 'projects' },
+        { path: '/projects', label: 'Projetos', screen: 'projects' }, // Apenas ADMIN
         { path: '/billing', label: 'Faturamento', screen: 'billing' },
-        { path: '/profiles', label: 'Perfis', screen: 'settings' }
+        { path: '/profiles', label: 'Perfis', screen: 'users' } // Apenas ADMIN (gerenciamento de usuários)
     ];
 
     // Filtra itens baseado nas permissões do usuário (Dashboard sempre incluído)
     const navigationItems = useMemo(() => {
-        return allNavigationItems.filter(item => 
-            item.screen === '' || hasScreenAccess(item.screen)
-        );
-    }, [hasScreenAccess]);
+        return allNavigationItems.filter(item => {
+            // Dashboard sempre acessível
+            if (item.screen === '') return true;
+            
+            // Projetos e Perfis apenas para ADMIN
+            if (item.screen === 'projects' || item.screen === 'users') {
+                return hasProfile('ADMIN');
+            }
+            
+            // Solicitantes apenas para ADMIN  
+            if (item.screen === 'requesters') {
+                return hasProfile('ADMIN');
+            }
+            
+            // Outras telas: usar verificação de screen access normal
+            return hasScreenAccess(item.screen);
+        });
+    }, [hasScreenAccess, hasProfile]);
 
     const handleNavigate = (path: string) => {
         navigate(path);

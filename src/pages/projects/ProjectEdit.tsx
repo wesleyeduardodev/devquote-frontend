@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FolderOpen, Edit3, Calendar, Github, AlertCircle } from 'lucide-react';
 import { projectService } from '@/services/projectService';
 import useProjects from '../../hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import ProjectForm from '../../components/forms/ProjectForm';
@@ -12,14 +13,32 @@ const ProjectEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { updateProject } = useProjects();
+    const { hasProfile, user } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
     const [project, setProject] = useState<any>(null);
     const [fetching, setFetching] = useState<boolean>(true);
+
+    // Verifica se o usuário é ADMIN (apenas ADMIN pode editar projetos)
+    const isAdmin = hasProfile('ADMIN');
+    const authLoading = !user;
+
+    // Verificação de acesso - apenas ADMIN pode editar projetos
+    useEffect(() => {
+        if (!authLoading && user && !isAdmin) {
+            toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
+            navigate('/dashboard');
+        }
+    }, [hasProfile, navigate, authLoading, user, isAdmin]);
 
     useEffect(() => {
         const fetchProject = async () => {
             if (!id) {
                 navigate('/projects');
+                return;
+            }
+
+            // Só carrega se for admin
+            if (!authLoading && !isAdmin) {
                 return;
             }
 
@@ -35,10 +54,15 @@ const ProjectEdit: React.FC = () => {
             }
         };
 
-        if (id) {
+        if (id && !authLoading) {
             fetchProject();
         }
-    }, [id, navigate]);
+    }, [id, navigate, authLoading, isAdmin]);
+
+    // Se não é admin, não renderiza nada (vai redirecionar)
+    if (!authLoading && user && !isAdmin) {
+        return null;
+    }
 
     const handleSubmit = async (data: any) => {
         if (!id) return;

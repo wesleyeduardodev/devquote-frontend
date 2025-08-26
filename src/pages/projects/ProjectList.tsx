@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, ExternalLink, Search, Filter, FolderOpen, Calendar, Github, Check } from 'lucide-react';
 import { useProjects } from '@/hooks/useProjects';
@@ -19,11 +19,24 @@ interface Project {
 
 const ProjectList: React.FC = () => {
     const navigate = useNavigate();
-    const { hasProfile } = useAuth();
+    const { hasProfile, user } = useAuth();
     
-    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    // Verifica se o usuário é ADMIN (apenas ADMIN pode acessar projetos)
     const isAdmin = hasProfile('ADMIN');
-    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    const authLoading = !user;
+
+    // Verificação de acesso - apenas ADMIN pode acessar projetos
+    useEffect(() => {
+        if (!authLoading && user && !isAdmin) {
+            toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
+            navigate('/dashboard');
+        }
+    }, [hasProfile, navigate, authLoading, user, isAdmin]);
+
+    // Se não é admin, não renderiza nada (vai redirecionar)
+    if (!authLoading && user && !isAdmin) {
+        return null;
+    }
     
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);

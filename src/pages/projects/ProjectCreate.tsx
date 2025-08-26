@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, FolderOpen, Github, Code, Globe } from 'lucide-react';
 import useProjects from '../../hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import ProjectForm from '../../components/forms/ProjectForm';
+import toast from 'react-hot-toast';
 
 const ProjectCreate: React.FC = () => {
     const navigate = useNavigate();
     const { createProject } = useProjects();
+    const { hasProfile, user } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
+
+    // Verifica se o usuário é ADMIN (apenas ADMIN pode criar projetos)
+    const isAdmin = hasProfile('ADMIN');
+    const authLoading = !user;
+
+    // Verificação de acesso - apenas ADMIN pode criar projetos
+    useEffect(() => {
+        if (!authLoading && user && !isAdmin) {
+            toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
+            navigate('/dashboard');
+        }
+    }, [hasProfile, navigate, authLoading, user, isAdmin]);
+
+    // Se não é admin, não renderiza nada (vai redirecionar)
+    if (!authLoading && user && !isAdmin) {
+        return null;
+    }
 
     const handleSubmit = async (data: any) => {
         try {

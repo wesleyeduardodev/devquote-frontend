@@ -501,16 +501,16 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden">
                     {/* Header */}
-                    <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-900">
+                    <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1 pr-4">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                                     Gerenciar Orçamentos
                                 </h2>
-                                <div className="flex items-center gap-3 mt-2">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2">
                                     <div className="flex items-center gap-2">
-                                        <Calendar className="w-5 h-5 text-blue-600" />
-                                        <span className="text-lg font-semibold text-blue-600">
+                                        <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600" />
+                                        <span className="text-base sm:text-lg font-semibold text-blue-600">
                                             {getMonthName(billingMonth.month)} {billingMonth.year}
                                         </span>
                                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -526,7 +526,7 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                                 value={currentStatus}
                                                 onChange={(e) => handleUpdateStatus(e.target.value)}
                                                 disabled={statusLoading}
-                                                className="text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                                                className="text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                                             >
                                                 {statusOptions.map(option => (
                                                     <option key={option.value} value={option.value}>
@@ -543,22 +543,22 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                             </div>
                             <button
                                 onClick={onClose}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
                             >
-                                <X className="w-6 h-6" />
+                                <X className="w-5 sm:w-6 h-5 sm:h-6" />
                             </button>
                         </div>
 
                         {/* Estatísticas */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                            <div className="bg-white rounded-xl p-4 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-green-100 rounded-lg">
-                                        <Link2 className="w-5 h-5 text-green-600" />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-6">
+                            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
+                                        <Link2 className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Vinculados</p>
-                                        <p className="text-lg font-bold text-gray-900">{statistics.linkedCount}</p>
+                                        <p className="text-xs sm:text-sm text-gray-600">Vinculados</p>
+                                        <p className="text-base sm:text-lg font-bold text-gray-900">{statistics.linkedCount}</p>
                                         <p className="text-xs text-green-600 font-semibold">
                                             {formatCurrency(statistics.linkedTotal)}
                                         </p>
@@ -566,14 +566,14 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                 </div>
                             </div>
                             
-                            <div className="bg-white rounded-xl p-4 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-blue-100 rounded-lg">
-                                        <Package className="w-5 h-5 text-blue-600" />
+                            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                                        <Package className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Disponíveis</p>
-                                        <p className="text-lg font-bold text-gray-900">{statistics.availableCount}</p>
+                                        <p className="text-xs sm:text-sm text-gray-600">Disponíveis</p>
+                                        <p className="text-base sm:text-lg font-bold text-gray-900">{statistics.availableCount}</p>
                                         <p className="text-xs text-blue-600 font-semibold">
                                             {formatCurrency(statistics.availableTotal)}
                                         </p>
@@ -581,14 +581,14 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                 </div>
                             </div>
                             
-                            <div className="bg-white rounded-xl p-4 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-purple-100 rounded-lg">
-                                        <TrendingUp className="w-5 h-5 text-purple-600" />
+                            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+                                        <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 text-purple-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Total Geral</p>
-                                        <p className="text-lg font-bold text-gray-900">
+                                        <p className="text-xs sm:text-sm text-gray-600">Total Geral</p>
+                                        <p className="text-base sm:text-lg font-bold text-gray-900">
                                             {statistics.linkedCount + statistics.availableCount}
                                         </p>
                                         <p className="text-xs text-purple-600 font-semibold">
@@ -598,14 +598,14 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                 </div>
                             </div>
                             
-                            <div className="bg-white rounded-xl p-4 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-amber-100 rounded-lg">
-                                        <CheckCircle className="w-5 h-5 text-amber-600" />
+                            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="p-1.5 sm:p-2 bg-amber-100 rounded-lg">
+                                        <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 text-amber-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">% Vinculado</p>
-                                        <p className="text-lg font-bold text-gray-900">
+                                        <p className="text-xs sm:text-sm text-gray-600">% Vinculado</p>
+                                        <p className="text-base sm:text-lg font-bold text-gray-900">
                                             {statistics.linkedCount + statistics.availableCount > 0 
                                                 ? Math.round((statistics.linkedCount / (statistics.linkedCount + statistics.availableCount)) * 100)
                                                 : 0}%
@@ -617,54 +617,59 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                     </div>
 
                     {/* Tabs */}
-                    <div className="border-b border-gray-200">
-                        <nav className="flex space-x-8 px-6">
+                    <div className="border-b border-gray-200 overflow-x-auto">
+                        <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6 min-w-full">
                             <button
                                 onClick={() => setActiveTab('linked')}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                                     activeTab === 'linked'
                                         ? 'border-blue-500 text-blue-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                             >
-                                <div className="flex items-center gap-2">
-                                    <Link2 className="w-4 h-4" />
-                                    Orçamentos Vinculados ({statistics.linkedCount})
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <Link2 className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                                    <span className="hidden sm:inline">Orçamentos Vinculados</span>
+                                    <span className="sm:hidden">Vinculados</span>
+                                    ({statistics.linkedCount})
                                 </div>
                             </button>
                             <button
                                 onClick={() => setActiveTab('available')}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
                                     activeTab === 'available'
                                         ? 'border-blue-500 text-blue-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                             >
-                                <div className="flex items-center gap-2">
-                                    <Package className="w-4 h-4" />
-                                    Orçamentos Disponíveis ({statistics.availableCount})
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <Package className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                                    <span className="hidden sm:inline">Orçamentos Disponíveis</span>
+                                    <span className="sm:hidden">Disponíveis</span>
+                                    ({statistics.availableCount})
                                 </div>
                             </button>
                         </nav>
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 max-h-[60vh] overflow-y-auto">
+                    <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto overflow-x-auto">
                         {activeTab === 'linked' && (
                             <div className="space-y-4">
                                 {/* Actions for linked quotes */}
                                 {selectedLinked.length > 0 && (
-                                    <div className="bg-red-50 rounded-lg p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-sm text-gray-700">
+                                    <div className="bg-red-50 rounded-lg p-3 sm:p-4">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                                                 {selectedLinked.length} orçamento(s) selecionado(s)
                                             </div>
                                             <button
                                                 onClick={() => setShowUnlinkModal(true)}
-                                                className="inline-flex items-center gap-2 px-3 py-2 text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+                                                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors text-sm w-full sm:w-auto"
                                             >
                                                 <Unlink className="w-4 h-4" />
-                                                Desvincular Selecionados
+                                                <span className="hidden sm:inline">Desvincular Selecionados</span>
+                                                <span className="sm:hidden">Desvincular ({selectedLinked.length})</span>
                                             </button>
                                         </div>
                                     </div>
@@ -688,13 +693,58 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                         </button>
                                     </div>
                                 ) : (
-                                    <DataTable
-                                        columns={linkedColumns}
-                                        data={linkedQuotesWithDetails}
-                                        className={STABLE_CLASS_NAME}
-                                        hiddenColumns={EMPTY_ARRAY}
-                                        showColumnToggle={false}
-                                    />
+                                    <>
+                                        {/* Desktop - Tabela */}
+                                        <div className="hidden sm:block">
+                                            <DataTable
+                                                columns={linkedColumns}
+                                                data={linkedQuotesWithDetails}
+                                                className={STABLE_CLASS_NAME}
+                                                hiddenColumns={EMPTY_ARRAY}
+                                                showColumnToggle={false}
+                                            />
+                                        </div>
+
+                                        {/* Mobile - Cards */}
+                                        <div className="sm:hidden space-y-3">
+                                            {linkedQuotesWithDetails.map((item: any) => (
+                                                <div key={item.quoteId} className="bg-white rounded-lg border border-gray-200 p-4">
+                                                    <div className="flex items-start gap-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedLinked.includes(item.quoteId)}
+                                                            onChange={() => handleToggleLinked(item.quoteId)}
+                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                                    #{item.quote.id}
+                                                                </span>
+                                                                {item.quote.taskCode && (
+                                                                    <span className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                                                        {item.quote.taskCode}
+                                                                    </span>
+                                                                )}
+                                                                <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getQuoteStatusColor(item.quote.status)}`}>
+                                                                    {getQuoteStatusLabel(item.quote.status)}
+                                                                </span>
+                                                            </div>
+                                                            {item.quote.taskName && (
+                                                                <p className="text-sm text-gray-900 font-medium mb-2">{item.quote.taskName}</p>
+                                                            )}
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs text-gray-500">Valor:</span>
+                                                                <span className="text-sm font-semibold text-green-600">
+                                                                    {formatCurrency(item.amount)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         )}
@@ -702,10 +752,10 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                         {activeTab === 'available' && (
                             <div className="space-y-4">
                                 {/* Filters */}
-                                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                                        <div className="sm:col-span-2 lg:col-span-1">
+                                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Buscar</label>
                                             <div className="relative">
                                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
@@ -713,17 +763,17 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                                     placeholder="ID, código ou nome da tarefa..."
                                                     value={searchTerm}
                                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                                 />
                                             </div>
                                         </div>
                                         
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Status</label>
                                             <select
                                                 value={statusFilter}
                                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                             >
                                                 <option value="">Todos</option>
                                                 <option value="APPROVED">Aprovado</option>
@@ -733,12 +783,12 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                         </div>
                                         
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+                                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
                                             <div className="flex gap-2">
                                                 <select
                                                     value={sortBy}
                                                     onChange={(e) => setSortBy(e.target.value)}
-                                                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                                 >
                                                     <option value="id">ID</option>
                                                     <option value="taskName">Nome</option>
@@ -746,7 +796,8 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                                 </select>
                                                 <button
                                                     onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-                                                    className="px-3 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                                    className="px-3 py-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0"
+                                                    title={`Ordenação ${sortDirection === 'asc' ? 'crescente' : 'decrescente'}`}
                                                 >
                                                     {sortDirection === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
                                                 </button>
@@ -757,22 +808,23 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
 
                                 {/* Actions for available quotes */}
                                 {selectedAvailable.length > 0 && (
-                                    <div className="bg-green-50 rounded-lg p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-sm text-gray-700">
+                                    <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                                                 {selectedAvailable.length} orçamento(s) selecionado(s)
                                             </div>
                                             <button
                                                 onClick={handleLinkQuotes}
                                                 disabled={linking}
-                                                className="inline-flex items-center gap-2 px-3 py-2 text-green-600 bg-green-100 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+                                                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-green-600 bg-green-100 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 text-sm w-full sm:w-auto"
                                             >
                                                 {linking ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
                                                 ) : (
                                                     <Link2 className="w-4 h-4" />
                                                 )}
-                                                Vincular Selecionados
+                                                <span className="hidden sm:inline">Vincular Selecionados</span>
+                                                <span className="sm:hidden">Vincular ({selectedAvailable.length})</span>
                                             </button>
                                         </div>
                                     </div>
@@ -795,17 +847,85 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                     </div>
                                 ) : (
                                     <>
-                                        <DataTable
-                                            columns={availableColumns}
-                                            data={paginatedAvailableQuotes}
-                                            className={STABLE_CLASS_NAME}
-                                            hiddenColumns={EMPTY_ARRAY}
-                                            showColumnToggle={false}
-                                        />
-                                        
-                                        {/* Pagination */}
+                                        {/* Desktop - Tabela */}
+                                        <div className="hidden sm:block">
+                                            <DataTable
+                                                columns={availableColumns}
+                                                data={paginatedAvailableQuotes}
+                                                className={STABLE_CLASS_NAME}
+                                                hiddenColumns={EMPTY_ARRAY}
+                                                showColumnToggle={false}
+                                            />
+                                        </div>
+
+                                        {/* Mobile - Cards */}
+                                        <div className="sm:hidden space-y-3">
+                                            {paginatedAvailableQuotes.map((quote: any) => (
+                                                <div key={quote.id} className="bg-white rounded-lg border border-gray-200 p-4">
+                                                    <div className="flex items-start gap-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedAvailable.includes(quote.id)}
+                                                            onChange={() => handleToggleAvailable(quote.id)}
+                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                                    #{quote.id}
+                                                                </span>
+                                                                {quote.taskCode && (
+                                                                    <span className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                                                        {quote.taskCode}
+                                                                    </span>
+                                                                )}
+                                                                <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getQuoteStatusColor(quote.status)}`}>
+                                                                    {getQuoteStatusLabel(quote.status)}
+                                                                </span>
+                                                            </div>
+                                                            {quote.taskName && (
+                                                                <p className="text-sm text-gray-900 font-medium mb-2">{quote.taskName}</p>
+                                                            )}
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs text-gray-500">Valor:</span>
+                                                                <span className="text-sm font-semibold text-green-600">
+                                                                    {formatCurrency(getQuoteAmount(quote))}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Paginação Mobile */}
                                         {totalPages > 1 && (
-                                            <div className="flex items-center justify-between">
+                                            <div className="sm:hidden flex items-center justify-between mt-4 p-3 bg-gray-50 rounded-lg">
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                                                    disabled={currentPage === 0}
+                                                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                                                >
+                                                    Anterior
+                                                </button>
+                                                
+                                                <span className="text-xs text-gray-600">
+                                                    Página {currentPage + 1} de {totalPages}
+                                                </span>
+                                                
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                    disabled={currentPage === totalPages - 1}
+                                                    className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                                                >
+                                                    Próxima
+                                                </button>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Pagination Desktop */}
+                                        {totalPages > 1 && (
+                                            <div className="hidden sm:flex items-center justify-between">
                                                 <div className="text-sm text-gray-700">
                                                     Exibindo {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, filteredAvailableQuotes.length)} de {filteredAvailableQuotes.length} orçamentos
                                                 </div>
@@ -839,16 +959,16 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                     </div>
 
                     {/* Footer */}
-                    <div className="p-6 border-t border-gray-200 bg-gray-50">
-                        <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-600">
+                    <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="text-sm text-gray-600 text-center sm:text-left">
                                 Total vinculado: <span className="font-semibold text-green-600">
                                     {formatCurrency(statistics.linkedTotal)}
                                 </span>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto"
                             >
                                 Fechar
                             </button>

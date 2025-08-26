@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -9,6 +9,7 @@ import {
     Phone,
     Mail,
     Calendar,
+    XCircle,
 } from 'lucide-react';
 import { useRequesters } from '@/hooks/useRequesters';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,11 +30,31 @@ interface Requester {
 
 const RequesterList: React.FC = () => {
     const navigate = useNavigate();
-    const { hasProfile } = useAuth();
+    const { hasProfile, user, isLoading: authLoading } = useAuth();
     
-    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    // Verifica se o usuário tem permissão (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
-    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+
+    // Verificação de acesso - apenas ADMIN pode acessar solicitantes
+    useEffect(() => {
+        if (!authLoading && user && !isAdmin) {
+            toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
+            navigate('/dashboard');
+        }
+    }, [hasProfile, navigate, authLoading, user, isAdmin]);
+
+    // Se não é admin e já carregou auth, redireciona
+    if (!authLoading && !isAdmin) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Acesso Negado</h2>
+                    <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
+                </div>
+            </div>
+        );
+    }
     
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
