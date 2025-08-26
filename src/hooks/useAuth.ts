@@ -89,10 +89,20 @@ export function AuthProvider({children}: { children: ReactNode }) {
         try {
             const response = await AuthService.login(data);
             
+            // Fetch detailed user info including name
+            let userName = '';
+            try {
+                const userInfo = await AuthService.getCurrentUser();
+                userName = userInfo.firstName || '';
+            } catch (error) {
+                console.warn('Failed to fetch user info:', error);
+            }
+            
             // Create user object
             const newUser: AuthUser = {
                 username: response.username,
                 email: response.email,
+                name: userName,
                 roles: response.roles ?? [],
                 permissions: response.permissions ?? [],
                 allowedScreens: response.allowedScreens ?? [],

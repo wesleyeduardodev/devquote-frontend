@@ -2,6 +2,7 @@ import api from './api';
 import type { AuthLoginRequest, AuthLoginResponse, UserPermissions } from '@/types/auth';
 
 interface UpdateProfileRequest {
+  username?: string;
   name: string;
   email: string;
   password?: string;
@@ -30,6 +31,11 @@ export class AuthService {
 
   static async getUserPermissions(): Promise<UserPermissions> {
     const response = await api.get<UserPermissions>('/auth/permissions');
+    return response.data;
+  }
+
+  static async getCurrentUser(): Promise<any> {
+    const response = await api.get('/auth/user');
     return response.data;
   }
 

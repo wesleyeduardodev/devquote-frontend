@@ -17,6 +17,7 @@ export type AuthUser = {
   username: string;
   email: string;
   name?: string;
+  firstName?: string;
   roles: string[];
   permissions: string[];
   allowedScreens: string[];
