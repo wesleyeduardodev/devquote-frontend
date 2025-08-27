@@ -11,8 +11,8 @@ function resolveBaseURL(): string {
         fromVite = undefined;
     }
 
-    const base = fromVite || 'http://localhost:8080/api';
-    //const base = fromVite || 'https://devquote-backend-latest.onrender.com/api';
+    //const base = fromVite || 'http://localhost:8080/api';
+    const base = fromVite || 'https://devquote-backend-latest.onrender.com/api';
 
     return String(base).replace(/\/+$/, '') + '/';
 }
