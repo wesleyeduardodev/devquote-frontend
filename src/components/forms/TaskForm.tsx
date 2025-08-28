@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import { Search, X, Check, FolderOpen, ExternalLink, Filter } from 'lucide-react';
 
 import { useProjects } from '@/hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -70,6 +71,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                onCancel,
                                                loading = false,
                                            }) => {
+    const { hasProfile } = useAuth();
+    const isAdmin = hasProfile('ADMIN');
+    
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
     const [projectSearchTerm, setProjectSearchTerm] = useState('');
@@ -349,8 +353,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
                 </div>
 
-                {/* Configurações de Cotação - apenas criação */}
-                {!initialData?.id && (
+                {/* Configurações de Cotação - apenas criação e ADMIN */}
+                {!initialData?.id && isAdmin && (
                     <div className="border-t pt-8">
                         <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-6">Configurações de Cotação</h2>
 
