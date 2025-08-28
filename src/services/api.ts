@@ -1,20 +1,15 @@
 import axios, {InternalAxiosRequestConfig} from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
 function resolveBaseURL(): string {
-
-    let fromVite;
-
-    try {
-        const metaEnv = (import.meta as any)?.env || {};
-        fromVite = metaEnv.VITE_API_URL || metaEnv.VITE_API_BASE_URL;
-    } catch {
-        fromVite = undefined;
+    const cleanUrl = API_URL.replace(/\/+$/, '');
+    
+    if (import.meta.env.DEV) {
+        console.log('🔧 API URL:', cleanUrl);
     }
-
-    //const base = fromVite || 'http://localhost:8080/api';
-    const base = fromVite || 'https://devquote-backend-latest.onrender.com/api';
-
-    return String(base).replace(/\/+$/, '') + '/';
+    
+    return cleanUrl + '/';
 }
 
 const api = axios.create({
