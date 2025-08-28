@@ -15,14 +15,14 @@
 1. Acesse seu projeto no dashboard do Vercel
 2. Vá em **Settings** → **Environment Variables**
 3. Adicione as seguintes variáveis:
-   - `VITE_API_URL`: URL da sua API em produção (ex: `https://devquote-backend-latest.onrender.com/api`)
+   - `VITE_API_URL`: URL da sua API em produção (ex: `https://sua-api.com/api`)
    - `VITE_APP_NAME`: DevQuote
    - `VITE_APP_ENV`: production
 
 #### Via Vercel CLI:
 ```bash
 vercel env add VITE_API_URL production
-# Digite: https://devquote-backend-latest.onrender.com/api
+# Digite a URL da sua API de produção
 
 vercel env add VITE_APP_NAME production
 # Digite: DevQuote
