@@ -4,11 +4,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 function resolveBaseURL(): string {
     const cleanUrl = API_URL.replace(/\/+$/, '');
-    
-    if (import.meta.env.DEV) {
-        console.log('🔧 API URL:', cleanUrl);
-    }
-    
     return cleanUrl + '/';
 }
 
