@@ -14,6 +14,7 @@ export type AuthLoginResponse = {
 };
 
 export type AuthUser = {
+  id?: number;
   username: string;
   email: string;
   name?: string;

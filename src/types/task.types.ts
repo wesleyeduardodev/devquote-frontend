@@ -15,8 +15,11 @@ export interface Task extends BaseEntity {
     status: TaskStatus;
     priority?: TaskPriority;
     requesterId: number | string;
+    requesterName?: string;
     assignedTo?: string;
     link?: string;
+    meetingLink?: string;
+    notes?: string;
     estimatedHours?: number;
     actualHours?: number;
     startDate?: string;
@@ -24,6 +27,10 @@ export interface Task extends BaseEntity {
     completedAt?: string;
     tags?: string[];
     subTasks?: SubTask[];
+    createdByUserId?: number;
+    createdByUserName?: string;
+    updatedByUserId?: number;
+    updatedByUserName?: string;
 }
 
 // Subtarefa

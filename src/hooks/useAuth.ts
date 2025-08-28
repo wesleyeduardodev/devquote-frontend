@@ -92,17 +92,20 @@ export function AuthProvider({children}: { children: ReactNode }) {
             // Store token first so it's available for subsequent requests
             window.localStorage.setItem('auth.token', response.token);
             
-            // Fetch detailed user info including name
+            // Fetch detailed user info including name and id
             let userName = '';
+            let userId: number | undefined = undefined;
             try {
                 const userInfo = await AuthService.getCurrentUser();
                 userName = userInfo.name || '';
+                userId = userInfo.id;
             } catch (error) {
                 console.warn('Failed to fetch user info:', error);
             }
             
             // Create user object
             const newUser: AuthUser = {
+                id: userId,
                 username: response.username,
                 email: response.email,
                 name: userName,

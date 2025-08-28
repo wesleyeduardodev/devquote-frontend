@@ -49,17 +49,30 @@ interface Task {
     subTasks?: SubTask[];
     createdAt?: string;
     updatedAt?: string;
+    createdByUserId?: number;
+    createdByUserName?: string;
+    updatedByUserId?: number;
+    updatedByUserName?: string;
 }
 
 const TaskList: React.FC = () => {
     const navigate = useNavigate();
-    const { hasProfile } = useAuth();
+    const { hasProfile, user } = useAuth();
     
-    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    // Verifica se o usuário tem permissões
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
-    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    const isUser = hasProfile('USER');
+    const canCreateTasks = isAdmin || isManager || isUser; // Todos podem criar tarefas
     const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
+    const currentUserId = user?.id;
+    
+    // Função para verificar se pode editar/excluir uma tarefa
+    const canModifyTask = (task: Task) => {
+        if (isAdmin) return true; // ADMIN pode modificar qualquer tarefa
+        if (!currentUserId) return false;
+        return task.createdByUserId === currentUserId; // MANAGER/USER podem modificar apenas suas próprias tarefas
+    };
     
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -170,13 +183,18 @@ const TaskList: React.FC = () => {
     const calculateTaskTotal = (subTasks?: SubTask[]) =>
         subTasks?.reduce((total: number, s: SubTask) => total + (s.amount || 0), 0) || 0;
 
-    // ===== Seleção múltipla (igual ProjectList) =====
+    // ===== Seleção múltipla (todos podem ver, só ADMIN pode selecionar todas) =====
     const toggleItem = (id: number) => {
+        const task = tasks.find(t => t.id === id);
+        if (!task || !canModifyTask(task)) return; // Só permite selecionar se puder modificar
+        
         setSelectedItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
     const toggleAll = () => {
-        const currentPageIds = tasks.map((t) => t.id);
+        const currentPageIds = tasks
+            .filter(task => canModifyTask(task)) // Só incluir tarefas modificáveis do usuário atual
+            .map((t) => t.id);
         const allSelected = currentPageIds.every((id) => selectedItems.includes(id));
 
         if (allSelected) {
@@ -189,18 +207,18 @@ const TaskList: React.FC = () => {
     const clearSelection = () => setSelectedItems([]);
 
     const selectionState = useMemo(() => {
-        const currentPageIds = tasks.map((t) => t.id);
-        const selectedFromCurrentPage = selectedItems.filter((id) => currentPageIds.includes(id));
+        const modifiableTaskIds = tasks.filter(task => canModifyTask(task)).map((t) => t.id);
+        const selectedFromCurrentPage = selectedItems.filter((id) => modifiableTaskIds.includes(id));
 
         return {
             allSelected:
-                currentPageIds.length > 0 && selectedFromCurrentPage.length === currentPageIds.length,
+                modifiableTaskIds.length > 0 && selectedFromCurrentPage.length === modifiableTaskIds.length,
             someSelected:
-                selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < currentPageIds.length,
+                selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < modifiableTaskIds.length,
             hasSelection: selectedItems.length > 0,
             selectedFromCurrentPage,
         };
-    }, [tasks, selectedItems]);
+    }, [tasks, selectedItems, currentUserId]);
 
     const handleBulkDelete = async () => {
         if (selectedItems.length === 0) return;
@@ -229,8 +247,8 @@ const TaskList: React.FC = () => {
 
     // ===== Colunas (inclui checkbox de seleção) =====
     const columns: Column<Task>[] = [
-        // Checkbox de seleção - apenas para ADMIN
-        ...(isAdmin ? [{
+        // Checkbox de seleção - para usuários que podem criar tarefas
+        ...(canCreateTasks ? [{
             key: 'select',
             title: '',
             width: '50px',
@@ -245,7 +263,7 @@ const TaskList: React.FC = () => {
                         }}
                         onChange={toggleAll}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                        title={selectionState.allSelected ? 'Desmarcar tarefas próprias' : 'Selecionar tarefas próprias'}
                     />
                 </div>
             ),
@@ -255,8 +273,12 @@ const TaskList: React.FC = () => {
                         type="checkbox"
                         checked={selectedItems.includes(item.id)}
                         onChange={() => toggleItem(item.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        disabled={!canModifyTask(item)}
+                        className={`w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
+                            !canModifyTask(item) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         onClick={(e) => e.stopPropagation()}
+                        title={canModifyTask(item) ? 'Selecionar tarefa' : 'Você não pode modificar esta tarefa'}
                     />
                 </div>
             ),
@@ -413,12 +435,28 @@ const TaskList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true,
         },
+        {
+            key: 'createdByUserName',
+            title: 'Criado por',
+            sortable: false,
+            filterable: false,
+            render: (item) => item.createdByUserName || '-',
+            hideable: true,
+        },
+        {
+            key: 'updatedByUserName',
+            title: 'Alterado por',
+            sortable: false,
+            filterable: false,
+            render: (item) => item.updatedByUserName || '-',
+            hideable: true,
+        },
         // Coluna de ações
         {
             key: 'actions',
             title: 'Ações',
             align: 'center' as const,
-            width: isAdmin ? '150px' : '80px',
+            width: '150px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
                     <Button 
@@ -430,7 +468,7 @@ const TaskList: React.FC = () => {
                     >
                         <Eye className="w-4 h-4" />
                     </Button>
-                    {isAdmin && (
+                    {canModifyTask(item) && (
                         <>
                             <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
                                 <Edit className="w-4 h-4" />
@@ -457,14 +495,18 @@ const TaskList: React.FC = () => {
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox - apenas para ADMIN */}
-                    {isAdmin && (
+                    {/* Checkbox - para usuários que podem criar tarefas */}
+                    {canCreateTasks && (
                         <div className="flex-shrink-0 pt-1">
                             <input
                                 type="checkbox"
                                 checked={selectedItems.includes(task.id)}
                                 onChange={() => toggleItem(task.id)}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                disabled={!canModifyTask(task)}
+                                className={`w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
+                                    !canModifyTask(task) ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
+                                title={canModifyTask(task) ? 'Selecionar tarefa' : 'Você não pode modificar esta tarefa'}
                             />
                         </div>
                     )}
@@ -498,7 +540,7 @@ const TaskList: React.FC = () => {
                     >
                         <Eye className="w-4 h-4" />
                     </Button>
-                    {isAdmin && (
+                    {canModifyTask(task) && (
                         <>
                             <Button
                                 size="sm"
@@ -588,13 +630,13 @@ const TaskList: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
-                        {isAdmin ? 'Gerenciamento de Tarefas' : 'Visualização de Tarefas'}
+                        Tarefas
                     </h1>
                     <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie as tarefas cadastradas' : 'Visualize as tarefas cadastradas'}
+                        {isAdmin ? 'Gerencie todas as tarefas do sistema' : 'Visualize todas as tarefas - Edite apenas as suas'}
                     </p>
                 </div>
-                {isAdmin && (
+                {canCreateTasks && (
                     <Button
                         variant="primary"
                         onClick={() => navigate('/tasks/create')}
@@ -621,7 +663,7 @@ const TaskList: React.FC = () => {
                             />
                         </div>
 
-                        {isAdmin && (
+                        {canCreateTasks && (
                             <div className="flex items-center justify-between gap-3">
                                 <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
                                     <div className="flex items-center">
@@ -635,7 +677,7 @@ const TaskList: React.FC = () => {
                                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
                                     </div>
-                                    <span className="text-sm">Selecionar Todos</span>
+                                    <span className="text-sm">{selectionState.allSelected ? 'Desmarcar Minhas Tarefas' : 'Selecionar Minhas Tarefas'}</span>
                                 </Button>
 
                                 {selectionState.hasSelection && (
@@ -667,7 +709,7 @@ const TaskList: React.FC = () => {
                 <>
                     {/* Desktop - Barra de ações quando há seleção */}
                     <div className="hidden lg:block space-y-4">
-                        {isAdmin && selectionState.hasSelection && (
+                        {canCreateTasks && selectionState.hasSelection && (
                             <Card className="p-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -712,7 +754,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'createdByUserName', 'updatedByUserName']}
                             />
                         </Card>
                     </div>
