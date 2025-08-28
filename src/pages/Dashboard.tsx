@@ -1,24 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Users, 
   CheckSquare, 
-  FileText, 
-  FolderGit2, 
   Truck, 
-  DollarSign,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Zap,
   TrendingUp,
-  TrendingDown,
+  Calendar,
+  Users,
+  Download,
+  Eye,
   Activity,
   BarChart3,
-  PieChart,
-  Calendar,
-  Clock,
-  Target,
-  Award,
-  AlertCircle,
-  Plus,
-  Eye
+  FileText,
+  Plus
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,17 +25,14 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const Dashboard = () => {
   const { stats, loading, error } = useDashboard();
-  const { user, hasScreenAccess } = useAuth();
+  const { user } = useAuth();
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   if (loading) {
@@ -67,318 +61,254 @@ const Dashboard = () => {
   if (!stats) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600 mt-2">
-                Bem-vindo de volta, {user?.username || 'Usuário'}!
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">
-                {new Date().toLocaleDateString('pt-BR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Dashboard - Tarefas & Entregas
+                </h1>
+                <p className="text-gray-600 mt-2">
+                  Bem-vindo de volta, {user?.username || 'Usuário'}!
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">
+                  {new Date().toLocaleDateString('pt-BR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
+                <div className="flex items-center mt-2 text-green-600">
+                  <Activity className="w-4 h-4 mr-1" />
+                  <span className="text-sm font-medium">Sistema Ativo</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Key Performance Indicators */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Revenue */}
-          {(stats.quotes || stats.tasks) && (
-            <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm font-medium">Receita Total</p>
-                  <p className="text-3xl font-bold">
-                    {formatCurrency(stats.general.totalRevenue)}
-                  </p>
-                </div>
-                <DollarSign className="w-8 h-8 text-blue-200" />
+          {/* Total Tasks */}
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white transform hover:scale-105 transition-transform duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-sm font-medium">Total de Tarefas</p>
+                <p className="text-3xl font-bold">
+                  {stats.tasks?.total || 0}
+                </p>
+                <p className="text-blue-200 text-xs mt-1">
+                  {stats.tasks?.active || 0} ativas
+                </p>
               </div>
-            </Card>
-          )}
-
-          {/* Completion Rate */}
-          {stats.tasks && (
-            <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100 text-sm font-medium">Taxa de Conclusão</p>
-                  <p className="text-3xl font-bold">
-                    {formatPercentage(stats.general.completionRate)}
-                  </p>
-                </div>
-                <Target className="w-8 h-8 text-green-200" />
-              </div>
-            </Card>
-          )}
-
-          {/* Total Users */}
-          {stats.requesters && (
-            <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm font-medium">Total Usuários</p>
-                  <p className="text-3xl font-bold">{stats.general.totalUsers}</p>
-                </div>
-                <Users className="w-8 h-8 text-purple-200" />
-              </div>
-            </Card>
-          )}
+              <CheckSquare className="w-12 h-12 text-blue-200" />
+            </div>
+          </Card>
 
           {/* Completed Tasks */}
-          {stats.tasks && (
-            <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm font-medium">Tarefas Concluídas</p>
-                  <p className="text-3xl font-bold">{stats.general.completedTasks}</p>
-                </div>
-                <Award className="w-8 h-8 text-orange-200" />
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white transform hover:scale-105 transition-transform duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium">Tarefas Concluídas</p>
+                <p className="text-3xl font-bold">
+                  {stats.tasks?.completed || 0}
+                </p>
+                <p className="text-green-200 text-xs mt-1">
+                  {((stats.tasks?.completed || 0) / (stats.tasks?.total || 1) * 100).toFixed(1)}% do total
+                </p>
               </div>
-            </Card>
-          )}
+              <CheckCircle className="w-12 h-12 text-green-200" />
+            </div>
+          </Card>
+
+          {/* Total Deliveries */}
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white transform hover:scale-105 transition-transform duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-sm font-medium">Total de Entregas</p>
+                <p className="text-3xl font-bold">
+                  {stats.deliveries?.total || 0}
+                </p>
+                <p className="text-purple-200 text-xs mt-1">
+                  {stats.deliveries?.active || 0} pendentes
+                </p>
+              </div>
+              <Truck className="w-12 h-12 text-purple-200" />
+            </div>
+          </Card>
+
+          {/* Completion Rate */}
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white transform hover:scale-105 transition-transform duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-100 text-sm font-medium">Taxa de Sucesso</p>
+                <p className="text-3xl font-bold">
+                  {stats.general?.completionRate?.toFixed(1) || 0}%
+                </p>
+                <p className="text-orange-200 text-xs mt-1">
+                  Performance geral
+                </p>
+              </div>
+              <TrendingUp className="w-12 h-12 text-orange-200" />
+            </div>
+          </Card>
         </div>
 
-        {/* Module Statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tasks Module */}
-          {stats.tasks && (
-            <Card title="Tarefas" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{stats.tasks.total}</div>
-                    <div className="text-xs text-gray-600">Total</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">{stats.tasks.active}</div>
-                    <div className="text-xs text-gray-600">Ativas</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{stats.tasks.completed}</div>
-                    <div className="text-xs text-gray-600">Concluídas</div>
-                  </div>
+          <Card title="Gestão de Tarefas" className="lg:col-span-1 hover:shadow-xl transition-shadow duration-300">
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-blue-600">{stats.tasks?.total || 0}</div>
+                  <div className="text-xs text-blue-600 font-medium">Total</div>
                 </div>
-                
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-600">Valor Total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatCurrency(stats.tasks.totalValue)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Valor Médio</span>
-                    <span className="text-sm font-medium text-gray-700">
-                      {formatCurrency(stats.tasks.averageValue)}
-                    </span>
-                  </div>
+                <div className="bg-yellow-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-yellow-600">{stats.tasks?.active || 0}</div>
+                  <div className="text-xs text-yellow-600 font-medium">Em Progresso</div>
                 </div>
-
-                <div className="flex space-x-2">
-                  <Link to="/tasks" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver Todas
-                    </Button>
-                  </Link>
-                  <Link to="/tasks/create" className="flex-1">
-                    <Button size="sm" className="w-full">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Nova
-                    </Button>
-                  </Link>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-green-600">{stats.tasks?.completed || 0}</div>
+                  <div className="text-xs text-green-600 font-medium">Concluídas</div>
                 </div>
               </div>
-            </Card>
-          )}
-
-          {/* Quotes Module */}
-          {stats.quotes && (
-            <Card title="Orçamentos" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{stats.quotes.total}</div>
-                    <div className="text-xs text-gray-600">Total</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">{stats.quotes.active}</div>
-                    <div className="text-xs text-gray-600">Ativos</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{stats.quotes.completed}</div>
-                    <div className="text-xs text-gray-600">Aprovados</div>
-                  </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Progresso Geral</span>
+                  <span className="font-semibold text-gray-900">
+                    {((stats.tasks?.completed || 0) / (stats.tasks?.total || 1) * 100).toFixed(1)}%
+                  </span>
                 </div>
-                
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-600">Valor Total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatCurrency(stats.quotes.totalValue)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Valor Médio</span>
-                    <span className="text-sm font-medium text-gray-700">
-                      {formatCurrency(stats.quotes.averageValue)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Link to="/quotes" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver Todos
-                    </Button>
-                  </Link>
-                  <Link to="/quotes/create" className="flex-1">
-                    <Button size="sm" className="w-full">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Novo
-                    </Button>
-                  </Link>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${((stats.tasks?.completed || 0) / (stats.tasks?.total || 1) * 100)}%` }}
+                  ></div>
                 </div>
               </div>
-            </Card>
-          )}
 
-          {/* Projects Module */}
-          {stats.projects && (
-            <Card title="Projetos" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{stats.projects.total}</div>
-                    <div className="text-xs text-gray-600">Total</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">{stats.projects.active}</div>
-                    <div className="text-xs text-gray-600">Ativos</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{stats.projects.completed}</div>
-                    <div className="text-xs text-gray-600">Concluídos</div>
-                  </div>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Link to="/projects" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver Todos
-                    </Button>
-                  </Link>
-                  <Link to="/projects/create" className="flex-1">
-                    <Button size="sm" className="w-full">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Novo
-                    </Button>
-                  </Link>
-                </div>
+              <div className="flex space-x-2">
+                <Link to="/tasks" className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Eye className="w-4 h-4 mr-1" />
+                    Ver Todas
+                  </Button>
+                </Link>
+                <Link to="/tasks/create" className="flex-1">
+                  <Button size="sm" className="w-full">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Nova Tarefa
+                  </Button>
+                </Link>
               </div>
-            </Card>
-          )}
+            </div>
+          </Card>
 
           {/* Deliveries Module */}
-          {stats.deliveries && (
-            <Card title="Entregas" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{stats.deliveries.total}</div>
-                    <div className="text-xs text-gray-600">Total</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">{stats.deliveries.active}</div>
-                    <div className="text-xs text-gray-600">Pendentes</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{stats.deliveries.completed}</div>
-                    <div className="text-xs text-gray-600">Aprovadas</div>
-                  </div>
+          <Card title="Gestão de Entregas" className="lg:col-span-1 hover:shadow-xl transition-shadow duration-300">
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-purple-600">{stats.deliveries?.total || 0}</div>
+                  <div className="text-xs text-purple-600 font-medium">Total</div>
                 </div>
-
-                <div className="flex space-x-2">
-                  <Link to="/deliveries" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver Todas
-                    </Button>
-                  </Link>
-                  <Link to="/deliveries/create" className="flex-1">
-                    <Button size="sm" className="w-full">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Nova
-                    </Button>
-                  </Link>
+                <div className="bg-orange-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-orange-600">{stats.deliveries?.active || 0}</div>
+                  <div className="text-xs text-orange-600 font-medium">Pendentes</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-green-600">{stats.deliveries?.completed || 0}</div>
+                  <div className="text-xs text-green-600 font-medium">Aprovadas</div>
                 </div>
               </div>
-            </Card>
-          )}
 
-          {/* Requesters Module */}
-          {stats.requesters && (
-            <Card title="Solicitantes" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{stats.requesters.total}</div>
-                    <div className="text-xs text-gray-600">Total</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{stats.requesters.active}</div>
-                    <div className="text-xs text-gray-600">Ativos</div>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Taxa de Aprovação</span>
+                  <span className="font-semibold text-gray-900">
+                    {((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100).toFixed(1)}%
+                  </span>
                 </div>
-
-                <div className="flex space-x-2">
-                  <Link to="/requesters" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver Todos
-                    </Button>
-                  </Link>
-                  <Link to="/requesters/create" className="flex-1">
-                    <Button size="sm" className="w-full">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Novo
-                    </Button>
-                  </Link>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-purple-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100)}%` }}
+                  ></div>
                 </div>
               </div>
-            </Card>
-          )}
+
+              <div className="flex space-x-2">
+                <Link to="/deliveries" className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Eye className="w-4 h-4 mr-1" />
+                    Ver Todas
+                  </Button>
+                </Link>
+                <Link to="/deliveries/create" className="flex-1">
+                  <Button size="sm" className="w-full">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Nova Entrega
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+
+          {/* Recent Activities */}
+          <Card title="Atividades Recentes" className="lg:col-span-1 hover:shadow-xl transition-shadow duration-300">
+            <div className="space-y-4">
+              {stats.recentActivities && stats.recentActivities.length > 0 ? (
+                stats.recentActivities.slice(0, 8).map((activity, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className={`w-2 h-2 rounded-full mt-2 ${
+                      activity.type === 'TASK' ? 'bg-blue-500' : 'bg-purple-500'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {activity.description}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        Por: {activity.user}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {formatDate(activity.timestamp)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Activity className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p>Nenhuma atividade recente</p>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
 
-        {/* Status Distributions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Tasks by Status */}
+        {/* Monthly Statistics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Monthly Tasks Stats */}
           {stats.tasksByStatus && stats.tasksByStatus.length > 0 && (
-            <Card title="Tarefas por Status" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-3">
+            <Card title="Estatísticas Mensais de Tarefas" className="hover:shadow-xl transition-shadow duration-300">
+              <div className="space-y-4">
                 {stats.tasksByStatus.map((status, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        status.status === 'COMPLETED' ? 'bg-green-500' :
-                        status.status === 'IN_PROGRESS' ? 'bg-blue-500' :
-                        status.status === 'PENDING' ? 'bg-yellow-500' :
+                      <div className={`w-4 h-4 rounded-full ${
+                        status.status.includes('Criadas') ? 'bg-blue-500' :
+                        status.status.includes('Concluídas') ? 'bg-green-500' :
+                        status.status.includes('progresso') ? 'bg-yellow-500' :
                         'bg-gray-400'
                       }`} />
                       <span className="text-sm font-medium text-gray-700">
@@ -386,8 +316,8 @@ const Dashboard = () => {
                       </span>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">{status.count}</div>
-                      <div className="text-xs text-gray-500">{formatPercentage(status.percentage)}</div>
+                      <div className="text-2xl font-bold text-gray-900">{status.count}</div>
+                      <div className="text-xs text-gray-500">tarefas</div>
                     </div>
                   </div>
                 ))}
@@ -395,44 +325,17 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* Quotes by Status */}
-          {stats.quotesByStatus && stats.quotesByStatus.length > 0 && (
-            <Card title="Orçamentos por Status" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-3">
-                {stats.quotesByStatus.map((status, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        status.status === 'APPROVED' ? 'bg-green-500' :
-                        status.status === 'PENDING' ? 'bg-yellow-500' :
-                        status.status === 'REJECTED' ? 'bg-red-500' :
-                        'bg-gray-400'
-                      }`} />
-                      <span className="text-sm font-medium text-gray-700">
-                        {status.status}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">{status.count}</div>
-                      <div className="text-xs text-gray-500">{formatPercentage(status.percentage)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Deliveries by Status */}
+          {/* Monthly Deliveries Stats */}
           {stats.deliveriesByStatus && stats.deliveriesByStatus.length > 0 && (
-            <Card title="Entregas por Status" className="hover:shadow-lg transition-shadow">
-              <div className="space-y-3">
+            <Card title="Estatísticas Mensais de Entregas" className="hover:shadow-xl transition-shadow duration-300">
+              <div className="space-y-4">
                 {stats.deliveriesByStatus.map((status, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        status.status === 'APPROVED' ? 'bg-green-500' :
-                        status.status === 'DELIVERED' ? 'bg-blue-500' :
-                        status.status === 'PENDING' ? 'bg-yellow-500' :
+                      <div className={`w-4 h-4 rounded-full ${
+                        status.status.includes('Criadas') ? 'bg-purple-500' :
+                        status.status.includes('Iniciadas') ? 'bg-orange-500' :
+                        status.status.includes('Finalizadas') ? 'bg-green-500' :
                         'bg-gray-400'
                       }`} />
                       <span className="text-sm font-medium text-gray-700">
@@ -440,8 +343,8 @@ const Dashboard = () => {
                       </span>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">{status.count}</div>
-                      <div className="text-xs text-gray-500">{formatPercentage(status.percentage)}</div>
+                      <div className="text-2xl font-bold text-gray-900">{status.count}</div>
+                      <div className="text-xs text-gray-500">entregas</div>
                     </div>
                   </div>
                 ))}
@@ -450,58 +353,38 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* System Overview */}
-        <Card title="Visão Geral do Sistema" className="hover:shadow-lg transition-shadow">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {stats.requesters && (
-              <div className="text-center space-y-2">
-                <Users className="w-8 h-8 text-blue-500 mx-auto" />
-                <div className="text-2xl font-bold text-gray-900">{stats.requesters.total}</div>
-                <div className="text-sm text-gray-600">Solicitantes</div>
-              </div>
-            )}
+        {/* Quick Actions */}
+        <Card title="Ações Rápidas" className="hover:shadow-xl transition-shadow duration-300">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div 
+              onClick={() => alert('Funcionalidade de exportação de relatório de tarefas em desenvolvimento')}
+              className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+            >
+              <Download className="w-8 h-8 text-blue-600 mb-2" />
+              <span className="text-sm font-medium text-blue-800">Exportar Tarefas</span>
+            </div>
             
-            {stats.tasks && (
-              <div className="text-center space-y-2">
-                <CheckSquare className="w-8 h-8 text-green-500 mx-auto" />
-                <div className="text-2xl font-bold text-gray-900">{stats.tasks.total}</div>
-                <div className="text-sm text-gray-600">Tarefas</div>
-              </div>
-            )}
+            <div 
+              onClick={() => alert('Funcionalidade de exportação de dados de entregas em desenvolvimento')}
+              className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
+            >
+              <FileText className="w-8 h-8 text-purple-600 mb-2" />
+              <span className="text-sm font-medium text-purple-800">Exportar Entregas</span>
+            </div>
             
-            {stats.quotes && (
-              <div className="text-center space-y-2">
-                <FileText className="w-8 h-8 text-yellow-500 mx-auto" />
-                <div className="text-2xl font-bold text-gray-900">{stats.quotes.total}</div>
-                <div className="text-sm text-gray-600">Orçamentos</div>
+            <Link to="/tasks">
+              <div className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
+                <BarChart3 className="w-8 h-8 text-green-600 mb-2" />
+                <span className="text-sm font-medium text-green-800">Ver Tarefas</span>
               </div>
-            )}
+            </Link>
             
-            {stats.projects && (
-              <div className="text-center space-y-2">
-                <FolderGit2 className="w-8 h-8 text-purple-500 mx-auto" />
-                <div className="text-2xl font-bold text-gray-900">{stats.projects.total}</div>
-                <div className="text-sm text-gray-600">Projetos</div>
+            <Link to="/deliveries">
+              <div className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
+                <Calendar className="w-8 h-8 text-orange-600 mb-2" />
+                <span className="text-sm font-medium text-orange-800">Ver Entregas</span>
               </div>
-            )}
-            
-            {stats.deliveries && (
-              <div className="text-center space-y-2">
-                <Truck className="w-8 h-8 text-orange-500 mx-auto" />
-                <div className="text-2xl font-bold text-gray-900">{stats.deliveries.total}</div>
-                <div className="text-sm text-gray-600">Entregas</div>
-              </div>
-            )}
-            
-            {stats.tasks && (
-              <div className="text-center space-y-2">
-                <Target className="w-8 h-8 text-indigo-500 mx-auto" />
-                <div className="text-2xl font-bold text-gray-900">
-                  {formatPercentage(stats.general.completionRate)}
-                </div>
-                <div className="text-sm text-gray-600">Taxa Sucesso</div>
-              </div>
-            )}
+            </Link>
           </div>
         </Card>
       </div>

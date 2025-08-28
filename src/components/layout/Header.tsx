@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, Link} from 'react-router-dom';
 import {Menu, User, LogOut, Shield, Settings} from 'lucide-react';
 import {useAuth} from '@/hooks/useAuth';
 import { useProfilePermissions } from '@/hooks/usePermissions';
@@ -107,16 +107,14 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, isSidebarOpen}) => {
                                     </div>
                                     
                                     <div className="py-1">
-                                        <button
-                                            onClick={() => {
-                                                setShowUserMenu(false);
-                                                navigate('/settings');
-                                            }}
-                                            className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        <Link
+                                            to="/settings"
+                                            onClick={() => setShowUserMenu(false)}
+                                            className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             <Settings className="h-4 w-4 mr-2" />
                                             Configurações
-                                        </button>
+                                        </Link>
                                         
                                         <button
                                             onClick={() => {

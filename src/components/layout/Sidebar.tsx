@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNavigate, useLocation} from 'react-router-dom';
+import {Link, useLocation} from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
@@ -29,17 +29,11 @@ interface NavigationItem {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
-    const navigate = useNavigate();
     const location = useLocation();
     const screenPermissions = useScreenPermissions();
 
     const isActiveRoute = (path: string): boolean => {
         return location.pathname === path || location.pathname.startsWith(path + '/');
-    };
-
-    const handleNavigate = (path: string): void => {
-        navigate(path);
-        onClose(); // Fechar sidebar no mobile após navegação
     };
 
     // Definir todos os itens de navegação com suas respectivas telas
@@ -57,7 +51,13 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
 
     // Filtrar itens baseado nas permissões de tela do usuário
     const navigationItems = allNavigationItems.filter(item => {
-        return screenPermissions.hasScreenAccess(item.screen);
+        try {
+            return screenPermissions.hasScreenAccess(item.screen);
+        } catch (error) {
+            // Fallback: mostrar todos os itens se houver erro nas permissões
+            console.warn('Erro ao verificar permissões de tela:', error);
+            return true;
+        }
     });
 
     return (
@@ -105,10 +105,16 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
 
                             return (
                                 <li key={item.path}>
-                                    <button
-                                        onClick={() => handleNavigate(item.path)}
+                                    <Link
+                                        to={item.path}
+                                        onClick={(e) => {
+                                            // Só fecha o menu se for clique normal (botão esquerdo)
+                                            if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+                                                onClose();
+                                            }
+                                        }}
                                         className={clsx(
-                                            'w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors',
+                                            'flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors',
                                             isActive
                                                 ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-600'
                                                 : 'text-gray-700 hover:bg-gray-100 hover:text-primary-600'
@@ -121,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
                                             )}
                                         />
                                         <span className="font-medium">{item.label}</span>
-                                    </button>
+                                    </Link>
                                 </li>
                             );
                         })}
