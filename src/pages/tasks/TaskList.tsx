@@ -64,7 +64,7 @@ const TaskList: React.FC = () => {
     const isManager = hasProfile('MANAGER');
     const isUser = hasProfile('USER');
     const canCreateTasks = isAdmin || isManager || isUser; // Todos podem criar tarefas
-    const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
+    const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
     const currentUserId = user?.id;
     
     // Função para verificar se pode editar/excluir uma tarefa

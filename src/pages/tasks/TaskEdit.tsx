@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, X, Check, User, Mail, Phone, Edit3, Calendar, Filter } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useRequesters } from '@/hooks/useRequesters';
+import { useAuth } from '@/hooks/useAuth';
 import { taskService } from '@/services/taskService';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Card from '../../components/ui/Card';
@@ -24,6 +25,9 @@ const TaskEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { updateTaskWithSubTasks } = useTasks();
+    const { hasProfile } = useAuth();
+    const isAdmin = hasProfile('ADMIN');
+    
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
@@ -91,16 +95,23 @@ const TaskEdit = () => {
         if (!id) return;
 
         if (!selectedRequester) {
-            toast.error('Selecione um solicitante');
+            // toast.error('Selecione um solicitante');
             return;
         }
 
         try {
             setLoading(true);
 
+            // Processar subtarefas: MANAGER/USER sempre enviam valor 0
+            const processedSubTasks = data.subTasks ? data.subTasks.map((subTask: any) => ({
+                ...subTask,
+                amount: isAdmin ? (subTask.amount || '0') : '0' // Força 0 para MANAGER/USER
+            })) : [];
+
             // Adiciona o requester selecionado aos dados
             const taskData = {
                 ...data,
+                subTasks: processedSubTasks,
                 requesterId: selectedRequester.id
             };
 

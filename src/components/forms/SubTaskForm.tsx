@@ -5,6 +5,7 @@ import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SubTask {
     id?: number;
@@ -20,6 +21,10 @@ interface FormData {
 }
 
 const SubTaskForm: React.FC = () => {
+    const { hasProfile } = useAuth();
+    const isAdmin = hasProfile('ADMIN');
+    const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
+    
     const {
         control,
         register,
@@ -48,7 +53,7 @@ const SubTaskForm: React.FC = () => {
         append({
             title: '',
             description: '',
-            amount: '',
+            amount: canViewValues ? '' : '0', // MANAGER/USER sempre recebem 0
             status: 'PENDING',
             excluded: false
         });
@@ -88,12 +93,14 @@ const SubTaskForm: React.FC = () => {
                     Subtarefas ({watchSubTasks?.filter(st => !st?.excluded).length || 0})
                 </h3>
                 <div className="flex items-center space-x-4">
-                    <div className="text-sm text-gray-600">
-                        <span className="font-medium">Total: </span>
-                        <span className="text-lg font-bold text-primary-600">
-              {formatCurrency(calculateTotal())}
-            </span>
-                    </div>
+                    {canViewValues && (
+                        <div className="text-sm text-gray-600">
+                            <span className="font-medium">Total: </span>
+                            <span className="text-lg font-bold text-primary-600">
+                                {formatCurrency(calculateTotal())}
+                            </span>
+                        </div>
+                    )}
                     <Button
                         type="button"
                         size="sm"
@@ -125,7 +132,7 @@ const SubTaskForm: React.FC = () => {
                                 </Button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-16">
+                            <div className={`grid grid-cols-1 ${canViewValues ? 'md:grid-cols-2' : 'md:grid-cols-2'} gap-4 pr-16`}>
                                 <Input
                                     {...register(`subTasks.${index}.title`)}
                                     label="Título"
@@ -134,21 +141,30 @@ const SubTaskForm: React.FC = () => {
                                     required
                                 />
 
-                                <div className="relative">
-                                    <Input
-                                        {...register(`subTasks.${index}.amount`, {
-                                            valueAsNumber: false
-                                        })}
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        label="Valor"
-                                        placeholder="0,00"
-                                        error={errors.subTasks?.[index]?.amount?.message}
-                                        required
+                                {canViewValues ? (
+                                    <div className="relative">
+                                        <Input
+                                            {...register(`subTasks.${index}.amount`, {
+                                                valueAsNumber: false
+                                            })}
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            label="Valor"
+                                            placeholder="0,00"
+                                            error={errors.subTasks?.[index]?.amount?.message}
+                                            required
+                                        />
+                                        <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
+                                    </div>
+                                ) : (
+                                    // Campo oculto para MANAGER/USER com valor 0
+                                    <input
+                                        type="hidden"
+                                        {...register(`subTasks.${index}.amount`)}
+                                        value="0"
                                     />
-                                    <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
-                                </div>
+                                )}
 
                                 <Input
                                     {...register(`subTasks.${index}.description`)}
@@ -180,10 +196,10 @@ const SubTaskForm: React.FC = () => {
                             <div className="mt-4 pt-4 border-t border-gray-200">
                                 <div className="text-sm text-gray-500">
                                     Subtarefa #{index + 1}
-                                    {watchSubTasks?.[index]?.amount && (
+                                    {canViewValues && watchSubTasks?.[index]?.amount && (
                                         <span className="ml-2 font-medium text-primary-600">
-                      {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
-                    </span>
+                                            {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
+                                        </span>
                                     )}
                                 </div>
                             </div>
