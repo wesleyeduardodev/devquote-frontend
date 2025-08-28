@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     X, 
     User, 
@@ -17,7 +17,9 @@ import {
     StickyNote,
     FolderOpen,
     Link,
-    DollarSign
+    DollarSign,
+    Copy,
+    Check
 } from 'lucide-react';
 
 interface Subtask {
@@ -65,7 +67,30 @@ interface TaskDetailModalProps {
 }
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose, canViewValues = false }) => {
+    const [copiedField, setCopiedField] = useState<string | null>(null);
+
     if (!isOpen || !task) return null;
+
+    const handleCopy = async (content: string, fieldName: string) => {
+        if (!content || content === '-') return;
+        
+        try {
+            await navigator.clipboard.writeText(content);
+            setCopiedField(fieldName);
+            setTimeout(() => setCopiedField(null), 2000);
+        } catch (err) {
+            console.error('Erro ao copiar:', err);
+            // Fallback para navegadores mais antigos
+            const textArea = document.createElement('textarea');
+            textArea.value = content;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopiedField(fieldName);
+            setTimeout(() => setCopiedField(null), 2000);
+        }
+    };
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';
@@ -269,42 +294,86 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 )}
 
                                 {/* Links */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                    {task.link && (
-                                        <div>
-                                            <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                                <Link className="w-3 h-3" />
-                                                Link da Tarefa
-                                            </p>
-                                            <a
-                                                href={task.link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                                            >
-                                                <ExternalLink className="w-4 h-4" />
-                                                Abrir Link
-                                            </a>
+                                <div className="space-y-4 pt-2">
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                            <Link className="w-3 h-3" />
+                                            Link da Tarefa
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                {task.link ? (
+                                                    <a
+                                                        href={task.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
+                                                    >
+                                                        {task.link}
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400">-</span>
+                                                )}
+                                            </div>
+                                            {task.link && (
+                                                <button
+                                                    onClick={() => handleCopy(task.link!, 'taskLink')}
+                                                    className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                        copiedField === 'taskLink'
+                                                            ? 'bg-green-100 text-green-600'
+                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                    }`}
+                                                    title="Copiar link da tarefa"
+                                                >
+                                                    {copiedField === 'taskLink' ? (
+                                                        <Check className="w-3 h-3" />
+                                                    ) : (
+                                                        <Copy className="w-3 h-3" />
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                     
-                                    {task.meetingLink && (
-                                        <div>
-                                            <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                                <Video className="w-3 h-3" />
-                                                Link da Reunião
-                                            </p>
-                                            <a
-                                                href={task.meetingLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                                            >
-                                                <Video className="w-4 h-4" />
-                                                Entrar na Reunião
-                                            </a>
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                            <Video className="w-3 h-3" />
+                                            Link da Gravação
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                {task.meetingLink ? (
+                                                    <a
+                                                        href={task.meetingLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
+                                                    >
+                                                        {task.meetingLink}
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400">-</span>
+                                                )}
+                                            </div>
+                                            {task.meetingLink && (
+                                                <button
+                                                    onClick={() => handleCopy(task.meetingLink!, 'meetingLink')}
+                                                    className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                        copiedField === 'meetingLink'
+                                                            ? 'bg-green-100 text-green-600'
+                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                    }`}
+                                                    title="Copiar link da gravação"
+                                                >
+                                                    {copiedField === 'meetingLink' ? (
+                                                        <Check className="w-3 h-3" />
+                                                    ) : (
+                                                        <Copy className="w-3 h-3" />
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
 
                                 {/* Project and Hours */}
