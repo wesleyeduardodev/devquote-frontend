@@ -56,35 +56,34 @@ interface DeliveryDetailModalProps {
 }
 
 const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isOpen, onClose }) => {
-    const [isCopied, setIsCopied] = useState(false);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
 
     if (!isOpen || !delivery) return null;
 
-    const handleCopyScript = async () => {
-        const scriptContent = delivery.script || `-- Insira aqui o script SQL para a entrega
-CREATE TABLE exemplo (
-  id BIGINT PRIMARY KEY,
-  nome VARCHAR(255) NOT NULL
-);
-
-INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`;
-
+    const handleCopy = async (content: string, fieldName: string) => {
+        if (!content || content === '-') return;
+        
         try {
-            await navigator.clipboard.writeText(scriptContent);
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000); // Reset após 2 segundos
+            await navigator.clipboard.writeText(content);
+            setCopiedField(fieldName);
+            setTimeout(() => setCopiedField(null), 2000);
         } catch (err) {
-            console.error('Erro ao copiar script:', err);
+            console.error('Erro ao copiar:', err);
             // Fallback para navegadores mais antigos
             const textArea = document.createElement('textarea');
-            textArea.value = scriptContent;
+            textArea.value = content;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
+            setCopiedField(fieldName);
+            setTimeout(() => setCopiedField(null), 2000);
         }
+    };
+
+    const handleCopyScript = async () => {
+        if (!delivery.script) return;
+        await handleCopy(delivery.script, 'script');
     };
 
     const formatDate = (dateString?: string) => {
@@ -269,7 +268,7 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`;
                                         <div>
                                             <p className="text-xs text-gray-500">Data de Início</p>
                                             <p className="text-sm font-medium text-gray-900">
-                                                {formatDateOnly(delivery.startedAt) || '25/12/2024'}
+                                                {formatDateOnly(delivery.startedAt)}
                                             </p>
                                         </div>
                                     </div>
@@ -279,7 +278,7 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`;
                                         <div>
                                             <p className="text-xs text-gray-500">Data de Finalização</p>
                                             <p className="text-sm font-medium text-gray-900">
-                                                {formatDateOnly(delivery.finishedAt) || '30/12/2024'}
+                                                {formatDateOnly(delivery.finishedAt)}
                                             </p>
                                         </div>
                                     </div>
@@ -288,73 +287,132 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`;
                         </div>
 
                         {/* Git e Pull Request */}
-                        {(delivery.branch || delivery.sourceBranch || delivery.pullRequest || true) && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <GitBranch className="w-5 h-5 text-blue-600" />
-                                    Informações do Git
-                                </h3>
-                                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <GitMerge className="w-4 h-4 text-gray-400" />
-                                            <div>
-                                                <p className="text-xs text-gray-500">Branch</p>
-                                                <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded text-gray-900">
-                                                    {delivery.branch || 'feature/nova-funcionalidade'}
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <GitBranch className="w-5 h-5 text-blue-600" />
+                                Informações do Git
+                            </h3>
+                            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <GitMerge className="w-4 h-4 text-gray-400" />
+                                        <div className="flex-1">
+                                            <p className="text-xs text-gray-500">Branch</p>
+                                            <div className="flex items-center gap-2">
+                                                <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded text-gray-900 flex-1">
+                                                    {delivery.branch || '-'}
                                                 </code>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <GitBranch className="w-4 h-4 text-gray-400" />
-                                            <div>
-                                                <p className="text-xs text-gray-500">Branch de Origem</p>
-                                                <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded text-gray-900">
-                                                    {delivery.sourceBranch || 'main, develop, master'}
-                                                </code>
+                                                {delivery.branch && (
+                                                    <button
+                                                        onClick={() => handleCopy(delivery.branch!, 'branch')}
+                                                        className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                            copiedField === 'branch'
+                                                                ? 'bg-green-100 text-green-600'
+                                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                        }`}
+                                                        title="Copiar branch"
+                                                    >
+                                                        {copiedField === 'branch' ? (
+                                                            <Check className="w-3 h-3" />
+                                                        ) : (
+                                                            <Copy className="w-3 h-3" />
+                                                        )}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {(delivery.pullRequest || true) && (
-                                        <div>
-                                            <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                                                <ExternalLink className="w-3 h-3" />
-                                                Link da Entrega
-                                            </p>
-                                            <a
-                                                href={delivery.pullRequest || 'https://github.com/user/repo/pull/123'}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
-                                            >
-                                                {delivery.pullRequest || 'https://github.com/user/repo/pull/123'}
-                                            </a>
+                                    <div className="flex items-center gap-2">
+                                        <GitBranch className="w-4 h-4 text-gray-400" />
+                                        <div className="flex-1">
+                                            <p className="text-xs text-gray-500">Branch de Origem</p>
+                                            <div className="flex items-center gap-2">
+                                                <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded text-gray-900 flex-1">
+                                                    {delivery.sourceBranch || '-'}
+                                                </code>
+                                                {delivery.sourceBranch && (
+                                                    <button
+                                                        onClick={() => handleCopy(delivery.sourceBranch!, 'sourceBranch')}
+                                                        className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                            copiedField === 'sourceBranch'
+                                                                ? 'bg-green-100 text-green-600'
+                                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                        }`}
+                                                        title="Copiar branch de origem"
+                                                    >
+                                                        {copiedField === 'sourceBranch' ? (
+                                                            <Check className="w-3 h-3" />
+                                                        ) : (
+                                                            <Copy className="w-3 h-3" />
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                        <ExternalLink className="w-3 h-3" />
+                                        Link da Entrega
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1">
+                                            {delivery.pullRequest ? (
+                                                <a
+                                                    href={delivery.pullRequest}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
+                                                >
+                                                    {delivery.pullRequest}
+                                                </a>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">-</span>
+                                            )}
+                                        </div>
+                                        {delivery.pullRequest && (
+                                            <button
+                                                onClick={() => handleCopy(delivery.pullRequest!, 'pullRequest')}
+                                                className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                    copiedField === 'pullRequest'
+                                                        ? 'bg-green-100 text-green-600'
+                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                }`}
+                                                title="Copiar link da entrega"
+                                            >
+                                                {copiedField === 'pullRequest' ? (
+                                                    <Check className="w-3 h-3" />
+                                                ) : (
+                                                    <Copy className="w-3 h-3" />
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
                         {/* Script SQL */}
-                        {(delivery.script || true) && (
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                        <Database className="w-5 h-5 text-blue-600" />
-                                        Script de Banco de Dados
-                                    </h3>
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                    <Database className="w-5 h-5 text-blue-600" />
+                                    Script de Banco de Dados
+                                </h3>
+                                {delivery.script && (
                                     <button
                                         onClick={handleCopyScript}
                                         className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-all ${
-                                            isCopied 
+                                            copiedField === 'script'
                                                 ? 'bg-green-100 text-green-700 border border-green-200' 
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
                                         }`}
                                         title="Copiar script"
                                     >
-                                        {isCopied ? (
+                                        {copiedField === 'script' ? (
                                             <>
                                                 <Check className="w-4 h-4" />
                                                 Copiado!
@@ -366,35 +424,35 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`;
                                             </>
                                         )}
                                     </button>
-                                </div>
-                                <div className="bg-gray-50 rounded-lg p-4">
+                                )}
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                {delivery.script ? (
                                     <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
                                         <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">
-                                            <code>{delivery.script || `-- Insira aqui o script SQL para a entrega
-CREATE TABLE exemplo (
-  id BIGINT PRIMARY KEY,
-  nome VARCHAR(255) NOT NULL
-);
-
-INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');`}</code>
+                                            <code>{delivery.script}</code>
                                         </pre>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="bg-gray-100 rounded-lg p-4 text-center">
+                                        <span className="text-gray-400">-</span>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
 
                         {/* Notas */}
-                        {(delivery.notes || true) && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <StickyNote className="w-5 h-5 text-blue-600" />
-                                    Notas
-                                </h3>
-                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                                    <p className="text-gray-700 whitespace-pre-wrap">{delivery.notes || 'Observações importantes sobre a entrega, problemas encontrados, etc.'}</p>
-                                </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <StickyNote className="w-5 h-5 text-blue-600" />
+                                Notas
+                            </h3>
+                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                                <p className="text-gray-700 whitespace-pre-wrap">
+                                    {delivery.notes || '-'}
+                                </p>
                             </div>
-                        )}
+                        </div>
 
                         {/* Timestamps Section */}
                         <div>
