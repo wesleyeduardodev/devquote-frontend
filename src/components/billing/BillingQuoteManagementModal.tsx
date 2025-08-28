@@ -31,6 +31,7 @@ import {
 import DataTable from '../ui/DataTable';
 import BulkDeleteModal from '../ui/BulkDeleteModal';
 import useQuotes from '../../hooks/useQuotes';
+import { useAuth } from '../../hooks/useAuth';
 import billingMonthService from '../../services/billingMonthService';
 
 interface BillingMonth {
@@ -66,6 +67,11 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
     billingMonth,
     onDataChange
 }) => {
+    const { hasProfile } = useAuth();
+    
+    // Verifica se o usuário tem permissão de edição (apenas ADMIN)
+    const isAdmin = hasProfile('ADMIN');
+    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
     // Estado do modal
     const [activeTab, setActiveTab] = useState<'linked' | 'available'>('linked');
     
@@ -386,21 +392,28 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
     ), [paginatedAvailableQuotes, selectedAvailable, handleToggleAllAvailable]);
 
     // Definições de colunas para tabelas
-    const linkedColumns = useMemo(() => [
-        {
-            key: 'select',
-            label: '',
-            width: '50px',
-            headerRender: LinkedHeaderCheckbox,
-            render: (item: any) => (
-                <input
-                    type="checkbox"
-                    checked={selectedLinked.includes(item.quoteId)}
-                    onChange={() => handleToggleLinked(item.quoteId)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-            )
-        },
+    const linkedColumns = useMemo(() => {
+        const baseColumns = [];
+        
+        // Apenas ADMIN pode selecionar
+        if (isAdmin) {
+            baseColumns.push({
+                key: 'select',
+                label: '',
+                width: '50px',
+                headerRender: LinkedHeaderCheckbox,
+                render: (item: any) => (
+                    <input
+                        type="checkbox"
+                        checked={selectedLinked.includes(item.quoteId)}
+                        onChange={() => handleToggleLinked(item.quoteId)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                )
+            });
+        }
+        
+        baseColumns.push(
         {
             key: 'quote',
             label: 'Orçamento',
@@ -437,24 +450,33 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                     {formatCurrency(item.amount)}
                 </span>
             )
-        }
-    ], [LinkedHeaderCheckbox, selectedLinked, handleToggleLinked, getQuoteStatusColor, getQuoteStatusLabel, formatCurrency]);
+        });
+        
+        return baseColumns;
+    }, [isAdmin, LinkedHeaderCheckbox, selectedLinked, handleToggleLinked, getQuoteStatusColor, getQuoteStatusLabel, formatCurrency]);
 
-    const availableColumns = useMemo(() => [
-        {
-            key: 'select',
-            label: '',
-            width: '50px',
-            headerRender: AvailableHeaderCheckbox,
-            render: (quote: any) => (
-                <input
-                    type="checkbox"
-                    checked={selectedAvailable.includes(quote.id)}
-                    onChange={() => handleToggleAvailable(quote.id)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-            )
-        },
+    const availableColumns = useMemo(() => {
+        const baseColumns = [];
+        
+        // Apenas ADMIN pode selecionar
+        if (isAdmin) {
+            baseColumns.push({
+                key: 'select',
+                label: '',
+                width: '50px',
+                headerRender: AvailableHeaderCheckbox,
+                render: (quote: any) => (
+                    <input
+                        type="checkbox"
+                        checked={selectedAvailable.includes(quote.id)}
+                        onChange={() => handleToggleAvailable(quote.id)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                )
+            });
+        }
+        
+        baseColumns.push(
         {
             key: 'quote',
             label: 'Orçamento',
@@ -491,8 +513,10 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                     {formatCurrency(getQuoteAmount(quote))}
                 </span>
             )
-        }
-    ], [AvailableHeaderCheckbox, selectedAvailable, handleToggleAvailable, getQuoteStatusColor, getQuoteStatusLabel, formatCurrency, getQuoteAmount]);
+        });
+        
+        return baseColumns;
+    }, [isAdmin, AvailableHeaderCheckbox, selectedAvailable, handleToggleAvailable, getQuoteStatusColor, getQuoteStatusLabel, formatCurrency, getQuoteAmount]);
 
     if (!isOpen || !billingMonth) return null;
 
@@ -518,26 +542,31 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                         </span>
                                     </div>
                                     
-                                    {/* Status editável */}
+                                    {/* Status editável apenas para ADMIN */}
                                     <div className="flex items-center gap-2">
                                         <StatusBadge status={currentStatus} />
-                                        <div className="flex items-center gap-1">
-                                            <select
-                                                value={currentStatus}
-                                                onChange={(e) => handleUpdateStatus(e.target.value)}
-                                                disabled={statusLoading}
-                                                className="text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-                                            >
-                                                {statusOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {statusLoading && (
-                                                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                                            )}
-                                        </div>
+                                        {isAdmin && (
+                                            <div className="flex items-center gap-1">
+                                                <select
+                                                    value={currentStatus}
+                                                    onChange={(e) => handleUpdateStatus(e.target.value)}
+                                                    disabled={statusLoading}
+                                                    className="text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                                                >
+                                                    {statusOptions.map(option => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {statusLoading && (
+                                                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                                                )}
+                                            </div>
+                                        )}
+                                        {isReadOnly && (
+                                            <span className="text-xs text-gray-500 italic">Somente leitura</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -656,8 +685,8 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                     <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto overflow-x-auto">
                         {activeTab === 'linked' && (
                             <div className="space-y-4">
-                                {/* Actions for linked quotes */}
-                                {selectedLinked.length > 0 && (
+                                {/* Actions for linked quotes - Apenas para ADMIN */}
+                                {isAdmin && selectedLinked.length > 0 && (
                                     <div className="bg-red-50 rounded-lg p-3 sm:p-4">
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                             <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
@@ -674,6 +703,16 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                         </div>
                                     </div>
                                 )}
+                                
+                                {/* Aviso para usuários não-admin */}
+                                {isReadOnly && (
+                                    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <Eye className="w-4 h-4" />
+                                            <span>Você possui apenas permissão de visualização para esta tela.</span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {linkedLoading ? (
                                     <div className="text-center py-12">
@@ -684,13 +723,15 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                     <div className="text-center py-12">
                                         <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                                         <p className="text-gray-500">Nenhum orçamento vinculado</p>
-                                        <button
-                                            onClick={() => setActiveTab('available')}
-                                            className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            Vincular Orçamentos
-                                        </button>
+                                        {isAdmin && (
+                                            <button
+                                                onClick={() => setActiveTab('available')}
+                                                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Vincular Orçamentos
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
                                     <>
@@ -710,12 +751,14 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                             {linkedQuotesWithDetails.map((item: any) => (
                                                 <div key={item.quoteId} className="bg-white rounded-lg border border-gray-200 p-4">
                                                     <div className="flex items-start gap-3">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedLinked.includes(item.quoteId)}
-                                                            onChange={() => handleToggleLinked(item.quoteId)}
-                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                                                        />
+                                                        {isAdmin && (
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedLinked.includes(item.quoteId)}
+                                                                onChange={() => handleToggleLinked(item.quoteId)}
+                                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                                                            />
+                                                        )}
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -806,8 +849,8 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                     </div>
                                 </div>
 
-                                {/* Actions for available quotes */}
-                                {selectedAvailable.length > 0 && (
+                                {/* Actions for available quotes - Apenas para ADMIN */}
+                                {isAdmin && selectedAvailable.length > 0 && (
                                     <div className="bg-green-50 rounded-lg p-3 sm:p-4">
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                             <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
@@ -863,12 +906,14 @@ const BillingQuoteManagementModal: React.FC<BillingQuoteManagementModalProps> = 
                                             {paginatedAvailableQuotes.map((quote: any) => (
                                                 <div key={quote.id} className="bg-white rounded-lg border border-gray-200 p-4">
                                                     <div className="flex items-start gap-3">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedAvailable.includes(quote.id)}
-                                                            onChange={() => handleToggleAvailable(quote.id)}
-                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                                                        />
+                                                        {isAdmin && (
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedAvailable.includes(quote.id)}
+                                                                onChange={() => handleToggleAvailable(quote.id)}
+                                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                                                            />
+                                                        )}
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
