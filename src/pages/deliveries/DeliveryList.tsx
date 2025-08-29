@@ -1,39 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen, StickyNote, GitMerge, Check, Eye } from 'lucide-react';
-import { useDeliveries } from '@/hooks/useDeliveries';
+import { useDeliveryGroups } from '@/hooks/useDeliveryGroups';
 import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
-import DeliveryDetailModal from '@/components/deliveries/DeliveryDetailModal';
+import DeliveryGroupModal from '@/components/deliveries/DeliveryGroupModal';
 import toast from 'react-hot-toast';
 
-interface Delivery {
-    id: number;
+interface DeliveryGroup {
+    quoteId: number;
     taskName: string;
     taskCode: string;
-    projectName: string;
-    branch?: string;
-    sourceBranch?: string;
-    pullRequest?: string;
-    script?: string;
-    notes?: string;
-    status: string;
-    startedAt?: string;
-    finishedAt?: string;
-    // Dados do orçamento
-    quoteId?: number;
-    quoteName?: string;
-    quoteCode?: string;
-    quoteStatus?: string;
-    quoteValue?: number;
-    // Dados do projeto
-    projectId?: number;
-    projectRepository?: string;
-    createdAt?: string;
-    updatedAt?: string;
+    quoteStatus: string;
+    quoteValue: number;
+    createdAt: string;
+    updatedAt: string;
+    totalDeliveries: number;
+    completedDeliveries: number;
+    pendingDeliveries: number;
+    deliveries: any[];
 }
 
 const DeliveryList: React.FC = () => {
@@ -52,7 +40,7 @@ const DeliveryList: React.FC = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
 
     const {
-        deliveries,
+        deliveryGroups,
         pagination,
         loading,
         sorting,
@@ -62,53 +50,34 @@ const DeliveryList: React.FC = () => {
         setSorting,
         setFilter,
         clearFilters,
-        deleteDelivery,
-        deleteBulkDeliveries
-    } = useDeliveries();
+        getGroupDetails,
+        refetch
+    } = useDeliveryGroups();
 
-    const handleView = (delivery: Delivery) => {
-        // Mapear a estrutura da delivery para o formato esperado pelo modal
-        const deliveryForModal = {
-            id: delivery.id,
-            name: delivery.taskName,
-            description: undefined, // Pode ser preenchida se houver dados de descrição
-            status: delivery.status,
-            branch: delivery.branch,
-            sourceBranch: delivery.sourceBranch,
-            pullRequest: delivery.pullRequest,
-            script: delivery.script,
-            notes: delivery.notes,
-            startedAt: delivery.startedAt,
-            finishedAt: delivery.finishedAt,
-            // Dados do orçamento
-            quoteId: delivery.quoteId,
-            quoteName: delivery.quoteName || delivery.taskName,
-            quoteCode: delivery.quoteCode || delivery.taskCode,
-            quoteStatus: delivery.quoteStatus,
-            quoteValue: delivery.quoteValue,
-            // Dados do projeto
-            projectId: delivery.projectId,
-            projectName: delivery.projectName,
-            projectRepository: delivery.projectRepository,
-            requesterName: undefined, // Pode ser preenchida se houver dados do solicitante
-            createdAt: delivery.createdAt,
-            updatedAt: delivery.updatedAt
-        };
-        
-        setSelectedDelivery(deliveryForModal);
-        setShowDetailModal(true);
+    const handleView = async (deliveryGroup: DeliveryGroup) => {
+        try {
+            const groupDetails = await getGroupDetails(deliveryGroup.quoteId);
+            if (groupDetails) {
+                setSelectedDelivery(groupDetails);
+                setShowDetailModal(true);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar detalhes do grupo:', error);
+            toast.error('Erro ao carregar detalhes do grupo');
+        }
     };
 
-    const handleEdit = (id: number) => {
-        navigate(`/deliveries/${id}/edit`);
+    const handleEdit = (quoteId: number) => {
+        navigate(`/deliveries/group/${quoteId}/edit`);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Tem certeza que deseja excluir esta entrega?')) {
+    const handleDelete = async (quoteId: number) => {
+        if (window.confirm('Tem certeza que deseja excluir todas as entregas desta tarefa?')) {
             try {
-                await deleteDelivery(id);
+                // TODO: Implementar delete do grupo
+                toast.error('Funcionalidade ainda não implementada');
             } catch (error) {
-                toast.error('Erro ao excluir entrega');
+                toast.error('Erro ao excluir grupo de entregas');
             }
         }
     };
@@ -156,16 +125,16 @@ const DeliveryList: React.FC = () => {
     };
 
     // Funções de seleção múltipla
-    const toggleItem = (id: number) => {
+    const toggleItem = (quoteId: number) => {
         setSelectedItems(prev => 
-            prev.includes(id)
-                ? prev.filter(item => item !== id)
-                : [...prev, id]
+            prev.includes(quoteId)
+                ? prev.filter(item => item !== quoteId)
+                : [...prev, quoteId]
         );
     };
 
     const toggleAll = () => {
-        const currentPageIds = deliveries.map(delivery => delivery.id);
+        const currentPageIds = deliveryGroups.map(group => group.quoteId);
         const allSelected = currentPageIds.every(id => selectedItems.includes(id));
         
         if (allSelected) {
@@ -181,7 +150,7 @@ const DeliveryList: React.FC = () => {
 
     // Estados derivados
     const selectionState = useMemo(() => {
-        const currentPageIds = deliveries.map(delivery => delivery.id);
+        const currentPageIds = deliveryGroups.map(group => group.quoteId);
         const selectedFromCurrentPage = selectedItems.filter(id => currentPageIds.includes(id));
         
         return {
@@ -190,34 +159,30 @@ const DeliveryList: React.FC = () => {
             hasSelection: selectedItems.length > 0,
             selectedFromCurrentPage
         };
-    }, [deliveries, selectedItems]);
+    }, [deliveryGroups, selectedItems]);
 
     const handleBulkDelete = async () => {
         setIsDeleting(true);
         try {
-            await deleteBulkDeliveries(selectedItems);
+            // TODO: Implementar bulk delete de grupos
+            toast.error('Funcionalidade ainda não implementada');
             clearSelection();
             setShowBulkDeleteModal(false);
-            toast.success(`${selectedItems.length} entrega(s) excluída(s) com sucesso`);
         } catch (error) {
-            toast.error('Erro ao excluir entregas selecionadas');
+            toast.error('Erro ao excluir grupos selecionados');
         } finally {
             setIsDeleting(false);
         }
     };
 
-    // Filtrar deliveries baseado na busca (apenas para mobile)
-    const filteredDeliveries = deliveries.filter(delivery =>
-        delivery.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        delivery.taskCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        delivery.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        delivery.branch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        delivery.sourceBranch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        delivery.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        getStatusLabel(delivery.status).toLowerCase().includes(searchTerm.toLowerCase())
+    // Filtrar delivery groups baseado na busca (apenas para mobile)
+    const filteredDeliveryGroups = deliveryGroups.filter(group =>
+        group.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.taskCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getStatusLabel(group.quoteStatus).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const columns: Column<Delivery>[] = [
+    const columns: Column<DeliveryGroup>[] = [
         // Checkbox de seleção - apenas para ADMIN
         ...(isAdmin ? [{
             key: 'select',
@@ -244,8 +209,8 @@ const DeliveryList: React.FC = () => {
                 <div className="flex items-center justify-center">
                     <input
                         type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => toggleItem(item.id)}
+                        checked={selectedItems.includes(item.quoteId)}
+                        onChange={() => toggleItem(item.quoteId)}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         onClick={(e) => e.stopPropagation()}
                     />
@@ -255,15 +220,15 @@ const DeliveryList: React.FC = () => {
         // Colunas que todos podem ver
         {
             key: 'id',
-            title: 'ID',
+            title: 'ID Orçamento',
             sortable: true,
             filterable: true,
             filterType: 'number',
-            width: '100px',
+            width: '120px',
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                    #{item.id}
+                    #{item.quoteId}
                 </span>
             )
         },
@@ -299,110 +264,69 @@ const DeliveryList: React.FC = () => {
             )
         },
         {
-            key: 'projectName',
-            title: 'Projeto',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '150px',
-            render: (item) => (
-                <span className="text-sm text-gray-900">
-                    {item.projectName}
-                </span>
-            )
-        },
-        {
-            key: 'status',
-            title: 'Status',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
+            key: 'totalDeliveries',
+            title: 'Total Entregas',
+            sortable: false,
+            filterable: false,
             width: '120px',
             align: 'center',
             render: (item) => (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-                    {getStatusLabel(item.status)}
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                    {item.totalDeliveries}
                 </span>
             )
         },
         {
-            key: 'pullRequest',
-            title: 'Link da Entrega',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '200px',
+            key: 'completedDeliveries',
+            title: 'Concluídas',
+            sortable: false,
+            filterable: false,
+            width: '100px',
+            align: 'center',
             render: (item) => (
-                item.pullRequest ? (
-                    <a
-                        href={item.pullRequest}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 truncate"
-                        onClick={(e) => e.stopPropagation()}
-                        title={item.pullRequest}
-                    >
-                        <ExternalLink className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate text-sm">
-                            {item.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
-                        </span>
-                    </a>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                )
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                    {item.completedDeliveries}
+                </span>
             )
         },
         {
-            key: 'branch',
-            title: 'Branch',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '150px',
+            key: 'pendingDeliveries',
+            title: 'Pendentes',
+            sortable: false,
+            filterable: false,
+            width: '100px',
+            align: 'center',
             render: (item) => (
-                item.branch ? (
-                    <div className="flex items-center gap-1">
-                        <GitBranch className="w-4 h-4 text-gray-400" />
-                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
-                            {item.branch}
-                        </span>
-                    </div>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                )
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {item.pendingDeliveries}
+                </span>
             )
         },
         {
-            key: 'startedAt',
-            title: 'Iniciado em',
+            key: 'quoteStatus',
+            title: 'Status Orçamento',
             sortable: true,
             filterable: true,
-            filterType: 'date',
-            width: '120px',
+            filterType: 'text',
+            width: '140px',
+            align: 'center',
             render: (item) => (
-                <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                        {formatDateShort(item.startedAt)}
-                    </span>
-                </div>
-            ),
-            hideable: true
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.quoteStatus)}`}>
+                    {getStatusLabel(item.quoteStatus)}
+                </span>
+            )
         },
         {
-            key: 'finishedAt',
-            title: 'Finalizado em',
-            sortable: true,
-            filterable: true,
-            filterType: 'date',
+            key: 'quoteValue',
+            title: 'Valor Orçamento',
+            sortable: false,
+            filterable: false,
             width: '120px',
+            align: 'right',
             render: (item) => (
-                <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                        {formatDateShort(item.finishedAt)}
-                    </span>
-                </div>
+                <span className="text-sm font-medium text-gray-900">
+                    {item.quoteValue ? `R$ ${item.quoteValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                </span>
             ),
             hideable: true
         },
@@ -430,13 +354,13 @@ const DeliveryList: React.FC = () => {
             title: 'Ações',
             align: 'center' as const,
             width: isAdmin ? '150px' : '80px',
-            render: (item: Delivery) => (
+            render: (item: DeliveryGroup) => (
                 <div className="flex items-center justify-center gap-1">
                     <Button 
                         size="sm" 
                         variant="ghost" 
                         onClick={() => handleView(item)} 
-                        title="Visualizar detalhes"
+                        title="Visualizar detalhes das entregas"
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                     >
                         <Eye className="w-4 h-4" />
@@ -446,16 +370,16 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleEdit(item.id)}
-                                title="Editar"
+                                onClick={() => handleEdit(item.quoteId)}
+                                title="Editar grupo"
                             >
                                 <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(item.id)}
-                                title="Excluir"
+                                onClick={() => handleDelete(item.quoteId)}
+                                title="Excluir grupo"
                                 className="text-red-600 hover:text-red-800 hover:bg-red-50"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -468,7 +392,7 @@ const DeliveryList: React.FC = () => {
     ];
 
     // Componente Card para visualização mobile
-    const DeliveryCard: React.FC<{ delivery: Delivery }> = ({ delivery }) => (
+    const DeliveryGroupCard: React.FC<{ deliveryGroup: DeliveryGroup }> = ({ deliveryGroup }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}
             <div className="flex items-start justify-between mb-3">
@@ -478,8 +402,8 @@ const DeliveryList: React.FC = () => {
                         <div className="flex-shrink-0 pt-1">
                             <input
                                 type="checkbox"
-                                checked={selectedItems.includes(delivery.id)}
-                                onChange={() => toggleItem(delivery.id)}
+                                checked={selectedItems.includes(deliveryGroup.quoteId)}
+                                onChange={() => toggleItem(deliveryGroup.quoteId)}
                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
                         </div>
@@ -488,18 +412,18 @@ const DeliveryList: React.FC = () => {
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                #{delivery.id}
+                                #{deliveryGroup.quoteId}
                             </span>
                             <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                                {delivery.taskCode}
+                                {deliveryGroup.taskCode}
                             </span>
                         </div>
                         <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">
-                            {delivery.taskName}
+                            {deliveryGroup.taskName}
                         </h3>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(delivery.status)}`}>
-                                {getStatusLabel(delivery.status)}
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(deliveryGroup.quoteStatus)}`}>
+                                {getStatusLabel(deliveryGroup.quoteStatus)}
                             </span>
                         </div>
                     </div>
@@ -510,8 +434,8 @@ const DeliveryList: React.FC = () => {
                     <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleView(delivery)}
-                        title="Visualizar detalhes"
+                        onClick={() => handleView(deliveryGroup)}
+                        title="Visualizar detalhes das entregas"
                         className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                     >
                         <Eye className="w-4 h-4" />
@@ -521,8 +445,8 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleEdit(delivery.id)}
-                                title="Editar"
+                                onClick={() => handleEdit(deliveryGroup.quoteId)}
+                                title="Editar grupo"
                                 className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                             >
                                 <Edit className="w-4 h-4" />
@@ -530,8 +454,8 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(delivery.id)}
-                                title="Excluir"
+                                onClick={() => handleDelete(deliveryGroup.quoteId)}
+                                title="Excluir grupo"
                                 className="text-gray-600 hover:text-red-600 hover:bg-red-50"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -541,63 +465,42 @@ const DeliveryList: React.FC = () => {
                 </div>
             </div>
 
-            {/* Informações da Entrega */}
+            {/* Informações do Grupo de Entregas */}
             <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                    <FolderOpen className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">{delivery.projectName}</span>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <span className="text-gray-700 font-medium">{deliveryGroup.totalDeliveries} entregas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span className="text-green-700 font-medium">{deliveryGroup.completedDeliveries} concluídas</span>
+                    </div>
                 </div>
 
-                {delivery.sourceBranch && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <GitMerge className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                        {delivery.branch && (
-                            <>
-                                <span className="text-gray-400">→</span>
-                                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
-                                    {delivery.branch}
-                                </span>
-                            </>
-                        )}
-                    </div>
-                )}
+                <div className="flex items-center gap-2 text-sm">
+                    <Hash className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                    <span className="text-yellow-700 font-medium">{deliveryGroup.pendingDeliveries} pendentes</span>
+                </div>
 
-                {!delivery.sourceBranch && delivery.branch && (
+                {deliveryGroup.quoteValue && (
                     <div className="flex items-center gap-2 text-sm">
-                        <GitBranch className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-mono">
-                            {delivery.branch}
+                        <span className="text-gray-500">Valor:</span>
+                        <span className="text-gray-900 font-medium">
+                            R$ {deliveryGroup.quoteValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                     </div>
                 )}
 
-                {delivery.pullRequest && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                        <a
-                            href={delivery.pullRequest}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 hover:underline truncate"
-                            onClick={(e) => e.stopPropagation()}
-                            title={delivery.pullRequest}
-                        >
-                            {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
-                        </a>
-                    </div>
-                )}
-
                 <div className="flex items-center justify-between text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
-                    {delivery.startedAt && (
+                    <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <span>Criado em {formatDateShort(deliveryGroup.createdAt)}</span>
+                    </div>
+                    {deliveryGroup.updatedAt !== deliveryGroup.createdAt && (
                         <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4 flex-shrink-0" />
-                            <span>Iniciado em {formatDateShort(delivery.startedAt)}</span>
-                        </div>
-                    )}
-                    {delivery.finishedAt && (
-                        <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4 flex-shrink-0" />
-                            <span>Finalizado em {formatDateShort(delivery.finishedAt)}</span>
+                            <span>Atualizado em {formatDateShort(deliveryGroup.updatedAt)}</span>
                         </div>
                     )}
                 </div>
@@ -707,9 +610,9 @@ const DeliveryList: React.FC = () => {
                             <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
                         </div>
                         <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Em Progresso</div>
+                            <div className="text-xs sm:text-sm font-medium text-gray-500">Grupos Ativos</div>
                             <div className="text-lg sm:text-2xl font-bold text-yellow-600">
-                                {deliveries.filter(d => d.status === 'IN_PROGRESS').length}
+                                {deliveryGroups.filter(g => g.pendingDeliveries > 0).length}
                             </div>
                         </div>
                     </div>
@@ -721,9 +624,9 @@ const DeliveryList: React.FC = () => {
                             <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                         </div>
                         <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Entregues</div>
+                            <div className="text-xs sm:text-sm font-medium text-gray-500">Total Entregas</div>
                             <div className="text-lg sm:text-2xl font-bold text-green-600">
-                                {deliveries.filter(d => d.status === 'DELIVERED').length}
+                                {deliveryGroups.reduce((acc, g) => acc + g.totalDeliveries, 0)}
                             </div>
                         </div>
                     </div>
@@ -735,9 +638,9 @@ const DeliveryList: React.FC = () => {
                             <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
                         </div>
                         <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Aprovadas</div>
+                            <div className="text-xs sm:text-sm font-medium text-gray-500">Concluídas</div>
                             <div className="text-lg sm:text-2xl font-bold text-emerald-600">
-                                {deliveries.filter(d => d.status === 'APPROVED').length}
+                                {deliveryGroups.reduce((acc, g) => acc + g.completedDeliveries, 0)}
                             </div>
                         </div>
                     </div>
@@ -788,7 +691,7 @@ const DeliveryList: React.FC = () => {
                         
                         <Card className="p-0">
                             <DataTable
-                                data={deliveries} // Usar dados originais sem filtro de busca
+                                data={deliveryGroups}
                                 columns={columns}
                                 loading={loading}
                                 pagination={pagination}
@@ -799,27 +702,27 @@ const DeliveryList: React.FC = () => {
                                 onSort={setSorting}
                                 onFilter={setFilter}
                                 onClearFilters={clearFilters}
-                                emptyMessage="Nenhuma entrega encontrada"
+                                emptyMessage="Nenhum grupo de entregas encontrado"
                                 showColumnToggle={true}
-                                hiddenColumns={['notes', 'startedAt', 'finishedAt', 'createdAt', 'updatedAt']}
+                                hiddenColumns={['quoteValue', 'createdAt', 'updatedAt']}
                             />
                         </Card>
                     </div>
 
                     {/* Visualização Mobile/Tablet - Cards com busca simples */}
                     <div className="lg:hidden">
-                        {filteredDeliveries.length === 0 ? (
+                        {filteredDeliveryGroups.length === 0 ? (
                             <Card className="p-8 text-center">
                                 <div className="text-gray-500">
                                     <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                    <h3 className="text-lg font-medium mb-2">Nenhuma entrega encontrada</h3>
+                                    <h3 className="text-lg font-medium mb-2">Nenhum grupo de entregas encontrado</h3>
                                     <p>Tente ajustar os filtros de busca ou criar uma nova entrega.</p>
                                 </div>
                             </Card>
                         ) : (
                             <div className="grid gap-4">
-                                {filteredDeliveries.map((delivery) => (
-                                    <DeliveryCard key={delivery.id} delivery={delivery} />
+                                {filteredDeliveryGroups.map((deliveryGroup) => (
+                                    <DeliveryGroupCard key={deliveryGroup.quoteId} deliveryGroup={deliveryGroup} />
                                 ))}
                             </div>
                         )}
@@ -866,9 +769,9 @@ const DeliveryList: React.FC = () => {
                 entityName="entrega"
             />
 
-            {/* Modal de detalhes da entrega */}
-            <DeliveryDetailModal
-                delivery={selectedDelivery}
+            {/* Modal de detalhes do grupo de entregas */}
+            <DeliveryGroupModal
+                deliveryGroup={selectedDelivery}
                 isOpen={showDetailModal}
                 onClose={() => {
                     setShowDetailModal(false);

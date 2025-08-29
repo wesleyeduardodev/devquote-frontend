@@ -1,5 +1,6 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {deliveryService} from '@/services/deliveryService';
+import {deliveryGroupService} from '@/services/deliveryGroupService';
 import toast from 'react-hot-toast';
 
 interface Delivery {
@@ -34,6 +35,20 @@ interface DeliveryCreate {
 
 interface DeliveryUpdate extends Partial<DeliveryCreate> {
     id?: number;
+}
+
+interface DeliveryGroup {
+    quoteId: number;
+    taskName: string;
+    taskCode: string;
+    quoteStatus: string;
+    quoteValue: number;
+    createdAt: string;
+    updatedAt: string;
+    totalDeliveries: number;
+    completedDeliveries: number;
+    pendingDeliveries: number;
+    deliveries: Delivery[];
 }
 
 interface PaginationInfo {
