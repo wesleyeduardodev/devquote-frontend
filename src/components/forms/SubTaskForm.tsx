@@ -132,7 +132,8 @@ const SubTaskForm: React.FC = () => {
                                 </Button>
                             </div>
 
-                            <div className={`grid grid-cols-1 ${canViewValues ? 'md:grid-cols-2' : 'md:grid-cols-2'} gap-4 pr-16`}>
+                            <div className="space-y-4 pr-16">
+                                {/* Título - linha completa */}
                                 <Input
                                     {...register(`subTasks.${index}.title`)}
                                     label="Título"
@@ -141,50 +142,60 @@ const SubTaskForm: React.FC = () => {
                                     required
                                 />
 
-                                {canViewValues ? (
-                                    <div className="relative">
-                                        <Input
-                                            {...register(`subTasks.${index}.amount`, {
-                                                valueAsNumber: false
-                                            })}
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            label="Valor"
-                                            placeholder="0,00"
-                                            error={errors.subTasks?.[index]?.amount?.message}
-                                            required
-                                        />
-                                        <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
-                                    </div>
-                                ) : (
-                                    // Campo oculto para MANAGER/USER com valor 0
-                                    <input
-                                        type="hidden"
-                                        {...register(`subTasks.${index}.amount`)}
-                                        value="0"
+                                {/* Descrição - textarea em linha completa */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                                    <textarea
+                                        {...register(`subTasks.${index}.description`)}
+                                        rows={3}
+                                        placeholder="Descreva a subtarefa (opcional)"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
                                     />
-                                )}
+                                    {errors.subTasks?.[index]?.description && (
+                                        <p className="mt-1 text-sm text-red-600">{errors.subTasks[index].description.message}</p>
+                                    )}
+                                </div>
 
-                                <Input
-                                    {...register(`subTasks.${index}.description`)}
-                                    label="Descrição"
-                                    placeholder="Descreva a subtarefa (opcional)"
-                                    error={errors.subTasks?.[index]?.description?.message}
-                                />
+                                {/* Valor e Status na mesma linha */}
+                                <div className={`grid ${canViewValues ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                                    {canViewValues ? (
+                                        <div className="relative">
+                                            <Input
+                                                {...register(`subTasks.${index}.amount`, {
+                                                    valueAsNumber: false
+                                                })}
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                label="Valor"
+                                                placeholder="0,00"
+                                                error={errors.subTasks?.[index]?.amount?.message}
+                                                required
+                                            />
+                                            <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
+                                        </div>
+                                    ) : (
+                                        // Campo oculto para MANAGER/USER com valor 0
+                                        <input
+                                            type="hidden"
+                                            {...register(`subTasks.${index}.amount`)}
+                                            value="0"
+                                        />
+                                    )}
 
-                                <Select
-                                    {...register(`subTasks.${index}.status`)}
-                                    label="Status"
-                                    error={errors.subTasks?.[index]?.status?.message}
-                                    required
-                                >
-                                    {statusOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </Select>
+                                    <Select
+                                        {...register(`subTasks.${index}.status`)}
+                                        label="Status"
+                                        error={errors.subTasks?.[index]?.status?.message}
+                                        required
+                                    >
+                                        {statusOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </div>
                             </div>
 
                             {/* Campo oculto para manter o valor de "excluded" */}
