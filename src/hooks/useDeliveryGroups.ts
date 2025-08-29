@@ -89,9 +89,9 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
             if (!controller.signal.aborted) {
                 setDeliveryGroups(response.content);
                 setPagination({
-                    currentPage: response.number,
+                    currentPage: response.currentPage,
                     totalPages: response.totalPages,
-                    pageSize: response.size,
+                    pageSize: response.pageSize,
                     totalElements: response.totalElements,
                     first: response.first,
                     last: response.last,

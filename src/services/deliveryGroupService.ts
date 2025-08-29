@@ -16,14 +16,12 @@ interface DeliveryGroup {
 
 interface PaginatedDeliveryGroups {
     content: DeliveryGroup[];
+    currentPage: number;
     totalPages: number;
+    pageSize: number;
     totalElements: number;
-    size: number;
-    number: number;
-    numberOfElements: number;
     first: boolean;
     last: boolean;
-    empty: boolean;
 }
 
 export const deliveryGroupService = {
