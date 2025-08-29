@@ -44,7 +44,10 @@ interface Task {
     code?: string;
     description?: string;
     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    taskType?: string;
+    serverOrigin?: string;
+    systemModule?: string;
     estimatedHours?: number;
     actualHours?: number;
     requesterName?: string;
@@ -134,14 +137,36 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'HIGH':
+            case 'URGENT':
                 return 'bg-red-100 text-red-800';
+            case 'HIGH':
+                return 'bg-orange-100 text-orange-800';
             case 'MEDIUM':
                 return 'bg-yellow-100 text-yellow-800';
             case 'LOW':
                 return 'bg-green-100 text-green-800';
             default:
                 return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const getPriorityLabel = (priority: string) => {
+        switch (priority) {
+            case 'URGENT': return '🔴 Urgente';
+            case 'HIGH': return '🟠 Alta';
+            case 'MEDIUM': return '🟡 Média';
+            case 'LOW': return '🟢 Baixa';
+            default: return 'Não definida';
+        }
+    };
+
+    const getTaskTypeLabel = (taskType?: string) => {
+        if (!taskType) return 'Não informado';
+        switch (taskType) {
+            case 'BUG': return '🐛 Bug';
+            case 'ENHANCEMENT': return '📨 Melhoria';
+            case 'NEW_FEATURE': return '✨ Nova Funcionalidade';
+            default: return taskType;
         }
     };
 
@@ -160,18 +185,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
         }
     };
 
-    const getPriorityLabel = (priority: string) => {
-        switch (priority) {
-            case 'HIGH':
-                return 'Alta';
-            case 'MEDIUM':
-                return 'Média';
-            case 'LOW':
-                return 'Baixa';
-            default:
-                return priority;
-        }
-    };
 
     const completedSubtasks = task.subtasks?.filter(st => st.completed).length || 0;
     const totalSubtasks = task.subtasks?.length || 0;
@@ -261,6 +274,15 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             </span>
                                         </div>
                                     )}
+
+                                    {task.taskType && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">Tipo:</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {getTaskTypeLabel(task.taskType)}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -282,6 +304,28 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Descrição</p>
                                         <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                                    </div>
+                                )}
+
+                                {/* Novos campos */}
+                                {(task.systemModule || task.serverOrigin) && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {task.systemModule && (
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                                    📁 Módulo do Sistema
+                                                </p>
+                                                <p className="text-gray-700 bg-gray-100 px-3 py-2 rounded">{task.systemModule}</p>
+                                            </div>
+                                        )}
+                                        {task.serverOrigin && (
+                                            <div>
+                                                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                                    🖥️ Servidor de Origem
+                                                </p>
+                                                <p className="text-gray-700 bg-gray-100 px-3 py-2 rounded">{task.serverOrigin}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

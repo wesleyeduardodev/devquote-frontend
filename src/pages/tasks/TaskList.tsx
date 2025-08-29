@@ -48,6 +48,10 @@ interface Task {
     notes?: string;
     amount?: number;
     hasSubTasks?: boolean;
+    taskType?: string;
+    serverOrigin?: string;
+    systemModule?: string;
+    priority?: string;
     subTasks?: SubTask[];
     createdAt?: string;
     updatedAt?: string;
@@ -110,7 +114,10 @@ const TaskList: React.FC = () => {
             code: task.code,
             description: task.description,
             status: task.status,
-            priority: undefined, // Como não temos prioridade na estrutura atual
+            priority: task.priority || 'MEDIUM',
+            taskType: task.taskType,
+            serverOrigin: task.serverOrigin,
+            systemModule: task.systemModule,
             estimatedHours: undefined,
             actualHours: undefined,
             requesterName: task.requesterName,
@@ -180,6 +187,36 @@ const TaskList: React.FC = () => {
             CANCELLED: 'Cancelada',
         };
         return labels[status] || status;
+    };
+
+    const getPriorityColor = (priority: string) => {
+        const colors: Record<string, string> = {
+            LOW: 'bg-green-100 text-green-800',
+            MEDIUM: 'bg-yellow-100 text-yellow-800',
+            HIGH: 'bg-orange-100 text-orange-800',
+            URGENT: 'bg-red-100 text-red-800',
+        };
+        return colors[priority] || 'bg-gray-100 text-gray-800';
+    };
+
+    const getPriorityLabel = (priority: string) => {
+        const labels: Record<string, string> = {
+            LOW: '🟢 Baixa',
+            MEDIUM: '🟡 Média',
+            HIGH: '🟠 Alta',
+            URGENT: '🔴 Urgente',
+        };
+        return labels[priority] || priority;
+    };
+
+    const getTaskTypeLabel = (taskType?: string) => {
+        if (!taskType) return '-';
+        const labels: Record<string, string> = {
+            BUG: '🐛 Bug',
+            ENHANCEMENT: '📨 Melhoria',
+            NEW_FEATURE: '✨ Nova Funcionalidade',
+        };
+        return labels[taskType] || taskType;
     };
 
     const calculateTaskTotal = (task?: Task) => {
@@ -344,6 +381,48 @@ const TaskList: React.FC = () => {
           {getStatusLabel(item.status)}
         </span>
             ),
+        },
+        {
+            key: 'priority',
+            title: 'Prioridade',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '120px',
+            align: 'center',
+            render: (item) => (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(item.priority || 'MEDIUM')}`}>
+                    {getPriorityLabel(item.priority || 'MEDIUM')}
+                </span>
+            ),
+        },
+        {
+            key: 'taskType',
+            title: 'Tipo',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '150px',
+            render: (item) => (
+                <span className="text-sm text-gray-700">
+                    {getTaskTypeLabel(item.taskType)}
+                </span>
+            ),
+            hideable: true,
+        },
+        {
+            key: 'systemModule',
+            title: 'Módulo',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '120px',
+            render: (item) => (
+                <span className="text-sm text-gray-600" title={item.systemModule}>
+                    {item.systemModule ? item.systemModule.substring(0, 15) + (item.systemModule.length > 15 ? '...' : '') : '-'}
+                </span>
+            ),
+            hideable: true,
         },
         {
             key: 'requesterName',
@@ -524,12 +603,20 @@ const TaskList: React.FC = () => {
                             <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
                 {task.code}
               </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority || 'MEDIUM')}`}>
+                {getPriorityLabel(task.priority || 'MEDIUM')}
+              </span>
                         </div>
                         <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">{task.title}</h3>
                         <div className="flex items-center gap-2 mb-2">
               <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
                 {getStatusLabel(task.status)}
               </span>
+                            {task.taskType && (
+                                <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                                    {getTaskTypeLabel(task.taskType)}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -576,6 +663,20 @@ const TaskList: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm">
                         <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         <span className="text-gray-700">{task.requesterName}</span>
+                    </div>
+                )}
+
+                {task.systemModule && (
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-400 flex-shrink-0">📁</span>
+                        <span className="text-gray-600">{task.systemModule}</span>
+                    </div>
+                )}
+
+                {task.serverOrigin && (
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-400 flex-shrink-0">🖥️</span>
+                        <span className="text-gray-600">{task.serverOrigin}</span>
                     </div>
                 )}
 
@@ -759,7 +860,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule']}
                             />
                         </Card>
                     </div>

@@ -32,6 +32,10 @@ interface TaskData {
     notes?: string;
     hasSubTasks?: boolean;
     amount?: string;
+    taskType?: string;
+    serverOrigin?: string;
+    systemModule?: string;
+    priority?: string;
     createQuote?: boolean;
     linkQuoteToBilling?: boolean;
     projectsIds?: number[];
@@ -63,6 +67,10 @@ const schema = yup.object({
     notes: yup.string().max(256, 'Máximo 256 caracteres').optional(),
     hasSubTasks: yup.boolean().optional(),
     amount: yup.string().optional(),
+    taskType: yup.string().optional(),
+    serverOrigin: yup.string().max(100, 'Máximo 100 caracteres').optional(),
+    systemModule: yup.string().max(100, 'Máximo 100 caracteres').optional(),
+    priority: yup.string().required('Prioridade é obrigatória'),
     createQuote: yup.boolean().optional(),
     linkQuoteToBilling: yup.boolean().optional(),
     projectsIds: yup.array().of(yup.number()).optional(),
@@ -113,6 +121,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
             notes: initialData?.notes || '',
             hasSubTasks: initialData?.hasSubTasks !== undefined ? initialData.hasSubTasks : false,
             amount: initialData?.amount || '',
+            taskType: initialData?.taskType || '',
+            serverOrigin: initialData?.serverOrigin || '',
+            systemModule: initialData?.systemModule || '',
+            priority: initialData?.priority || 'MEDIUM',
             createQuote: initialData?.createQuote || false,
             linkQuoteToBilling: initialData?.linkQuoteToBilling || false,
             projectsIds: initialData?.projectsIds || [],
@@ -323,11 +335,28 @@ const TaskForm: React.FC<TaskFormProps> = ({
         { value: 'CANCELLED', label: 'Cancelada' },
     ];
 
+    const taskTypeOptions = [
+        { value: '', label: 'Selecione...' },
+        { value: 'BUG', label: '🐛 Bug' },
+        { value: 'ENHANCEMENT', label: '📨 Melhoria' },
+        { value: 'NEW_FEATURE', label: '✨ Nova Funcionalidade' },
+    ];
+
+    const priorityOptions = [
+        { value: 'LOW', label: '🟢 Baixa' },
+        { value: 'MEDIUM', label: '🟡 Média' },
+        { value: 'HIGH', label: '🟠 Alta' },
+        { value: 'URGENT', label: '🔴 Urgente' },
+    ];
+
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+                {/* Informações Básicas */}
                 <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Informações Básicas</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Input
                             {...register('code')}
                             label="Código"
@@ -344,7 +373,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             ))}
                         </Select>
 
-                        <div className="md:col-span-2">
+                        <Select {...register('priority')} label="Prioridade" error={errors.priority?.message} required>
+                            {priorityOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+
+                        <div className="md:col-span-3">
                             <Input
                                 {...register('title')}
                                 label="Título"
@@ -353,30 +390,49 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 required
                             />
                         </div>
+                    </div>
 
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
-                            <textarea
-                                {...register('description')}
-                                rows={4}
-                                placeholder="Descreva a tarefa (opcional)&#10;Você pode usar múltiplas linhas..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                            />
-                            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Select {...register('taskType')} label="Tipo de Tarefa" error={errors.taskType?.message}>
+                            {taskTypeOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
 
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
-                            <textarea
-                                {...register('notes')}
-                                rows={3}
-                                placeholder="Adicione notas sobre a tarefa (opcional)&#10;Máximo 256 caracteres..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                                maxLength={256}
-                            />
-                            {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>}
-                        </div>
+                        <Input
+                            {...register('systemModule')}
+                            label="Módulo do Sistema"
+                            placeholder="Ex: Autenticação, Relatórios, Dashboard..."
+                            error={errors.systemModule?.message}
+                        />
+                    </div>
 
+                    <Input
+                        {...register('serverOrigin')}
+                        label="Servidor de Origem"
+                        placeholder="Ex: Produção, Homologação, Desenvolvimento..."
+                        error={errors.serverOrigin?.message}
+                    />
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <textarea
+                            {...register('description')}
+                            rows={4}
+                            placeholder="Descreva a tarefa (opcional)&#10;Você pode usar múltiplas linhas..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                        />
+                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+                    </div>
+                </div>
+
+                {/* Links e Informações Adicionais */}
+                <div className="space-y-6">
+                    <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Links e Informações Adicionais</h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('link')}
                             type="url"
@@ -393,10 +449,24 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             error={errors.meetingLink?.message}
                         />
                     </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+                        <textarea
+                            {...register('notes')}
+                            rows={3}
+                            placeholder="Adicione notas sobre a tarefa (opcional)&#10;Máximo 256 caracteres..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                            maxLength={256}
+                        />
+                        {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>}
+                    </div>
                 </div>
 
                 {/* Configuração de Subtarefas/Valor */}
-                <div className="border-t pt-8">
+                <div className="space-y-6">
+                    <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Estrutura da Tarefa</h2>
+                    
                     <div className="space-y-6">
                         <div>
                             <div className="flex items-center space-x-3">
