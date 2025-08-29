@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -30,6 +30,8 @@ interface TaskData {
     link?: string;
     meetingLink?: string;
     notes?: string;
+    hasSubTasks?: boolean;
+    amount?: string;
     createQuote?: boolean;
     linkQuoteToBilling?: boolean;
     projectsIds?: number[];
@@ -59,6 +61,12 @@ const schema = yup.object({
     link: yup.string().url('URL inválida').optional(),
     meetingLink: yup.string().url('URL inválida').max(500, 'Máximo 500 caracteres').optional(),
     notes: yup.string().max(256, 'Máximo 256 caracteres').optional(),
+    hasSubTasks: yup.boolean().optional(),
+    amount: yup.string().when('hasSubTasks', {
+        is: false,
+        then: (schema) => schema.required('Valor é obrigatório quando não há subtarefas'),
+        otherwise: (schema) => schema.optional(),
+    }),
     createQuote: yup.boolean().optional(),
     linkQuoteToBilling: yup.boolean().optional(),
     projectsIds: yup.array().of(yup.number()).optional(),
@@ -107,6 +115,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
             link: initialData?.link || '',
             meetingLink: initialData?.meetingLink || '',
             notes: initialData?.notes || '',
+            hasSubTasks: initialData?.hasSubTasks !== undefined ? initialData.hasSubTasks : false,
+            amount: initialData?.amount || '',
             createQuote: initialData?.createQuote || false,
             linkQuoteToBilling: initialData?.linkQuoteToBilling || false,
             projectsIds: initialData?.projectsIds || [],
@@ -141,23 +151,65 @@ const TaskForm: React.FC<TaskFormProps> = ({
     }, [initialData]);
 
     const createQuote = useWatch({ control, name: 'createQuote' });
+    const hasSubTasks = useWatch({ control, name: 'hasSubTasks' });
+    const watchSubTasks = useWatch({ control, name: 'subTasks' });
+    
+    // Estado para controlar mensagem de erro
+    const [subTaskError, setSubTaskError] = useState<string | null>(null);
 
+    // Validação quando tentar desmarcar a flag com subtarefas existentes
+    const handleHasSubTasksChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        
+        // Se está tentando desmarcar e existem subtarefas não excluídas
+        if (!isChecked && initialData?.id && watchSubTasks) {
+            const activeSubTasks = watchSubTasks.filter((st: any) => !st?.excluded);
+            if (activeSubTasks.length > 0) {
+                setSubTaskError('Para desmarcar esta opção, você precisa remover todas as subtarefas primeiro e depois atualizar a tarefa.');
+                // Mantém o checkbox marcado
+                setTimeout(() => {
+                    methods.setValue('hasSubTasks', true);
+                }, 0);
+                return;
+            }
+        }
+        
+        setSubTaskError(null);
+        methods.setValue('hasSubTasks', isChecked);
+    }, [initialData?.id, watchSubTasks, methods]);
+    
     const handleFormSubmit = async (data: TaskData): Promise<void> => {
-        const formattedData = {
-            ...data,
-            requesterId: initialData?.requesterId,
-            projectsIds: selectedProjects.map((p) => p.id),
-            subTasks: (data.subTasks || []).map((subTask: any) => ({
-                ...subTask,
-                amount: parseFloat(subTask.amount || '0'),
-                taskId: initialData?.id || null,
-            })),
-        };
+        try {
+            // Limpa erro anterior
+            setSubTaskError(null);
+            
+            const formattedData = {
+                ...data,
+                requesterId: initialData?.requesterId,
+                projectsIds: selectedProjects.map((p) => p.id),
+                amount: data.hasSubTasks ? undefined : parseFloat(data.amount || '0'),
+                subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
+                    ...subTask,
+                    amount: parseFloat(subTask.amount || '0'),
+                    taskId: initialData?.id || null,
+                })) : [],
+            };
 
-        await onSubmit(formattedData);
-        if (!initialData?.id) {
-            reset();
-            setSelectedProjects([]);
+            await onSubmit(formattedData);
+            if (!initialData?.id) {
+                reset();
+                setSelectedProjects([]);
+            }
+        } catch (error: any) {
+            // Captura erros relacionados às subtarefas
+            if (error?.message && error.message.includes('Tem Subtarefas')) {
+                setSubTaskError('Não é possível desmarcar "Tem Subtarefas" enquanto existirem subtarefas vinculadas. Remova todas as subtarefas primeiro.');
+                // Volta o checkbox para marcado
+                methods.setValue('hasSubTasks', true);
+            } else {
+                // Re-lança o erro para ser tratado pelo componente pai
+                throw error;
+            }
         }
     };
 
@@ -347,10 +399,50 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     </div>
                 </div>
 
-                {/* Subtarefas */}
+                {/* Configuração de Subtarefas/Valor */}
                 <div className="border-t pt-8">
-                    <SubTaskForm />
-                    {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
+                    <div className="space-y-6">
+                        <div>
+                            <div className="flex items-center space-x-3">
+                                <input
+                                    {...register('hasSubTasks')}
+                                    type="checkbox"
+                                    id="hasSubTasks"
+                                    onChange={handleHasSubTasksChange}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="hasSubTasks" className="text-sm font-medium text-gray-700">
+                                    Esta tarefa possui subtarefas?
+                                </label>
+                            </div>
+                            {subTaskError && (
+                                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                                    <p className="text-sm text-red-600">{subTaskError}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {hasSubTasks ? (
+                            <div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">Subtarefas</h3>
+                                <SubTaskForm />
+                                {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
+                            </div>
+                        ) : (
+                            <div>
+                                <Input
+                                    {...register('amount')}
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    label="Valor da Tarefa"
+                                    placeholder="0.00"
+                                    error={errors.amount?.message}
+                                    required={!hasSubTasks}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Configurações de Cotação - apenas criação e ADMIN */}
