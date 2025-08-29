@@ -759,7 +759,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt', 'createdByUserName', 'updatedByUserName']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName']}
                             />
                         </Card>
                     </div>
