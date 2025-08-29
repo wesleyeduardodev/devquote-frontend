@@ -183,7 +183,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 ...data,
                 requesterId: initialData?.requesterId,
                 projectsIds: selectedProjects.map((p) => p.id),
-                amount: data.hasSubTasks ? undefined : parseFloat(data.amount || '0'),
+                amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
                 subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
                     ...subTask,
                     amount: parseFloat(subTask.amount || '0'),
@@ -425,17 +425,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
                             </div>
                         ) : (
-                            <div>
-                                <Input
-                                    {...register('amount')}
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    label="Valor da Tarefa"
-                                    placeholder="0.00"
-                                    error={errors.amount?.message}
-                                />
-                            </div>
+                            isAdmin && (
+                                <div>
+                                    <Input
+                                        {...register('amount')}
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        label="Valor da Tarefa"
+                                        placeholder="0.00"
+                                        error={errors.amount?.message}
+                                    />
+                                </div>
+                            )
                         )}
                     </div>
                 </div>
