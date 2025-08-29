@@ -46,6 +46,8 @@ interface Task {
     link?: string;
     meetingLink?: string;
     notes?: string;
+    amount?: number;
+    hasSubTasks?: boolean;
     subTasks?: SubTask[];
     createdAt?: string;
     updatedAt?: string;
@@ -126,7 +128,7 @@ const TaskList: React.FC = () => {
                 amount: subtask.amount,
                 createdAt: subtask.createdAt
             })),
-            totalAmount: calculateTaskTotal(task.subTasks),
+            totalAmount: calculateTaskTotal(task),
             createdAt: task.createdAt,
             updatedAt: task.updatedAt
         };
@@ -180,8 +182,11 @@ const TaskList: React.FC = () => {
         return labels[status] || status;
     };
 
-    const calculateTaskTotal = (subTasks?: SubTask[]) =>
-        subTasks?.reduce((total: number, s: SubTask) => total + (s.amount || 0), 0) || 0;
+    const calculateTaskTotal = (task?: Task) => {
+        if (!task) return 0;
+        // Usar o campo amount da tarefa principal
+        return parseFloat(task.amount?.toString() || '0') || 0;
+    };
 
     // ===== Seleção múltipla (todos podem ver, só ADMIN pode selecionar todas) =====
     const toggleItem = (id: number) => {
@@ -412,7 +417,7 @@ const TaskList: React.FC = () => {
                 <div className="flex items-center justify-end gap-1">
                     <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-600">
-                        {formatCurrency(calculateTaskTotal(item.subTasks))}
+                        {formatCurrency(calculateTaskTotal(item))}
                     </span>
                 </div>
             ),
@@ -584,7 +589,7 @@ const TaskList: React.FC = () => {
                         <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4 text-green-600" />
                             <span className="text-sm font-medium text-green-600">
-                                {formatCurrency(calculateTaskTotal(task.subTasks))}
+                                {formatCurrency(calculateTaskTotal(task))}
                             </span>
                         </div>
                     )}
