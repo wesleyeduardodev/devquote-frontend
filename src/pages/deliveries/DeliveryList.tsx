@@ -655,7 +655,7 @@ const DeliveryList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhum grupo de entregas encontrado"
                                 showColumnToggle={true}
-                                hiddenColumns={['quoteValue', 'createdAt', 'updatedAt']}
+                                hiddenColumns={['createdAt', 'updatedAt']}
                             />
                         </Card>
                     </div>
