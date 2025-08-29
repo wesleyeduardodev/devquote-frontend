@@ -92,12 +92,11 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
         { value: 'REJECTED', label: 'Rejeitado' }
     ];
 
-    // Calcular total da tarefa para mostrar como referência
+    // Obter valor total da tarefa (agora vem do campo amount da própria tarefa)
     const calculateTaskTotal = () => {
-        if (!selectedTask?.subTasks || !Array.isArray(selectedTask.subTasks)) return 0;
-        return selectedTask.subTasks.reduce((total: number, subTask: any) => {
-            return total + (parseFloat(subTask.amount?.toString() || '0') || 0);
-        }, 0);
+        if (!selectedTask) return 0;
+        // Usar o campo amount da tarefa principal
+        return parseFloat(selectedTask.amount?.toString() || '0') || 0;
     };
 
     const taskTotal = calculateTaskTotal();
@@ -146,7 +145,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
                             <p className="mt-1 text-sm text-red-600">{errors.totalAmount.message}</p>
                         )}
                         <p className="text-xs text-gray-500 mt-1">
-                            Valor calculado automaticamente com base nas subtarefas, mas pode ser editado
+                            Valor obtido da tarefa selecionada, mas pode ser editado
                         </p>
                     </div>
                 </div>

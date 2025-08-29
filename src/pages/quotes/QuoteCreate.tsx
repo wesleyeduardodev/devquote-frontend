@@ -20,6 +20,8 @@ interface Task {
     link?: string;
     createdAt?: string;
     updatedAt?: string;
+    amount?: number;
+    hasSubTasks?: boolean;
     subTasks?: any[];
 }
 
@@ -50,10 +52,9 @@ const QuoteCreate = () => {
     });
 
     const calculateTaskTotal = (task: Task) => {
-        if (!task?.subTasks || !Array.isArray(task.subTasks)) return 0;
-        return task.subTasks.reduce((total: number, subTask: any) => {
-            return total + (parseFloat(subTask.amount?.toString() || '0') || 0);
-        }, 0);
+        if (!task) return 0;
+        // Usar o campo amount da tarefa principal
+        return parseFloat((task as any).amount?.toString() || '0') || 0;
     };
 
     const handleTaskSelect = (task: Task) => {
