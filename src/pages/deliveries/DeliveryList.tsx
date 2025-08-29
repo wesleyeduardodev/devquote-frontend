@@ -28,8 +28,10 @@ const DeliveryList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile } = useAuth();
     
-    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
+    // Verificações de perfil
     const isAdmin = hasProfile('ADMIN');
+    const isManager = hasProfile('MANAGER');
+    const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
     const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
     
     const [searchTerm, setSearchTerm] = useState('');
@@ -251,7 +253,7 @@ const DeliveryList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '200px',
+            width: '300px',
             render: (item) => (
                 <div>
                     <p
@@ -276,60 +278,20 @@ const DeliveryList: React.FC = () => {
                 </span>
             )
         },
-        {
-            key: 'completedDeliveries',
-            title: 'Concluídas',
-            sortable: false,
-            filterable: false,
-            width: '100px',
-            align: 'center',
-            render: (item) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
-                    {item.completedDeliveries}
-                </span>
-            )
-        },
-        {
-            key: 'pendingDeliveries',
-            title: 'Pendentes',
-            sortable: false,
-            filterable: false,
-            width: '100px',
-            align: 'center',
-            render: (item) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-                    {item.pendingDeliveries}
-                </span>
-            )
-        },
-        {
-            key: 'quoteStatus',
-            title: 'Status Orçamento',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '140px',
-            align: 'center',
-            render: (item) => (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.quoteStatus)}`}>
-                    {getStatusLabel(item.quoteStatus)}
-                </span>
-            )
-        },
-        {
+        // Coluna de valor - apenas para ADMIN e MANAGER
+        ...(canViewValues ? [{
             key: 'quoteValue',
             title: 'Valor Orçamento',
             sortable: false,
             filterable: false,
-            width: '120px',
-            align: 'right',
-            render: (item) => (
+            width: '140px',
+            align: 'right' as const,
+            render: (item: DeliveryGroup) => (
                 <span className="text-sm font-medium text-gray-900">
                     {item.quoteValue ? `R$ ${item.quoteValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
                 </span>
-            ),
-            hideable: true
-        },
+            )
+        }] : []),
         {
             key: 'createdAt',
             title: 'Criado em',
@@ -467,23 +429,12 @@ const DeliveryList: React.FC = () => {
 
             {/* Informações do Grupo de Entregas */}
             <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                        <span className="text-gray-700 font-medium">{deliveryGroup.totalDeliveries} entregas</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="text-green-700 font-medium">{deliveryGroup.completedDeliveries} concluídas</span>
-                    </div>
-                </div>
-
                 <div className="flex items-center gap-2 text-sm">
-                    <Hash className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-                    <span className="text-yellow-700 font-medium">{deliveryGroup.pendingDeliveries} pendentes</span>
+                    <Truck className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                    <span className="text-gray-700 font-medium">{deliveryGroup.totalDeliveries} entregas</span>
                 </div>
 
-                {deliveryGroup.quoteValue && (
+                {canViewValues && deliveryGroup.quoteValue && (
                     <div className="flex items-center gap-2 text-sm">
                         <span className="text-gray-500">Valor:</span>
                         <span className="text-gray-900 font-medium">
@@ -610,9 +561,9 @@ const DeliveryList: React.FC = () => {
                             <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
                         </div>
                         <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Grupos Ativos</div>
+                            <div className="text-xs sm:text-sm font-medium text-gray-500">Grupos</div>
                             <div className="text-lg sm:text-2xl font-bold text-yellow-600">
-                                {deliveryGroups.filter(g => g.pendingDeliveries > 0).length}
+                                {deliveryGroups.length}
                             </div>
                         </div>
                     </div>
