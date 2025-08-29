@@ -162,6 +162,45 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                 </h5>
                 <div className="space-y-3">
                     <div className="grid grid-cols-1 gap-3">
+
+
+                        <div>
+                            <span className="text-sm text-gray-600 block mb-1">Link da Entrega (Pull Request):</span>
+                            <div className="flex items-center gap-2">
+                                {delivery.pullRequest ? (
+                                    <>
+                                        <a
+                                            href={delivery.pullRequest}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all bg-white px-2 py-1 rounded border flex-1"
+                                        >
+                                            {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
+                                        </a>
+                                        <button
+                                            onClick={() => handleCopy(delivery.pullRequest!, `pr-${delivery.id}`)}
+                                            className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                copiedField === `pr-${delivery.id}`
+                                                    ? 'bg-green-100 text-green-600'
+                                                    : 'bg-white text-gray-500 hover:bg-gray-100 border'
+                                            }`}
+                                            title="Copiar link"
+                                        >
+                                            {copiedField === `pr-${delivery.id}` ? (
+                                                <Check className="w-3 h-3" />
+                                            ) : (
+                                                <Copy className="w-3 h-3" />
+                                            )}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="text-xs bg-white text-gray-500 px-2 py-1 rounded border flex-1">
+                                        Não informado
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         <div>
                             <span className="text-sm text-gray-600 block mb-1">Branch:</span>
                             <div className="flex items-center gap-2">
@@ -210,43 +249,6 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                             <Copy className="w-3 h-3" />
                                         )}
                                     </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div>
-                            <span className="text-sm text-gray-600 block mb-1">Pull Request:</span>
-                            <div className="flex items-center gap-2">
-                                {delivery.pullRequest ? (
-                                    <>
-                                        <a
-                                            href={delivery.pullRequest}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all bg-white px-2 py-1 rounded border flex-1"
-                                        >
-                                            {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
-                                        </a>
-                                        <button
-                                            onClick={() => handleCopy(delivery.pullRequest!, `pr-${delivery.id}`)}
-                                            className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                                copiedField === `pr-${delivery.id}`
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : 'bg-white text-gray-500 hover:bg-gray-100 border'
-                                            }`}
-                                            title="Copiar link"
-                                        >
-                                            {copiedField === `pr-${delivery.id}` ? (
-                                                <Check className="w-3 h-3" />
-                                            ) : (
-                                                <Copy className="w-3 h-3" />
-                                            )}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="text-xs bg-white text-gray-500 px-2 py-1 rounded border flex-1">
-                                        Não informado
-                                    </div>
                                 )}
                             </div>
                         </div>
