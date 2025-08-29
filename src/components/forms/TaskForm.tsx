@@ -62,11 +62,7 @@ const schema = yup.object({
     meetingLink: yup.string().url('URL inválida').max(500, 'Máximo 500 caracteres').optional(),
     notes: yup.string().max(256, 'Máximo 256 caracteres').optional(),
     hasSubTasks: yup.boolean().optional(),
-    amount: yup.string().when('hasSubTasks', {
-        is: false,
-        then: (schema) => schema.required('Valor é obrigatório quando não há subtarefas'),
-        otherwise: (schema) => schema.optional(),
-    }),
+    amount: yup.string().optional(),
     createQuote: yup.boolean().optional(),
     linkQuoteToBilling: yup.boolean().optional(),
     projectsIds: yup.array().of(yup.number()).optional(),
@@ -438,7 +434,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     label="Valor da Tarefa"
                                     placeholder="0.00"
                                     error={errors.amount?.message}
-                                    required={!hasSubTasks}
                                 />
                             </div>
                         )}

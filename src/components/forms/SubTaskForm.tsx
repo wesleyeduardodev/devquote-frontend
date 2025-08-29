@@ -170,7 +170,6 @@ const SubTaskForm: React.FC = () => {
                                                 label="Valor"
                                                 placeholder="0,00"
                                                 error={errors.subTasks?.[index]?.amount?.message}
-                                                required
                                             />
                                             <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
                                         </div>
