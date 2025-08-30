@@ -23,6 +23,8 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { taskService } from '@/services/taskService';
 import { deliveryService } from '@/services/deliveryService';
+import { quoteService } from '@/services/quoteService';
+import billingMonthService from '@/services/billingMonthService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -36,6 +38,8 @@ const Dashboard = () => {
   const [exportingTasks, setExportingTasks] = useState(false);
   const [exportingDeliveries, setExportingDeliveries] = useState(false);
   const [exportingGeneral, setExportingGeneral] = useState(false);
+  const [exportingQuotes, setExportingQuotes] = useState(false);
+  const [exportingBilling, setExportingBilling] = useState(false);
 
   // Função para fazer download de blob
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -94,6 +98,38 @@ const Dashboard = () => {
       toast.error('Erro ao exportar relatório geral');
     } finally {
       setExportingGeneral(false);
+    }
+  };
+
+  // Função para exportar orçamentos
+  const handleExportQuotes = async () => {
+    try {
+      setExportingQuotes(true);
+      const blob = await quoteService.exportToExcel();
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+      downloadBlob(blob, `relatorio_orcamentos_${timestamp}.xlsx`);
+      toast.success('Relatório de orçamentos exportado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao exportar orçamentos:', error);
+      toast.error('Erro ao exportar relatório de orçamentos');
+    } finally {
+      setExportingQuotes(false);
+    }
+  };
+
+  // Função para exportar faturamento
+  const handleExportBilling = async () => {
+    try {
+      setExportingBilling(true);
+      const blob = await billingMonthService.exportToExcel({});
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+      downloadBlob(blob, `relatorio_faturamento_${timestamp}.xlsx`);
+      toast.success('Relatório de faturamento exportado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao exportar faturamento:', error);
+      toast.error('Erro ao exportar relatório de faturamento');
+    } finally {
+      setExportingBilling(false);
     }
   };
 
@@ -271,11 +307,17 @@ const Dashboard = () => {
             {/* Exportar Orçamentos */}
             {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
               <div
-                onClick={() => alert('Relatório de Orçamentos em breve!')}
+                onClick={handleExportQuotes}
                 className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer"
               >
-                <FileText className="w-8 h-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-green-800 text-center">Relatório Orçamentos</span>
+                {exportingQuotes ? (
+                  <Loader2 className="w-8 h-8 text-green-600 mb-2 animate-spin" />
+                ) : (
+                  <FileText className="w-8 h-8 text-green-600 mb-2" />
+                )}
+                <span className="text-sm font-medium text-green-800 text-center">
+                  {exportingQuotes ? 'Exportando...' : 'Relatório Orçamentos'}
+                </span>
               </div>
             ) : null}
 
@@ -297,11 +339,17 @@ const Dashboard = () => {
             {/* Exportar Faturamento */}
             {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
               <div
-                onClick={() => alert('Relatório de Faturamento em breve!')}
+                onClick={handleExportBilling}
                 className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
               >
-                <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-                <span className="text-sm font-medium text-yellow-800 text-center">Relatório Faturamento</span>
+                {exportingBilling ? (
+                  <Loader2 className="w-8 h-8 text-yellow-600 mb-2 animate-spin" />
+                ) : (
+                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
+                )}
+                <span className="text-sm font-medium text-yellow-800 text-center">
+                  {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
+                </span>
               </div>
             ) : null}
           </div>
