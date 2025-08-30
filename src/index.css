@@ -39,6 +39,32 @@
       transform: translateY(0);
     }
   }
+
+  /* Mobile optimizations */
+  .mobile-tap-highlight {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better touch targets for mobile */
+  @media (max-width: 768px) {
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Improved focus states for touch devices */
+    button:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid theme('colors.primary.500');
+      outline-offset: 2px;
+    }
+  }
 }
 
 /* Custom scrollbar */

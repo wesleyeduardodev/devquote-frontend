@@ -13,6 +13,7 @@ import {
     X,
     Filter
 } from 'lucide-react';
+import { getDisplayPageNumber, formatPaginationText } from '@/utils/paginationUtils';
 import Button from './Button';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -331,72 +332,132 @@ const DataTable = <T extends Record<string, any>>({
         const {currentPage, totalPages} = pagination;
 
         return (
-            <div className="flex items-center space-x-2">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onPageChange(0)}
-                    disabled={currentPage === 0}
-                >
-                    <ChevronsLeft className="w-4 h-4"/>
-                </Button>
+            <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                {/* Mobile: Mostrar apenas botões essenciais */}
+                <div className="flex items-center space-x-1 sm:hidden">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 0}
+                        className="px-2"
+                    >
+                        <ChevronLeft className="w-4 h-4"/>
+                    </Button>
 
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage === 0}
-                >
-                    <ChevronLeft className="w-4 h-4"/>
-                </Button>
+                    <div className="flex items-center px-3 py-1 text-sm bg-gray-50 rounded border">
+                        <span className="font-medium">{getDisplayPageNumber(currentPage, totalPages)}</span>
+                        <span className="text-gray-500 mx-1">/</span>
+                        <span>{totalPages}</span>
+                    </div>
 
-                <span className="px-3 py-1 text-sm">
-                    Página {currentPage + 1} de {totalPages}
-                </span>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage >= totalPages - 1}
+                        className="px-2"
+                    >
+                        <ChevronRight className="w-4 h-4"/>
+                    </Button>
+                </div>
 
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages - 1}
-                >
-                    <ChevronRight className="w-4 h-4"/>
-                </Button>
+                {/* Desktop: Mostrar todos os botões */}
+                <div className="hidden sm:flex sm:items-center sm:space-x-2">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPageChange(0)}
+                        disabled={currentPage === 0}
+                    >
+                        <ChevronsLeft className="w-4 h-4"/>
+                    </Button>
 
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onPageChange(totalPages - 1)}
-                    disabled={currentPage >= totalPages - 1}
-                >
-                    <ChevronsRight className="w-4 h-4"/>
-                </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 0}
+                    >
+                        <ChevronLeft className="w-4 h-4"/>
+                    </Button>
+
+                    <span className="px-3 py-1 text-sm">
+                        {formatPaginationText(currentPage, totalPages)}
+                    </span>
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage >= totalPages - 1}
+                    >
+                        <ChevronRight className="w-4 h-4"/>
+                    </Button>
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onPageChange(totalPages - 1)}
+                        disabled={currentPage >= totalPages - 1}
+                    >
+                        <ChevronsRight className="w-4 h-4"/>
+                    </Button>
+                </div>
             </div>
         );
     };
 
     return (
         <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-            {/* Header com controle de colunas e filtros */}
+            {/* Header com controle de colunas e filtros - Mobile responsive */}
             {(showColumnToggle || hasActiveFilters) && (
-                <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
+                <div className="border-b border-gray-200 px-4 py-3">
+                    {/* Mobile Layout */}
+                    <div className="flex flex-col space-y-2 sm:hidden">
                         {hasActiveFilters && (
-                            <>
-                                <Filter className="w-4 h-4 text-blue-600"/>
-                                <span className="text-sm text-gray-600">Filtros ativos</span>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Filter className="w-4 h-4 text-blue-600"/>
+                                    <span className="text-sm text-gray-600">Filtros ativos</span>
+                                </div>
                                 <Button
                                     size="sm"
                                     variant="ghost"
                                     onClick={handleClearAllFilters}
                                     className="text-xs"
                                 >
-                                    Limpar filtros
+                                    Limpar
                                 </Button>
-                            </>
+                            </div>
+                        )}
+                        {showColumnToggle && (
+                            <div className="flex justify-center">
+                                {renderColumnToggle()}
+                            </div>
                         )}
                     </div>
-                    {renderColumnToggle()}
+
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex sm:justify-between sm:items-center">
+                        <div className="flex items-center gap-2">
+                            {hasActiveFilters && (
+                                <>
+                                    <Filter className="w-4 h-4 text-blue-600"/>
+                                    <span className="text-sm text-gray-600">Filtros ativos</span>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={handleClearAllFilters}
+                                        className="text-xs"
+                                    >
+                                        Limpar filtros
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                        {renderColumnToggle()}
+                    </div>
                 </div>
             )}
 
@@ -408,7 +469,7 @@ const DataTable = <T extends Record<string, any>>({
                         {visibleColumns.map((column) => (
                             <th
                                 key={column.key}
-                                className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
+                                className={`px-3 py-3 sm:px-6 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
                                 style={{width: column.width}}
                             >
                                 <div>
@@ -454,9 +515,11 @@ const DataTable = <T extends Record<string, any>>({
                                 {visibleColumns.map((column) => (
                                     <td
                                         key={column.key}
-                                        className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${getAlignClass(column.align)}`}
+                                        className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-gray-900 ${getAlignClass(column.align)}`}
                                     >
-                                        {renderCell(item, column)}
+                                        <div className="max-w-xs sm:max-w-none truncate">
+                                            {renderCell(item, column)}
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
@@ -466,15 +529,16 @@ const DataTable = <T extends Record<string, any>>({
                 </table>
             </div>
 
-            {/* Footer with pagination */}
+            {/* Footer with pagination - Mobile responsive */}
             {pagination && (
-                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                    <div className="flex items-center space-x-4">
+                <div className="bg-white px-4 py-3 border-t border-gray-200">
+                    {/* Mobile Layout */}
+                    <div className="flex flex-col space-y-3 sm:hidden">
                         {renderPaginationInfo()}
-
+                        
                         {onPageSizeChange && (
-                            <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-700">Itens por página:</span>
+                            <div className="flex items-center justify-center space-x-2">
+                                <span className="text-sm text-gray-700">Por página:</span>
                                 <select
                                     value={pagination.pageSize}
                                     onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -486,9 +550,35 @@ const DataTable = <T extends Record<string, any>>({
                                 </select>
                             </div>
                         )}
+                        
+                        <div className="flex justify-center">
+                            {renderPaginationButtons()}
+                        </div>
                     </div>
 
-                    {renderPaginationButtons()}
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex sm:items-center sm:justify-between">
+                        <div className="flex items-center space-x-4">
+                            {renderPaginationInfo()}
+
+                            {onPageSizeChange && (
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm text-gray-700">Itens por página:</span>
+                                    <select
+                                        value={pagination.pageSize}
+                                        onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        {pageSizeOptions.map(size => (
+                                            <option key={size} value={size}>{size}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        {renderPaginationButtons()}
+                    </div>
                 </div>
             )}
         </div>

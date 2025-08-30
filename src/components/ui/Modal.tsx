@@ -24,10 +24,10 @@ const Modal: React.FC<ModalProps> = ({
                                          closeOnOverlayClick = true,
                                      }) => {
     const sizes = {
-        sm: 'max-w-sm',
-        md: 'max-w-md',
-        lg: 'max-w-lg',
-        xl: 'max-w-xl',
+        sm: 'max-w-sm sm:max-w-sm',
+        md: 'max-w-full sm:max-w-md',
+        lg: 'max-w-full sm:max-w-lg',
+        xl: 'max-w-full sm:max-w-xl',
     };
 
     useEffect(() => {
@@ -57,7 +57,7 @@ const Modal: React.FC<ModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             {/* Overlay */}
             <div
                 className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -67,23 +67,23 @@ const Modal: React.FC<ModalProps> = ({
             {/* Modal */}
             <div
                 className={clsx(
-                    'relative bg-white rounded-lg shadow-xl mx-4 w-full',
+                    'relative bg-white rounded-t-lg sm:rounded-lg shadow-xl mx-2 sm:mx-4 w-full max-h-[90vh] overflow-hidden',
                     sizes[size],
                     className
                 )}
             >
                 {/* Header */}
                 {(title || showCloseButton) && (
-                    <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                    <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-white sticky top-0">
                         {title && (
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate pr-2">
                                 {title}
                             </h3>
                         )}
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -92,7 +92,7 @@ const Modal: React.FC<ModalProps> = ({
                 )}
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                     {children}
                 </div>
             </div>

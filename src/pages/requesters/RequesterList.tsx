@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useRequesters } from '@/hooks/useRequesters';
 import { useAuth } from '@/hooks/useAuth';
+import { formatPaginationText } from '@/utils/paginationUtils';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -551,7 +552,7 @@ const RequesterList: React.FC = () => {
                                     </Button>
 
                                     <span className="text-sm text-gray-600">
-                    Página {pagination.currentPage} de {pagination.totalPages}
+                    {formatPaginationText(pagination.currentPage, pagination.totalPages)}
                   </span>
 
                                     <Button
