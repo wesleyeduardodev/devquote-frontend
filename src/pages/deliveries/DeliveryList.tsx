@@ -16,6 +16,7 @@ interface DeliveryGroup {
     taskName: string;
     taskCode: string;
     quoteStatus: string;
+    deliveryStatus: string; // Status calculado das entregas
     quoteValue: number;
     createdAt: string;
     updatedAt: string;
@@ -141,6 +142,7 @@ const DeliveryList: React.FC = () => {
         const colors: Record<string, string> = {
             PENDING: 'bg-yellow-100 text-yellow-800',
             IN_PROGRESS: 'bg-blue-100 text-blue-800',
+            COMPLETED: 'bg-green-100 text-green-800',
             TESTING: 'bg-purple-100 text-purple-800',
             DELIVERED: 'bg-green-100 text-green-800',
             APPROVED: 'bg-emerald-100 text-emerald-800',
@@ -152,7 +154,8 @@ const DeliveryList: React.FC = () => {
     const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
-            IN_PROGRESS: 'Em Progresso',
+            IN_PROGRESS: 'Em Progresso', 
+            COMPLETED: 'Completado',
             TESTING: 'Em Teste',
             DELIVERED: 'Entregue',
             APPROVED: 'Aprovado',
@@ -215,7 +218,7 @@ const DeliveryList: React.FC = () => {
     const filteredDeliveryGroups = deliveryGroups.filter(group =>
         group.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.taskCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        getStatusLabel(group.quoteStatus).toLowerCase().includes(searchTerm.toLowerCase())
+        getStatusLabel(group.deliveryStatus).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const columns: Column<DeliveryGroup>[] = [
@@ -300,7 +303,7 @@ const DeliveryList: React.FC = () => {
             )
         },
         {
-            key: 'quoteStatus',
+            key: 'deliveryStatus',
             title: 'Status',
             sortable: true,
             filterable: true,
@@ -308,8 +311,8 @@ const DeliveryList: React.FC = () => {
             width: '120px',
             align: 'center',
             render: (item) => (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.quoteStatus)}`}>
-                    {getStatusLabel(item.quoteStatus)}
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.deliveryStatus)}`}>
+                    {getStatusLabel(item.deliveryStatus)}
                 </span>
             )
         },
@@ -432,8 +435,8 @@ const DeliveryList: React.FC = () => {
                             {deliveryGroup.taskName}
                         </h3>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(deliveryGroup.quoteStatus)}`}>
-                                {getStatusLabel(deliveryGroup.quoteStatus)}
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(deliveryGroup.deliveryStatus)}`}>
+                                {getStatusLabel(deliveryGroup.deliveryStatus)}
                             </span>
                         </div>
                     </div>
