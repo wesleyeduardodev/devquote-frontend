@@ -132,8 +132,7 @@ const BillingManagement: React.FC = () => {
 
     const [formErrors, setFormErrors] = useState<Partial<Record<'month' | 'year', string>>>({});
 
-    // Quotes
-    const { quotes, loading: quotesLoading } = useQuotes();
+    // Removed useQuotes hook - now using server-calculated totals
 
     const getQuoteAmount = useCallback((q: any): number => {
         const anyQ = q as unknown as {
@@ -164,8 +163,18 @@ const BillingManagement: React.FC = () => {
     const fetchBillingMonths = useCallback(async () => {
         setLoadingList(true);
         try {
-            const data = await billingMonthService.findAll() as BillingMonth[] | undefined;
-            setBillingMonths(data ?? []);
+            const data = await billingMonthService.findAllWithTotals() as (BillingMonth & { totalAmount?: number })[] | undefined;
+            const processedData = (data ?? []).map(item => {
+                const { totalAmount, ...billing } = item;
+                return billing as BillingMonth;
+            });
+            setBillingMonths(processedData);
+            
+            // Extract totals from server response
+            const totalsFromServer = Object.fromEntries(
+                (data ?? []).map(item => [item.id, Number(item.totalAmount || 0)])
+            );
+            setTotals(totalsFromServer);
         } catch (error: any) {
             console.error('Erro ao carregar faturamentos:', error);
             toast.error(error?.response?.data?.message ?? 'Erro ao carregar faturamentos');
@@ -174,40 +183,13 @@ const BillingManagement: React.FC = () => {
         }
     }, []);
 
-    const loadTotals = useCallback(async () => {
-        if (!billingMonths.length || quotesLoading) return;
-        setTotalsLoading(true);
-        try {
-            const entries = await Promise.all(
-                billingMonths.map(async (bm) => {
-                    try {
-                        const ll = await billingMonthService.findQuoteLinksByBillingMonth(bm.id) as QuoteLink[] | undefined;
-                        const total = (ll ?? []).reduce((acc, lk) => {
-                            const q = quotes.find(qq => qq.id === lk.quoteId);
-                            return acc + (q ? getQuoteAmount(q) : 0);
-                        }, 0);
-                        return [bm.id, total] as const;
-                    } catch (error) {
-                        console.error(`Erro ao carregar vínculos do período ${bm.id}:`, error);
-                        return [bm.id, 0] as const;
-                    }
-                })
-            );
-            setTotals(Object.fromEntries(entries));
-        } catch (error) {
-            console.error('Erro ao carregar totais:', error);
-        } finally {
-            setTotalsLoading(false);
-        }
-    }, [billingMonths, quotes, quotesLoading, getQuoteAmount]);
+    // Removed loadTotals - now handled in fetchBillingMonths with server-calculated totals
 
     useEffect(() => {
         fetchBillingMonths();
     }, [fetchBillingMonths]);
 
-    useEffect(() => {
-        loadTotals();
-    }, [loadTotals]);
+    // Removed loadTotals useEffect - totals now calculated server-side
 
     const filteredBillingMonths = useMemo(() => {
         return billingMonths.filter(billing => {
@@ -277,8 +259,8 @@ const BillingManagement: React.FC = () => {
     }, []);
 
     const handleDataChange = useCallback(async () => {
-        await loadTotals();
-    }, [loadTotals]);
+        await fetchBillingMonths();
+    }, [fetchBillingMonths]);
 
     const handleExportToExcel = useCallback(async () => {
         try {

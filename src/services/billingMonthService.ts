@@ -7,6 +7,11 @@ const billingMonthService = {
         return res.data;
     },
 
+    findAllWithTotals: async (): Promise<any> => {
+        const res = await api.get('/quote-billing-months/with-totals');
+        return res.data;
+    },
+
     findById: async (id: any): Promise<any> => {
         const res = await api.get(`/quote-billing-months/${id}`);
         return res.data;

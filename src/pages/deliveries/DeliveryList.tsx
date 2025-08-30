@@ -300,6 +300,20 @@ const DeliveryList: React.FC = () => {
             )
         },
         {
+            key: 'quoteStatus',
+            title: 'Status',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '120px',
+            align: 'center',
+            render: (item) => (
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.quoteStatus)}`}>
+                    {getStatusLabel(item.quoteStatus)}
+                </span>
+            )
+        },
+        {
             key: 'totalDeliveries',
             title: 'Total Entregas',
             sortable: false,
