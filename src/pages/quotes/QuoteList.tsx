@@ -12,6 +12,7 @@ import {
     Search,
     Filter,
     Settings,
+    Download,
 } from 'lucide-react';
 import useQuotes from '@/hooks/useQuotes';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +68,7 @@ const QuoteList: React.FC = () => {
         deleteQuote,
         deleteBulkQuotes,
         updateQuoteStatus,
+        exportToExcel,
     } = useQuotes();
 
     const handleEdit = (id: number) => {
@@ -490,16 +492,27 @@ const QuoteList: React.FC = () => {
                         {isAdmin ? 'Gerencie os orçamentos cadastrados' : canChangeStatus ? 'Visualize e altere o status dos orçamentos' : 'Visualize os orçamentos cadastrados'}
                     </p>
                 </div>
-                {isAdmin && (
+                <div className="flex flex-col sm:flex-row gap-3">
                     <Button
-                        variant="primary"
-                        onClick={() => navigate('/quotes/create')}
+                        variant="outline"
+                        onClick={exportToExcel}
+                        disabled={loading}
                         className="flex items-center justify-center sm:justify-start"
                     >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Novo Orçamento
+                        <Download className="w-4 h-4 mr-2" />
+                        Exportar Excel
                     </Button>
-                )}
+                    {isAdmin && (
+                        <Button
+                            variant="primary"
+                            onClick={() => navigate('/quotes/create')}
+                            className="flex items-center justify-center sm:justify-start"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Novo Orçamento
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Estatísticas - Responsivas */}

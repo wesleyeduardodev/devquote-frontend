@@ -83,5 +83,12 @@ export const quoteService = {
     updateStatus: async (id: number, status: string): Promise<any> => {
         const response = await api.patch(`/quotes/${id}/status?status=${status}`);
         return response.data;
+    },
+
+    exportToExcel: async (): Promise<Blob> => {
+        const response = await api.get('/quotes/export/excel', {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };
