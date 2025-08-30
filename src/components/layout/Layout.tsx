@@ -61,17 +61,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         return allNavigationItems.filter(item => {
             // Dashboard sempre acessível
             if (item.screen === '') return true;
-            
+
             // Projetos e Perfis apenas para ADMIN
             if (item.screen === 'projects' || item.screen === 'users') {
                 return hasProfile('ADMIN');
             }
-            
-            // Solicitantes apenas para ADMIN  
+
+            // Solicitantes apenas para ADMIN
             if (item.screen === 'requesters') {
                 return hasProfile('ADMIN');
             }
-            
+
             // Outras telas: usar verificação de screen access normal
             return hasScreenAccess(item.screen);
         });
@@ -101,11 +101,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                             {/* Logo */}
                             <div className="flex items-center space-x-3">
-                                <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-sm">DQ</span>
+                                <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
+                                    <span className="text-white text-lg">⚡</span>
                                 </div>
                                 <h1 className="text-xl font-bold text-gray-900 hidden sm:block">
-                                    DevQuote
+                                    Dev<span className="text-blue-600">Quote</span>
                                 </h1>
                             </div>
                         </div>
@@ -115,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             <span className="text-gray-700 text-sm hidden sm:inline">
                                 Olá, {getUserDisplayName(user)}
                             </span>
-                            
+
                             {/* User Menu Dropdown */}
                             <div className="relative">
                                 <button
@@ -123,16 +123,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                                     aria-label="Menu do usuário"
                                 >
-                                    <div className="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                        <User className="h-4 w-4 text-primary-600" />
+                                    <div className="h-8 w-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-md">
+                                        <User className="h-4 w-4 text-white" />
                                     </div>
                                 </button>
-                                
+
                                 {/* Dropdown Menu */}
                                 {showUserMenu && (
                                     <>
-                                        <div 
-                                            className="fixed inset-0 z-40" 
+                                        <div
+                                            className="fixed inset-0 z-40"
                                             onClick={() => setShowUserMenu(false)}
                                         />
                                         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
@@ -140,7 +140,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                                 <div className="font-medium text-gray-900">{getUserDisplayName(user)}</div>
                                                 <div className="text-sm text-gray-500">{user?.email}</div>
                                             </div>
-                                            
+
                                             <div className="py-1">
                                                 <button
                                                     onClick={() => {
@@ -152,9 +152,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                                     <Settings className="h-4 w-4 mr-2" />
                                                     Configurações
                                                 </button>
-                                                
+
                                                 <div className="border-t border-gray-100 my-1" />
-                                                
+
                                                 <button
                                                     onClick={() => {
                                                         setShowUserMenu(false);
@@ -210,10 +210,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         {/* Header do Menu */}
                         <div className="flex items-center justify-between p-4 border-b border-gray-200">
                             <div className="flex items-center space-x-2">
-                                <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold text-sm">DQ</span>
+                                <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
+                                    <span className="text-white text-lg">⚡</span>
                                 </div>
-                                <h2 className="font-bold text-lg text-gray-900">DevQuote</h2>
+                                <h2 className="font-bold text-lg text-gray-900">
+                                    Dev<span className="text-blue-600">Quote</span>
+                                </h2>
                             </div>
                             <button
                                 onClick={toggleMobileMenu}
@@ -248,10 +250,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     </li>
                                 ))}
                             </ul>
-                            
+
                             {/* Separator */}
                             <div className="border-t border-gray-200 my-4" />
-                            
+
                             {/* Settings and Logout */}
                             <ul className="space-y-2">
                                 <li>
@@ -282,15 +284,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <main className="px-4 sm:px-6 lg:px-8 py-6">
                 {children}
             </main>
-
-            {/* Footer Responsivo */}
-            <footer className="bg-white border-t border-gray-200 mt-12">
-                <div className="px-4 sm:px-6 lg:px-8 py-4">
-                    <p className="text-center text-gray-500 text-sm">
-                        DevQuote - Sistema de Controle de Orçamentos
-                    </p>
-                </div>
-            </footer>
         </div>
     );
 };

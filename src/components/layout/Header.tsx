@@ -57,13 +57,16 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, isSidebarOpen}) => {
                     </button>
 
                     {/* Logo */}
-                    <div className="flex items-center space-x-2">
-                        <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">DQ</span>
+                    <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+                            <span className="text-white font-bold text-lg">⚡</span>
                         </div>
-                        <h1 className="font-bold text-xl text-gray-900 hidden sm:block">
-                            DevQuote
-                        </h1>
+                        <div className="hidden sm:block">
+                            <h1 className="font-bold text-xl text-gray-900 tracking-tight">
+                                Dev<span className="text-blue-600">Quote</span>
+                            </h1>
+                            <p className="text-xs text-gray-500 -mt-1">Sistema de Orçamentos</p>
+                        </div>
                     </div>
                 </div>
 
@@ -73,13 +76,13 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, isSidebarOpen}) => {
                     <div className="relative">
                         <button
                             onClick={() => setShowUserMenu(!showUserMenu)}
-                            className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-50 transition-all duration-200 border border-transparent hover:border-gray-200"
                         >
-                            <div className="h-8 w-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                <User className="h-4 w-4 text-primary-600" />
+                            <div className="h-9 w-9 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-md">
+                                <User className="h-4 w-4 text-white" />
                             </div>
                             <div className="hidden sm:block text-left">
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-sm font-semibold text-gray-900">
                                     {getUserDisplayName(user)}
                                 </div>
                                 <div className="text-xs text-gray-500 flex items-center">
