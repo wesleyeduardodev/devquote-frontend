@@ -59,6 +59,8 @@ interface Task {
     createdByUserName?: string;
     updatedByUserId?: number;
     updatedByUserName?: string;
+    hasQuote?: boolean;
+    hasQuoteInBilling?: boolean;
 }
 
 const TaskList: React.FC = () => {
@@ -71,6 +73,7 @@ const TaskList: React.FC = () => {
     const isUser = hasProfile('USER');
     const canCreateTasks = isAdmin || isManager || isUser; // Todos podem criar tarefas
     const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
+    const canViewQuoteColumns = isAdmin || isManager; // Apenas ADMIN e MANAGER podem ver colunas de orçamento
     const currentUserId = user?.id;
     
     // Função para verificar se pode editar/excluir uma tarefa
@@ -498,6 +501,48 @@ const TaskList: React.FC = () => {
                     <span className="text-sm font-medium text-green-600">
                         {formatCurrency(calculateTaskTotal(item))}
                     </span>
+                </div>
+            ),
+        }] : []),
+        // Colunas de Orçamento e Faturamento - apenas para ADMIN e MANAGER
+        ...(canViewQuoteColumns ? [{
+            key: 'hasQuote',
+            title: 'Orçamento',
+            width: '120px',
+            align: 'center' as const,
+            render: (item: Task) => (
+                <div className="flex items-center justify-center">
+                    {item.hasQuote ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ✓ Vinculado
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            ✗ Pendente
+                        </span>
+                    )}
+                </div>
+            ),
+        }, {
+            key: 'hasQuoteInBilling',
+            title: 'Faturamento',
+            width: '120px',
+            align: 'center' as const,
+            render: (item: Task) => (
+                <div className="flex items-center justify-center">
+                    {item.hasQuoteInBilling ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ✓ Faturado
+                        </span>
+                    ) : item.hasQuote ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            ⏳ Aguardando
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                            - Sem Orçamento
+                        </span>
+                    )}
                 </div>
             ),
         }] : []),
