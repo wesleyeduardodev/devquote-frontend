@@ -270,7 +270,7 @@ const Dashboard = () => {
 
         {/* Seção de Relatórios - Primeira posição */}
         <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className={`grid gap-4 ${hasProfile('ADMIN') || hasProfile('MANAGER') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'}`}>
             {/* Relatório Geral - Destaque especial para ADMIN/MANAGER */}
             {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
               <div
@@ -357,7 +357,11 @@ const Dashboard = () => {
 
         {/* Seção de Atalhos - Segunda posição */}
         <Card title="🚀 Atalhos Rápidos" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-green-500">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className={`grid gap-4 ${
+            hasProfile('ADMIN') ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6' : 
+            hasProfile('MANAGER') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-3' : 
+            'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
+          }`}>
             {/* Ver Tarefas */}
             <Link to="/tasks">
               <div className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
@@ -366,13 +370,15 @@ const Dashboard = () => {
               </div>
             </Link>
 
-            {/* Ver Orçamentos */}
-            <Link to="/quotes">
-              <div className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                <FileText className="w-8 h-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-green-800 text-center">Ver Orçamentos</span>
-              </div>
-            </Link>
+            {/* Ver Orçamentos - Somente ADMIN/MANAGER */}
+            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
+              <Link to="/quotes">
+                <div className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
+                  <FileText className="w-8 h-8 text-green-600 mb-2" />
+                  <span className="text-sm font-medium text-green-800 text-center">Ver Orçamentos</span>
+                </div>
+              </Link>
+            ) : null}
 
             {/* Ver Entregas */}
             <Link to="/deliveries">
@@ -382,21 +388,25 @@ const Dashboard = () => {
               </div>
             </Link>
 
-            {/* Ver Projetos */}
-            <Link to="/projects">
-              <div className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                <CheckSquare className="w-8 h-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium text-orange-800 text-center">Ver Projetos</span>
-              </div>
-            </Link>
+            {/* Ver Projetos - Somente ADMIN */}
+            {hasProfile('ADMIN') ? (
+              <Link to="/projects">
+                <div className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
+                  <CheckSquare className="w-8 h-8 text-orange-600 mb-2" />
+                  <span className="text-sm font-medium text-orange-800 text-center">Ver Projetos</span>
+                </div>
+              </Link>
+            ) : null}
 
-            {/* Ver Solicitantes */}
-            <Link to="/requesters">
-              <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                <Users className="w-8 h-8 text-gray-600 mb-2" />
-                <span className="text-sm font-medium text-gray-800 text-center">Ver Solicitantes</span>
-              </div>
-            </Link>
+            {/* Ver Solicitantes - Somente ADMIN */}
+            {hasProfile('ADMIN') ? (
+              <Link to="/requesters">
+                <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                  <Users className="w-8 h-8 text-gray-600 mb-2" />
+                  <span className="text-sm font-medium text-gray-800 text-center">Ver Solicitantes</span>
+                </div>
+              </Link>
+            ) : null}
 
             {/* Ver Faturamento - Somente ADMIN/MANAGER */}
             {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
