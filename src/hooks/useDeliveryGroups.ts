@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { deliveryGroupService } from '@/services/deliveryGroupService';
 import { deliveryService } from '@/services/deliveryService';
 import toast from 'react-hot-toast';
+import { handleApiError, getUserErrorMessage } from '@/utils/errorHandler';
 
 interface DeliveryGroup {
     quoteId: number;
@@ -100,8 +101,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
             }
         } catch (error: any) {
             if (!controller.signal.aborted) {
-                console.error('Erro ao carregar grupos de entregas:', error);
-                toast.error('Erro ao carregar grupos de entregas');
+                handleApiError(error, 'carregamento dos grupos de entregas');
             }
         } finally {
             if (!controller.signal.aborted) {
@@ -115,8 +115,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
             const response = await deliveryGroupService.getGroupDetails(quoteId);
             return response;
         } catch (error: any) {
-            console.error('Erro ao carregar detalhes do grupo:', error);
-            toast.error('Erro ao carregar detalhes do grupo');
+            handleApiError(error, 'carregamento dos detalhes do grupo');
             return null;
         }
     }, []);
@@ -158,8 +157,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
             toast.success('Grupo de entregas excluído com sucesso');
             await fetchDeliveryGroups();
         } catch (error: any) {
-            console.error('Erro ao excluir grupo:', error);
-            toast.error('Erro ao excluir grupo de entregas');
+            handleApiError(error, 'exclusão do grupo de entregas');
             throw error;
         }
     }, [fetchDeliveryGroups]);
@@ -173,8 +171,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
             toast.success(`${quoteIds.length} grupo(s) excluído(s) com sucesso`);
             await fetchDeliveryGroups();
         } catch (error: any) {
-            console.error('Erro ao excluir grupos:', error);
-            toast.error('Erro ao excluir grupos de entregas');
+            handleApiError(error, 'exclusão dos grupos de entregas');
             throw error;
         }
     }, [fetchDeliveryGroups]);
