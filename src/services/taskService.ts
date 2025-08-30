@@ -90,5 +90,12 @@ export const taskService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    exportGeneralReport: async (): Promise<Blob> => {
+        const response = await api.get('/tasks/export/general-report', {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };
