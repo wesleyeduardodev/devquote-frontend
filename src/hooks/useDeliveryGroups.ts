@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { deliveryGroupService } from '@/services/deliveryGroupService';
+import { deliveryService } from '@/services/deliveryService';
 import toast from 'react-hot-toast';
 
 interface DeliveryGroup {
@@ -151,6 +152,33 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         setCurrentPage(0);
     }, []);
 
+    const deleteGroup = useCallback(async (quoteId: number): Promise<void> => {
+        try {
+            await deliveryService.deleteByQuoteId(quoteId);
+            toast.success('Grupo de entregas excluído com sucesso');
+            await fetchDeliveryGroups();
+        } catch (error: any) {
+            console.error('Erro ao excluir grupo:', error);
+            toast.error('Erro ao excluir grupo de entregas');
+            throw error;
+        }
+    }, [fetchDeliveryGroups]);
+
+    const deleteGroups = useCallback(async (quoteIds: number[]): Promise<void> => {
+        try {
+            // Excluir todos os grupos sequencialmente
+            for (const quoteId of quoteIds) {
+                await deliveryService.deleteByQuoteId(quoteId);
+            }
+            toast.success(`${quoteIds.length} grupo(s) excluído(s) com sucesso`);
+            await fetchDeliveryGroups();
+        } catch (error: any) {
+            console.error('Erro ao excluir grupos:', error);
+            toast.error('Erro ao excluir grupos de entregas');
+            throw error;
+        }
+    }, [fetchDeliveryGroups]);
+
     // Effect para buscar dados quando parâmetros mudarem (com debounce para filtros)
     useEffect(() => {
         // Limpa timer anterior
@@ -187,5 +215,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         clearFilters,
         getGroupDetails,
         refetch: fetchDeliveryGroups,
+        deleteGroup,
+        deleteGroups,
     };
 };

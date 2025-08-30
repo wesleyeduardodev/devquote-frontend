@@ -53,7 +53,9 @@ const DeliveryList: React.FC = () => {
         setFilter,
         clearFilters,
         getGroupDetails,
-        refetch
+        refetch,
+        deleteGroup,
+        deleteGroups
     } = useDeliveryGroups();
 
     const handleView = async (deliveryGroup: DeliveryGroup) => {
@@ -76,10 +78,9 @@ const DeliveryList: React.FC = () => {
     const handleDelete = async (quoteId: number) => {
         if (window.confirm('Tem certeza que deseja excluir todas as entregas desta tarefa?')) {
             try {
-                // TODO: Implementar delete do grupo
-                toast.error('Funcionalidade ainda não implementada');
+                await deleteGroup(quoteId);
             } catch (error) {
-                toast.error('Erro ao excluir grupo de entregas');
+                // O erro já é tratado no hook
             }
         }
     };
@@ -166,12 +167,11 @@ const DeliveryList: React.FC = () => {
     const handleBulkDelete = async () => {
         setIsDeleting(true);
         try {
-            // TODO: Implementar bulk delete de grupos
-            toast.error('Funcionalidade ainda não implementada');
+            await deleteGroups(selectedItems);
             clearSelection();
             setShowBulkDeleteModal(false);
         } catch (error) {
-            toast.error('Erro ao excluir grupos selecionados');
+            // O erro já é tratado no hook
         } finally {
             setIsDeleting(false);
         }
