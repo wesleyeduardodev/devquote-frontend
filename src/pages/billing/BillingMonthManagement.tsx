@@ -107,6 +107,9 @@ const BillingManagement: React.FC = () => {
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
+    // Export
+    const [exportLoading, setExportLoading] = useState(false);
+
     // Filtros gerais (desktop + mobile)
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -276,6 +279,44 @@ const BillingManagement: React.FC = () => {
     const handleDataChange = useCallback(async () => {
         await loadTotals();
     }, [loadTotals]);
+
+    const handleExportToExcel = useCallback(async () => {
+        try {
+            setExportLoading(true);
+            const params = {
+                month: monthFilter ? parseInt(monthFilter) : undefined,
+                year: yearFilter ? parseInt(yearFilter) : undefined,
+                status: statusFilter || undefined
+            };
+
+            const blob = await billingMonthService.exportToExcel(params);
+            
+            // Criar URL para download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Nome do arquivo com timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+            link.download = `relatorio_faturamento_${timestamp}.xlsx`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            toast.success('Relatório exportado com sucesso!');
+        } catch (err: any) {
+            console.error('Erro ao exportar relatório:', err);
+            toast.error('Erro ao exportar relatório');
+        } finally {
+            setExportLoading(false);
+        }
+    }, [monthFilter, yearFilter, statusFilter]);
 
     const handleDeleteBilling = useCallback(async (billing: BillingMonth) => {
         const hasValue = (totals[billing.id] ?? 0) > 0;
@@ -517,9 +558,16 @@ const BillingManagement: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                            <Download className="w-4 h-4" />
-                            Exportar
+                        <button 
+                            onClick={handleExportToExcel}
+                            disabled={exportLoading}
+                            className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {exportLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4" />
+                            )}
+                            {exportLoading ? 'Exportando...' : 'Exportar'}
                         </button>
                         {isAdmin && (
                             <button

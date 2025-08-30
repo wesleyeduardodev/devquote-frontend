@@ -100,6 +100,18 @@ const billingMonthService = {
     }): Promise<any> => {
         const res = await api.get(`/quote-billing-month-quotes/by-billing-month/${billingMonthId}/paginated`, { params });
         return res.data;
+    },
+
+    exportToExcel: async (params: {
+        month?: number;
+        year?: number;
+        status?: string;
+    }): Promise<Blob> => {
+        const response = await api.get('/quote-billing-months/export/excel', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };
 
