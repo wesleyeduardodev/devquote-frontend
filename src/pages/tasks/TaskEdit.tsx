@@ -49,7 +49,7 @@ const TaskEdit = () => {
         clearFilters
     } = useRequesters({
         page: 0,
-        size: 5,
+        size: 10,
         sort: [{ field: 'name', direction: 'asc' }],
         filters: {}
     });
