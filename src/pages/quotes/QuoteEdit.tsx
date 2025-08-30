@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, X, Check, User, Hash, FileText, Calculator, Edit3, Calendar, Filter } from 'lucide-react';
 import { quoteService } from '@/services/quoteService';
+import { taskService } from '@/services/taskService';
 import { useTasks } from '@/hooks/useTasks';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Card from '../../components/ui/Card';
@@ -78,14 +79,30 @@ const QuoteEdit = () => {
         }
     }, [id, navigate]);
 
-    // Quando tivermos o orçamento e as tarefas carregadas, tentamos "casar" a taskId
+    // Quando tivermos o orçamento, buscar a tarefa específica pelo taskId
     useEffect(() => {
-        if (!quote || !Array.isArray(tasks) || tasks.length === 0) return;
-        const found = tasks.find((t: any) => t.id === quote.taskId);
-        if (found) {
-            setSelectedTask(found);
+        const fetchTaskForQuote = async () => {
+            if (!quote?.taskId || selectedTask?.id === quote.taskId) return;
+            
+            try {
+                const task = await taskService.getById(quote.taskId);
+                setSelectedTask(task);
+            } catch (error) {
+                console.error('Erro ao carregar tarefa do orçamento:', error);
+                // Se não conseguir carregar a tarefa específica, tentar encontrar nas tarefas já carregadas
+                if (Array.isArray(tasks) && tasks.length > 0) {
+                    const found = tasks.find((t: any) => t.id === quote.taskId);
+                    if (found) {
+                        setSelectedTask(found);
+                    }
+                }
+            }
+        };
+
+        if (quote?.taskId) {
+            fetchTaskForQuote();
         }
-    }, [quote, tasks]);
+    }, [quote?.taskId, selectedTask?.id, tasks]);
 
     const calculateTaskTotal = (task: Task) => {
         if (!task?.subTasks || !Array.isArray(task.subTasks)) return 0;
