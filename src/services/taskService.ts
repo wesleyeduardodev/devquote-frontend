@@ -97,5 +97,12 @@ export const taskService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    exportGeneralReportForUser: async (): Promise<Blob> => {
+        const response = await api.get('/tasks/export/general-report-user', {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };

@@ -89,9 +89,18 @@ const Dashboard = () => {
   const handleExportGeneral = async () => {
     try {
       setExportingGeneral(true);
-      const blob = await taskService.exportGeneralReport();
+      
+      // Escolhe o relatório baseado no perfil do usuário
+      const blob = hasProfile('ADMIN') || hasProfile('MANAGER') 
+        ? await taskService.exportGeneralReport()
+        : await taskService.exportGeneralReportForUser();
+      
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_geral_completo_${timestamp}.xlsx`);
+      const filename = hasProfile('ADMIN') || hasProfile('MANAGER') 
+        ? `relatorio_geral_completo_${timestamp}.xlsx`
+        : `relatorio_geral_user_${timestamp}.xlsx`;
+      
+      downloadBlob(blob, filename);
       toast.success('Relatório geral exportado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao exportar relatório geral:', error);
@@ -270,24 +279,24 @@ const Dashboard = () => {
 
         {/* Seção de Relatórios - Primeira posição */}
         <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className={`grid gap-4 ${hasProfile('ADMIN') || hasProfile('MANAGER') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'}`}>
-            {/* Relatório Geral - Destaque especial para ADMIN/MANAGER */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <div
-                onClick={handleExportGeneral}
-                className="flex flex-col items-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 cursor-pointer border-2 border-indigo-200 hover:border-indigo-300 shadow-md hover:shadow-lg"
-              >
-                {exportingGeneral ? (
-                  <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
-                ) : (
-                  <Database className="w-8 h-8 text-indigo-600 mb-2" />
-                )}
-                <span className="text-sm font-bold text-indigo-800 text-center">
-                  {exportingGeneral ? 'Gerando...' : 'Relatório Geral'}
-                </span>
-                <span className="text-xs text-indigo-600 mt-1 text-center">Visão Completa</span>
-              </div>
-            ) : null}
+          <div className={`grid gap-4 ${hasProfile('ADMIN') || hasProfile('MANAGER') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-3'}`}>
+            {/* Relatório Geral - Disponível para todos os perfis */}
+            <div
+              onClick={handleExportGeneral}
+              className="flex flex-col items-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 cursor-pointer border-2 border-indigo-200 hover:border-indigo-300 shadow-md hover:shadow-lg"
+            >
+              {exportingGeneral ? (
+                <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
+              ) : (
+                <Database className="w-8 h-8 text-indigo-600 mb-2" />
+              )}
+              <span className="text-sm font-bold text-indigo-800 text-center">
+                {exportingGeneral ? 'Gerando...' : 'Relatório Geral'}
+              </span>
+              <span className="text-xs text-indigo-600 mt-1 text-center">
+                {hasProfile('ADMIN') || hasProfile('MANAGER') ? 'Visão Completa' : 'Visão User'}
+              </span>
+            </div>
 
             {/* Exportar Tarefas */}
             <div
