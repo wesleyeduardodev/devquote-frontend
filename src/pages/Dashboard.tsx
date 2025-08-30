@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  CheckSquare, 
-  Truck, 
+import {
+  CheckSquare,
+  Truck,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -31,7 +31,7 @@ import toast from 'react-hot-toast';
 const Dashboard = () => {
   const { stats, loading, error } = useDashboard();
   const { user, hasProfile } = useAuth();
-  
+
   // Estados de loading para exportações
   const [exportingTasks, setExportingTasks] = useState(false);
   const [exportingDeliveries, setExportingDeliveries] = useState(false);
@@ -139,7 +139,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Dashboard - Tarefas & Entregas
+                  Dashboard Geral
                 </h1>
                 <p className="text-gray-600 mt-2">
                   Bem-vindo de volta, {user?.username || 'Usuário'}!
@@ -232,10 +232,140 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Seção de Relatórios - Primeira posição */}
+        <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {/* Relatório Geral - Destaque especial para ADMIN/MANAGER */}
+            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
+              <div
+                onClick={handleExportGeneral}
+                className="flex flex-col items-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 cursor-pointer border-2 border-indigo-200 hover:border-indigo-300 shadow-md hover:shadow-lg"
+              >
+                {exportingGeneral ? (
+                  <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
+                ) : (
+                  <Database className="w-8 h-8 text-indigo-600 mb-2" />
+                )}
+                <span className="text-sm font-bold text-indigo-800 text-center">
+                  {exportingGeneral ? 'Gerando...' : 'Relatório Geral'}
+                </span>
+                <span className="text-xs text-indigo-600 mt-1 text-center">Visão Completa</span>
+              </div>
+            ) : null}
+
+            {/* Exportar Tarefas */}
+            <div
+              onClick={handleExportTasks}
+              className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+            >
+              {exportingTasks ? (
+                <Loader2 className="w-8 h-8 text-blue-600 mb-2 animate-spin" />
+              ) : (
+                <Download className="w-8 h-8 text-blue-600 mb-2" />
+              )}
+              <span className="text-sm font-medium text-blue-800 text-center">
+                {exportingTasks ? 'Exportando...' : 'Relatório Tarefas'}
+              </span>
+            </div>
+
+            {/* Exportar Orçamentos */}
+            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
+              <div
+                onClick={() => alert('Relatório de Orçamentos em breve!')}
+                className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer"
+              >
+                <FileText className="w-8 h-8 text-green-600 mb-2" />
+                <span className="text-sm font-medium text-green-800 text-center">Relatório Orçamentos</span>
+              </div>
+            ) : null}
+
+            {/* Exportar Entregas */}
+            <div
+              onClick={handleExportDeliveries}
+              className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
+            >
+              {exportingDeliveries ? (
+                <Loader2 className="w-8 h-8 text-purple-600 mb-2 animate-spin" />
+              ) : (
+                <Truck className="w-8 h-8 text-purple-600 mb-2" />
+              )}
+              <span className="text-sm font-medium text-purple-800 text-center">
+                {exportingDeliveries ? 'Exportando...' : 'Relatório Entregas'}
+              </span>
+            </div>
+
+            {/* Exportar Faturamento */}
+            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
+              <div
+                onClick={() => alert('Relatório de Faturamento em breve!')}
+                className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
+              >
+                <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
+                <span className="text-sm font-medium text-yellow-800 text-center">Relatório Faturamento</span>
+              </div>
+            ) : null}
+          </div>
+        </Card>
+
+        {/* Seção de Atalhos - Segunda posição */}
+        <Card title="🚀 Atalhos Rápidos" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-green-500">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {/* Ver Tarefas */}
+            <Link to="/tasks">
+              <div className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
+                <BarChart3 className="w-8 h-8 text-blue-600 mb-2" />
+                <span className="text-sm font-medium text-blue-800 text-center">Ver Tarefas</span>
+              </div>
+            </Link>
+
+            {/* Ver Orçamentos */}
+            <Link to="/quotes">
+              <div className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
+                <FileText className="w-8 h-8 text-green-600 mb-2" />
+                <span className="text-sm font-medium text-green-800 text-center">Ver Orçamentos</span>
+              </div>
+            </Link>
+
+            {/* Ver Entregas */}
+            <Link to="/deliveries">
+              <div className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
+                <Truck className="w-8 h-8 text-purple-600 mb-2" />
+                <span className="text-sm font-medium text-purple-800 text-center">Ver Entregas</span>
+              </div>
+            </Link>
+
+            {/* Ver Projetos */}
+            <Link to="/projects">
+              <div className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
+                <CheckSquare className="w-8 h-8 text-orange-600 mb-2" />
+                <span className="text-sm font-medium text-orange-800 text-center">Ver Projetos</span>
+              </div>
+            </Link>
+
+            {/* Ver Solicitantes */}
+            <Link to="/requesters">
+              <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                <Users className="w-8 h-8 text-gray-600 mb-2" />
+                <span className="text-sm font-medium text-gray-800 text-center">Ver Solicitantes</span>
+              </div>
+            </Link>
+
+            {/* Ver Faturamento - Somente ADMIN/MANAGER */}
+            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
+              <Link to="/billing">
+                <div className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer">
+                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
+                  <span className="text-sm font-medium text-yellow-800 text-center">Ver Faturamento</span>
+                </div>
+              </Link>
+            ) : null}
+          </div>
+        </Card>
+
+        {/* Main Content Grid - Agora apenas com Tarefas e Entregas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Tasks Module */}
-          <Card title="Gestão de Tarefas" className="lg:col-span-1 hover:shadow-xl transition-shadow duration-300">
+          <Card title="Gestão de Tarefas" className="hover:shadow-xl transition-shadow duration-300">
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div className="bg-blue-50 rounded-lg p-3">
@@ -251,7 +381,7 @@ const Dashboard = () => {
                   <div className="text-xs text-green-600 font-medium">Concluídas</div>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600">Progresso Geral</span>
@@ -260,7 +390,7 @@ const Dashboard = () => {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${((stats.tasks?.completed || 0) / (stats.tasks?.total || 1) * 100)}%` }}
                   ></div>
@@ -285,7 +415,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Deliveries Module */}
-          <Card title="Gestão de Entregas" className="lg:col-span-1 hover:shadow-xl transition-shadow duration-300">
+          <Card title="Gestão de Entregas" className="hover:shadow-xl transition-shadow duration-300">
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div className="bg-purple-50 rounded-lg p-3">
@@ -310,7 +440,7 @@ const Dashboard = () => {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-purple-500 to-green-500 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100)}%` }}
                   ></div>
@@ -331,37 +461,6 @@ const Dashboard = () => {
                   </Button>
                 </Link>
               </div>
-            </div>
-          </Card>
-
-          {/* Recent Activities */}
-          <Card title="Atividades Recentes" className="lg:col-span-1 hover:shadow-xl transition-shadow duration-300">
-            <div className="space-y-4">
-              {stats.recentActivities && stats.recentActivities.length > 0 ? (
-                stats.recentActivities.slice(0, 8).map((activity, index) => (
-                  <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.type === 'TASK' ? 'bg-blue-500' : 'bg-purple-500'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        Por: {activity.user}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatDate(activity.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Activity className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                  <p>Nenhuma atividade recente</p>
-                </div>
-              )}
             </div>
           </Card>
         </div>
@@ -422,136 +521,6 @@ const Dashboard = () => {
             </Card>
           )}
         </div>
-
-        {/* Seção de Relatórios - Primeira posição */}
-        <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {/* Relatório Geral - Destaque especial para ADMIN/MANAGER */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <div 
-                onClick={handleExportGeneral}
-                className="flex flex-col items-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 cursor-pointer border-2 border-indigo-200 hover:border-indigo-300 shadow-md hover:shadow-lg"
-              >
-                {exportingGeneral ? (
-                  <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
-                ) : (
-                  <Database className="w-8 h-8 text-indigo-600 mb-2" />
-                )}
-                <span className="text-sm font-bold text-indigo-800 text-center">
-                  {exportingGeneral ? 'Gerando...' : 'Relatório Geral'}
-                </span>
-                <span className="text-xs text-indigo-600 mt-1 text-center">Visão Completa</span>
-              </div>
-            ) : null}
-
-            {/* Exportar Tarefas */}
-            <div 
-              onClick={handleExportTasks}
-              className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
-            >
-              {exportingTasks ? (
-                <Loader2 className="w-8 h-8 text-blue-600 mb-2 animate-spin" />
-              ) : (
-                <Download className="w-8 h-8 text-blue-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-blue-800 text-center">
-                {exportingTasks ? 'Exportando...' : 'Relatório Tarefas'}
-              </span>
-            </div>
-
-            {/* Exportar Orçamentos */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <div 
-                onClick={() => alert('Relatório de Orçamentos em breve!')}
-                className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer"
-              >
-                <FileText className="w-8 h-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-green-800 text-center">Relatório Orçamentos</span>
-              </div>
-            ) : null}
-            
-            {/* Exportar Entregas */}
-            <div 
-              onClick={handleExportDeliveries}
-              className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
-            >
-              {exportingDeliveries ? (
-                <Loader2 className="w-8 h-8 text-purple-600 mb-2 animate-spin" />
-              ) : (
-                <Truck className="w-8 h-8 text-purple-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-purple-800 text-center">
-                {exportingDeliveries ? 'Exportando...' : 'Relatório Entregas'}
-              </span>
-            </div>
-
-            {/* Exportar Faturamento */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <div 
-                onClick={() => alert('Relatório de Faturamento em breve!')}
-                className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
-              >
-                <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-                <span className="text-sm font-medium text-yellow-800 text-center">Relatório Faturamento</span>
-              </div>
-            ) : null}
-          </div>
-        </Card>
-
-        {/* Seção de Atalhos - Segunda posição */}
-        <Card title="🚀 Atalhos Rápidos" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-green-500">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {/* Ver Tarefas */}
-            <Link to="/tasks">
-              <div className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                <BarChart3 className="w-8 h-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-blue-800 text-center">Ver Tarefas</span>
-              </div>
-            </Link>
-
-            {/* Ver Orçamentos */}
-            <Link to="/quotes">
-              <div className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                <FileText className="w-8 h-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-green-800 text-center">Ver Orçamentos</span>
-              </div>
-            </Link>
-            
-            {/* Ver Entregas */}
-            <Link to="/deliveries">
-              <div className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                <Truck className="w-8 h-8 text-purple-600 mb-2" />
-                <span className="text-sm font-medium text-purple-800 text-center">Ver Entregas</span>
-              </div>
-            </Link>
-
-            {/* Ver Projetos */}
-            <Link to="/projects">
-              <div className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                <CheckSquare className="w-8 h-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium text-orange-800 text-center">Ver Projetos</span>
-              </div>
-            </Link>
-
-            {/* Ver Solicitantes */}
-            <Link to="/requesters">
-              <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                <Users className="w-8 h-8 text-gray-600 mb-2" />
-                <span className="text-sm font-medium text-gray-800 text-center">Ver Solicitantes</span>
-              </div>
-            </Link>
-
-            {/* Ver Faturamento - Somente ADMIN/MANAGER */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <Link to="/billing">
-                <div className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer">
-                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-                  <span className="text-sm font-medium text-yellow-800 text-center">Ver Faturamento</span>
-                </div>
-              </Link>
-            ) : null}
-          </div>
-        </Card>
       </div>
     </div>
   );
