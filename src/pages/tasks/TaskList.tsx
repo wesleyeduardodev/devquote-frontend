@@ -13,6 +13,7 @@ import {
     Video,
     Calendar,
     Eye,
+    Download,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
@@ -104,6 +105,7 @@ const TaskList: React.FC = () => {
         clearFilters,
         deleteTaskWithSubTasks,
         deleteBulkTasks, // <-- deve existir no hook; ajuste o nome se necessário
+        exportToExcel,
     } = useTasks();
 
     const handleEdit = (id: number) => {
@@ -788,16 +790,26 @@ const TaskList: React.FC = () => {
                         {isAdmin ? 'Gerencie todas as tarefas do sistema' : 'Visualize todas as tarefas - Edite apenas as suas'}
                     </p>
                 </div>
-                {canCreateTasks && (
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Button
-                        variant="primary"
-                        onClick={() => navigate('/tasks/create')}
-                        className="flex items-center justify-center sm:justify-start"
+                        variant="outline"
+                        onClick={exportToExcel}
+                        className="flex items-center justify-center"
                     >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Nova Tarefa
+                        <Download className="w-4 h-4 mr-2" />
+                        Exportar Excel
                     </Button>
-                )}
+                    {canCreateTasks && (
+                        <Button
+                            variant="primary"
+                            onClick={() => navigate('/tasks/create')}
+                            className="flex items-center justify-center"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Nova Tarefa
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Filtros Mobile - Busca + seleção e bulk delete */}

@@ -83,5 +83,12 @@ export const taskService = {
 
     deleteBulk: async (ids: number[]): Promise<void> => {
         await api.delete('/tasks/bulk', { data: ids });
+    },
+
+    exportToExcel: async (): Promise<Blob> => {
+        const response = await api.get('/tasks/export/excel', {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };

@@ -105,6 +105,7 @@ interface UseTasksReturn {
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
     setFilter: (field: string, value: string) => void;
     clearFilters: () => void;
+    exportToExcel: () => Promise<void>;
 }
 
 export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
@@ -234,6 +235,31 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         setCurrentPage(0);
     }, []);
 
+    const exportToExcel = useCallback(async () => {
+        try {
+            const blob = await taskService.exportToExcel();
+            
+            // Criar nome do arquivo com timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const filename = `Relatorio_Tarefas_${timestamp}.xlsx`;
+            
+            // Criar e baixar o arquivo
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            
+            toast.success('Relatório exportado com sucesso!');
+        } catch (error: any) {
+            toast.error('Erro ao exportar relatório: ' + (error.message || 'Erro desconhecido'));
+        }
+    }, []);
+
     // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
         // Clear previous timer
@@ -271,5 +297,6 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         setSorting,
         setFilter,
         clearFilters,
+        exportToExcel,
     };
 };
