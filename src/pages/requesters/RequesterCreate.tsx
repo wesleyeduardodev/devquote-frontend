@@ -95,7 +95,7 @@ const RequesterCreate: React.FC = () => {
                             <div className="flex items-start gap-3">
                                 <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                                 <div>
-                                    <strong>Email:</strong> Usado para notificações e comunicações
+                                    <strong>Email:</strong> Obrigatório - usado para notificações e comunicações
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">

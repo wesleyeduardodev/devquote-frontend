@@ -7,7 +7,7 @@ import Button from '../ui/Button';
 
 interface RequesterData {
     name: string;
-    email?: string;
+    email: string;
     phone?: string;
 }
 
@@ -20,7 +20,7 @@ interface RequesterFormProps {
 
 const schema = yup.object({
     name: yup.string().required('Nome é obrigatório').max(200, 'Máximo 200 caracteres'),
-    email: yup.string().email('Email inválido').max(200, 'Máximo 200 caracteres').optional(),
+    email: yup.string().required('Email é obrigatório').email('Email inválido').max(200, 'Máximo 200 caracteres'),
     phone: yup.string().max(20, 'Máximo 20 caracteres').optional(),
 });
 
@@ -72,6 +72,7 @@ const RequesterForm: React.FC<RequesterFormProps> = ({
                     label="Email"
                     placeholder="email@exemplo.com"
                     error={errors.email?.message}
+                    required
                 />
 
                 <Input
