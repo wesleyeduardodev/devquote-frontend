@@ -88,5 +88,12 @@ export const deliveryService = {
 
     deleteByQuoteId: async (quoteId: number): Promise<void> => {
         await api.delete(`/deliveries/quote/${quoteId}`);
+    },
+
+    exportToExcel: async (): Promise<Blob> => {
+        const response = await api.get('/deliveries/export/excel', {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };

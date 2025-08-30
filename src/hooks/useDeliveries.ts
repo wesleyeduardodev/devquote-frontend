@@ -101,6 +101,7 @@ interface UseDeliveriesReturn {
     updateDelivery: (id: number, deliveryData: DeliveryUpdate) => Promise<Delivery>;
     deleteDelivery: (id: number) => Promise<void>;
     deleteBulkDeliveries: (ids: number[]) => Promise<void>;
+    exportToExcel: () => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
@@ -235,6 +236,39 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         setCurrentPage(0);
     }, []);
 
+    const exportToExcel = useCallback(async (): Promise<void> => {
+        try {
+            setLoading(true);
+            const blob = await deliveryService.exportToExcel();
+            
+            // Criar URL para download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Nome do arquivo com timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+            link.download = `relatorio_entregas_${timestamp}.xlsx`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            toast.success('Relatório exportado com sucesso!');
+        } catch (err: any) {
+            console.error('Erro ao exportar relatório:', err);
+            toast.error('Erro ao exportar relatório');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     // Effect para buscar dados quando parâmetros mudarem (com debounce para filtros)
     useEffect(() => {
         // Limpa timer anterior
@@ -267,6 +301,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         updateDelivery,
         deleteDelivery,
         deleteBulkDeliveries,
+        exportToExcel,
         setPage,
         setPageSize,
         setSorting,

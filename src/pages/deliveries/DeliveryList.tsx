@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen, StickyNote, GitMerge, Check, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen, StickyNote, GitMerge, Check, Eye, Download } from 'lucide-react';
 import { useDeliveryGroups } from '@/hooks/useDeliveryGroups';
+import { deliveryService } from '@/services/deliveryService';
 import { useAuth } from '@/hooks/useAuth';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
@@ -40,6 +41,7 @@ const DeliveryList: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     const {
         deliveryGroups,
@@ -73,6 +75,38 @@ const DeliveryList: React.FC = () => {
 
     const handleEdit = (quoteId: number) => {
         navigate(`/deliveries/group/${quoteId}/edit`);
+    };
+
+    const handleExportToExcel = async () => {
+        try {
+            setIsExporting(true);
+            const blob = await deliveryService.exportToExcel();
+            
+            // Criar URL para download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Nome do arquivo com timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+            link.download = `relatorio_entregas_${timestamp}.xlsx`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            toast.success('Relatório exportado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao exportar relatório:', error);
+            toast.error('Erro ao exportar relatório');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const handleDelete = async (quoteId: number) => {
@@ -471,16 +505,27 @@ const DeliveryList: React.FC = () => {
                         {isAdmin ? 'Gerencie as entregas dos projetos e orçamentos' : 'Visualize as entregas dos projetos e orçamentos'}
                     </p>
                 </div>
-                {isAdmin && (
+                <div className="flex flex-col sm:flex-row gap-3">
                     <Button
-                        variant="primary"
-                        onClick={() => navigate('/deliveries/create')}
+                        variant="outline"
+                        onClick={handleExportToExcel}
+                        disabled={isExporting}
                         className="flex items-center justify-center sm:justify-start"
                     >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Nova Entrega
+                        <Download className="w-4 h-4 mr-2" />
+                        {isExporting ? 'Exportando...' : 'Exportar Excel'}
                     </Button>
-                )}
+                    {isAdmin && (
+                        <Button
+                            variant="primary"
+                            onClick={() => navigate('/deliveries/create')}
+                            className="flex items-center justify-center sm:justify-start"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Nova Entrega
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Filtros Mobile - Barra de pesquisa simples apenas para mobile */}
