@@ -287,29 +287,52 @@ const DeliveryGroupEdit: React.FC = () => {
                                         </div>
                                         
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                                            <div>
-                                                <span className="font-medium">Branch:</span>
-                                                <div className="text-gray-900">{delivery.branch || 'Não informado'}</div>
-                                            </div>
-                                            <div>
-                                                <span className="font-medium">Branch Origem:</span>
-                                                <div className="text-gray-900">{delivery.sourceBranch || 'Não informado'}</div>
-                                            </div>
-                                            <div>
-                                                <span className="font-medium">Pull Request:</span>
-                                                <div className="text-gray-900">
+                                            <div className="md:col-span-2">
+                                                <span className="font-medium text-blue-700">🔗 Link da Entrega (Pull Request):</span>
+                                                <div className="text-gray-900 mt-1">
                                                     {delivery.pullRequest ? (
-                                                        <a href={delivery.pullRequest} target="_blank" rel="noopener noreferrer" 
-                                                           className="text-blue-600 hover:underline truncate block">
-                                                            {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
-                                                        </a>
-                                                    ) : 'Não informado'}
+                                                        <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
+                                                            <a 
+                                                                href={delivery.pullRequest} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer" 
+                                                                className="text-blue-700 hover:text-blue-800 hover:underline font-medium flex items-center gap-1"
+                                                            >
+                                                                <span className="truncate">
+                                                                    {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
+                                                                </span>
+                                                                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                                </svg>
+                                                            </a>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-500 italic">Link não informado</span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div>
-                                                <span className="font-medium">Script:</span>
-                                                <div className="text-gray-900">
-                                                    {delivery.script ? 'Sim' : 'Não'}
+                                                <span className="font-medium">Branch:</span>
+                                                <div className="text-gray-900 mt-1 font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                                    {delivery.branch || 'Não informado'}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">Branch Origem:</span>
+                                                <div className="text-gray-900 mt-1 font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                                    {delivery.sourceBranch || 'Não informado'}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">Script de BD:</span>
+                                                <div className="text-gray-900 mt-1">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                        delivery.script 
+                                                            ? 'bg-green-100 text-green-800' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                        {delivery.script ? '✓ Sim' : '✗ Não'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
