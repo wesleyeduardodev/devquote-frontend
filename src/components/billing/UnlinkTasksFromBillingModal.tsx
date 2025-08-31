@@ -327,7 +327,8 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                         </div>
                     ) : (
                         <div className="h-full p-6 overflow-auto">
-                            <div className="overflow-x-auto">
+                            {/* Desktop: Tabela */}
+                            <div className="hidden md:block overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 sticky top-0">
                                         <tr>
@@ -387,6 +388,164 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {/* Mobile: Cards */}
+                            <div className="md:hidden space-y-3">
+                                {/* Seleção múltipla Mobile */}
+                                {filteredTasks.length > 0 && (
+                                    <div className="bg-red-50 rounded-lg p-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedTasks.length === filteredTasks.length && filteredTasks.length > 0}
+                                                ref={(input) => {
+                                                    if (input) {
+                                                        input.indeterminate = selectedTasks.length > 0 && selectedTasks.length < filteredTasks.length;
+                                                    }
+                                                }}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedTasks(filteredTasks.map(link => link?.task?.id || 0).filter(id => id > 0));
+                                                    } else {
+                                                        setSelectedTasks([]);
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                                            />
+                                            <span className="text-sm font-medium text-red-800">
+                                                {selectedTasks.length === 0 
+                                                    ? 'Selecionar todas'
+                                                    : selectedTasks.length === filteredTasks.length 
+                                                        ? 'Desselecionar todas'
+                                                        : `${selectedTasks.length} de ${filteredTasks.length} selecionadas`
+                                                }
+                                            </span>
+                                        </div>
+                                        {selectedTasks.length > 0 && (
+                                            <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">
+                                                R$ {filteredTasks
+                                                    .filter(link => selectedTasks.includes(link?.task?.id || 0))
+                                                    .reduce((sum, link) => sum + (link?.task?.amount || 0), 0)
+                                                    .toFixed(2)
+                                                }
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Filtros Mobile */}
+                                <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+                                    <div className="text-sm font-medium text-gray-700">Filtros</div>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div>
+                                            <label className="block text-xs text-gray-600 mb-1">ID</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Filtrar por ID..."
+                                                value={filters['task.id'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.id': e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-gray-600 mb-1">Código</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Filtrar por código..."
+                                                value={filters['task.code'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.code': e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-gray-600 mb-1">Título</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Filtrar por título..."
+                                                value={filters['task.title'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.title': e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-gray-600 mb-1">Solicitante</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Filtrar por solicitante..."
+                                                value={filters['task.requesterName'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.requesterName': e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    {Object.values(filters).some(filter => filter) && (
+                                        <button
+                                            onClick={() => setFilters({})}
+                                            className="text-xs text-red-600 hover:text-red-800 font-medium"
+                                        >
+                                            Limpar filtros
+                                        </button>
+                                    )}
+                                </div>
+
+                                {filteredTasks.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        {loading ? "Carregando..." : "Nenhuma tarefa vinculada encontrada"}
+                                    </div>
+                                ) : (
+                                    filteredTasks.map((link, index) => (
+                                        <div key={link?.task?.id || index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                            {/* Header do card com checkbox e ID */}
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex items-start gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedTasks.includes(link?.task?.id || 0)}
+                                                        onChange={(e) => {
+                                                            const taskId = link?.task?.id || 0;
+                                                            if (e.target.checked) {
+                                                                setSelectedTasks(prev => [...prev, taskId]);
+                                                            } else {
+                                                                setSelectedTasks(prev => prev.filter(id => id !== taskId));
+                                                            }
+                                                        }}
+                                                        className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                                                    />
+                                                    <div>
+                                                        <div className="font-semibold text-gray-900 text-base">{link?.task?.title || '-'}</div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                                #{link?.task?.id}
+                                                            </span>
+                                                            <span className="text-sm font-mono text-gray-600">{link?.task?.code}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Informações da tarefa */}
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Valor:</span>
+                                                    <span className="font-semibold text-green-600">
+                                                        R$ {link?.task?.amount?.toFixed(2) || '0,00'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Solicitante:</span>
+                                                    <span className="text-gray-900">{link?.task?.requesterName || '-'}</span>
+                                                </div>
+                                                {link?.task?.description && (
+                                                    <div className="mt-2 pt-2 border-t border-gray-100">
+                                                        <span className="text-gray-600 text-xs">Descrição:</span>
+                                                        <p className="text-gray-800 text-sm mt-1 line-clamp-2">{link.task.description}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                             
                             {/* Paginação padrão */}

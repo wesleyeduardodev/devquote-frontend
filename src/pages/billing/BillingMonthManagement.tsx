@@ -30,6 +30,7 @@ import billingPeriodService from '../../services/billingPeriodService';
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import LinkTasksToBillingModal from '../../components/billing/LinkTasksToBillingModal';
 import UnlinkTasksFromBillingModal from '../../components/billing/UnlinkTasksFromBillingModal';
+import ViewTasksModal from '../../components/billing/ViewTasksModal';
 
 type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
@@ -88,6 +89,7 @@ const BillingManagement: React.FC = () => {
 
     // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
+    const isManager = hasProfile('MANAGER');
     const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
 
     // Lista e carregamento
@@ -112,6 +114,7 @@ const BillingManagement: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [showUnlinkModal, setShowUnlinkModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
@@ -273,6 +276,11 @@ const BillingManagement: React.FC = () => {
     const handleUnlinkTasks = useCallback(async (billing: BillingMonth) => {
         setSelectedBilling(billing);
         setShowUnlinkModal(true);
+    }, []);
+
+    const handleViewTasks = useCallback(async (billing: BillingMonth) => {
+        setSelectedBilling(billing);
+        setShowViewModal(true);
     }, []);
 
     const handleDataChange = useCallback(async () => {
@@ -544,27 +552,37 @@ const BillingManagement: React.FC = () => {
 
                     {/* Ações */}
                     <div className="flex gap-1 ml-2">
-                        <button
-                            onClick={() => handleLinkTasks(billing)}
-                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
-                            title="Vincular tarefas a este período"
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => handleUnlinkTasks(billing)}
-                            className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                            title="Desvincular tarefas deste período"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                        {isAdmin && (
+                        {isAdmin ? (
+                            <>
+                                <button
+                                    onClick={() => handleLinkTasks(billing)}
+                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                                    title="Vincular tarefas a este período"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => handleUnlinkTasks(billing)}
+                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                    title="Desvincular tarefas deste período"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteBilling(billing)}
+                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                    title="Excluir"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </>
+                        ) : isManager && (
                             <button
-                                onClick={() => handleDeleteBilling(billing)}
-                                className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                                title="Excluir"
+                                onClick={() => handleViewTasks(billing)}
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                                title="Visualizar tarefas vinculadas"
                             >
-                                <Trash2 className="w-5 h-5" />
+                                <Search className="w-5 h-5" />
                             </button>
                         )}
                     </div>
@@ -929,30 +947,41 @@ const BillingManagement: React.FC = () => {
 
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => handleLinkTasks(billing)}
-                                                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                                                            title="Vincular tarefas a este período"
-                                                        >
-                                                            <Plus className="w-4 h-4" />
-                                                            Vincular
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleUnlinkTasks(billing)}
-                                                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                                                            title="Desvincular tarefas deste período"
-                                                        >
-                                                            <Unlink className="w-4 h-4" />
-                                                            Desvincular
-                                                        </button>
-                                                        {isAdmin && (
+                                                        {isAdmin ? (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleLinkTasks(billing)}
+                                                                    className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                                                    title="Vincular tarefas a este período"
+                                                                >
+                                                                    <Plus className="w-4 h-4" />
+                                                                    Vincular
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleUnlinkTasks(billing)}
+                                                                    className="inline-flex items-center gap-1.5 px-2 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                                                    title="Desvincular tarefas deste período"
+                                                                >
+                                                                    <Unlink className="w-4 h-4" />
+                                                                    Desvincular
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteBilling(billing)}
+                                                                    disabled={loadingList}
+                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                    Excluir
+                                                                </button>
+                                                            </>
+                                                        ) : isManager && (
                                                             <button
-                                                                onClick={() => handleDeleteBilling(billing)}
-                                                                disabled={loadingList}
-                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                                                                onClick={() => handleViewTasks(billing)}
+                                                                className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                                                title="Visualizar tarefas vinculadas"
                                                             >
-                                                                <Trash2 className="w-4 h-4" />
-                                                                Excluir
+                                                                <Search className="w-4 h-4" />
+                                                                Ver Tarefas
                                                             </button>
                                                         )}
                                                     </div>
@@ -1104,6 +1133,16 @@ const BillingManagement: React.FC = () => {
                     }}
                     billingPeriod={selectedBilling}
                     onTasksUnlinked={fetchBillingMonths}
+                />
+
+                {/* Modal de Visualizar Tarefas */}
+                <ViewTasksModal
+                    isOpen={showViewModal}
+                    onClose={() => {
+                        setShowViewModal(false);
+                        setSelectedBilling(null);
+                    }}
+                    billingPeriod={selectedBilling}
                 />
 
                 {/* Modal de exclusão individual */}

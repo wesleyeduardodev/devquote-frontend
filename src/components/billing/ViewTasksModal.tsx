@@ -1,10 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { X, Link2, Search, Loader2 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import { taskService } from '@/services/taskService';
+import { X, Eye } from 'lucide-react';
 import billingPeriodService from '@/services/billingPeriodService';
-import DataTable from '@/components/ui/DataTable';
-import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface Task {
@@ -12,9 +8,15 @@ interface Task {
     code: string;
     title: string;
     description?: string;
-    status: string;
     amount: number;
     requesterName: string;
+    createdAt: string;
+}
+
+interface BillingPeriodTask {
+    id: number;
+    task: Task;
+    billingPeriodId: number;
     createdAt: string;
 }
 
@@ -36,186 +38,180 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     billingPeriod: BillingPeriod | null;
-    onTasksLinked: () => void;
 }
 
-const LinkTasksToBillingModal: React.FC<Props> = ({
+const ViewTasksModal: React.FC<Props> = ({
     isOpen,
     onClose,
-    billingPeriod,
-    onTasksLinked
+    billingPeriod
 }) => {
     // Estados da tabela
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+    const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
+    const [filteredTasks, setFilteredTasks] = useState<BillingPeriodTask[]>([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(5);
-    const [sorting, setSorting] = useState([{ field: 'id', direction: 'desc' as const }]);
+    const [pageSize, setPageSize] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortField, setSortField] = useState<string>('task.id');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [filters, setFilters] = useState<Record<string, string>>({});
     
-    // Estados da operação
-    const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
-    const [linking, setLinking] = useState(false);
+    // Estados para paginação
+    const [pagination, setPagination] = useState<{
+        currentPage: number;
+        totalPages: number; 
+        pageSize: number;
+        totalElements: number;
+    } | null>(null);
 
     const monthNames = [
         '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
-    // Carregar tarefas disponíveis (sem vínculo)
-    const loadAvailableTasks = useCallback(async () => {
+    const loadLinkedTasks = useCallback(async () => {
         if (!billingPeriod?.id) return;
-        
+
         setLoading(true);
         try {
-            const response = await taskService.getUnlinkedPaginated({
-                page: currentPage,
-                size: pageSize,
-                sort: sorting,
-                filters: filters
-            });
-
-            setTasks(response.content || []);
-            setPagination({
-                currentPage: response.currentPage || 0,
-                totalPages: response.totalPages || 0,
-                pageSize: response.pageSize || 10,
-                totalElements: response.totalElements || 0
-            });
+            const response = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id);
+            // Ordenar por ID da tarefa em ordem decrescente
+            const sortedResponse = response.sort((a, b) => (b?.task?.id || 0) - (a?.task?.id || 0));
+            setLinkedTasks(sortedResponse);
         } catch (error: any) {
-            console.error('Erro ao carregar tarefas disponíveis:', error);
-            toast.error('Erro ao carregar tarefas disponíveis');
-            setTasks([]);
+            console.error('Erro ao carregar tarefas vinculadas:', error);
+            setLinkedTasks([]);
         } finally {
             setLoading(false);
         }
-    }, [billingPeriod?.id, currentPage, pageSize, sorting, filters]);
+    }, [billingPeriod?.id]);
 
-    // Vincular tarefas selecionadas
-    const handleLinkTasks = useCallback(async () => {
-        if (!billingPeriod?.id || selectedTasks.length === 0) return;
-
-        setLinking(true);
-        try {
-            const requests = selectedTasks.map(taskId => ({
-                billingPeriodId: billingPeriod.id,
-                taskId: taskId
-            }));
-
-            await billingPeriodService.bulkLinkTasks(requests);
-            toast.success(`${selectedTasks.length} tarefa(s) vinculada(s) com sucesso!`);
-            
-            setSelectedTasks([]);
-            onTasksLinked(); // Callback para recarregar dados do pai
-            onClose();
-        } catch (error: any) {
-            console.error('Erro ao vincular tarefas:', error);
-            if (error.response?.status === 409) {
-                toast.error('Uma ou mais tarefas já estão vinculadas a outro período');
-            } else {
-                toast.error('Erro ao vincular tarefas');
-            }
-        } finally {
-            setLinking(false);
-        }
-    }, [billingPeriod?.id, selectedTasks, onTasksLinked, onClose]);
-
-    // Carregar dados quando o modal abrir
     useEffect(() => {
         if (isOpen && billingPeriod) {
-            setSelectedTasks([]);
-            loadAvailableTasks();
+            loadLinkedTasks();
         }
-    }, [isOpen, billingPeriod, loadAvailableTasks]);
+    }, [isOpen, billingPeriod, loadLinkedTasks]);
 
     // Reset página quando pageSize mudar
     useEffect(() => {
         setCurrentPage(0);
     }, [pageSize]);
 
-    // Colunas da tabela
+    // Filtrar e ordenar tarefas
+    useEffect(() => {
+        let filtered = [...linkedTasks];
+
+        // Aplicar filtros
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) {
+                filtered = filtered.filter(link => {
+                    const task = link?.task;
+                    if (!task) return false;
+                    
+                    switch (key) {
+                        case 'task.id':
+                            return task.id.toString().includes(value);
+                        case 'task.code':
+                            return task.code?.toLowerCase().includes(value.toLowerCase()) || false;
+                        case 'task.title':
+                            return task.title?.toLowerCase().includes(value.toLowerCase()) || false;
+                        case 'task.requesterName':
+                            return task.requesterName?.toLowerCase().includes(value.toLowerCase()) || false;
+                        default:
+                            return true;
+                    }
+                });
+            }
+        });
+
+        // Ordenar
+        filtered.sort((a, b) => {
+            const aValue = getNestedValue(a, sortField);
+            const bValue = getNestedValue(b, sortField);
+            
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+            
+            const aStr = String(aValue || '').toLowerCase();
+            const bStr = String(bValue || '').toLowerCase();
+            
+            if (sortDirection === 'asc') {
+                return aStr.localeCompare(bStr);
+            } else {
+                return bStr.localeCompare(aStr);
+            }
+        });
+
+        // Calcular paginação
+        const totalElements = filtered.length;
+        const totalPages = Math.ceil(totalElements / pageSize);
+        
+        setPagination({
+            currentPage,
+            totalPages,
+            pageSize,
+            totalElements
+        });
+        
+        // Aplicar paginação
+        const startIndex = currentPage * pageSize;
+        const endIndex = startIndex + pageSize;
+        setFilteredTasks(filtered.slice(startIndex, endIndex));
+        
+    }, [linkedTasks, filters, sortField, sortDirection, currentPage, pageSize]);
+
+    // Função auxiliar para acessar propriedades aninhadas
+    const getNestedValue = (obj: any, path: string): any => {
+        return path.split('.').reduce((current, key) => current?.[key], obj);
+    };
+
+    // Definir colunas da tabela
     const columns = [
         {
-            key: 'selection',
-            header: (
-                <input
-                    type="checkbox"
-                    checked={selectedTasks.length === tasks.length && tasks.length > 0}
-                    ref={(input) => {
-                        if (input) {
-                            input.indeterminate = selectedTasks.length > 0 && selectedTasks.length < tasks.length;
-                        }
-                    }}
-                    onChange={(e) => {
-                        if (e.target.checked) {
-                            setSelectedTasks(tasks.map(task => task.id));
-                        } else {
-                            setSelectedTasks([]);
-                        }
-                    }}
-                    className="rounded border-gray-300"
-                />
-            ),
-            render: (task: Task) => (
-                <input
-                    type="checkbox"
-                    checked={selectedTasks.includes(task.id)}
-                    onChange={(e) => {
-                        if (e.target.checked) {
-                            setSelectedTasks(prev => [...prev, task.id]);
-                        } else {
-                            setSelectedTasks(prev => prev.filter(id => id !== task.id));
-                        }
-                    }}
-                    className="rounded border-gray-300"
-                />
-            )
-        },
-        {
-            key: 'id',
+            key: 'task.id',
             header: 'ID',
             sortable: true,
             filterable: true,
-            render: (task: Task) => (
-                <span className="font-mono text-xs text-gray-500">#{task.id}</span>
+            render: (link: BillingPeriodTask) => (
+                <span className="font-mono text-xs text-gray-500">#{link?.task?.id}</span>
             )
         },
         {
-            key: 'code',
+            key: 'task.code',
             header: 'Código',
             sortable: true,
             filterable: true,
-            render: (task: Task) => (
-                <span className="font-mono text-sm">{task.code}</span>
+            render: (link: BillingPeriodTask) => (
+                <span className="font-mono text-sm">{link?.task?.code}</span>
             )
         },
         {
-            key: 'title',
+            key: 'task.title',
             header: 'Título',
             sortable: true,
             filterable: true,
-            render: (task: Task) => (
-                <span className="font-medium">{task.title}</span>
+            render: (link: BillingPeriodTask) => (
+                <span className="font-medium">{link?.task?.title}</span>
             )
         },
         {
-            key: 'amount',
+            key: 'task.amount',
             header: 'Valor',
             sortable: true,
-            render: (task: Task) => (
+            render: (link: BillingPeriodTask) => (
                 <span className="font-semibold text-green-600">
-                    R$ {task.amount?.toFixed(2) || '0,00'}
+                    R$ {link?.task?.amount?.toFixed(2) || '0,00'}
                 </span>
             )
         },
         {
-            key: 'requesterName',
+            key: 'task.requesterName',
             header: 'Solicitante',
             sortable: true,
             filterable: true,
-            render: (task: Task) => (
-                <span className="text-gray-600">{task.requesterName || '-'}</span>
+            render: (link: BillingPeriodTask) => (
+                <span className="text-gray-600">{link?.task?.requesterName || '-'}</span>
             )
         }
     ];
@@ -226,15 +222,16 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[75vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">
-                                Vincular Tarefas ao Período
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Eye className="w-5 h-5" />
+                                Visualizar Tarefas do Período
                             </h2>
                             {billingPeriod && (
                                 <p className="text-sm text-gray-600 mt-1">
-                                    {monthNames[billingPeriod.month]} de {billingPeriod.year} - Tarefas disponíveis (sem vínculo)
+                                    {monthNames[billingPeriod.month]} de {billingPeriod.year} - Tarefas vinculadas
                                 </p>
                             )}
                         </div>
@@ -266,17 +263,20 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                                 >
                                                     <div className="flex items-center gap-2">
-                                                        {typeof column.header === 'string' ? column.header : column.header}
+                                                        {column.header}
                                                         {column.sortable && (
                                                             <button
                                                                 onClick={() => {
-                                                                    const currentSort = sorting.find(s => s.field === column.key);
-                                                                    const newDirection = currentSort?.direction === 'asc' ? 'desc' : 'asc';
-                                                                    setSorting([{ field: column.key, direction: newDirection }]);
+                                                                    if (sortField === column.key) {
+                                                                        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                                                                    } else {
+                                                                        setSortField(column.key);
+                                                                        setSortDirection('asc');
+                                                                    }
                                                                 }}
                                                                 className="text-gray-400 hover:text-gray-600"
                                                             >
-                                                                {sorting.find(s => s.field === column.key)?.direction === 'asc' ? '↑' : '↓'}
+                                                                {sortField === column.key && sortDirection === 'asc' ? '↑' : '↓'}
                                                             </button>
                                                         )}
                                                     </div>
@@ -296,18 +296,18 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {tasks.length === 0 ? (
+                                        {filteredTasks.length === 0 ? (
                                             <tr>
                                                 <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
-                                                    {loading ? "Carregando..." : "Nenhuma tarefa disponível para vinculação"}
+                                                    {loading ? "Carregando..." : "Nenhuma tarefa vinculada encontrada"}
                                                 </td>
                                             </tr>
                                         ) : (
-                                            tasks.map((task) => (
-                                                <tr key={task.id} className="hover:bg-gray-50">
+                                            filteredTasks.map((link, index) => (
+                                                <tr key={link?.task?.id || index} className="hover:bg-gray-50">
                                                     {columns.map((column) => (
                                                         <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                            {column.render(task)}
+                                                            {column.render(link)}
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -319,48 +319,6 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
 
                             {/* Mobile: Cards */}
                             <div className="md:hidden space-y-3">
-                                {/* Seleção múltipla Mobile */}
-                                {tasks.length > 0 && (
-                                    <div className="bg-blue-50 rounded-lg p-3 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedTasks.length === tasks.length && tasks.length > 0}
-                                                ref={(input) => {
-                                                    if (input) {
-                                                        input.indeterminate = selectedTasks.length > 0 && selectedTasks.length < tasks.length;
-                                                    }
-                                                }}
-                                                onChange={(e) => {
-                                                    if (e.target.checked) {
-                                                        setSelectedTasks(tasks.map(task => task.id));
-                                                    } else {
-                                                        setSelectedTasks([]);
-                                                    }
-                                                }}
-                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                            />
-                                            <span className="text-sm font-medium text-blue-800">
-                                                {selectedTasks.length === 0 
-                                                    ? 'Selecionar todas'
-                                                    : selectedTasks.length === tasks.length 
-                                                        ? 'Desselecionar todas'
-                                                        : `${selectedTasks.length} de ${tasks.length} selecionadas`
-                                                }
-                                            </span>
-                                        </div>
-                                        {selectedTasks.length > 0 && (
-                                            <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                                                R$ {tasks
-                                                    .filter(task => selectedTasks.includes(task.id))
-                                                    .reduce((sum, task) => sum + (task.amount || 0), 0)
-                                                    .toFixed(2)
-                                                }
-                                            </span>
-                                        )}
-                                    </div>
-                                )}
-
                                 {/* Filtros Mobile */}
                                 <div className="bg-gray-50 rounded-lg p-3 space-y-3">
                                     <div className="text-sm font-medium text-gray-700">Filtros</div>
@@ -370,8 +328,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por ID..."
-                                                value={filters['id'] || ''}
-                                                onChange={(e) => setFilters(prev => ({ ...prev, id: e.target.value }))}
+                                                value={filters['task.id'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.id': e.target.value }))}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
@@ -380,8 +338,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por código..."
-                                                value={filters['code'] || ''}
-                                                onChange={(e) => setFilters(prev => ({ ...prev, code: e.target.value }))}
+                                                value={filters['task.code'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.code': e.target.value }))}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
@@ -390,8 +348,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por título..."
-                                                value={filters['title'] || ''}
-                                                onChange={(e) => setFilters(prev => ({ ...prev, title: e.target.value }))}
+                                                value={filters['task.title'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.title': e.target.value }))}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
@@ -400,8 +358,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por solicitante..."
-                                                value={filters['requesterName'] || ''}
-                                                onChange={(e) => setFilters(prev => ({ ...prev, requesterName: e.target.value }))}
+                                                value={filters['task.requesterName'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, 'task.requesterName': e.target.value }))}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
@@ -416,36 +374,22 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                     )}
                                 </div>
 
-                                {tasks.length === 0 ? (
+                                {filteredTasks.length === 0 ? (
                                     <div className="text-center py-8 text-gray-500">
-                                        {loading ? "Carregando..." : "Nenhuma tarefa disponível para vinculação"}
+                                        {loading ? "Carregando..." : "Nenhuma tarefa vinculada encontrada"}
                                     </div>
                                 ) : (
-                                    tasks.map((task) => (
-                                        <div key={task.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                            {/* Header do card com checkbox e ID */}
+                                    filteredTasks.map((link, index) => (
+                                        <div key={link?.task?.id || index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                            {/* Header do card com ID */}
                                             <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-start gap-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedTasks.includes(task.id)}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                setSelectedTasks(prev => [...prev, task.id]);
-                                                            } else {
-                                                                setSelectedTasks(prev => prev.filter(id => id !== task.id));
-                                                            }
-                                                        }}
-                                                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                                    />
-                                                    <div>
-                                                        <div className="font-semibold text-gray-900 text-base">{task.title}</div>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                                #{task.id}
-                                                            </span>
-                                                            <span className="text-sm font-mono text-gray-600">{task.code}</span>
-                                                        </div>
+                                                <div>
+                                                    <div className="font-semibold text-gray-900 text-base">{link?.task?.title || '-'}</div>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                            #{link?.task?.id}
+                                                        </span>
+                                                        <span className="text-sm font-mono text-gray-600">{link?.task?.code}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -455,17 +399,17 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-600">Valor:</span>
                                                     <span className="font-semibold text-green-600">
-                                                        R$ {task.amount?.toFixed(2) || '0,00'}
+                                                        R$ {link?.task?.amount?.toFixed(2) || '0,00'}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-600">Solicitante:</span>
-                                                    <span className="text-gray-900">{task.requesterName || '-'}</span>
+                                                    <span className="text-gray-900">{link?.task?.requesterName || '-'}</span>
                                                 </div>
-                                                {task.description && (
+                                                {link?.task?.description && (
                                                     <div className="mt-2 pt-2 border-t border-gray-100">
                                                         <span className="text-gray-600 text-xs">Descrição:</span>
-                                                        <p className="text-gray-800 text-sm mt-1 line-clamp-2">{task.description}</p>
+                                                        <p className="text-gray-800 text-sm mt-1 line-clamp-2">{link.task.description}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -539,47 +483,22 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                 <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-gray-600">
-                            <span>Total: {tasks.length} tarefa(s)</span>
-                            {selectedTasks.length > 0 && (
-                                <span className="ml-4 font-medium text-blue-600">
-                                    {selectedTasks.length} selecionada(s) - 
-                                    Valor: R$ {
-                                        tasks
-                                            .filter(task => selectedTasks.includes(task.id))
-                                            .reduce((sum, task) => sum + (task.amount || 0), 0)
-                                            .toFixed(2)
+                            <span>Total: {pagination?.totalElements || 0} tarefa(s)</span>
+                            {filteredTasks.length > 0 && (
+                                <span className="ml-4 font-medium text-green-600">
+                                    Valor da página: R$ {filteredTasks
+                                        .reduce((sum, link) => sum + (link?.task?.amount || 0), 0)
+                                        .toFixed(2)
                                     }
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                onClick={onClose}
-                                variant="secondary"
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                onClick={handleLinkTasks}
-                                disabled={linking || selectedTasks.length === 0}
-                                className={`${selectedTasks.length > 0 
-                                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                            >
-                                {linking ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                        Vinculando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Link2 className="w-4 h-4 mr-2" />
-                                        Vincular {selectedTasks.length > 0 ? `${selectedTasks.length} Tarefa(s)` : 'Tarefas'}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                            Fechar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -587,4 +506,4 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
     );
 };
 
-export default LinkTasksToBillingModal;
+export default ViewTasksModal;
