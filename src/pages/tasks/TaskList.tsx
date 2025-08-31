@@ -61,7 +61,7 @@ interface Task {
     createdByUserName?: string;
     updatedByUserId?: number;
     updatedByUserName?: string;
-    hasQuote?: boolean;
+    hasDelivery?: boolean;
     hasQuoteInBilling?: boolean;
 }
 
@@ -75,7 +75,7 @@ const TaskList: React.FC = () => {
     const isUser = hasProfile('USER');
     const canCreateTasks = isAdmin || isManager || isUser; // Todos podem criar tarefas
     const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
-    const canViewQuoteColumns = isAdmin || isManager; // Apenas ADMIN e MANAGER podem ver colunas de orçamento
+    const canViewDeliveryColumns = isAdmin || isManager; // Apenas ADMIN e MANAGER podem ver colunas de entrega
     const currentUserId = user?.id;
     
     // Função para verificar se pode editar/excluir uma tarefa
@@ -459,6 +459,7 @@ const TaskList: React.FC = () => {
                 ) : (
                     <span className="text-gray-400">-</span>
                 ),
+            hideable: true,
         },
         {
             key: 'meetingLink',
@@ -480,6 +481,7 @@ const TaskList: React.FC = () => {
                 ) : (
                     <span className="text-gray-400">-</span>
                 ),
+            hideable: true,
         },
         {
             key: 'subTasks',
@@ -508,15 +510,15 @@ const TaskList: React.FC = () => {
                 </div>
             ),
         }] : []),
-        // Colunas de Orçamento e Faturamento - apenas para ADMIN e MANAGER
-        ...(canViewQuoteColumns ? [{
-            key: 'hasQuote',
-            title: 'Orçamento',
+        // Colunas de Entrega e Faturamento - apenas para ADMIN e MANAGER
+        ...(canViewDeliveryColumns ? [{
+            key: 'hasDelivery',
+            title: 'Entrega',
             width: '120px',
             align: 'center' as const,
             render: (item: Task) => (
                 <div className="flex items-center justify-center">
-                    {item.hasQuote ? (
+                    {item.hasDelivery ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             ✓ Vinculado
                         </span>
@@ -538,13 +540,9 @@ const TaskList: React.FC = () => {
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             ✓ Faturado
                         </span>
-                    ) : item.hasQuote ? (
+                    ) : (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             ⏳ Aguardando
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                            - Sem Orçamento
                         </span>
                     )}
                 </div>
@@ -921,7 +919,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule', 'link', 'meetingLink']}
                             />
                         </Card>
                     </div>

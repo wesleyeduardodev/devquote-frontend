@@ -28,6 +28,8 @@ interface Task {
     subTasks?: SubTask[];
     createdAt?: string;
     updatedAt?: string;
+    hasDelivery?: boolean;
+    hasQuoteInBilling?: boolean;
 }
 
 interface TaskCreate {
