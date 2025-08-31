@@ -28,13 +28,13 @@ interface DeliveryGroup {
 const DeliveryList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile } = useAuth();
-    
+
     // Verificações de perfil
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
     const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
     const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
-    
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -81,25 +81,25 @@ const DeliveryList: React.FC = () => {
         try {
             setIsExporting(true);
             const blob = await deliveryService.exportToExcel();
-            
+
             // Criar URL para download
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            
+
             // Nome do arquivo com timestamp
             const now = new Date();
             const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
             link.download = `relatorio_entregas_${timestamp}.xlsx`;
-            
+
             // Trigger download
             document.body.appendChild(link);
             link.click();
-            
+
             // Cleanup
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             toast.success('Relatório exportado com sucesso!');
         } catch (error) {
             console.error('Erro ao exportar relatório:', error);
@@ -153,7 +153,7 @@ const DeliveryList: React.FC = () => {
     const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
-            IN_PROGRESS: 'Em Progresso', 
+            IN_PROGRESS: 'Em Progresso',
             COMPLETED: 'Completado',
             TESTING: 'Em Teste',
             DELIVERED: 'Entregue',
@@ -165,7 +165,7 @@ const DeliveryList: React.FC = () => {
 
     // Funções de seleção múltipla
     const toggleItem = (taskId: number) => {
-        setSelectedItems(prev => 
+        setSelectedItems(prev =>
             prev.includes(taskId)
                 ? prev.filter(item => item !== taskId)
                 : [...prev, taskId]
@@ -175,7 +175,7 @@ const DeliveryList: React.FC = () => {
     const toggleAll = () => {
         const currentPageIds = deliveryGroups.map(group => group.taskId);
         const allSelected = currentPageIds.every(id => selectedItems.includes(id));
-        
+
         if (allSelected) {
             setSelectedItems(prev => prev.filter(id => !currentPageIds.includes(id)));
         } else {
@@ -191,7 +191,7 @@ const DeliveryList: React.FC = () => {
     const selectionState = useMemo(() => {
         const currentPageIds = deliveryGroups.map(group => group.taskId);
         const selectedFromCurrentPage = selectedItems.filter(id => currentPageIds.includes(id));
-        
+
         return {
             allSelected: currentPageIds.length > 0 && selectedFromCurrentPage.length === currentPageIds.length,
             someSelected: selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < currentPageIds.length,
@@ -354,10 +354,10 @@ const DeliveryList: React.FC = () => {
             width: isAdmin ? '150px' : '80px',
             render: (item: DeliveryGroup) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => handleView(item)} 
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleView(item)}
                         title="Visualizar detalhes das entregas"
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                     >
@@ -406,7 +406,7 @@ const DeliveryList: React.FC = () => {
                             />
                         </div>
                     )}
-                    
+
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -495,9 +495,6 @@ const DeliveryList: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">
                         {isAdmin ? 'Gerenciamento de Entregas' : 'Visualização de Entregas'}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie as entregas dos projetos' : 'Visualize as entregas dos projetos'}
-                    </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <Button
@@ -536,7 +533,7 @@ const DeliveryList: React.FC = () => {
                                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                             />
                         </div>
-                        
+
                         {isAdmin && (
                             <div className="flex items-center justify-between gap-3">
                                 <Button
@@ -560,7 +557,7 @@ const DeliveryList: React.FC = () => {
                                     </div>
                                     <span className="text-sm">Selecionar Todos</span>
                                 </Button>
-                                
+
                                 {selectionState.hasSelection && (
                                     <Button
                                         size="sm"
@@ -678,7 +675,7 @@ const DeliveryList: React.FC = () => {
                                 </div>
                             </Card>
                         )}
-                        
+
                         <Card className="p-0">
                             <DataTable
                                 data={deliveryGroups}

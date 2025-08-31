@@ -172,7 +172,7 @@ const TaskList: React.FC = () => {
 
     const confirmSendFinancialEmail = async () => {
         if (!taskForEmail) return;
-        
+
         try {
             await sendFinancialEmail(taskForEmail.id);
         } catch (error) {
@@ -836,9 +836,6 @@ const TaskList: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">
                         Tarefas
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie todas as tarefas do sistema' : 'Visualize todas as tarefas - Edite apenas as suas'}
-                    </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                     <Button
@@ -1073,7 +1070,7 @@ const TaskList: React.FC = () => {
                                         Email já enviado
                                     </h3>
                                     <p className="text-gray-600 mb-6">
-                                        O email financeiro para esta tarefa já foi enviado anteriormente. 
+                                        O email financeiro para esta tarefa já foi enviado anteriormente.
                                         Deseja enviar novamente?
                                     </p>
                                 </div>

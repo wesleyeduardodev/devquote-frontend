@@ -31,7 +31,7 @@ import toast from 'react-hot-toast';
 const ProfileManagement = () => {
   const { hasProfile, isLoading: authLoading, user } = useAuth();
   const navigate = useNavigate();
-  
+
   // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
   const isAdmin = hasProfile('ADMIN');
   const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
@@ -836,13 +836,10 @@ const ProfileManagement = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             {isAdmin ? 'Gerenciamento de Usuários' : 'Visualização de Usuários'}
           </h1>
-          <p className="text-gray-600 mt-1">
-            {isAdmin ? 'Gerencie usuários e suas permissões' : 'Visualize usuários cadastrados'}
-          </p>
         </div>
         {isAdmin && (
-          <Button 
-            onClick={handleCreateUser} 
+          <Button
+            onClick={handleCreateUser}
             className="flex items-center justify-center sm:justify-start"
             variant="primary"
           >
