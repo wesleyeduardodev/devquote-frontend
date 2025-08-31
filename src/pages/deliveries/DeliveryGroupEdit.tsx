@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, X, Edit, Plus, Truck, Package } from 'lucide-react';
+import { ArrowLeft, Save, X, Edit, Plus, Truck, Package, Trash2 } from 'lucide-react';
 import { useDeliveryGroups } from '@/hooks/useDeliveryGroups';
 import { useDeliveries } from '@/hooks/useDeliveries';
 import Card from '@/components/ui/Card';
@@ -44,13 +44,16 @@ const DeliveryGroupEdit: React.FC = () => {
     const { taskId } = useParams<{ taskId: string }>();
     const navigate = useNavigate();
     const { getGroupDetails } = useDeliveryGroups();
-    const { updateDelivery, createDelivery } = useDeliveries();
+    const { updateDelivery, createDelivery, deleteDelivery } = useDeliveries();
     
     const [deliveryGroup, setDeliveryGroup] = useState<DeliveryGroup | null>(null);
     const [loading, setLoading] = useState(true);
     const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
     const [showDeliveryForm, setShowDeliveryForm] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deliveryToDelete, setDeliveryToDelete] = useState<Delivery | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         const loadDeliveryGroup = async () => {
@@ -124,6 +127,40 @@ const DeliveryGroupEdit: React.FC = () => {
     const handleCancelEdit = () => {
         setShowDeliveryForm(false);
         setEditingDelivery(null);
+    };
+
+    const handleDeleteDelivery = (delivery: Delivery) => {
+        setDeliveryToDelete(delivery);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deliveryToDelete) return;
+
+        try {
+            setDeleting(true);
+            await deleteDelivery(deliveryToDelete.id);
+            
+            // Recarregar dados do grupo
+            const updatedGroup = await getGroupDetails(parseInt(taskId!));
+            if (updatedGroup) {
+                setDeliveryGroup(updatedGroup);
+            }
+
+            setShowDeleteConfirm(false);
+            setDeliveryToDelete(null);
+            toast.success('Entrega excluída com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir entrega:', error);
+            toast.error('Erro ao excluir entrega');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setDeliveryToDelete(null);
     };
 
     const getStatusColor = (status: string) => {
@@ -284,15 +321,26 @@ const DeliveryGroupEdit: React.FC = () => {
                                         )}
                                     </div>
 
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEditDelivery(delivery)}
-                                        className="flex items-center gap-2 ml-4"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                        Editar
-                                    </Button>
+                                    <div className="flex items-center gap-2 ml-4">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleEditDelivery(delivery)}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            Editar
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleDeleteDelivery(delivery)}
+                                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Excluir
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -351,6 +399,60 @@ const DeliveryGroupEdit: React.FC = () => {
                                 } : undefined}
                                 showProjectSelector={true}
                             />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Confirmação de Exclusão */}
+            {showDeleteConfirm && deliveryToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                        <div className="p-6">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                                    <Trash2 className="w-6 h-6 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Excluir Entrega</h3>
+                                    <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <p className="text-gray-700">
+                                    Deseja realmente excluir a entrega do projeto{' '}
+                                    <strong>{deliveryToDelete.projectName}</strong>?
+                                </p>
+                                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-medium">ID:</span> #{deliveryToDelete.id}
+                                        <br />
+                                        <span className="font-medium">Branch:</span> {deliveryToDelete.branch || 'Não informado'}
+                                        <br />
+                                        <span className="font-medium">Status:</span> {getStatusLabel(deliveryToDelete.status)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3">
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleCancelDelete}
+                                    disabled={deleting}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    onClick={handleConfirmDelete}
+                                    loading={deleting}
+                                    disabled={deleting}
+                                    className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                                >
+                                    {deleting ? 'Excluindo...' : 'Excluir'}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
