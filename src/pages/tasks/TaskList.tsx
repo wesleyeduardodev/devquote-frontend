@@ -14,6 +14,7 @@ import {
     Calendar,
     Eye,
     Download,
+    Mail,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
@@ -91,6 +92,8 @@ const TaskList: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showFinancialEmailModal, setShowFinancialEmailModal] = useState(false);
+    const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
 
     const {
         tasks,
@@ -107,6 +110,7 @@ const TaskList: React.FC = () => {
         deleteTaskWithSubTasks,
         deleteBulkTasks, // <-- deve existir no hook; ajuste o nome se necessário
         exportToExcel,
+        sendFinancialEmail,
     } = useTasks();
 
     const handleEdit = (id: number) => {
@@ -158,6 +162,24 @@ const TaskList: React.FC = () => {
             } catch (error) {
                 toast.error('Erro ao excluir tarefa');
             }
+        }
+    };
+
+    const handleFinancialEmail = (task: Task) => {
+        setTaskForEmail(task);
+        setShowFinancialEmailModal(true);
+    };
+
+    const confirmSendFinancialEmail = async () => {
+        if (!taskForEmail) return;
+        
+        try {
+            await sendFinancialEmail(taskForEmail.id);
+        } catch (error) {
+            // Error already handled by the hook
+        } finally {
+            setShowFinancialEmailModal(false);
+            setTaskForEmail(null);
         }
     };
 
@@ -622,6 +644,15 @@ const TaskList: React.FC = () => {
                             </Button>
                         </>
                     )}
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleFinancialEmail(item)}
+                        title={item.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
+                        className={`${item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                    >
+                        <Mail className="w-4 h-4" />
+                    </Button>
                 </div>
             ),
         },
@@ -708,6 +739,15 @@ const TaskList: React.FC = () => {
                             </Button>
                         </>
                     )}
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleFinancialEmail(task)}
+                        title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
+                        className={`${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                    >
+                        <Mail className="w-4 h-4" />
+                    </Button>
                 </div>
             </div>
 
@@ -1001,6 +1041,84 @@ const TaskList: React.FC = () => {
                 }}
                 canViewValues={canViewValues}
             />
+
+            {/* Modal de confirmação de email financeiro */}
+            {showFinancialEmailModal && taskForEmail && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    💰 Email Financeiro
+                                </h2>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Tarefa: {taskForEmail.code}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                            {taskForEmail.financialEmailSent ? (
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                                        <Mail className="w-8 h-8 text-green-600" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                        Email já enviado
+                                    </h3>
+                                    <p className="text-gray-600 mb-6">
+                                        O email financeiro para esta tarefa já foi enviado anteriormente. 
+                                        Deseja enviar novamente?
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                                        <Mail className="w-8 h-8 text-orange-600" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                        Enviar email financeiro
+                                    </h3>
+                                    <p className="text-gray-600 mb-6">
+                                        Deseja enviar um email com os detalhes financeiros desta tarefa para o departamento financeiro?
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                                <h4 className="font-medium text-gray-900 mb-2">{taskForEmail.title}</h4>
+                                <div className="text-sm text-gray-600">
+                                    <p><strong>Solicitante:</strong> {taskForEmail.requesterName}</p>
+                                    <p><strong>Status:</strong> {taskForEmail.status}</p>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center justify-end space-x-3">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setShowFinancialEmailModal(false);
+                                        setTaskForEmail(null);
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    onClick={confirmSendFinancialEmail}
+                                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                                >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    {taskForEmail.financialEmailSent ? 'Reenviar' : 'Enviar Email'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

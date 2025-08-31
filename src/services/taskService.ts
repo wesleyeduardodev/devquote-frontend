@@ -132,5 +132,9 @@ export const taskService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    sendFinancialEmail: async (taskId: number): Promise<void> => {
+        await api.post(`/tasks/${taskId}/send-financial-email`);
     }
 };

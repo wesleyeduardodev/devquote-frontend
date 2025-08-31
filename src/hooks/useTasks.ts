@@ -30,6 +30,7 @@ interface Task {
     updatedAt?: string;
     hasDelivery?: boolean;
     hasQuoteInBilling?: boolean;
+    financialEmailSent?: boolean;
 }
 
 interface TaskCreate {
@@ -110,6 +111,7 @@ interface UseTasksReturn {
     setFilter: (field: string, value: string) => void;
     clearFilters: () => void;
     exportToExcel: () => Promise<void>;
+    sendFinancialEmail: (taskId: number) => Promise<void>;
 }
 
 export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
@@ -293,6 +295,18 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         };
     }, [currentPage, pageSize, sorting, filters]);
 
+    const sendFinancialEmail = useCallback(async (taskId: number): Promise<void> => {
+        try {
+            await taskService.sendFinancialEmail(taskId);
+            await fetchTasks(); // Atualiza a lista para refletir o status atualizado
+            toast.success('Email financeiro enviado com sucesso!');
+        } catch (err: any) {
+            console.error('Erro ao enviar email financeiro:', err);
+            toast.error(err.message || 'Erro ao enviar email financeiro');
+            throw err;
+        }
+    }, [fetchTasks]);
+
     return {
         tasks,
         pagination,
@@ -312,5 +326,6 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         setFilter,
         clearFilters,
         exportToExcel,
+        sendFinancialEmail,
     };
 };
