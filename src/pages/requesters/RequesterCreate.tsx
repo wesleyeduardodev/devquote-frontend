@@ -64,9 +64,6 @@ const RequesterCreate: React.FC = () => {
                                 <h3 className="text-lg font-medium text-gray-900">
                                     Novo Solicitante
                                 </h3>
-                                <p className="text-sm text-gray-500">
-                                    Preencha as informações para criar um novo solicitante
-                                </p>
                             </div>
                         </div>
                     </div>

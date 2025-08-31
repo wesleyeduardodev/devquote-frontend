@@ -24,7 +24,7 @@ const TaskCreate = () => {
     const { createTaskWithSubTasks } = useTasks();
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
-    
+
     const [loading, setLoading] = useState(false);
     const [showRequesterModal, setShowRequesterModal] = useState(false);
     const [selectedRequester, setSelectedRequester] = useState<Requester | null>(null);
@@ -242,33 +242,11 @@ const TaskCreate = () => {
 
                 {/* Card Principal */}
                 <Card className="overflow-hidden">
-                    {/* Header do Card */}
-                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Plus className="w-5 h-5 text-blue-600" />
-                                </div>
-                            </div>
-                            <div className="ml-4">
-                                <h3 className="text-lg font-medium text-gray-900">
-                                    Nova Tarefa
-                                </h3>
-                                <p className="text-sm text-gray-500">
-                                    Preencha as informações para criar uma nova tarefa com suas subtarefas
-                                </p>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Conteúdo do Card */}
                     <div className="px-4 py-5 sm:px-6">
                         {/* Seleção de Requester */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Solicitante *
-                            </label>
-
                             {selectedRequester ? (
                                 <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
                                     <div className="flex justify-between items-start">

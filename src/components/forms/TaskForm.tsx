@@ -82,7 +82,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                            }) => {
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
-    
+
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
     const [projectSearchTerm, setProjectSearchTerm] = useState('');
@@ -155,14 +155,14 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
     const hasSubTasks = useWatch({ control, name: 'hasSubTasks' });
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
-    
+
     // Estado para controlar mensagem de erro
     const [subTaskError, setSubTaskError] = useState<string | null>(null);
 
     // Validação quando tentar desmarcar a flag com subtarefas existentes
     const handleHasSubTasksChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked;
-        
+
         // Se está tentando desmarcar e existem subtarefas não excluídas
         if (!isChecked && initialData?.id && watchSubTasks) {
             const activeSubTasks = watchSubTasks.filter((st: any) => !st?.excluded);
@@ -175,19 +175,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 return;
             }
         }
-        
+
         setSubTaskError(null);
         methods.setValue('hasSubTasks', isChecked);
     }, [initialData?.id, watchSubTasks, methods]);
-    
+
     const handleFormSubmit = async (data: TaskData): Promise<void> => {
         try {
             // Limpa erro anterior
             setSubTaskError(null);
-            
+
             const formattedData = {
                 ...data,
-                requesterId: initialData?.requesterId,
+                requesterId: data.requesterId || initialData?.requesterId,
                 projectsIds: selectedProjects.map((p) => p.id),
                 amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
                 subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
@@ -227,13 +227,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
         const allSelected = projects.every(p => selectedProjects.some(sp => sp.id === p.id));
         if (allSelected) {
             // Deselecionar todos da página atual
-            setSelectedProjects(curr => 
+            setSelectedProjects(curr =>
                 curr.filter(sp => !projects.some(p => p.id === sp.id))
             );
         } else {
             // Selecionar todos da página atual que ainda não estão selecionados
             setSelectedProjects(curr => {
-                const newSelections = projects.filter(p => 
+                const newSelections = projects.filter(p =>
                     !curr.some(sp => sp.id === p.id)
                 );
                 return [...curr, ...newSelections];
@@ -346,10 +346,12 @@ const TaskForm: React.FC<TaskFormProps> = ({
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+                {/* Campo hidden para requesterId */}
+                <input {...register('requesterId')} type="hidden" />
+                
                 {/* Informações Básicas */}
                 <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Informações Básicas</h2>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Input
                             {...register('code')}
@@ -424,8 +426,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                 {/* Links e Informações Adicionais */}
                 <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Links e Informações Adicionais</h2>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('link')}
@@ -459,8 +459,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                 {/* Configuração de Subtarefas/Valor */}
                 <div className="space-y-6">
-                    <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Estrutura da Tarefa</h2>
-                    
                     <div className="space-y-6">
                         <div>
                             <div className="flex items-center space-x-3">
@@ -509,8 +507,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 {/* Configurações de Cotação - apenas criação e ADMIN */}
                 {!initialData?.id && isAdmin && (
                     <div className="border-t pt-8">
-                        <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-6">Projetos Associados</h2>
-
                         <div className="space-y-6">
                             {/* Lista de projetos selecionados */}
                             {selectedProjects.length > 0 && (
@@ -624,8 +620,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                         onClick={(e) => e.stopPropagation()}
                                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                     />
-                                    {projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id)) 
-                                        ? 'Desmarcar Todos' 
+                                    {projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id))
+                                        ? 'Desmarcar Todos'
                                         : 'Selecionar Todos'
                                     }
                                 </button>

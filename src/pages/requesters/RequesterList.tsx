@@ -32,7 +32,7 @@ interface Requester {
 const RequesterList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user, isLoading: authLoading } = useAuth();
-    
+
     // Verifica se o usuário tem permissão (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
 
@@ -56,7 +56,7 @@ const RequesterList: React.FC = () => {
             </div>
         );
     }
-    
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -395,9 +395,6 @@ const RequesterList: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">
                         {isAdmin ? 'Gerenciamento de Solicitantes' : 'Visualização de Solicitantes'}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie os solicitantes cadastrados' : 'Visualize os solicitantes cadastrados'}
-                    </p>
                 </div>
                 {isAdmin && (
                     <Button
