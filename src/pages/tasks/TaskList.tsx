@@ -68,7 +68,7 @@ interface Task {
 const TaskList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user } = useAuth();
-    
+
     // Verifica se o usuário tem permissões
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
@@ -77,14 +77,14 @@ const TaskList: React.FC = () => {
     const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
     const canViewDeliveryColumns = isAdmin || isManager; // Apenas ADMIN e MANAGER podem ver colunas de entrega
     const currentUserId = user?.id;
-    
+
     // Função para verificar se pode editar/excluir uma tarefa
     const canModifyTask = (task: Task) => {
         if (isAdmin) return true; // ADMIN pode modificar qualquer tarefa
         if (!currentUserId) return false;
         return task.createdByUserId === currentUserId; // MANAGER/USER podem modificar apenas suas próprias tarefas
     };
-    
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -146,7 +146,7 @@ const TaskList: React.FC = () => {
             createdAt: task.createdAt,
             updatedAt: task.updatedAt
         };
-        
+
         setSelectedTask(taskForModal);
         setShowDetailModal(true);
     };
@@ -236,7 +236,7 @@ const TaskList: React.FC = () => {
     const toggleItem = (id: number) => {
         const task = tasks.find(t => t.id === id);
         if (!task || !canModifyTask(task)) return; // Só permite selecionar se puder modificar
-        
+
         setSelectedItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
@@ -282,6 +282,30 @@ const TaskList: React.FC = () => {
             toast.error('Erro ao excluir tarefas selecionadas');
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    // Função auxiliar para filtro de campos booleanos
+    const matchesBooleanFilter = (value: boolean | undefined, filterText: string): boolean => {
+        if (!filterText) return true;
+
+        const lowerFilter = filterText.toLowerCase();
+
+        // Aceitar diferentes formas de buscar
+        if (value === true) {
+            return lowerFilter.includes('true') ||
+                   lowerFilter.includes('vinculado') ||
+                   lowerFilter.includes('faturado') ||
+                   lowerFilter.includes('sim') ||
+                   lowerFilter.includes('✓');
+        } else {
+            return lowerFilter.includes('false') ||
+                   lowerFilter.includes('pendente') ||
+                   lowerFilter.includes('aguardando') ||
+                   lowerFilter.includes('não') ||
+                   lowerFilter.includes('nao') ||
+                   lowerFilter.includes('✗') ||
+                   lowerFilter.includes('⏳');
         }
     };
 
@@ -495,25 +519,13 @@ const TaskList: React.FC = () => {
                 </div>
             ),
         },
-        // Coluna de valor total - apenas para ADMIN e MANAGER
-        ...(canViewValues ? [{
-            key: 'total',
-            title: 'Valor Total',
-            width: '120px',
-            align: 'right' as const,
-            render: (item: Task) => (
-                <div className="flex items-center justify-end gap-1">
-                    <DollarSign className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-600">
-                        {formatCurrency(calculateTaskTotal(item))}
-                    </span>
-                </div>
-            ),
-        }] : []),
         // Colunas de Entrega e Faturamento - apenas para ADMIN e MANAGER
         ...(canViewDeliveryColumns ? [{
             key: 'hasDelivery',
             title: 'Entrega',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
             width: '120px',
             align: 'center' as const,
             render: (item: Task) => (
@@ -532,6 +544,9 @@ const TaskList: React.FC = () => {
         }, {
             key: 'hasQuoteInBilling',
             title: 'Faturamento',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
             width: '120px',
             align: 'center' as const,
             render: (item: Task) => (
@@ -545,6 +560,31 @@ const TaskList: React.FC = () => {
                             ⏳ Aguardando
                         </span>
                     )}
+                </div>
+            ),
+        }] : []),
+
+        {
+            key: 'createdByUserName',
+            title: 'Criado por',
+            sortable: false,
+            filterable: false,
+            render: (item) => item.createdByUserName || '-',
+            hideable: true,
+        },
+
+        // Coluna de valor total - apenas para ADMIN (por último)
+        ...(canViewValues ? [{
+            key: 'total',
+            title: 'Valor Total',
+            width: '120px',
+            align: 'right' as const,
+            render: (item: Task) => (
+                <div className="flex items-center justify-end gap-1">
+                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-600">
+                        {formatCurrency(calculateTaskTotal(item))}
+                    </span>
                 </div>
             ),
         }] : []),
@@ -567,14 +607,6 @@ const TaskList: React.FC = () => {
             hideable: true,
         },
         {
-            key: 'createdByUserName',
-            title: 'Criado por',
-            sortable: false,
-            filterable: false,
-            render: (item) => item.createdByUserName || '-',
-            hideable: true,
-        },
-        {
             key: 'updatedByUserName',
             title: 'Alterado por',
             sortable: false,
@@ -590,10 +622,10 @@ const TaskList: React.FC = () => {
             width: '150px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => handleView(item)} 
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleView(item)}
                         title="Visualizar detalhes"
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                     >
