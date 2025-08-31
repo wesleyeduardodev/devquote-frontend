@@ -285,29 +285,6 @@ const TaskList: React.FC = () => {
         }
     };
 
-    // Função auxiliar para filtro de campos booleanos
-    const matchesBooleanFilter = (value: boolean | undefined, filterText: string): boolean => {
-        if (!filterText) return true;
-
-        const lowerFilter = filterText.toLowerCase();
-
-        // Aceitar diferentes formas de buscar
-        if (value === true) {
-            return lowerFilter.includes('true') ||
-                   lowerFilter.includes('vinculado') ||
-                   lowerFilter.includes('faturado') ||
-                   lowerFilter.includes('sim') ||
-                   lowerFilter.includes('✓');
-        } else {
-            return lowerFilter.includes('false') ||
-                   lowerFilter.includes('pendente') ||
-                   lowerFilter.includes('aguardando') ||
-                   lowerFilter.includes('não') ||
-                   lowerFilter.includes('nao') ||
-                   lowerFilter.includes('✗') ||
-                   lowerFilter.includes('⏳');
-        }
-    };
 
     // ===== Busca simples (mobile) =====
     const filteredTasks = tasks.filter(
@@ -523,9 +500,8 @@ const TaskList: React.FC = () => {
         ...(canViewDeliveryColumns ? [{
             key: 'hasDelivery',
             title: 'Entrega',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
+            sortable: false,
+            filterable: false,
             width: '120px',
             align: 'center' as const,
             render: (item: Task) => (
@@ -544,9 +520,8 @@ const TaskList: React.FC = () => {
         }, {
             key: 'hasQuoteInBilling',
             title: 'Faturamento',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
+            sortable: false,
+            filterable: false,
             width: '120px',
             align: 'center' as const,
             render: (item: Task) => (
