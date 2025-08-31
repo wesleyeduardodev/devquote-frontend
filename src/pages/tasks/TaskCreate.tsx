@@ -29,6 +29,7 @@ const TaskCreate = () => {
     const [showRequesterModal, setShowRequesterModal] = useState(false);
     const [selectedRequester, setSelectedRequester] = useState<Requester | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [requesterError, setRequesterError] = useState<string | null>(null);
 
     // Hook para gerenciar requesters paginados
     const {
@@ -52,6 +53,7 @@ const TaskCreate = () => {
     const handleRequesterSelect = (requester: Requester) => {
         setSelectedRequester(requester);
         setShowRequesterModal(false);
+        setRequesterError(null); // Limpa o erro quando um requester é selecionado
     };
 
     const handleSubmit = async (data: any) => {
@@ -247,6 +249,9 @@ const TaskCreate = () => {
                     <div className="px-4 py-5 sm:px-6">
                         {/* Seleção de Requester */}
                         <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Solicitante <span className="text-red-500">*</span>
+                            </label>
                             {selectedRequester ? (
                                 <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
                                     <div className="flex justify-between items-start">
@@ -276,17 +281,35 @@ const TaskCreate = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowRequesterModal(true)}
-                                    className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                                    className={`w-full px-4 py-3 border border-dashed rounded-lg transition-colors ${
+                                        requesterError 
+                                            ? 'border-red-300 text-red-600 hover:border-red-400 hover:text-red-700 bg-red-50'
+                                            : 'border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700'
+                                    }`}
                                 >
                                     <Search className="w-4 h-4 mx-auto mb-1" />
                                     Clique para selecionar um solicitante
                                 </button>
                             )}
+                            {requesterError && (
+                                <p className="mt-2 text-sm text-red-600">
+                                    {requesterError}
+                                </p>
+                            )}
                         </div>
 
                         {/* TaskForm com requester pré-selecionado */}
                         <TaskForm
-                            onSubmit={handleSubmit}
+                            onSubmit={(data: any) => {
+                                // Validar requester antes de chamar handleSubmit
+                                if (!selectedRequester) {
+                                    setRequesterError('Por favor, selecione um solicitante');
+                                    // Fazer scroll para o topo onde está o erro
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    return Promise.reject(new Error('Requester not selected'));
+                                }
+                                return handleSubmit(data);
+                            }}
                             onCancel={handleCancel}
                             loading={loading}
                             initialData={selectedRequester ? {
