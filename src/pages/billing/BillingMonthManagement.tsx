@@ -84,11 +84,11 @@ const statusOptions = [
 
 const BillingManagement: React.FC = () => {
     const { hasProfile } = useAuth();
-    
+
     // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
     const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
-    
+
     // Lista e carregamento
     const [billingMonths, setBillingMonths] = useState<BillingMonth[]>([]);
     const [loadingList, setLoadingList] = useState(true);
@@ -97,6 +97,11 @@ const BillingManagement: React.FC = () => {
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Exclusão individual
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<BillingMonth | null>(null);
+    const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
     // Totais
     const [totals, setTotals] = useState<Record<number, number>>({});
@@ -171,7 +176,7 @@ const BillingManagement: React.FC = () => {
                 return billing as BillingMonth;
             });
             setBillingMonths(processedData);
-            
+
             // Extract totals from server response
             const totalsFromServer = Object.fromEntries(
                 (data ?? []).map(item => [item.id, Number(item.totalAmount || 0)])
@@ -279,25 +284,25 @@ const BillingManagement: React.FC = () => {
             };
 
             const blob = await billingPeriodService.exportToExcel(params);
-            
+
             // Criar URL para download
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            
+
             // Nome do arquivo com timestamp
             const now = new Date();
             const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
             link.download = `relatorio_faturamento_${timestamp}.xlsx`;
-            
+
             // Trigger download
             document.body.appendChild(link);
             link.click();
-            
+
             // Cleanup
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             toast.success('Relatório exportado com sucesso!');
         } catch (err: any) {
             console.error('Erro ao exportar relatório:', err);
@@ -307,30 +312,32 @@ const BillingManagement: React.FC = () => {
         }
     }, [monthFilter, yearFilter, statusFilter]);
 
-    const handleDeleteBilling = useCallback(async (billing: BillingMonth) => {
-        const hasValue = (totals[billing.id] ?? 0) > 0;
-        let confirmMessage = `Deseja realmente excluir o faturamento de ${getMonthLabel(billing.month)}/${billing.year}?`;
-        if (hasValue) {
-            confirmMessage += '\n\nATENÇÃO: Este período possui orçamentos vinculados.';
-        }
-        if (!window.confirm(confirmMessage)) return;
+    const handleDeleteBilling = useCallback((billing: BillingMonth) => {
+        setItemToDelete(billing);
+        setShowDeleteModal(true);
+    }, []);
 
-        setLoadingList(true);
+    const handleConfirmDelete = useCallback(async () => {
+        if (!itemToDelete) return;
+        
+        setIsDeletingSingle(true);
         try {
-            await billingPeriodService.delete(billing.id);
-            setBillingMonths(prev => prev.filter(bm => bm.id !== billing.id));
+            await billingPeriodService.deleteWithAllLinkedTasks(itemToDelete.id);
+            setBillingMonths(prev => prev.filter(bm => bm.id !== itemToDelete.id));
             setTotals(prev => {
-                const { [billing.id]: _, ...rest } = prev;
+                const { [itemToDelete.id]: _, ...rest } = prev;
                 return rest;
             });
-            toast.success('Período excluído com sucesso!');
+            toast.success('Período e todas as tarefas vinculadas foram excluídos com sucesso!');
+            setShowDeleteModal(false);
+            setItemToDelete(null);
         } catch (error: any) {
             console.error('Erro ao excluir período:', error);
             toast.error(error?.response?.data?.message ?? 'Erro ao excluir período');
         } finally {
-            setLoadingList(false);
+            setIsDeletingSingle(false);
         }
-    }, [totals, getMonthLabel]);
+    }, [itemToDelete, totals]);
 
 
     const clearAllFilters = useCallback(() => {
@@ -551,20 +558,10 @@ const BillingManagement: React.FC = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Faturamento Mensal</h1>
-                        <p className="text-gray-600 mt-2">
-                            Gerencie períodos de faturamento e vincule tarefas para organizar seus recebimentos por mês/ano.
-                        </p>
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm text-blue-800">
-                                <strong>💡 Como usar:</strong> Crie períodos de faturamento (ex: Março/2024), 
-                                use os botões <strong>"Vincular"</strong> (➕) para adicionar tarefas e <strong>"Desvincular"</strong> (🔗) para remover. 
-                                <span className="text-blue-700">Cada tarefa só pode estar em um período.</span>
-                            </p>
-                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button 
+                        <button
                             onClick={handleExportToExcel}
                             disabled={exportLoading}
                             className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1048,6 +1045,81 @@ const BillingManagement: React.FC = () => {
                     billingPeriod={selectedBilling}
                     onTasksUnlinked={fetchBillingMonths}
                 />
+
+                {/* Modal de exclusão individual */}
+                {showDeleteModal && itemToDelete && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                            <div className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                        <AlertCircle className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
+                                        <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="mb-6">
+                                    <p className="text-gray-700 mb-2">
+                                        Deseja realmente excluir o período de faturamento:
+                                    </p>
+                                    <div className="bg-gray-50 rounded-lg p-3">
+                                        <p className="font-semibold text-gray-900">
+                                            {getMonthLabel(itemToDelete.month)} de {itemToDelete.year}
+                                        </p>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            Valor total: {formatCurrency(totals[itemToDelete.id] || 0)}
+                                        </p>
+                                    </div>
+                                    
+                                    {(totals[itemToDelete.id] || 0) > 0 && (
+                                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                            <p className="text-amber-800 text-sm font-medium flex items-center gap-2">
+                                                <AlertCircle className="w-4 h-4" />
+                                                Atenção
+                                            </p>
+                                            <p className="text-amber-700 text-sm mt-1">
+                                                Este período possui tarefas vinculadas. Todas as vinculações serão removidas permanentemente.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => {
+                                            setShowDeleteModal(false);
+                                            setItemToDelete(null);
+                                        }}
+                                        disabled={isDeletingSingle}
+                                        className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmDelete}
+                                        disabled={isDeletingSingle}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                    >
+                                        {isDeletingSingle ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Excluindo...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Trash2 className="w-4 h-4" />
+                                                Excluir Período
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Modal de exclusão em massa */}
                 <BulkDeleteModal

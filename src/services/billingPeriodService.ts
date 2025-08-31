@@ -48,6 +48,10 @@ const billingPeriodService = {
     await api.delete('/billing-periods/bulk', { data: ids });
   },
 
+  deleteWithAllLinkedTasks: async (id: number): Promise<void> => {
+    await api.delete(`/billing-periods/${id}/delete-with-tasks`);
+  },
+
   findAllPaginated: async (params: BillingPeriodPaginatedParams): Promise<PaginatedResponse<BillingPeriod>> => {
     const res = await api.get('/billing-periods/paginated', { params });
     return res.data;
