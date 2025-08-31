@@ -36,8 +36,6 @@ interface TaskData {
     serverOrigin?: string;
     systemModule?: string;
     priority?: string;
-    createQuote?: boolean;
-    linkQuoteToBilling?: boolean;
     projectsIds?: number[];
     subTasks?: any[];
 }
@@ -62,6 +60,7 @@ const schema = yup.object({
     description: yup.string().optional(),
     status: yup.string().required('Status é obrigatório'),
     code: yup.string().required('Código é obrigatório').max(50, 'Máximo 50 caracteres'),
+    requesterId: yup.mixed().required('Solicitante é obrigatório'),
     link: yup.string().url('URL inválida').optional(),
     meetingLink: yup.string().url('URL inválida').max(500, 'Máximo 500 caracteres').optional(),
     notes: yup.string().max(256, 'Máximo 256 caracteres').optional(),
@@ -71,8 +70,6 @@ const schema = yup.object({
     serverOrigin: yup.string().max(100, 'Máximo 100 caracteres').optional(),
     systemModule: yup.string().max(100, 'Máximo 100 caracteres').optional(),
     priority: yup.string().required('Prioridade é obrigatória'),
-    createQuote: yup.boolean().optional(),
-    linkQuoteToBilling: yup.boolean().optional(),
     projectsIds: yup.array().of(yup.number()).optional(),
     subTasks: yup.array().optional(),
 });
@@ -125,8 +122,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
             serverOrigin: initialData?.serverOrigin || '',
             systemModule: initialData?.systemModule || '',
             priority: initialData?.priority || 'MEDIUM',
-            createQuote: initialData?.createQuote || false,
-            linkQuoteToBilling: initialData?.linkQuoteToBilling || false,
             projectsIds: initialData?.projectsIds || [],
             subTasks:
                 initialData?.subTasks || [
@@ -158,7 +153,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
         }
     }, [initialData]);
 
-    const createQuote = useWatch({ control, name: 'createQuote' });
     const hasSubTasks = useWatch({ control, name: 'hasSubTasks' });
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
     
@@ -515,79 +509,46 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 {/* Configurações de Cotação - apenas criação e ADMIN */}
                 {!initialData?.id && isAdmin && (
                     <div className="border-t pt-8">
-                        <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-6">Configurações de Cotação</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-6">Projetos Associados</h2>
 
                         <div className="space-y-6">
-                            <div className="flex items-center">
-                                <input
-                                    {...register('createQuote')}
-                                    type="checkbox"
-                                    id="createQuote"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="createQuote" className="ml-2 block text-sm text-gray-900">
-                                    Criar cotação para esta tarefa
-                                </label>
-                            </div>
-
-                            {createQuote && (
-                                <div className="flex items-center">
-                                    <input
-                                        {...register('linkQuoteToBilling')}
-                                        type="checkbox"
-                                        id="linkQuoteToBilling"
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    <label htmlFor="linkQuoteToBilling" className="ml-2 block text-sm text-gray-900">
-                                        Vincular cotação ao faturamento
-                                    </label>
-                                </div>
-                            )}
-
-                            {/* Seleção de Projetos */}
-                            {createQuote && (
-                                <div className="space-y-4">
-                                    <label className="block text-sm font-medium text-gray-700">Projetos Associados</label>
-
-                                    {/* Lista de selecionados */}
-                                    {selectedProjects.length > 0 && (
-                                        <div className="space-y-2">
-                                            {selectedProjects.map((project) => (
-                                                <div
-                                                    key={project.id}
-                                                    className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <FolderOpen className="w-4 h-4 text-blue-600" />
-                                                        <div>
-                                                            <span className="text-sm font-medium text-blue-900">{project.name}</span>
-                                                            {project.repositoryUrl && (
-                                                                <div className="text-xs text-blue-700">{project.repositoryUrl}</div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeProject(project.id)}
-                                                        className="text-blue-600 hover:text-blue-800"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
+                            {/* Lista de projetos selecionados */}
+                            {selectedProjects.length > 0 && (
+                                <div className="space-y-2">
+                                    {selectedProjects.map((project) => (
+                                        <div
+                                            key={project.id}
+                                            className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <FolderOpen className="w-4 h-4 text-blue-600" />
+                                                <div>
+                                                    <span className="text-sm font-medium text-blue-900">{project.name}</span>
+                                                    {project.repositoryUrl && (
+                                                        <div className="text-xs text-blue-700">{project.repositoryUrl}</div>
+                                                    )}
                                                 </div>
-                                            ))}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeProject(project.id)}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                    )}
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowProjectModal(true)}
-                                        className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
-                                    >
-                                        <Search className="w-4 h-4 mx-auto mb-1" />
-                                        Clique para adicionar projetos
-                                    </button>
+                                    ))}
                                 </div>
                             )}
+
+                            <button
+                                type="button"
+                                onClick={() => setShowProjectModal(true)}
+                                className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                            >
+                                <Search className="w-4 h-4 mx-auto mb-1" />
+                                Clique para adicionar projetos
+                            </button>
                         </div>
                     </div>
                 )}
@@ -689,9 +650,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     emptyMessage="Nenhum projeto encontrado"
                                     showColumnToggle={false}
                                     hiddenColumns={[]} // só 3 colunas: select, id, name
-                                    rowClassName={(item: Project) =>
-                                        selectedProjects.some((p) => p.id === item.id) ? 'bg-blue-50' : ''
-                                    }
                                 />
                             </div>
 

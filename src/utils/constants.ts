@@ -9,15 +9,6 @@ export const STATUS = {
         ON_HOLD: 'ON_HOLD',
     },
 
-    // Quote Status
-    QUOTE: {
-        DRAFT: 'DRAFT',
-        PENDING: 'PENDING',
-        APPROVED: 'APPROVED',
-        REJECTED: 'REJECTED',
-        EXPIRED: 'EXPIRED',
-        CANCELLED: 'CANCELLED',
-    },
 
     // Delivery Status
     DELIVERY: {
@@ -64,11 +55,6 @@ export const STATUS_LABELS = {
     CANCELLED: 'Cancelada',
     ON_HOLD: 'Em Espera',
 
-    // Quote Labels
-    DRAFT: 'Rascunho',
-    APPROVED: 'Aprovado',
-    REJECTED: 'Rejeitado',
-    EXPIRED: 'Expirado',
 
     // Delivery Labels
     TESTING: 'Em Teste',
@@ -100,10 +86,6 @@ export const STATUS_COLORS = {
     CANCELLED: 'bg-red-100 text-red-800',
     ON_HOLD: 'bg-gray-100 text-gray-800',
 
-    DRAFT: 'bg-gray-100 text-gray-800',
-    APPROVED: 'bg-green-100 text-green-800',
-    REJECTED: 'bg-red-100 text-red-800',
-    EXPIRED: 'bg-orange-100 text-orange-800',
 
     TESTING: 'bg-purple-100 text-purple-800',
     DELIVERED: 'bg-green-100 text-green-800',
@@ -134,11 +116,10 @@ export const API_ENDPOINTS = {
     },
     REQUESTERS: '/requesters',
     TASKS: '/tasks',
-    QUOTES: '/quotes',
     PROJECTS: '/projects',
     DELIVERIES: '/deliveries',
-    BILLING_MONTHS: '/quote-billing-months',
-    BILLING_LINKS: '/quote-billing-month-quotes',
+    BILLING_PERIODS: '/billing-periods',
+    BILLING_TASKS: '/billing-period-tasks',
 } as const;
 
 // Form validation limits

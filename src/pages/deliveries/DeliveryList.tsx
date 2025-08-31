@@ -12,18 +12,17 @@ import DeliveryGroupModal from '@/components/deliveries/DeliveryGroupModal';
 import toast from 'react-hot-toast';
 
 interface DeliveryGroup {
-    quoteId: number;
+    taskId: number;
     taskName: string;
     taskCode: string;
-    quoteStatus: string;
     deliveryStatus: string; // Status calculado das entregas
-    quoteValue: number;
     createdAt: string;
     updatedAt: string;
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
     deliveries: any[];
+    latestDeliveryId?: number; // ID da entrega mais recente
 }
 
 const DeliveryList: React.FC = () => {
@@ -63,7 +62,7 @@ const DeliveryList: React.FC = () => {
 
     const handleView = async (deliveryGroup: DeliveryGroup) => {
         try {
-            const groupDetails = await getGroupDetails(deliveryGroup.quoteId);
+            const groupDetails = await getGroupDetails(deliveryGroup.taskId);
             if (groupDetails) {
                 setSelectedDelivery(groupDetails);
                 setShowDetailModal(true);
@@ -74,8 +73,8 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    const handleEdit = (quoteId: number) => {
-        navigate(`/deliveries/group/${quoteId}/edit`);
+    const handleEdit = (taskId: number) => {
+        navigate(`/deliveries/group/${taskId}/edit`);
     };
 
     const handleExportToExcel = async () => {
@@ -110,10 +109,10 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    const handleDelete = async (quoteId: number) => {
+    const handleDelete = async (taskId: number) => {
         if (window.confirm('Tem certeza que deseja excluir todas as entregas desta tarefa?')) {
             try {
-                await deleteGroup(quoteId);
+                await deleteGroup(taskId);
             } catch (error) {
                 // O erro já é tratado no hook
             }
@@ -165,16 +164,16 @@ const DeliveryList: React.FC = () => {
     };
 
     // Funções de seleção múltipla
-    const toggleItem = (quoteId: number) => {
+    const toggleItem = (taskId: number) => {
         setSelectedItems(prev => 
-            prev.includes(quoteId)
-                ? prev.filter(item => item !== quoteId)
-                : [...prev, quoteId]
+            prev.includes(taskId)
+                ? prev.filter(item => item !== taskId)
+                : [...prev, taskId]
         );
     };
 
     const toggleAll = () => {
-        const currentPageIds = deliveryGroups.map(group => group.quoteId);
+        const currentPageIds = deliveryGroups.map(group => group.taskId);
         const allSelected = currentPageIds.every(id => selectedItems.includes(id));
         
         if (allSelected) {
@@ -190,7 +189,7 @@ const DeliveryList: React.FC = () => {
 
     // Estados derivados
     const selectionState = useMemo(() => {
-        const currentPageIds = deliveryGroups.map(group => group.quoteId);
+        const currentPageIds = deliveryGroups.map(group => group.taskId);
         const selectedFromCurrentPage = selectedItems.filter(id => currentPageIds.includes(id));
         
         return {
@@ -248,8 +247,8 @@ const DeliveryList: React.FC = () => {
                 <div className="flex items-center justify-center">
                     <input
                         type="checkbox"
-                        checked={selectedItems.includes(item.quoteId)}
-                        onChange={() => toggleItem(item.quoteId)}
+                        checked={selectedItems.includes(item.taskId)}
+                        onChange={() => toggleItem(item.taskId)}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         onClick={(e) => e.stopPropagation()}
                     />
@@ -258,8 +257,8 @@ const DeliveryList: React.FC = () => {
         }] : []),
         // Colunas que todos podem ver
         {
-            key: 'id',
-            title: 'ID Orçamento',
+            key: 'taskId',
+            title: 'ID Tarefa',
             sortable: true,
             filterable: true,
             filterType: 'number',
@@ -267,7 +266,7 @@ const DeliveryList: React.FC = () => {
             align: 'center',
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                    #{item.quoteId}
+                    #{item.taskId}
                 </span>
             )
         },
@@ -329,20 +328,6 @@ const DeliveryList: React.FC = () => {
                 </span>
             )
         },
-        // Coluna de valor - apenas para ADMIN e MANAGER
-        ...(canViewValues ? [{
-            key: 'quoteValue',
-            title: 'Valor Orçamento',
-            sortable: false,
-            filterable: false,
-            width: '140px',
-            align: 'right' as const,
-            render: (item: DeliveryGroup) => (
-                <span className="text-sm font-medium text-gray-900">
-                    {item.quoteValue ? `R$ ${item.quoteValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
-                </span>
-            )
-        }] : []),
         {
             key: 'createdAt',
             title: 'Criado em',
@@ -383,7 +368,7 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleEdit(item.quoteId)}
+                                onClick={() => handleEdit(item.taskId)}
                                 title="Editar grupo"
                             >
                                 <Edit className="w-4 h-4" />
@@ -391,7 +376,7 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(item.quoteId)}
+                                onClick={() => handleDelete(item.taskId)}
                                 title="Excluir grupo"
                                 className="text-red-600 hover:text-red-800 hover:bg-red-50"
                             >
@@ -415,8 +400,8 @@ const DeliveryList: React.FC = () => {
                         <div className="flex-shrink-0 pt-1">
                             <input
                                 type="checkbox"
-                                checked={selectedItems.includes(deliveryGroup.quoteId)}
-                                onChange={() => toggleItem(deliveryGroup.quoteId)}
+                                checked={selectedItems.includes(deliveryGroup.taskId)}
+                                onChange={() => toggleItem(deliveryGroup.taskId)}
                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
                         </div>
@@ -425,7 +410,7 @@ const DeliveryList: React.FC = () => {
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                #{deliveryGroup.quoteId}
+                                #{deliveryGroup.taskId}
                             </span>
                             <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
                                 {deliveryGroup.taskCode}
@@ -458,7 +443,7 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleEdit(deliveryGroup.quoteId)}
+                                onClick={() => handleEdit(deliveryGroup.taskId)}
                                 title="Editar grupo"
                                 className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                             >
@@ -467,7 +452,7 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(deliveryGroup.quoteId)}
+                                onClick={() => handleDelete(deliveryGroup.taskId)}
                                 title="Excluir grupo"
                                 className="text-gray-600 hover:text-red-600 hover:bg-red-50"
                             >
@@ -485,14 +470,6 @@ const DeliveryList: React.FC = () => {
                     <span className="text-gray-700 font-medium">{deliveryGroup.totalDeliveries} entregas</span>
                 </div>
 
-                {canViewValues && deliveryGroup.quoteValue && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-500">Valor:</span>
-                        <span className="text-gray-900 font-medium">
-                            R$ {deliveryGroup.quoteValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
-                    </div>
-                )}
 
                 <div className="flex items-center justify-between text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
                     <div className="flex items-center gap-1">
@@ -519,7 +496,7 @@ const DeliveryList: React.FC = () => {
                         {isAdmin ? 'Gerenciamento de Entregas' : 'Visualização de Entregas'}
                     </h1>
                     <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie as entregas dos projetos e orçamentos' : 'Visualize as entregas dos projetos e orçamentos'}
+                        {isAdmin ? 'Gerencie as entregas dos projetos' : 'Visualize as entregas dos projetos'}
                     </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -735,7 +712,7 @@ const DeliveryList: React.FC = () => {
                         ) : (
                             <div className="grid gap-4">
                                 {filteredDeliveryGroups.map((deliveryGroup) => (
-                                    <DeliveryGroupCard key={deliveryGroup.quoteId} deliveryGroup={deliveryGroup} />
+                                    <DeliveryGroupCard key={deliveryGroup.taskId} deliveryGroup={deliveryGroup} />
                                 ))}
                             </div>
                         )}

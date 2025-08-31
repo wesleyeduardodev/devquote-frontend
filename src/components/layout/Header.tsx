@@ -65,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, isSidebarOpen}) => {
                             <h1 className="font-bold text-xl text-gray-900 tracking-tight">
                                 Dev<span className="text-blue-600">Quote</span>
                             </h1>
-                            <p className="text-xs text-gray-500 -mt-1">Sistema de Orçamentos</p>
+                            <p className="text-xs text-gray-500 -mt-1">Sistema de Gestão</p>
                         </div>
                     </div>
                 </div>

@@ -40,12 +40,6 @@ export interface ProjectWithRelations extends Project {
         name: string;
         email?: string;
     };
-    quotes?: {
-        id: number;
-        title?: string;
-        totalAmount: number;
-        status: string;
-    }[];
     deliveries?: {
         id: number;
         status: string;
@@ -103,8 +97,6 @@ export interface RepositoryConfig {
 export interface ProjectMetrics {
     totalTasks: number;
     completedTasks: number;
-    totalQuotes: number;
-    approvedQuotes: number;
     totalDeliveries: number;
     successfulDeliveries: number;
     totalValue: number;

@@ -49,7 +49,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/dashboard', label: 'Dashboard', screen: '' }, // Dashboard sempre acessível
         { path: '/requesters', label: 'Solicitantes', screen: 'requesters' }, // Apenas ADMIN
         { path: '/tasks', label: 'Tarefas', screen: 'tasks' },
-        { path: '/quotes', label: 'Orçamentos', screen: 'quotes' },
         { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
         { path: '/projects', label: 'Projetos', screen: 'projects' }, // Apenas ADMIN
         { path: '/billing', label: 'Faturamento', screen: 'billing' },

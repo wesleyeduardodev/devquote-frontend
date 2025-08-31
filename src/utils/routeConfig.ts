@@ -17,7 +17,6 @@ export const SCREEN_CODES = {
   DASHBOARD: 'dashboard',
   TASKS: 'tasks',
   PROJECTS: 'projects', 
-  QUOTES: 'quotes',
   DELIVERIES: 'deliveries',
   BILLING: 'billing',
   USERS: 'users',
@@ -42,7 +41,6 @@ export const RESOURCE_OPERATIONS = {
 export const RESOURCES = {
   TASKS: 'tasks',
   PROJECTS: 'projects',
-  QUOTES: 'quotes', 
   DELIVERIES: 'deliveries',
   BILLING: 'billing',
   USERS: 'users',
@@ -69,7 +67,6 @@ export const PROFILE_PERMISSIONS = {
       SCREEN_CODES.DASHBOARD,
       SCREEN_CODES.TASKS,
       SCREEN_CODES.PROJECTS,
-      SCREEN_CODES.QUOTES,
       SCREEN_CODES.DELIVERIES,
       SCREEN_CODES.BILLING,
       SCREEN_CODES.USERS,
@@ -79,7 +76,6 @@ export const PROFILE_PERMISSIONS = {
     resources: [
       RESOURCES.TASKS,
       RESOURCES.PROJECTS,
-      RESOURCES.QUOTES,
       RESOURCES.DELIVERIES,
       RESOURCES.BILLING,
       RESOURCES.USERS,
@@ -92,14 +88,12 @@ export const PROFILE_PERMISSIONS = {
       SCREEN_CODES.DASHBOARD,
       SCREEN_CODES.TASKS,
       SCREEN_CODES.DELIVERIES,
-      SCREEN_CODES.BILLING,
-      SCREEN_CODES.QUOTES
+      SCREEN_CODES.BILLING
     ],
     resources: [
       RESOURCES.TASKS,
       RESOURCES.DELIVERIES,
-      RESOURCES.BILLING,
-      RESOURCES.QUOTES
+      RESOURCES.BILLING
     ]
   },
   [PROFILES.USER]: {
@@ -137,14 +131,14 @@ export class PermissionUtils {
    * Retorna todas as telas permitidas para um perfil
    */
   static getScreensForProfile(profile: keyof typeof PROFILES): string[] {
-    return PROFILE_PERMISSIONS[profile]?.screens ?? [];
+    return [...(PROFILE_PERMISSIONS[profile]?.screens ?? [])];
   }
 
   /**
    * Retorna todos os recursos permitidos para um perfil
    */
   static getResourcesForProfile(profile: keyof typeof PROFILES): string[] {
-    return PROFILE_PERMISSIONS[profile]?.resources ?? [];
+    return [...(PROFILE_PERMISSIONS[profile]?.resources ?? [])];
   }
 
   /**

@@ -2,14 +2,11 @@ export interface DashboardStatsResponse {
   general: GeneralStats;
   requesters?: ModuleStats;
   tasks?: ModuleStats;
-  quotes?: ModuleStats;
   projects?: ModuleStats;
   deliveries?: ModuleStats;
   billing?: ModuleStats;
   tasksChart?: ChartData[];
-  quotesChart?: ChartData[];
   tasksByStatus?: StatusCount[];
-  quotesByStatus?: StatusCount[];
   deliveriesByStatus?: StatusCount[];
   recentActivities: RecentActivity[];
 }

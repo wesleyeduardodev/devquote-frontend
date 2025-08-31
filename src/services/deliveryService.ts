@@ -90,6 +90,10 @@ export const deliveryService = {
         await api.delete(`/deliveries/quote/${quoteId}`);
     },
 
+    deleteByTaskId: async (taskId: number): Promise<void> => {
+        await api.delete(`/deliveries/task/${taskId}`);
+    },
+
     exportToExcel: async (): Promise<Blob> => {
         const response = await api.get('/deliveries/export/excel', {
             responseType: 'blob'

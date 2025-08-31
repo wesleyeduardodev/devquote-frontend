@@ -41,7 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         {path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, screen: 'dashboard'},
         {path: '/requesters', label: 'Solicitantes', icon: Users, screen: 'users'}, // Mapeado para 'users' no backend
         {path: '/tasks', label: 'Tarefas', icon: CheckSquare, screen: 'tasks'},
-        {path: '/quotes', label: 'Orçamentos', icon: FileText, screen: 'quotes'},
         {path: '/deliveries', label: 'Entregas', icon: Truck, screen: 'deliveries'},
         {path: '/projects', label: 'Projetos', icon: FolderOpen, screen: 'projects'},
         {path: '/billing', label: 'Faturamento', icon: CreditCard, screen: 'billing'},
@@ -138,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
                 <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
                     <div className="text-xs text-gray-500 text-center">
                         <p>DevQuote v1.0</p>
-                        <p>Sistema de Orçamentos</p>
+                        <p>Sistema de Gestão</p>
                     </div>
                 </div>
             </aside>

@@ -1,5 +1,15 @@
 import api from './api';
+import billingPeriodService from './billingPeriodService';
 
+/**
+ * @deprecated Use billingPeriodService instead. 
+ * This service will be removed in a future version.
+ * 
+ * Migration guide:
+ * - TaskBillingMonth → BillingPeriod
+ * - Quote operations are no longer available (removed with Quote entity)
+ * - Use Task operations instead
+ */
 const billingMonthService = {
 
     findAll: async (): Promise<any> => {

@@ -34,12 +34,11 @@ interface Delivery {
     notes?: string;
     startedAt?: string;
     finishedAt?: string;
-    // Dados do Orçamento
-    quoteId?: number;
-    quoteName?: string;
-    quoteCode?: string;
-    quoteStatus?: string;
-    quoteValue?: number;
+    // Dados da Tarefa
+    taskId?: number;
+    taskName?: string;
+    taskCode?: string;
+    taskStatus?: string;
     // Dados do Projeto
     projectId?: number;
     projectName?: string;
@@ -194,24 +193,24 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
                     {/* Delivery Details Section */}
                     <div className="px-6 py-6 space-y-6">
-                        {/* Orçamento */}
-                        {(delivery.quoteId || delivery.quoteName) && (
+                        {/* Tarefa */}
+                        {(delivery.taskId || delivery.taskName) && (
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-blue-600" />
-                                    Orçamento
+                                    Tarefa
                                 </h3>
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                                    {delivery.quoteCode && (
+                                    {delivery.taskCode && (
                                         <div>
                                             <span className="text-sm font-medium text-blue-900">Código:</span>
-                                            <span className="text-sm text-blue-800 ml-2">{delivery.quoteCode}</span>
+                                            <span className="text-sm text-blue-800 ml-2">{delivery.taskCode}</span>
                                         </div>
                                     )}
-                                    {delivery.quoteName && (
+                                    {delivery.taskName && (
                                         <div>
-                                            <span className="text-sm font-medium text-blue-900">Tarefa:</span>
-                                            <span className="text-sm text-blue-800 ml-2">{delivery.quoteName}</span>
+                                            <span className="text-sm font-medium text-blue-900">Nome:</span>
+                                            <span className="text-sm text-blue-800 ml-2">{delivery.taskName}</span>
                                         </div>
                                     )}
                                 </div>

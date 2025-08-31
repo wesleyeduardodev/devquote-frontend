@@ -90,10 +90,10 @@ export const taskWithSubTasksSchema = yup.object({
 });
 
 export const deliverySchema = yup.object({
-  quoteId: yup
+  taskId: yup
       .number()
-      .required('Orçamento é obrigatório')
-      .typeError('Selecione um orçamento válido'),
+      .required('Tarefa é obrigatória')
+      .typeError('Selecione uma tarefa válida'),
 
   projectId: yup
       .number()

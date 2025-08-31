@@ -38,11 +38,10 @@ interface Delivery {
 }
 
 interface DeliveryGroup {
-    quoteId: number;
+    taskId: number;
     taskName: string;
     taskCode: string;
-    quoteStatus: string;
-    quoteValue: number;
+    taskStatus: string;
     createdAt: string;
     updatedAt: string;
     totalDeliveries: number;
@@ -378,7 +377,7 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                             <div>
                                 <h2 className="text-xl font-bold text-white">{deliveryGroup.taskName}</h2>
                                 <div className="flex items-center gap-3 text-blue-100 text-sm">
-                                    <span>Orçamento #{deliveryGroup.quoteId}</span>
+                                    <span>Tarefa #{deliveryGroup.taskId}</span>
                                     <span>•</span>
                                     <span>{deliveryGroup.taskCode}</span>
                                     <span>•</span>
@@ -409,12 +408,6 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                         <div className="text-center">
                             <div className="text-2xl font-bold text-yellow-600">{deliveryGroup.pendingDeliveries}</div>
                             <div className="text-sm text-gray-600">Pendentes</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-emerald-600">
-                                R$ {deliveryGroup.quoteValue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
-                            </div>
-                            <div className="text-sm text-gray-600">Valor</div>
                         </div>
                     </div>
                 </div>

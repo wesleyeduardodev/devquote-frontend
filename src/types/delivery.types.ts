@@ -6,7 +6,7 @@ export type DeliveryStatus = 'PENDING' | 'IN_PROGRESS' | 'TESTING' | 'DELIVERED'
 // Interface principal para Delivery
 export interface Delivery extends BaseEntity {
     id: number;
-    quoteId: number;
+    taskId: number;
     projectId: number;
     status: DeliveryStatus;
     branch?: string;
@@ -19,7 +19,7 @@ export interface Delivery extends BaseEntity {
 
 // Tipo para criação de delivery
 export interface CreateDeliveryData {
-    quoteId: number;
+    taskId: number;
     projectId: number;
     status: DeliveryStatus;
     branch?: string;
@@ -37,10 +37,10 @@ export interface UpdateDeliveryData extends Partial<CreateDeliveryData> {
 
 // Delivery com dados relacionados (para exibição)
 export interface DeliveryWithRelations extends Delivery {
-    quote?: {
+    task?: {
         id: number;
         title?: string;
-        totalAmount?: number;
+        code?: string;
     };
     project?: {
         id: number;
@@ -52,7 +52,7 @@ export interface DeliveryWithRelations extends Delivery {
 // Filtros para listagem de entregas
 export interface DeliveryFilters {
     status?: DeliveryStatus[];
-    quoteId?: number;
+    taskId?: number;
     projectId?: number;
     startDate?: string;
     endDate?: string;
@@ -71,7 +71,7 @@ export interface DeliveryStats {
 
 // Form data para componentes de formulário
 export interface DeliveryFormData {
-    quoteId: string | number;
+    taskId: string | number;
     projectId: string | number;
     status: DeliveryStatus;
     branch?: string;

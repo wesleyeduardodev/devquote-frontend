@@ -12,15 +12,11 @@ import RequesterEdit from './pages/requesters/RequesterEdit';
 import TaskList from './pages/tasks/TaskList';
 import TaskCreate from './pages/tasks/TaskCreate';
 import TaskEdit from './pages/tasks/TaskEdit';
-import QuoteList from './pages/quotes/QuoteList';
-import QuoteCreate from './pages/quotes/QuoteCreate';
-import QuoteEdit from './pages/quotes/QuoteEdit';
 import ProjectList from './pages/projects/ProjectList';
 import ProjectCreate from './pages/projects/ProjectCreate';
 import ProjectEdit from './pages/projects/ProjectEdit';
 import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
-import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import DeliveryGroupEdit from './pages/deliveries/DeliveryGroupEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import ProfileManagement from './pages/profiles/ProfileManagement';
@@ -101,23 +97,6 @@ const AppRoutes: React.FC = () => {
                                 </ProtectedRoute>
                             }/>
                             
-                            {/* Quotes - ADMIN, MANAGER */}
-                            <Route path="/quotes" element={
-                                <ProtectedRoute requiredScreen="quotes">
-                                    <QuoteList/>
-                                </ProtectedRoute>
-                            }/>
-                            <Route path="/quotes/create" element={
-                                <ProtectedRoute requiredScreen="quotes">
-                                    <QuoteCreate/>
-                                </ProtectedRoute>
-                            }/>
-                            <Route path="/quotes/:id/edit" element={
-                                <ProtectedRoute requiredScreen="quotes">
-                                    <QuoteEdit/>
-                                </ProtectedRoute>
-                            }/>
-                            
                             {/* Projects - Apenas ADMIN */}
                             <Route path="/projects" element={
                                 <ProtectedRoute requiredScreen="projects">
@@ -146,12 +125,7 @@ const AppRoutes: React.FC = () => {
                                     <DeliveryCreate/>
                                 </ProtectedRoute>
                             }/>
-                            <Route path="/deliveries/:id/edit" element={
-                                <ProtectedRoute requiredScreen="deliveries">
-                                    <DeliveryEdit/>
-                                </ProtectedRoute>
-                            }/>
-                            <Route path="/deliveries/group/:quoteId/edit" element={
+                            <Route path="/deliveries/group/:taskId/edit" element={
                                 <ProtectedRoute requiredScreen="deliveries">
                                     <DeliveryGroupEdit/>
                                 </ProtectedRoute>

@@ -5,17 +5,17 @@ import toast from 'react-hot-toast';
 import { handleApiError, getUserErrorMessage } from '@/utils/errorHandler';
 
 interface DeliveryGroup {
-    quoteId: number;
+    taskId: number;
     taskName: string;
     taskCode: string;
-    quoteStatus: string;
-    quoteValue: number;
+    deliveryStatus: string;
     createdAt: string;
     updatedAt: string;
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
     deliveries: any[];
+    latestDeliveryId?: number;
 }
 
 interface PaginationInfo {
@@ -44,7 +44,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState(false);
     const [sorting, setSortingState] = useState<SortInfo[]>(props.sort || [
-        { field: 'id', direction: 'desc' }
+        { field: 'taskId', direction: 'desc' }
     ]);
     const [filters, setFilters] = useState<Record<string, any>>(props.filters || {});
     const [currentPage, setCurrentPage] = useState(props.page || 0);
@@ -110,9 +110,9 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         }
     }, [buildParams]);
 
-    const getGroupDetails = useCallback(async (quoteId: number): Promise<DeliveryGroup | null> => {
+    const getGroupDetails = useCallback(async (taskId: number): Promise<DeliveryGroup | null> => {
         try {
-            const response = await deliveryGroupService.getGroupDetails(quoteId);
+            const response = await deliveryGroupService.getGroupDetails(taskId);
             return response;
         } catch (error: any) {
             handleApiError(error, 'carregamento dos detalhes do grupo');
@@ -151,9 +151,9 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         setCurrentPage(0);
     }, []);
 
-    const deleteGroup = useCallback(async (quoteId: number): Promise<void> => {
+    const deleteGroup = useCallback(async (taskId: number): Promise<void> => {
         try {
-            await deliveryService.deleteByQuoteId(quoteId);
+            await deliveryService.deleteByTaskId(taskId);
             toast.success('Grupo de entregas excluído com sucesso');
             await fetchDeliveryGroups();
         } catch (error: any) {
@@ -162,13 +162,13 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         }
     }, [fetchDeliveryGroups]);
 
-    const deleteGroups = useCallback(async (quoteIds: number[]): Promise<void> => {
+    const deleteGroups = useCallback(async (taskIds: number[]): Promise<void> => {
         try {
             // Excluir todos os grupos sequencialmente
-            for (const quoteId of quoteIds) {
-                await deliveryService.deleteByQuoteId(quoteId);
+            for (const taskId of taskIds) {
+                await deliveryService.deleteByTaskId(taskId);
             }
-            toast.success(`${quoteIds.length} grupo(s) excluído(s) com sucesso`);
+            toast.success(`${taskIds.length} grupo(s) excluído(s) com sucesso`);
             await fetchDeliveryGroups();
         } catch (error: any) {
             handleApiError(error, 'exclusão dos grupos de entregas');

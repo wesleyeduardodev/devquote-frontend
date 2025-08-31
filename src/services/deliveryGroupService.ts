@@ -1,17 +1,17 @@
 import api from './api';
 
 interface DeliveryGroup {
-    quoteId: number;
+    taskId: number;
     taskName: string;
     taskCode: string;
-    quoteStatus: string;
-    quoteValue: number;
+    deliveryStatus: string;
     createdAt: string;
     updatedAt: string;
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
     deliveries: any[];
+    latestDeliveryId?: number;
 }
 
 interface PaginatedDeliveryGroups {
@@ -30,8 +30,8 @@ export const deliveryGroupService = {
         return response.data;
     },
 
-    async getGroupDetails(quoteId: number): Promise<DeliveryGroup> {
-        const response = await api.get(`/deliveries/group/${quoteId}`);
+    async getGroupDetails(taskId: number): Promise<DeliveryGroup> {
+        const response = await api.get(`/deliveries/group/${taskId}`);
         return response.data;
     },
 };

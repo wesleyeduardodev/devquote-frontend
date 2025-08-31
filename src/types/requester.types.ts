@@ -55,12 +55,6 @@ export interface RequesterWithRelations extends Requester {
         status: string;
         createdAt: string;
     }[];
-    quotes?: {
-        id: number;
-        title?: string;
-        totalAmount: number;
-        status: string;
-    }[];
     projects?: {
         id: number;
         name: string;
@@ -121,7 +115,7 @@ export interface RequesterContact {
 export interface RequesterInteraction {
     id: number;
     requesterId: string | number;
-    type: 'CALL' | 'EMAIL' | 'MEETING' | 'TASK_CREATED' | 'QUOTE_SENT' | 'OTHER';
+    type: 'CALL' | 'EMAIL' | 'MEETING' | 'TASK_CREATED' | 'OTHER';
     subject?: string;
     description?: string;
     date: string;

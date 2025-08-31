@@ -23,7 +23,6 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { taskService } from '@/services/taskService';
 import { deliveryService } from '@/services/deliveryService';
-import { quoteService } from '@/services/quoteService';
 import billingMonthService from '@/services/billingMonthService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -38,7 +37,6 @@ const Dashboard = () => {
   const [exportingTasks, setExportingTasks] = useState(false);
   const [exportingDeliveries, setExportingDeliveries] = useState(false);
   const [exportingGeneral, setExportingGeneral] = useState(false);
-  const [exportingQuotes, setExportingQuotes] = useState(false);
   const [exportingBilling, setExportingBilling] = useState(false);
 
   // Função para fazer download de blob
@@ -110,21 +108,6 @@ const Dashboard = () => {
     }
   };
 
-  // Função para exportar orçamentos
-  const handleExportQuotes = async () => {
-    try {
-      setExportingQuotes(true);
-      const blob = await quoteService.exportToExcel();
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_orcamentos_${timestamp}.xlsx`);
-      toast.success('Relatório de orçamentos exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar orçamentos:', error);
-      toast.error('Erro ao exportar relatório de orçamentos');
-    } finally {
-      setExportingQuotes(false);
-    }
-  };
 
   // Função para exportar faturamento
   const handleExportBilling = async () => {
@@ -313,22 +296,6 @@ const Dashboard = () => {
               </span>
             </div>
 
-            {/* Exportar Orçamentos */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <div
-                onClick={handleExportQuotes}
-                className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer"
-              >
-                {exportingQuotes ? (
-                  <Loader2 className="w-8 h-8 text-green-600 mb-2 animate-spin" />
-                ) : (
-                  <FileText className="w-8 h-8 text-green-600 mb-2" />
-                )}
-                <span className="text-sm font-medium text-green-800 text-center">
-                  {exportingQuotes ? 'Exportando...' : 'Relatório Orçamentos'}
-                </span>
-              </div>
-            ) : null}
 
             {/* Exportar Entregas */}
             <div
@@ -379,15 +346,6 @@ const Dashboard = () => {
               </div>
             </Link>
 
-            {/* Ver Orçamentos - Somente ADMIN/MANAGER */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <Link to="/quotes">
-                <div className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                  <FileText className="w-8 h-8 text-green-600 mb-2" />
-                  <span className="text-sm font-medium text-green-800 text-center">Ver Orçamentos</span>
-                </div>
-              </Link>
-            ) : null}
 
             {/* Ver Entregas */}
             <Link to="/deliveries">

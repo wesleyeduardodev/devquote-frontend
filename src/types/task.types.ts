@@ -31,8 +31,6 @@ export interface Task extends BaseEntity {
     createdByUserName?: string;
     updatedByUserId?: number;
     updatedByUserName?: string;
-    hasQuote?: boolean;
-    hasQuoteInBilling?: boolean;
 }
 
 // Subtarefa
@@ -102,11 +100,6 @@ export interface TaskWithRelations extends Task {
         name: string;
         email?: string;
     };
-    quotes?: {
-        id: number;
-        totalAmount: number;
-        status: string;
-    }[];
     project?: {
         id: number;
         name: string;

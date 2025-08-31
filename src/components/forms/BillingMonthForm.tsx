@@ -3,6 +3,15 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 
+/**
+ * @deprecated Use BillingPeriodForm instead.
+ * This component will be removed in a future version.
+ * 
+ * Migration:
+ * - Replace BillingMonthForm with BillingPeriodForm
+ * - Update import paths and prop types
+ */
+
 interface BillingMonthData {
     month: number;
     year: number;

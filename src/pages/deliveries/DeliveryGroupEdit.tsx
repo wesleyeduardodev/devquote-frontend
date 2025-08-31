@@ -9,11 +9,10 @@ import DeliveryForm from '@/components/forms/DeliveryForm';
 import toast from 'react-hot-toast';
 
 interface DeliveryGroup {
-    quoteId: number;
+    taskId: number;
     taskName: string;
     taskCode: string;
-    quoteStatus: string;
-    quoteValue: number;
+    deliveryStatus: string;
     createdAt: string;
     updatedAt: string;
     totalDeliveries: number;
@@ -37,12 +36,12 @@ interface Delivery {
     finishedAt?: string;
     createdAt?: string;
     updatedAt?: string;
-    quoteId: number;
+    taskId: number;
     projectId: number;
 }
 
 const DeliveryGroupEdit: React.FC = () => {
-    const { quoteId } = useParams<{ quoteId: string }>();
+    const { taskId } = useParams<{ taskId: string }>();
     const navigate = useNavigate();
     const { getGroupDetails } = useDeliveryGroups();
     const { updateDelivery, createDelivery } = useDeliveries();
@@ -55,11 +54,11 @@ const DeliveryGroupEdit: React.FC = () => {
 
     useEffect(() => {
         const loadDeliveryGroup = async () => {
-            if (!quoteId) return;
+            if (!taskId) return;
 
             try {
                 setLoading(true);
-                const groupDetails = await getGroupDetails(parseInt(quoteId));
+                const groupDetails = await getGroupDetails(parseInt(taskId));
                 if (groupDetails) {
                     setDeliveryGroup(groupDetails);
                 } else {
@@ -76,7 +75,7 @@ const DeliveryGroupEdit: React.FC = () => {
         };
 
         loadDeliveryGroup();
-    }, [quoteId, getGroupDetails, navigate]);
+    }, [taskId, getGroupDetails, navigate]);
 
     const handleEditDelivery = (delivery: Delivery) => {
         setEditingDelivery(delivery);
@@ -100,14 +99,14 @@ const DeliveryGroupEdit: React.FC = () => {
                 // Criar nova entrega
                 const newDeliveryData = {
                     ...deliveryData,
-                    quoteId: parseInt(quoteId!)
+                    taskId: parseInt(taskId!)
                 };
                 await createDelivery(newDeliveryData);
                 toast.success('Nova entrega criada com sucesso!');
             }
 
             // Recarregar dados do grupo
-            const updatedGroup = await getGroupDetails(parseInt(quoteId!));
+            const updatedGroup = await getGroupDetails(parseInt(taskId!));
             if (updatedGroup) {
                 setDeliveryGroup(updatedGroup);
             }
@@ -196,7 +195,7 @@ const DeliveryGroupEdit: React.FC = () => {
                             Editar Grupo de Entregas
                         </h1>
                         <p className="text-gray-600">
-                            {deliveryGroup.taskName} ({deliveryGroup.taskCode}) - Orçamento #{deliveryGroup.quoteId}
+                            {deliveryGroup.taskName} ({deliveryGroup.taskCode}) - Tarefa #{deliveryGroup.taskId}
                         </p>
                     </div>
                 </div>
@@ -223,12 +222,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     <div className="text-center">
                         <div className="text-2xl font-bold text-yellow-600">{deliveryGroup.pendingDeliveries}</div>
                         <div className="text-sm text-gray-600">Pendentes</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-emerald-600">
-                            R$ {deliveryGroup.quoteValue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
-                        </div>
-                        <div className="text-sm text-gray-600">Valor</div>
                     </div>
                 </div>
             </Card>
@@ -347,15 +340,16 @@ const DeliveryGroupEdit: React.FC = () => {
                                 onSubmit={handleSaveDelivery}
                                 onCancel={handleCancelEdit}
                                 loading={saving}
-                                selectedQuote={deliveryGroup ? {
-                                    id: deliveryGroup.quoteId,
-                                    taskName: deliveryGroup.taskName,
-                                    taskCode: deliveryGroup.taskCode
+                                selectedTask={deliveryGroup ? {
+                                    id: deliveryGroup.taskId,
+                                    name: deliveryGroup.taskName,
+                                    code: deliveryGroup.taskCode
                                 } : undefined}
                                 selectedProject={editingDelivery ? {
                                     id: editingDelivery.projectId,
                                     name: editingDelivery.projectName
                                 } : undefined}
+                                showProjectSelector={true}
                             />
                         </div>
                     </div>

@@ -21,13 +21,12 @@ import {
 } from 'lucide-react';
 
 // Hooks e serviços existentes
-import useQuotes from '../../hooks/useQuotes';
+// import useQuotes from '../../hooks/useQuotes'; // Removido - não existe mais fluxo de quotes
 import { useAuth } from '../../hooks/useAuth';
 import billingMonthService from '../../services/billingMonthService';
 
 // Modal de confirmação (mesmo usado nas outras telas)
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
-import BillingQuoteManagementModal from '../../components/billing/BillingQuoteManagementModal';
 
 type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
@@ -103,7 +102,6 @@ const BillingManagement: React.FC = () => {
     // Modais
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [showQuoteManagementModal, setShowQuoteManagementModal] = useState(false);
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
@@ -255,7 +253,7 @@ const BillingManagement: React.FC = () => {
 
     const handleShowDetails = useCallback(async (billing: BillingMonth) => {
         setSelectedBilling(billing);
-        setShowQuoteManagementModal(true);
+        setShowDetailsModal(true); // Alterado para usar modal de detalhes genérico
     }, []);
 
     const handleDataChange = useCallback(async () => {
@@ -994,13 +992,7 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Novo Modal de Gerenciamento de Orçamentos */}
-                <BillingQuoteManagementModal
-                    isOpen={showQuoteManagementModal}
-                    onClose={() => setShowQuoteManagementModal(false)}
-                    billingMonth={selectedBilling}
-                    onDataChange={handleDataChange}
-                />
+                {/* Modal de Gerenciamento de Orçamentos foi removido - não existe mais fluxo de quotes */}
 
                 {/* Modal de exclusão em massa */}
                 <BulkDeleteModal

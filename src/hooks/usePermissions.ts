@@ -11,7 +11,6 @@ export function useScreenPermissions() {
     canAccessDashboard: () => hasScreenAccess('dashboard'),
     canAccessTasks: () => hasScreenAccess('tasks'),
     canAccessProjects: () => hasScreenAccess('projects'),
-    canAccessQuotes: () => hasScreenAccess('quotes'),
     canAccessDeliveries: () => hasScreenAccess('deliveries'),
     canAccessBilling: () => hasScreenAccess('billing'),
     canAccessUsers: () => hasScreenAccess('users'),
@@ -24,7 +23,7 @@ export function useScreenPermissions() {
     
     // Verificações de grupos de telas
     canAccessManagement: () => hasAnyScreenAccess(['users', 'settings']),
-    canAccessCore: () => hasAnyScreenAccess(['tasks', 'projects', 'quotes', 'deliveries']),
+    canAccessCore: () => hasAnyScreenAccess(['tasks', 'projects', 'deliveries']),
     canAccessFinancial: () => hasAnyScreenAccess(['billing', 'reports'])
   };
 }
@@ -52,13 +51,6 @@ export function useResourcePermissions() {
     canBulkProject: () => hasResourcePermission('projects', 'BULK'),
     hasAnyProjectPermission: () => hasAnyResourcePermission('projects', ['CREATE', 'READ', 'UPDATE', 'DELETE', 'BULK']),
     
-    // Quotes permissions
-    canCreateQuote: () => hasResourcePermission('quotes', 'CREATE'),
-    canReadQuote: () => hasResourcePermission('quotes', 'READ'),
-    canUpdateQuote: () => hasResourcePermission('quotes', 'UPDATE'),
-    canDeleteQuote: () => hasResourcePermission('quotes', 'DELETE'),
-    canBulkQuote: () => hasResourcePermission('quotes', 'BULK'),
-    hasAnyQuotePermission: () => hasAnyResourcePermission('quotes', ['CREATE', 'READ', 'UPDATE', 'DELETE', 'BULK']),
     
     // Deliveries permissions
     canCreateDelivery: () => hasResourcePermission('deliveries', 'CREATE'),

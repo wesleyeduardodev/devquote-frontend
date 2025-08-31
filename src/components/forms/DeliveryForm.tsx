@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -6,9 +6,11 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import TextArea from '../ui/TextArea';
 import Button from '../ui/Button';
+import { useProjects } from '@/hooks/useProjects';
+import { Search, Building } from 'lucide-react';
 
 interface DeliveryData {
-    quoteId: number;
+    taskId: number;
     projectId: number;
     branch?: string;
     sourceBranch?: string;
@@ -25,11 +27,14 @@ interface DeliveryFormProps {
     onSubmit: (data: any) => Promise<void>;
     onCancel?: () => void;
     loading?: boolean;
-    selectedQuote?: any;
+    selectedTask?: any;
     selectedProject?: any;
+    showProjectSelector?: boolean; // Controla se deve mostrar o seletor de projeto
 }
 
 const schema = yup.object({
+    taskId: yup.number().optional(),
+    projectId: yup.number().optional(),
     branch: yup.string().optional(),
     sourceBranch: yup.string().max(200, 'Branch de origem deve ter no máximo 200 caracteres').optional(),
     pullRequest: yup.string().url('URL inválida').optional(),
@@ -45,9 +50,14 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                                                        onSubmit,
                                                        onCancel,
                                                        loading = false,
-                                                       selectedQuote,
-                                                       selectedProject
+                                                       selectedTask,
+                                                       selectedProject,
+                                                       showProjectSelector = false
                                                    }) => {
+    const { projects, loading: projectsLoading } = useProjects();
+    const [currentProject, setCurrentProject] = useState(selectedProject || null);
+    const [showProjectSearch, setShowProjectSearch] = useState(false);
+    const [projectSearchTerm, setProjectSearchTerm] = useState('');
     const {
         register,
         handleSubmit,
@@ -57,6 +67,8 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
     } = useForm<DeliveryData>({
         resolver: yupResolver(schema),
         defaultValues: {
+            taskId: selectedTask?.id || initialData?.taskId || 0,
+            projectId: selectedProject?.id || initialData?.projectId || 0,
             branch: initialData?.branch || '',
             sourceBranch: initialData?.sourceBranch || '',
             pullRequest: initialData?.pullRequest || '',
@@ -102,12 +114,14 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
     const handleFormSubmit = async (data: DeliveryData): Promise<void> => {
         try {
-            // Validar se quote e project existem
-            if (!selectedQuote?.id && !initialData?.quoteId) {
-                throw new Error('Orçamento é obrigatório');
+            // Validar se task e project existem
+            if (!selectedTask?.id && !initialData?.taskId) {
+                throw new Error('Tarefa é obrigatória');
             }
 
-            if (!selectedProject?.id && !initialData?.projectId) {
+            // Para edição: usar currentProject, para criação: usar selectedProject
+            const projectId = currentProject?.id || selectedProject?.id || initialData?.projectId;
+            if (!projectId) {
                 throw new Error('Projeto é obrigatório');
             }
 
@@ -146,8 +160,8 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
             // Incluir os IDs dos itens selecionados
             const formattedData = {
                 ...data,
-                quoteId: selectedQuote?.id || initialData?.quoteId,
-                projectId: selectedProject?.id || initialData?.projectId,
+                taskId: selectedTask?.id || initialData?.taskId,
+                projectId: projectId, // Usar o projectId já validado acima
                 startedAt: convertDateToLocalDate(data.startedAt),
                 finishedAt: convertDateToLocalDate(data.finishedAt),
                 // Garantir que campos vazios sejam enviados como null
@@ -177,6 +191,82 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
             <div className="space-y-6">
+                {/* Seletor de Projeto - só aparece quando showProjectSelector for true e não há projeto selecionado */}
+                {showProjectSelector && !selectedProject && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Projeto <span className="text-red-500">*</span>
+                        </label>
+                        {currentProject ? (
+                            <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-gray-50">
+                                <div className="flex items-center gap-2">
+                                    <Building className="w-4 h-4 text-blue-600" />
+                                    <span className="font-medium text-gray-900">{currentProject.name}</span>
+                                    <span className="text-gray-500">#{currentProject.id}</span>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentProject(null)}
+                                >
+                                    Alterar
+                                </Button>
+                            </div>
+                        ) : (
+                            <div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShowProjectSearch(!showProjectSearch)}
+                                    className="w-full"
+                                    disabled={projectsLoading}
+                                >
+                                    <Search className="w-4 h-4 mr-2" />
+                                    {projectsLoading ? 'Carregando projetos...' : 'Selecionar Projeto'}
+                                </Button>
+                                
+                                {showProjectSearch && projects.length > 0 && (
+                                    <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg max-h-48 overflow-y-auto">
+                                        <div className="p-2 border-b border-gray-200">
+                                            <input
+                                                type="text"
+                                                placeholder="Buscar projeto..."
+                                                value={projectSearchTerm}
+                                                onChange={(e) => setProjectSearchTerm(e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div className="max-h-32 overflow-y-auto">
+                                            {projects
+                                                .filter(project => 
+                                                    project.name.toLowerCase().includes(projectSearchTerm.toLowerCase())
+                                                )
+                                                .map(project => (
+                                                    <button
+                                                        key={project.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setCurrentProject(project);
+                                                            setShowProjectSearch(false);
+                                                            setProjectSearchTerm('');
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
+                                                    >
+                                                        <Building className="w-4 h-4 text-blue-600" />
+                                                        <span className="font-medium">{project.name}</span>
+                                                        <span className="text-gray-500">#{project.id}</span>
+                                                    </button>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
                         {...register('branch')}
