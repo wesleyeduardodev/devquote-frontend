@@ -96,6 +96,7 @@ const TaskList: React.FC = () => {
         tasks,
         pagination,
         loading,
+        exporting,
         sorting,
         filters,
         setPage,
@@ -794,10 +795,12 @@ const TaskList: React.FC = () => {
                     <Button
                         variant="outline"
                         onClick={exportToExcel}
+                        loading={exporting}
+                        disabled={exporting}
                         className="flex items-center justify-center"
                     >
                         <Download className="w-4 h-4 mr-2" />
-                        Exportar Excel
+                        {exporting ? 'Exportando...' : 'Exportar Excel'}
                     </Button>
                     {canCreateTasks && (
                         <Button

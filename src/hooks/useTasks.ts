@@ -93,6 +93,7 @@ interface UseTasksReturn {
     pagination: PaginationInfo | null;
     loading: boolean;
     error: string | null;
+    exporting: boolean;
     sorting: SortInfo[];
     filters: FilterParams;
     fetchTasks: (params?: UseTasksParams) => Promise<void>;
@@ -113,6 +114,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [exporting, setExporting] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
     const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
@@ -237,7 +239,10 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
 
     const exportToExcel = useCallback(async () => {
         try {
+            setExporting(true);
+            console.log('Iniciando exportação de tarefas...');
             const blob = await taskService.exportToExcel();
+            console.log('Blob recebido:', blob);
             
             // Criar nome do arquivo com timestamp
             const now = new Date();
@@ -256,7 +261,12 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             
             toast.success('Relatório exportado com sucesso!');
         } catch (error: any) {
-            toast.error('Erro ao exportar relatório: ' + (error.message || 'Erro desconhecido'));
+            console.error('Erro ao exportar relatório:', error);
+            console.error('Detalhes do erro:', error.response?.data);
+            console.error('Status do erro:', error.response?.status);
+            toast.error('Erro ao exportar relatório: ' + (error.response?.data?.message || error.message || 'Erro desconhecido'));
+        } finally {
+            setExporting(false);
         }
     }, []);
 
@@ -285,6 +295,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         pagination,
         loading,
         error,
+        exporting,
         sorting,
         filters,
         fetchTasks,
