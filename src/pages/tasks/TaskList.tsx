@@ -644,15 +644,17 @@ const TaskList: React.FC = () => {
                             </Button>
                         </>
                     )}
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleFinancialEmail(item)}
-                        title={item.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
-                        className={`${item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
-                    >
-                        <Mail className="w-4 h-4" />
-                    </Button>
+                    {isAdmin && (
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleFinancialEmail(item)}
+                            title={item.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
+                            className={`${item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                        >
+                            <Mail className="w-4 h-4" />
+                        </Button>
+                    )}
                 </div>
             ),
         },
@@ -739,15 +741,17 @@ const TaskList: React.FC = () => {
                             </Button>
                         </>
                     )}
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleFinancialEmail(task)}
-                        title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
-                        className={`${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
-                    >
-                        <Mail className="w-4 h-4" />
-                    </Button>
+                    {isAdmin && (
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleFinancialEmail(task)}
+                            title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
+                            className={`${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                        >
+                            <Mail className="w-4 h-4" />
+                        </Button>
+                    )}
                 </div>
             </div>
 
