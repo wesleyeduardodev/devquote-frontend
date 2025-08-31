@@ -8,6 +8,8 @@ export interface BillingPeriod {
   status: string;
   createdAt?: string;
   updatedAt?: string;
+  totalAmount?: number;
+  taskCount?: number;
 }
 
 export interface BillingPeriodRequest {

@@ -52,6 +52,11 @@ const billingPeriodService = {
     await api.delete(`/billing-periods/${id}/delete-with-tasks`);
   },
 
+  updateStatus: async (id: number, status: string): Promise<BillingPeriod> => {
+    const res = await api.patch(`/billing-periods/${id}/status`, null, { params: { status } });
+    return res.data;
+  },
+
   findAllPaginated: async (params: BillingPeriodPaginatedParams): Promise<PaginatedResponse<BillingPeriod>> => {
     const res = await api.get('/billing-periods/paginated', { params });
     return res.data;
