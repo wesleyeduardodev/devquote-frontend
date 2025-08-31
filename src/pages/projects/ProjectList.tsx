@@ -20,7 +20,7 @@ interface Project {
 const ProjectList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user } = useAuth();
-    
+
     // Verifica se o usuário é ADMIN (apenas ADMIN pode acessar projetos)
     const isAdmin = hasProfile('ADMIN');
     const authLoading = !user;
@@ -37,7 +37,7 @@ const ProjectList: React.FC = () => {
     if (!authLoading && user && !isAdmin) {
         return null;
     }
-    
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -86,7 +86,7 @@ const ProjectList: React.FC = () => {
 
     // Funções de seleção múltipla
     const toggleItem = (id: number) => {
-        setSelectedItems(prev => 
+        setSelectedItems(prev =>
             prev.includes(id)
                 ? prev.filter(item => item !== id)
                 : [...prev, id]
@@ -96,7 +96,7 @@ const ProjectList: React.FC = () => {
     const toggleAll = () => {
         const currentPageIds = projects.map(project => project.id);
         const allSelected = currentPageIds.every(id => selectedItems.includes(id));
-        
+
         if (allSelected) {
             setSelectedItems(prev => prev.filter(id => !currentPageIds.includes(id)));
         } else {
@@ -112,7 +112,7 @@ const ProjectList: React.FC = () => {
     const selectionState = useMemo(() => {
         const currentPageIds = projects.map(project => project.id);
         const selectedFromCurrentPage = selectedItems.filter(id => currentPageIds.includes(id));
-        
+
         return {
             allSelected: currentPageIds.length > 0 && selectedFromCurrentPage.length === currentPageIds.length,
             someSelected: selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < currentPageIds.length,
@@ -294,7 +294,7 @@ const ProjectList: React.FC = () => {
                             />
                         </div>
                     )}
-                    
+
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -369,9 +369,6 @@ const ProjectList: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">
                         {isAdmin ? 'Gerenciamento de Projetos' : 'Visualização de Projetos'}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        {isAdmin ? 'Gerencie os projetos cadastrados' : 'Visualize os projetos cadastrados'}
-                    </p>
                 </div>
                 {isAdmin && (
                     <Button
@@ -399,7 +396,7 @@ const ProjectList: React.FC = () => {
                                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                             />
                         </div>
-                        
+
                         <div className="flex items-center justify-between gap-3">
                             <Button
                                 size="sm"
@@ -422,7 +419,7 @@ const ProjectList: React.FC = () => {
                                 </div>
                                 <span className="text-sm">Selecionar Todos</span>
                             </Button>
-                            
+
                             {isAdmin && selectionState.hasSelection && (
                                 <Button
                                     size="sm"
@@ -480,7 +477,7 @@ const ProjectList: React.FC = () => {
                                 </div>
                             </Card>
                         )}
-                        
+
                         <Card className="p-0">
                             <DataTable
                                 data={projects} // Usar dados originais sem filtro de busca

@@ -86,6 +86,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
     const [projectSearchTerm, setProjectSearchTerm] = useState('');
+    const [createDeliveries, setCreateDeliveries] = useState(false);
 
     // Hook padronizado como DeliveryCreate (com paginação, ordenação e filtros)
     const {
@@ -189,6 +190,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 ...data,
                 requesterId: data.requesterId || initialData?.requesterId,
                 projectsIds: selectedProjects.map((p) => p.id),
+                createDeliveries: createDeliveries && selectedProjects.length > 0,
                 amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
                 subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
                     ...subTask,
@@ -508,43 +510,68 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 {!initialData?.id && isAdmin && (
                     <div className="border-t pt-8">
                         <div className="space-y-6">
-                            {/* Lista de projetos selecionados */}
-                            {selectedProjects.length > 0 && (
-                                <div className="space-y-2">
-                                    {selectedProjects.map((project) => (
-                                        <div
-                                            key={project.id}
-                                            className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <FolderOpen className="w-4 h-4 text-blue-600" />
-                                                <div>
-                                                    <span className="text-sm font-medium text-blue-900">{project.name}</span>
-                                                    {project.repositoryUrl && (
-                                                        <div className="text-xs text-blue-700">{project.repositoryUrl}</div>
-                                                    )}
+                            {/* Checkbox para criar entregas automaticamente */}
+                            <div className="flex items-center space-x-3">
+                                <input
+                                    type="checkbox"
+                                    id="createDeliveries"
+                                    checked={createDeliveries}
+                                    onChange={(e) => {
+                                        setCreateDeliveries(e.target.checked);
+                                        // Limpa projetos selecionados ao desmarcar
+                                        if (!e.target.checked) {
+                                            setSelectedProjects([]);
+                                        }
+                                    }}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="createDeliveries" className="text-sm font-medium text-gray-700">
+                                    Vincular projetos e criar entregas automaticamente
+                                </label>
+                            </div>
+
+                            {/* Seção de projetos - só mostra se createDeliveries for true */}
+                            {createDeliveries && (
+                                <div className="space-y-4">
+                                    {/* Lista de projetos selecionados */}
+                                    {selectedProjects.length > 0 && (
+                                        <div className="space-y-2">
+                                            {selectedProjects.map((project) => (
+                                                <div
+                                                    key={project.id}
+                                                    className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <FolderOpen className="w-4 h-4 text-blue-600" />
+                                                        <div>
+                                                            <span className="text-sm font-medium text-blue-900">{project.name}</span>
+                                                            {project.repositoryUrl && (
+                                                                <div className="text-xs text-blue-700">{project.repositoryUrl}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeProject(project.id)}
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
                                                 </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeProject(project.id)}
-                                                className="text-blue-600 hover:text-blue-800"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
+                                            ))}
                                         </div>
-                                    ))}
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowProjectModal(true)}
+                                        className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                                    >
+                                        <Search className="w-4 h-4 mx-auto mb-1" />
+                                        Clique para adicionar projetos
+                                    </button>
                                 </div>
                             )}
-
-                            <button
-                                type="button"
-                                onClick={() => setShowProjectModal(true)}
-                                className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
-                            >
-                                <Search className="w-4 h-4 mx-auto mb-1" />
-                                Clique para adicionar projetos
-                            </button>
                         </div>
                     </div>
                 )}

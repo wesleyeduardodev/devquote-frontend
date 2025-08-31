@@ -43,6 +43,7 @@ interface TaskCreate {
     notes?: string;
     createQuote?: boolean;
     linkQuoteToBilling?: boolean;
+    createDeliveries?: boolean;
     projectsIds?: number[];
     subTasks: Omit<SubTask, 'id' | 'taskId' | 'createdAt' | 'updatedAt'>[];
 }
