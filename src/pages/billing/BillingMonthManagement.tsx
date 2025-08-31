@@ -6,6 +6,7 @@ import {
     DollarSign,
     FileText,
     Link2,
+    Unlink,
     Trash2,
     X,
     CheckCircle,
@@ -23,10 +24,12 @@ import {
 // Hooks e serviços existentes
 // import useQuotes from '../../hooks/useQuotes'; // Removido - não existe mais fluxo de quotes
 import { useAuth } from '../../hooks/useAuth';
-import billingMonthService from '../../services/billingMonthService';
+import billingPeriodService from '../../services/billingPeriodService';
 
 // Modal de confirmação (mesmo usado nas outras telas)
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
+import LinkTasksToBillingModal from '../../components/billing/LinkTasksToBillingModal';
+import UnlinkTasksFromBillingModal from '../../components/billing/UnlinkTasksFromBillingModal';
 
 type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
@@ -101,7 +104,8 @@ const BillingManagement: React.FC = () => {
 
     // Modais
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+    const [showUnlinkModal, setShowUnlinkModal] = useState(false);
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
@@ -161,7 +165,7 @@ const BillingManagement: React.FC = () => {
     const fetchBillingMonths = useCallback(async () => {
         setLoadingList(true);
         try {
-            const data = await billingMonthService.findAllWithTotals() as (BillingMonth & { totalAmount?: number })[] | undefined;
+            const data = await billingPeriodService.findAllWithTotals() as (BillingMonth & { totalAmount?: number })[] | undefined;
             const processedData = (data ?? []).map(item => {
                 const { totalAmount, ...billing } = item;
                 return billing as BillingMonth;
@@ -237,7 +241,7 @@ const BillingManagement: React.FC = () => {
                 paymentDate: formData.paymentDate ? formData.paymentDate : null,
                 status: formData.status,
             };
-            await billingMonthService.create(payload);
+            await billingPeriodService.create(payload);
             await fetchBillingMonths();
             setShowCreateModal(false);
             setFormData({ month: '', year: new Date().getFullYear(), paymentDate: '', status: 'PENDENTE' });
@@ -251,9 +255,14 @@ const BillingManagement: React.FC = () => {
         }
     }, [fetchBillingMonths, formData, validateCreate]);
 
-    const handleShowDetails = useCallback(async (billing: BillingMonth) => {
+    const handleLinkTasks = useCallback(async (billing: BillingMonth) => {
         setSelectedBilling(billing);
-        setShowDetailsModal(true); // Alterado para usar modal de detalhes genérico
+        setShowLinkModal(true);
+    }, []);
+
+    const handleUnlinkTasks = useCallback(async (billing: BillingMonth) => {
+        setSelectedBilling(billing);
+        setShowUnlinkModal(true);
     }, []);
 
     const handleDataChange = useCallback(async () => {
@@ -269,7 +278,7 @@ const BillingManagement: React.FC = () => {
                 status: statusFilter || undefined
             };
 
-            const blob = await billingMonthService.exportToExcel(params);
+            const blob = await billingPeriodService.exportToExcel(params);
             
             // Criar URL para download
             const url = window.URL.createObjectURL(blob);
@@ -308,7 +317,7 @@ const BillingManagement: React.FC = () => {
 
         setLoadingList(true);
         try {
-            await billingMonthService.delete(billing.id);
+            await billingPeriodService.delete(billing.id);
             setBillingMonths(prev => prev.filter(bm => bm.id !== billing.id));
             setTotals(prev => {
                 const { [billing.id]: _, ...rest } = prev;
@@ -434,7 +443,7 @@ const BillingManagement: React.FC = () => {
         setIsDeleting(true);
         try {
             const qty = selectedItems.length;
-            await billingMonthService.deleteBulk(selectedItems);
+            await billingPeriodService.deleteBulk(selectedItems);
             await fetchBillingMonths();
             setTotals({});
             clearSelection();
@@ -492,11 +501,18 @@ const BillingManagement: React.FC = () => {
                     {/* Ações */}
                     <div className="flex gap-1 ml-2">
                         <button
-                            onClick={() => handleShowDetails(billing)}
+                            onClick={() => handleLinkTasks(billing)}
                             className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
-                            title="Gerenciar Orçamentos"
+                            title="Vincular tarefas a este período"
                         >
-                            <Eye className="w-5 h-5" />
+                            <Plus className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => handleUnlinkTasks(billing)}
+                            className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                            title="Desvincular tarefas deste período"
+                        >
+                            <X className="w-5 h-5" />
                         </button>
                         {isAdmin && (
                             <button
@@ -535,6 +551,16 @@ const BillingManagement: React.FC = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Faturamento Mensal</h1>
+                        <p className="text-gray-600 mt-2">
+                            Gerencie períodos de faturamento e vincule tarefas para organizar seus recebimentos por mês/ano.
+                        </p>
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                                <strong>💡 Como usar:</strong> Crie períodos de faturamento (ex: Março/2024), 
+                                use os botões <strong>"Vincular"</strong> (➕) para adicionar tarefas e <strong>"Desvincular"</strong> (🔗) para remover. 
+                                <span className="text-blue-700">Cada tarefa só pode estar em um período.</span>
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -839,11 +865,20 @@ const BillingManagement: React.FC = () => {
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <button
-                                                            onClick={() => handleShowDetails(billing)}
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                                            onClick={() => handleLinkTasks(billing)}
+                                                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                                            title="Vincular tarefas a este período"
                                                         >
-                                                            <Eye className="w-4 h-4" />
-                                                            Gerenciar
+                                                            <Plus className="w-4 h-4" />
+                                                            Vincular
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleUnlinkTasks(billing)}
+                                                            className="inline-flex items-center gap-1.5 px-2 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                                            title="Desvincular tarefas deste período"
+                                                        >
+                                                            <Unlink className="w-4 h-4" />
+                                                            Desvincular
                                                         </button>
                                                         {isAdmin && (
                                                             <button
@@ -992,7 +1027,27 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modal de Gerenciamento de Orçamentos foi removido - não existe mais fluxo de quotes */}
+                {/* Modal de Vincular Tarefas */}
+                <LinkTasksToBillingModal
+                    isOpen={showLinkModal}
+                    onClose={() => {
+                        setShowLinkModal(false);
+                        setSelectedBilling(null);
+                    }}
+                    billingPeriod={selectedBilling}
+                    onTasksLinked={fetchBillingMonths}
+                />
+
+                {/* Modal de Desvincular Tarefas */}
+                <UnlinkTasksFromBillingModal
+                    isOpen={showUnlinkModal}
+                    onClose={() => {
+                        setShowUnlinkModal(false);
+                        setSelectedBilling(null);
+                    }}
+                    billingPeriod={selectedBilling}
+                    onTasksUnlinked={fetchBillingMonths}
+                />
 
                 {/* Modal de exclusão em massa */}
                 <BulkDeleteModal

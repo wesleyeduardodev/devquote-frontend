@@ -61,6 +61,34 @@ export const taskService = {
         return response.data;
     },
 
+    getUnlinkedPaginated: async (params: PaginatedParams): Promise<any> => {
+        const {page, size, sort, filters} = params;
+
+        const sortParams = sort.map(s => `${s.field},${s.direction}`);
+
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
+
+        // Adiciona parâmetros de ordenação
+        sortParams.forEach(sortParam => {
+            queryParams.append('sort', sortParam);
+        });
+
+        // Adiciona parâmetros de filtro
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && value.toString().trim() !== '') {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+
+        const response = await api.get(`/tasks/unlinked?${queryParams.toString()}`);
+        return response.data;
+    },
+
     getById: async (id: any): Promise<any> => {
         const response = await api.get(`/tasks/${id}`);
         return response.data;

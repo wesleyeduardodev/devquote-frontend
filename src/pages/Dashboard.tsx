@@ -23,7 +23,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import { taskService } from '@/services/taskService';
 import { deliveryService } from '@/services/deliveryService';
-import billingMonthService from '@/services/billingMonthService';
+import billingPeriodService from '@/services/billingPeriodService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -113,7 +113,7 @@ const Dashboard = () => {
   const handleExportBilling = async () => {
     try {
       setExportingBilling(true);
-      const blob = await billingMonthService.exportToExcel({});
+      const blob = await billingPeriodService.exportToExcel({});
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
       downloadBlob(blob, `relatorio_faturamento_${timestamp}.xlsx`);
       toast.success('Relatório de faturamento exportado com sucesso!');
