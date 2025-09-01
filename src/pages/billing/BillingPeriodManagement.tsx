@@ -28,6 +28,7 @@ import useTasks from '../../hooks/useTasks'; // Para gerenciar tarefas em vez de
 
 // Componentes
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
+import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BillingPeriodForm from '../../components/forms/BillingPeriodForm';
 import Modal from '../../components/ui/Modal';
 
@@ -232,6 +233,9 @@ const BillingPeriodManagement: React.FC = () => {
   const [statistics, setStatistics] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusValue | ''>('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<BillingPeriod | null>(null);
+  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
   // Carregar estatísticas
   useEffect(() => {
@@ -283,14 +287,24 @@ const BillingPeriodManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este período?')) return;
+  const handleDelete = (period: BillingPeriod) => {
+    setItemToDelete(period);
+    setShowDeleteModal(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    setIsDeletingSingle(true);
     try {
-      await deleteBillingPeriod(id);
+      await deleteBillingPeriod(itemToDelete.id);
       toast.success('Período excluído com sucesso!');
     } catch (error: any) {
       toast.error(error.message || 'Erro ao excluir período');
+    } finally {
+      setIsDeletingSingle(false);
+      setShowDeleteModal(false);
+      setItemToDelete(null);
     }
   };
 
@@ -589,7 +603,7 @@ const BillingPeriodManagement: React.FC = () => {
                           <Eye size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(period.id)}
+                          onClick={() => handleDelete(period)}
                           className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
                           title="Excluir"
                         >
@@ -644,6 +658,19 @@ const BillingPeriodManagement: React.FC = () => {
         onSuccess={() => {
           // Recarregar dados se necessário
         }}
+      />
+
+      {/* Modal de confirmação de exclusão */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        itemName={itemToDelete ? `${formatMonth(itemToDelete.month)} ${itemToDelete.year}` : undefined}
+        isDeleting={isDeletingSingle}
+        title="Confirmar Exclusão do Período"
       />
     </div>
   );

@@ -24,6 +24,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import toast from 'react-hot-toast';
 
 interface SubTask {
@@ -94,6 +95,9 @@ const TaskList: React.FC = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showFinancialEmailModal, setShowFinancialEmailModal] = useState(false);
     const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+    const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
     const {
         tasks,
@@ -155,13 +159,24 @@ const TaskList: React.FC = () => {
         setShowDetailModal(true);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Tem certeza que deseja excluir esta tarefa e todas as suas subtarefas?')) {
-            try {
-                await deleteTaskWithSubTasks(id);
-            } catch (error) {
-                toast.error('Erro ao excluir tarefa');
-            }
+    const handleDelete = (task: Task) => {
+        setTaskToDelete(task);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!taskToDelete) return;
+        
+        setIsDeletingSingle(true);
+        try {
+            await deleteTaskWithSubTasks(taskToDelete.id);
+            setShowDeleteModal(false);
+            setTaskToDelete(null);
+            toast.success('Tarefa excluída com sucesso');
+        } catch (error) {
+            toast.error('Erro ao excluir tarefa');
+        } finally {
+            setIsDeletingSingle(false);
         }
     };
 
@@ -323,7 +338,7 @@ const TaskList: React.FC = () => {
             key: 'select',
             title: '',
             width: '50px',
-            align: 'center',
+            align: 'center' as const,
             headerRender: () => (
                 <div className="flex items-center justify-center">
                     <input
@@ -362,7 +377,7 @@ const TaskList: React.FC = () => {
             filterable: true,
             filterType: 'number',
             width: '100px',
-            align: 'center',
+            align: 'center' as const,
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
           #{item.id}
@@ -416,7 +431,7 @@ const TaskList: React.FC = () => {
             filterable: true,
             filterType: 'text',
             width: '140px',
-            align: 'center',
+            align: 'center' as const,
             render: (item) => (
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
           {getStatusLabel(item.status)}
@@ -430,7 +445,7 @@ const TaskList: React.FC = () => {
             filterable: true,
             filterType: 'text',
             width: '120px',
-            align: 'center',
+            align: 'center' as const,
             render: (item) => (
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(item.priority || 'MEDIUM')}`}>
                     {getPriorityLabel(item.priority || 'MEDIUM')}
@@ -484,7 +499,7 @@ const TaskList: React.FC = () => {
             key: 'link',
             title: 'Link',
             width: '80px',
-            align: 'center',
+            align: 'center' as const,
             render: (item) =>
                 item.link ? (
                     <a
@@ -506,7 +521,7 @@ const TaskList: React.FC = () => {
             key: 'meetingLink',
             title: 'Reunião',
             width: '80px',
-            align: 'center',
+            align: 'center' as const,
             render: (item) =>
                 item.meetingLink ? (
                     <a
@@ -528,7 +543,7 @@ const TaskList: React.FC = () => {
             key: 'subTasks',
             title: 'Subtarefas',
             width: '120px',
-            align: 'center',
+            align: 'center' as const,
             render: (item) => (
                 <div className="flex items-center justify-center gap-1">
                     <CheckSquare className="w-4 h-4 text-gray-400" />
@@ -661,7 +676,7 @@ const TaskList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(item.id)}
+                                onClick={() => handleDelete(item)}
                                 title="Excluir"
                                 className="text-red-600 hover:text-red-800 hover:bg-red-50"
                             >
@@ -755,7 +770,7 @@ const TaskList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(task.id)}
+                                onClick={() => handleDelete(task)}
                                 title="Excluir"
                                 className="text-gray-600 hover:text-red-600 hover:bg-red-50"
                             >
@@ -1142,6 +1157,21 @@ const TaskList: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Modal de confirmação de exclusão individual */}
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setTaskToDelete(null);
+                }}
+                onConfirm={confirmDelete}
+                itemName={taskToDelete?.title}
+                description={taskToDelete?.subTasks && taskToDelete.subTasks.length > 0 
+                    ? `Esta tarefa possui ${taskToDelete.subTasks.length} subtarefa(s) que também serão excluídas.`
+                    : undefined}
+                isDeleting={isDeletingSingle}
+            />
         </div>
     );
 };

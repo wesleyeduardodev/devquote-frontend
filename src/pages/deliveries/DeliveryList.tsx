@@ -8,6 +8,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import DeliveryGroupModal from '@/components/deliveries/DeliveryGroupModal';
 import toast from 'react-hot-toast';
 
@@ -42,6 +43,8 @@ const DeliveryList: React.FC = () => {
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<DeliveryGroup | null>(null);
 
     const {
         deliveryGroups,
@@ -109,13 +112,23 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    const handleDelete = async (taskId: number) => {
-        if (window.confirm('Tem certeza que deseja excluir todas as entregas desta tarefa?')) {
-            try {
-                await deleteGroup(taskId);
-            } catch (error) {
-                // O erro já é tratado no hook
-            }
+    const handleDelete = (deliveryGroup: DeliveryGroup) => {
+        setItemToDelete(deliveryGroup);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
+        
+        setIsDeleting(true);
+        try {
+            await deleteGroup(itemToDelete.taskId);
+        } catch (error) {
+            // O erro já é tratado no hook
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteModal(false);
+            setItemToDelete(null);
         }
     };
 
@@ -376,7 +389,7 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(item.taskId)}
+                                onClick={() => handleDelete(item)}
                                 title="Excluir grupo"
                                 className="text-red-600 hover:text-red-800 hover:bg-red-50"
                             >
@@ -452,7 +465,7 @@ const DeliveryList: React.FC = () => {
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDelete(deliveryGroup.taskId)}
+                                onClick={() => handleDelete(deliveryGroup)}
                                 title="Excluir grupo"
                                 className="text-gray-600 hover:text-red-600 hover:bg-red-50"
                             >
@@ -764,6 +777,20 @@ const DeliveryList: React.FC = () => {
                     setShowDetailModal(false);
                     setSelectedDelivery(null);
                 }}
+            />
+
+            {/* Modal de confirmação de exclusão */}
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setItemToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                itemName={itemToDelete?.taskName}
+                isDeleting={isDeleting}
+                title="Confirmar Exclusão do Grupo"
+                description="Tem certeza que deseja excluir todas as entregas desta tarefa?"
             />
         </div>
     );

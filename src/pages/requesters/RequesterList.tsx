@@ -18,6 +18,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import toast from 'react-hot-toast';
 
 interface Requester {
@@ -61,6 +62,9 @@ const RequesterList: React.FC = () => {
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<Requester | null>(null);
+    const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
     const {
         requesters,
@@ -81,13 +85,23 @@ const RequesterList: React.FC = () => {
         navigate(`/requesters/${id}/edit`);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Tem certeza que deseja excluir este solicitante?')) {
-            try {
-                await deleteRequester(id);
-            } catch (error) {
-                toast.error('Erro ao excluir solicitante');
-            }
+    const handleDelete = (requester: Requester) => {
+        setItemToDelete(requester);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!itemToDelete) return;
+        
+        setIsDeletingSingle(true);
+        try {
+            await deleteRequester(itemToDelete.id);
+        } catch (error) {
+            toast.error('Erro ao excluir solicitante');
+        } finally {
+            setIsDeletingSingle(false);
+            setShowDeleteModal(false);
+            setItemToDelete(null);
         }
     };
 
@@ -286,7 +300,7 @@ const RequesterList: React.FC = () => {
                     <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(item)}
                         title="Excluir"
                         className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
@@ -340,7 +354,7 @@ const RequesterList: React.FC = () => {
                         <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleDelete(requester.id)}
+                            onClick={() => handleDelete(requester)}
                             title="Excluir"
                             className="text-gray-600 hover:text-red-600 hover:bg-red-50"
                         >
@@ -575,6 +589,18 @@ const RequesterList: React.FC = () => {
                 selectedCount={selectedItems.length}
                 isDeleting={isDeleting}
                 entityName="solicitante"
+            />
+
+            {/* Modal de confirmação de exclusão */}
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setItemToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                itemName={itemToDelete?.name}
+                isDeleting={isDeletingSingle}
             />
         </div>
     );

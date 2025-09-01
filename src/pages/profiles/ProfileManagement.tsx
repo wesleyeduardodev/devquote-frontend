@@ -24,6 +24,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
+import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { Profile, UserProfile } from '@/types/profile';
 import { CreateUserDto, UpdateUserDto } from '@/types/user';
 import toast from 'react-hot-toast';
@@ -70,6 +71,9 @@ const ProfileManagement = () => {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<UserProfile | null>(null);
+  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
 
   // Form state for creating user
@@ -216,14 +220,24 @@ const ProfileManagement = () => {
     setShowCreateUserModal(true);
   };
 
-  const handleDeleteUser = async (user: UserProfile) => {
-    if (window.confirm(`Tem certeza que deseja excluir o usuário "${user.username}"?`)) {
-      try {
-        await deleteUser(user.id);
-        toast.success('Usuário excluído com sucesso');
-      } catch (error: any) {
-        toast.error(error.message);
-      }
+  const handleDeleteUser = (userItem: UserProfile) => {
+    setItemToDelete(userItem);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!itemToDelete) return;
+    
+    setIsDeletingSingle(true);
+    try {
+      await deleteUser(itemToDelete.id);
+      toast.success('Usuário excluído com sucesso');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsDeletingSingle(false);
+      setShowDeleteModal(false);
+      setItemToDelete(null);
     }
   };
 
@@ -1169,6 +1183,22 @@ const ProfileManagement = () => {
         selectedCount={selectedItems.length}
         isDeleting={isDeleting}
         entityName="usuário"
+      />
+
+      {/* Modal de confirmação de exclusão */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={handleConfirmDeleteUser}
+        itemName={itemToDelete?.username}
+        isDeleting={isDeletingSingle}
+        description={itemToDelete && user?.id === itemToDelete.id 
+          ? "Você não pode excluir sua própria conta." 
+          : undefined}
+        variant={itemToDelete && user?.id === itemToDelete.id ? "warning" : "danger"}
       />
     </div>
   );
