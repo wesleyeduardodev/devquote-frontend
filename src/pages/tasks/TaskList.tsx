@@ -313,8 +313,7 @@ const TaskList: React.FC = () => {
         (task) =>
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             task.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.requesterName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            getStatusLabel(task.status).toLowerCase().includes(searchTerm.toLowerCase())
+            task.requesterName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // ===== Colunas (inclui checkbox de seleção) =====
@@ -695,16 +694,13 @@ const TaskList: React.FC = () => {
               </span>
                         </div>
                         <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">{task.title}</h3>
-                        <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
-                {getStatusLabel(task.status)}
-              </span>
-                            {task.taskType && (
+                        {task.taskType && (
+                            <div className="flex items-center gap-2 mb-2">
                                 <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
                                     {getTaskTypeLabel(task.taskType)}
                                 </span>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -869,7 +865,7 @@ const TaskList: React.FC = () => {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
                                 type="text"
-                                placeholder="Buscar por título, código, solicitante ou status..."
+                                placeholder="Buscar por título, código ou solicitante..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
