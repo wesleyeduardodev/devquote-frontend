@@ -87,6 +87,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
     const [projectSearchTerm, setProjectSearchTerm] = useState('');
     const [createDeliveries, setCreateDeliveries] = useState(false);
+    const [linkTaskToBilling, setLinkTaskToBilling] = useState(false);
 
     // Hook padronizado como DeliveryCreate (com paginação, ordenação e filtros)
     const {
@@ -191,6 +192,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 requesterId: data.requesterId || initialData?.requesterId,
                 projectsIds: selectedProjects.map((p) => p.id),
                 createDeliveries: createDeliveries && selectedProjects.length > 0,
+                linkTaskToBilling: linkTaskToBilling,
                 amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
                 subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
                     ...subTask,
@@ -203,6 +205,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
             if (!initialData?.id) {
                 reset();
                 setSelectedProjects([]);
+                setCreateDeliveries(false);
+                setLinkTaskToBilling(false);
             }
         } catch (error: any) {
             // Captura erros relacionados às subtarefas
@@ -527,6 +531,20 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 />
                                 <label htmlFor="createDeliveries" className="text-sm font-medium text-gray-700">
                                     Vincular projetos e criar entregas automaticamente
+                                </label>
+                            </div>
+
+                            {/* Checkbox para vincular ao faturamento */}
+                            <div className="flex items-center space-x-3">
+                                <input
+                                    type="checkbox"
+                                    id="linkTaskToBilling"
+                                    checked={linkTaskToBilling}
+                                    onChange={(e) => setLinkTaskToBilling(e.target.checked)}
+                                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor="linkTaskToBilling" className="text-sm font-medium text-gray-700">
+                                    Vincular tarefa ao faturamento automaticamente
                                 </label>
                             </div>
 
