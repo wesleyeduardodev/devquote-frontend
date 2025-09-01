@@ -492,32 +492,6 @@ const Dashboard = () => {
 
         {/* Monthly Statistics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Monthly Tasks Stats */}
-          {stats.tasksByStatus && stats.tasksByStatus.length > 0 && (
-            <Card title="Estatísticas Mensais de Tarefas" className="hover:shadow-xl transition-shadow duration-300">
-              <div className="space-y-4">
-                {stats.tasksByStatus.map((status, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-4 h-4 rounded-full ${
-                        status.status.includes('Criadas') ? 'bg-blue-500' :
-                        status.status.includes('Concluídas') ? 'bg-green-500' :
-                        status.status.includes('progresso') ? 'bg-yellow-500' :
-                        'bg-gray-400'
-                      }`} />
-                      <span className="text-sm font-medium text-gray-700">
-                        {status.status}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">{status.count}</div>
-                      <div className="text-xs text-gray-500">tarefas</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
 
           {/* Monthly Deliveries Stats */}
           {stats.deliveriesByStatus && stats.deliveriesByStatus.length > 0 && (

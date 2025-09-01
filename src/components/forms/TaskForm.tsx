@@ -16,7 +16,6 @@ interface SubTask {
     title: string;
     description?: string;
     amount: string;
-    status: string;
     taskId?: number | null;
     excluded?: boolean;
 }
@@ -25,7 +24,6 @@ interface TaskData {
     requesterId: number;
     title: string;
     description?: string;
-    status: string;
     code: string;
     link?: string;
     meetingLink?: string;
@@ -58,7 +56,6 @@ interface Project {
 const schema = yup.object({
     title: yup.string().required('Título é obrigatório').max(200, 'Máximo 200 caracteres'),
     description: yup.string().optional(),
-    status: yup.string().required('Status é obrigatório'),
     code: yup.string().required('Código é obrigatório').max(50, 'Máximo 50 caracteres'),
     requesterId: yup.mixed().required('Solicitante é obrigatório'),
     link: yup.string().url('URL inválida').optional(),
@@ -113,7 +110,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
         defaultValues: {
             title: initialData?.title || '',
             description: initialData?.description || '',
-            status: initialData?.status || 'PENDING',
             code: initialData?.code || '',
             link: initialData?.link || '',
             meetingLink: initialData?.meetingLink || '',
@@ -131,7 +127,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         title: '',
                         description: '',
                         amount: '',
-                        status: 'PENDING',
                     },
                 ],
         },
@@ -160,6 +155,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
     // Estado para controlar mensagem de erro
     const [subTaskError, setSubTaskError] = useState<string | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
 
     // Validação quando tentar desmarcar a flag com subtarefas existentes
     const handleHasSubTasksChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,8 +180,42 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
     const handleFormSubmit = async (data: TaskData): Promise<void> => {
         try {
-            // Limpa erro anterior
+            // Limpa erros anteriores
             setSubTaskError(null);
+            setFormError(null);
+
+            // Validação customizada para subtarefas
+            if (data.hasSubTasks) {
+                if (!data.subTasks || data.subTasks.length === 0) {
+                    setFormError('Quando "Esta tarefa possui subtarefas" estiver marcado, você deve adicionar pelo menos uma subtarefa.');
+                    const formElement = document.querySelector('form');
+                    if (formElement) {
+                        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    return;
+                }
+                
+                // Validar se cada subtarefa tem título preenchido
+                const invalidSubtasks = data.subTasks
+                    .map((subTask: any, index: number) => ({
+                        index: index + 1,
+                        hasTitle: subTask.title && subTask.title.trim() !== ''
+                    }))
+                    .filter(st => !st.hasTitle);
+                
+                if (invalidSubtasks.length > 0) {
+                    const errorMsg = invalidSubtasks.length === 1
+                        ? `Subtarefa ${invalidSubtasks[0].index}: O título é obrigatório`
+                        : `Subtarefas ${invalidSubtasks.map(st => st.index).join(', ')}: Os títulos são obrigatórios`;
+                    
+                    setFormError(errorMsg);
+                    const formElement = document.querySelector('form');
+                    if (formElement) {
+                        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    return;
+                }
+            }
 
             const formattedData = {
                 ...data,
@@ -202,6 +232,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
             };
 
             await onSubmit(formattedData);
+            
+            // Só reseta se for uma criação bem-sucedida
             if (!initialData?.id) {
                 reset();
                 setSelectedProjects([]);
@@ -209,13 +241,41 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 setLinkTaskToBilling(false);
             }
         } catch (error: any) {
+            console.error('Erro no formulário de tarefa:', error);
+            
             // Captura erros relacionados às subtarefas
             if (error?.message && error.message.includes('Tem Subtarefas')) {
                 setSubTaskError('Não é possível desmarcar "Tem Subtarefas" enquanto existirem subtarefas vinculadas. Remova todas as subtarefas primeiro.');
                 // Volta o checkbox para marcado
                 methods.setValue('hasSubTasks', true);
+            } else if (error?.message && !error.message.includes('Requester not selected')) {
+                // Mostra outros erros de API (exceto erro de requester que já é tratado no componente pai)
+                let errorMessage = 'Erro ao processar solicitação';
+                
+                // Extrair mensagem detalhada do erro
+                if (error.response?.data?.detail) {
+                    errorMessage = error.response.data.detail;
+                } else if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error.response?.data?.errors) {
+                    // Erro de validação com múltiplos campos
+                    const fieldErrors = error.response.data.errors
+                        .map((err: any) => `${err.field}: ${err.message}`)
+                        .join(', ');
+                    errorMessage = `Campos inválidos: ${fieldErrors}`;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                setFormError(errorMessage);
+                
+                // Scroll para o topo para mostrar o erro
+                const formElement = document.querySelector('form');
+                if (formElement) {
+                    formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             } else {
-                // Re-lança o erro para ser tratado pelo componente pai
+                // Re-lança o erro para ser tratado pelo componente pai (caso do requester)
                 throw error;
             }
         }
@@ -328,12 +388,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
         },
     ];
 
-    const statusOptions = [
-        { value: 'PENDING', label: 'Pendente' },
-        { value: 'IN_PROGRESS', label: 'Em Progresso' },
-        { value: 'COMPLETED', label: 'Concluída' },
-        { value: 'CANCELLED', label: 'Cancelada' },
-    ];
 
     const taskTypeOptions = [
         { value: '', label: 'Selecione...' },
@@ -352,13 +406,40 @@ const TaskForm: React.FC<TaskFormProps> = ({
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+                {/* Exibição de erro geral */}
+                {formError && (
+                    <div className="rounded-md bg-red-50 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Erro ao processar solicitação</h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    <p>{formError}</p>
+                                </div>
+                                <div className="mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormError(null)}
+                                        className="text-sm font-medium text-red-800 underline hover:text-red-900"
+                                    >
+                                        Fechar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Campo hidden para requesterId */}
                 <input {...register('requesterId')} type="hidden" />
                 
                 {/* Informações Básicas */}
                 <div className="space-y-6">
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('code')}
                             label="Código"
@@ -366,14 +447,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             error={errors.code?.message}
                             required
                         />
-
-                        <Select {...register('status')} label="Status" error={errors.status?.message} required>
-                            {statusOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </Select>
 
                         <Select {...register('priority')} label="Prioridade" error={errors.priority?.message} required>
                             {priorityOptions.map((option) => (
@@ -383,7 +456,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             ))}
                         </Select>
 
-                        <div className="md:col-span-3">
+                        <div className="md:col-span-2">
                             <Input
                                 {...register('title')}
                                 label="Título"

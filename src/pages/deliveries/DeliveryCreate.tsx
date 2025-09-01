@@ -14,7 +14,6 @@ interface Task {
     id: number;
     title: string;
     code: string;
-    status: string;
     totalAmount: number;
     createdAt: string;
     updatedAt: string;
@@ -52,7 +51,6 @@ const DeliveryCreate = () => {
     } = useTasks({
         page: 0,
         size: 5,
-        status: 'COMPLETED' // Apenas tarefas concluídas para entregas
     });
 
     // Hook para gerenciar projects paginados
@@ -122,16 +120,6 @@ const DeliveryCreate = () => {
         }).format(amount);
     };
 
-    const getStatusLabel = (status: string) => {
-        const labels: { [key: string]: string } = {
-            'PENDING': 'Pendente',
-            'IN_PROGRESS': 'Em Progresso',
-            'COMPLETED': 'Concluída',
-            'CANCELLED': 'Cancelada',
-            'ON_HOLD': 'Em Espera'
-        };
-        return labels[status] || status;
-    };
 
     // Colunas para o DataTable de tasks
     const taskColumns: Column<Task>[] = [
@@ -261,7 +249,6 @@ const DeliveryCreate = () => {
                                 <div className="font-semibold text-blue-900 text-sm sm:text-base break-words">{selectedTask.title}</div>
                                 <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-blue-800">
                                     <span><strong>Código:</strong> {selectedTask.code}</span>
-                                    <span><strong>Status:</strong> {getStatusLabel(selectedTask.status)}</span>
                                 </div>
                             </div>
                         </div>

@@ -11,7 +11,6 @@ interface FilterParams {
     requesterName?: string;
     title?: string;
     description?: string;
-    status?: string;
     code?: string;
     link?: string;
     meetingLink?: string;

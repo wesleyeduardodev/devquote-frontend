@@ -1,8 +1,5 @@
 import { BaseEntity } from './api.types';
 
-// Status da tarefa
-export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'ON_HOLD';
-
 // Prioridade da tarefa
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
@@ -12,7 +9,6 @@ export interface Task extends BaseEntity {
     code: string;
     title: string;
     description?: string;
-    status: TaskStatus;
     priority?: TaskPriority;
     requesterId: number | string;
     requesterName?: string;
@@ -41,7 +37,6 @@ export interface SubTask extends BaseEntity {
     taskId: number;
     title: string;
     description?: string;
-    status: TaskStatus;
     amount: number;
     estimatedHours?: number;
     actualHours?: number;
@@ -55,7 +50,6 @@ export interface CreateTaskData {
     code?: string;
     title: string;
     description?: string;
-    status?: TaskStatus;
     priority?: TaskPriority;
     requesterId: number | string;
     assignedTo?: string;
@@ -71,7 +65,6 @@ export interface CreateTaskData {
 export interface CreateSubTaskData {
     title: string;
     description?: string;
-    status?: TaskStatus;
     amount: number;
     estimatedHours?: number;
     assignedTo?: string;
@@ -110,7 +103,6 @@ export interface TaskWithRelations extends Task {
 
 // Filtros para listagem de tarefas
 export interface TaskFilters {
-    status?: TaskStatus[];
     priority?: TaskPriority[];
     requesterId?: number | string;
     assignedTo?: string;
@@ -123,7 +115,6 @@ export interface TaskFilters {
 // Estatísticas de tarefas
 export interface TaskStats {
     total: number;
-    byStatus: Record<TaskStatus, number>;
     byPriority: Record<TaskPriority, number>;
     totalValue: number;
     completed: number;
@@ -140,7 +131,6 @@ export interface TaskFormData {
     code?: string;
     title: string;
     description?: string;
-    status: TaskStatus;
     priority: TaskPriority;
     requesterId: string | number;
     assignedTo?: string;
@@ -157,7 +147,6 @@ export interface SubTaskFormData {
     id?: number;
     title: string;
     description?: string;
-    status: TaskStatus;
     amount: number | string;
     estimatedHours?: number;
     assignedTo?: string;
@@ -168,7 +157,7 @@ export interface SubTaskFormData {
 export interface TaskActivity {
     id: number;
     taskId: number;
-    type: 'CREATED' | 'UPDATED' | 'STATUS_CHANGED' | 'ASSIGNED' | 'COMMENT' | 'COMPLETED';
+    type: 'CREATED' | 'UPDATED' | 'ASSIGNED' | 'COMMENT' | 'COMPLETED';
     description: string;
     oldValue?: any;
     newValue?: any;

@@ -7,7 +7,6 @@ interface SubTask {
     title: string;
     description?: string;
     amount: number;
-    status: string;
     taskId?: number;
     excluded?: boolean;
     createdAt?: string;
@@ -20,7 +19,6 @@ interface Task {
     requesterName?: string;
     title: string;
     description?: string;
-    status: string;
     code: string;
     link?: string;
     meetingLink?: string;
@@ -37,7 +35,6 @@ interface TaskCreate {
     requesterId: number;
     title: string;
     description?: string;
-    status: string;
     code: string;
     link?: string;
     meetingLink?: string;
@@ -76,7 +73,6 @@ interface FilterParams {
     requesterName?: string;
     title?: string;
     description?: string;
-    status?: string;
     code?: string;
     link?: string;
     meetingLink?: string;
@@ -173,6 +169,35 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             return newTask;
         } catch (err: any) {
             console.error('Erro ao criar tarefa:', err);
+            
+            // Extrair mensagem de erro detalhada
+            let errorMessage = 'Erro ao criar tarefa';
+            if (err.response?.data?.detail) {
+                errorMessage = err.response.data.detail;
+            } else if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+                // Formatar erros de validação
+                const fieldErrors = err.response.data.errors
+                    .map((error: any) => {
+                        // Tratar erros de subtarefas de forma mais amigável
+                        if (error.field?.includes('subTasks')) {
+                            const match = error.field.match(/subTasks\[(\d+)\]\.(\w+)/);
+                            if (match) {
+                                const index = parseInt(match[1]) + 1;
+                                const field = match[2];
+                                return `Subtarefa ${index} - ${field}: ${error.message}`;
+                            }
+                        }
+                        return `${error.field}: ${error.message}`;
+                    })
+                    .join(', ');
+                errorMessage = fieldErrors;
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
+            toast.error(errorMessage);
             throw err;
         }
     }, [fetchTasks]);
@@ -298,7 +323,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const sendFinancialEmail = useCallback(async (taskId: number): Promise<void> => {
         try {
             await taskService.sendFinancialEmail(taskId);
-            await fetchTasks(); // Atualiza a lista para refletir o status atualizado
+            await fetchTasks(); // Atualiza a lista para refletir as mudanças
             toast.success('Email financeiro enviado com sucesso!');
         } catch (err: any) {
             console.error('Erro ao enviar email financeiro:', err);

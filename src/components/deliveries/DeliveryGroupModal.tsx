@@ -41,7 +41,6 @@ interface DeliveryGroup {
     taskId: number;
     taskName: string;
     taskCode: string;
-    taskStatus: string;
     createdAt: string;
     updatedAt: string;
     totalDeliveries: number;

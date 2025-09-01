@@ -1,15 +1,5 @@
 // Status constants
 export const STATUS = {
-    // Task Status
-    TASK: {
-        PENDING: 'PENDING',
-        IN_PROGRESS: 'IN_PROGRESS',
-        COMPLETED: 'COMPLETED',
-        CANCELLED: 'CANCELLED',
-        ON_HOLD: 'ON_HOLD',
-    },
-
-
     // Delivery Status
     DELIVERY: {
         PENDING: 'PENDING',
@@ -48,14 +38,6 @@ export const PRIORITY = {
 
 // Status labels for display
 export const STATUS_LABELS = {
-    // Task Labels
-    PENDING: 'Pendente',
-    IN_PROGRESS: 'Em Progresso',
-    COMPLETED: 'Concluída',
-    CANCELLED: 'Cancelada',
-    ON_HOLD: 'Em Espera',
-
-
     // Delivery Labels
     TESTING: 'Em Teste',
     DELIVERED: 'Entregue',
@@ -80,13 +62,6 @@ export const PRIORITY_LABELS = {
 
 // Color mappings for status badges
 export const STATUS_COLORS = {
-    PENDING: 'bg-yellow-100 text-yellow-800',
-    IN_PROGRESS: 'bg-blue-100 text-blue-800',
-    COMPLETED: 'bg-green-100 text-green-800',
-    CANCELLED: 'bg-red-100 text-red-800',
-    ON_HOLD: 'bg-gray-100 text-gray-800',
-
-
     TESTING: 'bg-purple-100 text-purple-800',
     DELIVERED: 'bg-green-100 text-green-800',
 

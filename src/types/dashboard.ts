@@ -6,7 +6,6 @@ export interface DashboardStatsResponse {
   deliveries?: ModuleStats;
   billing?: ModuleStats;
   tasksChart?: ChartData[];
-  tasksByStatus?: StatusCount[];
   deliveriesByStatus?: StatusCount[];
   recentActivities: RecentActivity[];
 }

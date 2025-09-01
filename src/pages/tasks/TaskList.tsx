@@ -32,7 +32,6 @@ interface SubTask {
     title: string;
     description?: string;
     amount: number;
-    status: string;
     taskId?: number;
     excluded?: boolean;
     createdAt?: string;
@@ -45,7 +44,6 @@ interface Task {
     requesterName?: string;
     title: string;
     description?: string;
-    status: string;
     code: string;
     link?: string;
     meetingLink?: string;
@@ -128,7 +126,6 @@ const TaskList: React.FC = () => {
             name: task.title,
             code: task.code,
             description: task.description,
-            status: task.status,
             priority: task.priority || 'MEDIUM',
             taskType: task.taskType,
             serverOrigin: task.serverOrigin,
@@ -145,8 +142,7 @@ const TaskList: React.FC = () => {
                 id: subtask.id || 0,
                 title: subtask.title,
                 description: subtask.description || subtask.title,
-                completed: subtask.status === 'COMPLETED',
-                status: subtask.status,
+                completed: false,
                 amount: subtask.amount,
                 createdAt: subtask.createdAt
             })),
@@ -213,25 +209,6 @@ const TaskList: React.FC = () => {
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-    const getStatusColor = (status: string) => {
-        const colors: Record<string, string> = {
-            PENDING: 'bg-yellow-100 text-yellow-800',
-            IN_PROGRESS: 'bg-blue-100 text-blue-800',
-            COMPLETED: 'bg-green-100 text-green-800',
-            CANCELLED: 'bg-red-100 text-red-800',
-        };
-        return colors[status] || 'bg-gray-100 text-gray-800';
-    };
-
-    const getStatusLabel = (status: string) => {
-        const labels: Record<string, string> = {
-            PENDING: 'Pendente',
-            IN_PROGRESS: 'Em Progresso',
-            COMPLETED: 'Concluída',
-            CANCELLED: 'Cancelada',
-        };
-        return labels[status] || status;
-    };
 
     const getPriorityColor = (priority: string) => {
         const colors: Record<string, string> = {
@@ -422,20 +399,6 @@ const TaskList: React.FC = () => {
                         {item.title}
                     </p>
                 </div>
-            ),
-        },
-        {
-            key: 'status',
-            title: 'Status',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '140px',
-            align: 'center' as const,
-            render: (item) => (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-          {getStatusLabel(item.status)}
-        </span>
             ),
         },
         {
@@ -1004,7 +967,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['status', 'createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule', 'link', 'meetingLink']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule', 'link', 'meetingLink']}
                             />
                         </Card>
                     </div>
@@ -1129,7 +1092,6 @@ const TaskList: React.FC = () => {
                                 <h4 className="font-medium text-gray-900 mb-2">{taskForEmail.title}</h4>
                                 <div className="text-sm text-gray-600">
                                     <p><strong>Solicitante:</strong> {taskForEmail.requesterName}</p>
-                                    <p><strong>Status:</strong> {taskForEmail.status}</p>
                                 </div>
                             </div>
 

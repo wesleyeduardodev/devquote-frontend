@@ -12,7 +12,6 @@ interface SubTask {
     title: string;
     description: string;
     amount: string;
-    status: string;
     excluded?: boolean;
 }
 
@@ -49,14 +48,27 @@ const SubTaskForm: React.FC = () => {
             }, 0);
     };
 
-    const addSubTask = (): void => {
+    const addSubTask = (e?: React.MouseEvent): void => {
+        // Prevenir comportamento padrão e propagação
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Salvar posição atual do scroll
+        const currentScrollPosition = window.scrollY;
+        
         append({
             title: '',
             description: '',
             amount: canViewValues ? '' : '0', // MANAGER/USER sempre recebem 0
-            status: 'PENDING',
             excluded: false
         });
+        
+        // Restaurar posição do scroll após adicionar
+        setTimeout(() => {
+            window.scrollTo(0, currentScrollPosition);
+        }, 0);
     };
 
     const softRemoveSubTask = (index: number): void => {
@@ -72,12 +84,6 @@ const SubTaskForm: React.FC = () => {
         }
     };
 
-    const statusOptions = [
-        { value: 'PENDING', label: 'Pendente' },
-        { value: 'IN_PROGRESS', label: 'Em Progresso' },
-        { value: 'COMPLETED', label: 'Concluída' },
-        { value: 'CANCELLED', label: 'Cancelada' }
-    ];
 
     const formatCurrency = (value: number): string => {
         return new Intl.NumberFormat('pt-BR', {
@@ -89,8 +95,11 @@ const SubTaskForm: React.FC = () => {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                    Subtarefas ({watchSubTasks?.filter(st => !st?.excluded).length || 0})
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    Subtarefas 
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
+                        {watchSubTasks?.filter(st => !st?.excluded).length || 0}
+                    </span>
                 </h3>
                 <div className="flex items-center space-x-4">
                     {canViewValues && (
@@ -106,6 +115,7 @@ const SubTaskForm: React.FC = () => {
                         size="sm"
                         onClick={addSubTask}
                         className="flex items-center"
+                        onMouseDown={(e) => e.preventDefault()} // Previne foco/scroll
                     >
                         <Plus className="w-4 h-4 mr-1" />
                         Adicionar Subtarefa
@@ -156,8 +166,8 @@ const SubTaskForm: React.FC = () => {
                                     )}
                                 </div>
 
-                                {/* Valor e Status na mesma linha */}
-                                <div className={`grid ${canViewValues ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                                {/* Valor */}
+                                <div className="grid grid-cols-1 gap-4">
                                     {canViewValues ? (
                                         <div className="relative">
                                             <Input
@@ -182,18 +192,6 @@ const SubTaskForm: React.FC = () => {
                                         />
                                     )}
 
-                                    <Select
-                                        {...register(`subTasks.${index}.status`)}
-                                        label="Status"
-                                        error={errors.subTasks?.[index]?.status?.message}
-                                        required
-                                    >
-                                        {statusOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </Select>
                                 </div>
                             </div>
 
@@ -204,10 +202,14 @@ const SubTaskForm: React.FC = () => {
                             />
 
                             <div className="mt-4 pt-4 border-t border-gray-200">
-                                <div className="text-sm text-gray-500">
-                                    Subtarefa #{index + 1}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                                            Subtarefa #{index + 1}
+                                        </span>
+                                    </div>
                                     {canViewValues && watchSubTasks?.[index]?.amount && (
-                                        <span className="ml-2 font-medium text-primary-600">
+                                        <span className="text-lg font-bold text-green-600">
                                             {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
                                         </span>
                                     )}
@@ -223,7 +225,10 @@ const SubTaskForm: React.FC = () => {
                     <div className="text-gray-500">
                         <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                         <p className="mb-4">Nenhuma subtarefa adicionada</p>
-                        <Button onClick={addSubTask}>
+                        <Button 
+                            onClick={addSubTask}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
                             <Plus className="w-4 h-4 mr-2" />
                             Adicionar Primeira Subtarefa
                         </Button>

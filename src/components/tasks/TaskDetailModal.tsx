@@ -27,7 +27,6 @@ interface Subtask {
     title?: string;
     description: string;
     completed: boolean;
-    status?: string;
     amount?: number;
     createdAt?: string;
 }
@@ -43,7 +42,6 @@ interface Task {
     name: string;
     code?: string;
     description?: string;
-    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
     priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     taskType?: string;
     serverOrigin?: string;
@@ -122,18 +120,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
         return task.subtasks?.reduce((total, subtask) => total + (subtask.amount || 0), 0) || 0;
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'COMPLETED':
-                return 'bg-green-100 text-green-800';
-            case 'IN_PROGRESS':
-                return 'bg-blue-100 text-blue-800';
-            case 'PENDING':
-                return 'bg-yellow-100 text-yellow-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -170,20 +156,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
         }
     };
 
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'COMPLETED':
-                return 'Concluída';
-            case 'IN_PROGRESS':
-                return 'Em Progresso';
-            case 'PENDING':
-                return 'Pendente';
-            case 'CANCELLED':
-                return 'Cancelada';
-            default:
-                return status;
-        }
-    };
 
 
     const completedSubtasks = task.subtasks?.filter(st => st.completed).length || 0;
@@ -254,16 +226,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                         </div>
                                     )}
                                     
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-gray-500">Status:</span>
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                                            {task.status === 'COMPLETED' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                            {task.status === 'IN_PROGRESS' && <Activity className="w-3 h-3 mr-1" />}
-                                            {task.status === 'PENDING' && <Clock className="w-3 h-3 mr-1" />}
-                                            {task.status === 'CANCELLED' && <X className="w-3 h-3 mr-1" />}
-                                            {getStatusLabel(task.status)}
-                                        </span>
-                                    </div>
 
                                     {task.priority && (
                                         <div className="flex items-center gap-2">
@@ -552,11 +514,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                         </div>
                                                         
                                                         <div className="flex items-center gap-3 mt-2">
-                                                            {subtask.status && (
-                                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(subtask.status)}`}>
-                                                                    {getStatusLabel(subtask.status)}
-                                                                </span>
-                                                            )}
                                                             {subtask.createdAt && (
                                                                 <p className="text-xs text-gray-400">
                                                                     Criada em {formatDate(subtask.createdAt)}

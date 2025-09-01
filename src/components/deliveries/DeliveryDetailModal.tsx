@@ -38,7 +38,6 @@ interface Delivery {
     taskId?: number;
     taskName?: string;
     taskCode?: string;
-    taskStatus?: string;
     // Dados do Projeto
     projectId?: number;
     projectName?: string;
