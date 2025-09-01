@@ -175,6 +175,11 @@ const billingPeriodService = {
   /** @deprecated Quote operations are no longer available. Use Task operations instead. */
   bulkUnlinkQuotes: async (billingPeriodId: number, quoteIds: number[]): Promise<never> => {
     throw new Error('Quote operations are no longer available. Use bulkUnlinkTasks instead.');
+  },
+
+  // Send billing email
+  sendBillingEmail: async (id: number): Promise<void> => {
+    await api.post(`/billing-periods/${id}/send-billing-email`);
   }
 };
 

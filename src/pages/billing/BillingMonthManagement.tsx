@@ -19,6 +19,7 @@ import {
     TrendingUp,
     Loader2,
     Hash,
+    Mail,
 } from 'lucide-react';
 
 // Hooks e serviços existentes
@@ -40,6 +41,7 @@ interface BillingMonth {
     year: number;
     paymentDate?: string | null;
     status: StatusValue;
+    billingEmailSent?: boolean;
     createdAt?: string;
     updatedAt?: string;
     taskCount?: number;
@@ -126,6 +128,11 @@ const BillingManagement: React.FC = () => {
     const [statusToUpdate, setStatusToUpdate] = useState<BillingMonth | null>(null);
     const [newStatus, setNewStatus] = useState<StatusValue>('PENDENTE');
     const [updatingStatus, setUpdatingStatus] = useState(false);
+
+    // Email billing
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [billingForEmail, setBillingForEmail] = useState<BillingMonth | null>(null);
+    const [sendingEmail, setSendingEmail] = useState(false);
 
     // Filtros gerais (desktop + mobile)
     const [searchTerm, setSearchTerm] = useState('');
@@ -286,6 +293,29 @@ const BillingManagement: React.FC = () => {
     const handleDataChange = useCallback(async () => {
         await fetchBillingMonths();
     }, [fetchBillingMonths]);
+
+    const handleBillingEmail = useCallback((billing: BillingMonth) => {
+        setBillingForEmail(billing);
+        setShowEmailModal(true);
+    }, []);
+
+    const handleConfirmSendBillingEmail = useCallback(async () => {
+        if (!billingForEmail) return;
+        
+        setSendingEmail(true);
+        try {
+            await billingPeriodService.sendBillingEmail(billingForEmail.id);
+            await fetchBillingMonths();
+            setShowEmailModal(false);
+            setBillingForEmail(null);
+            toast.success('Email de faturamento enviado com sucesso!');
+        } catch (error: any) {
+            console.error('Erro ao enviar email de faturamento:', error);
+            toast.error(error?.response?.data?.message ?? 'Erro ao enviar email de faturamento');
+        } finally {
+            setSendingEmail(false);
+        }
+    }, [billingForEmail, fetchBillingMonths]);
 
     const handleExportToExcel = useCallback(async () => {
         try {
@@ -583,6 +613,21 @@ const BillingManagement: React.FC = () => {
                                 title="Visualizar tarefas vinculadas"
                             >
                                 <Search className="w-5 h-5" />
+                            </button>
+                        )}
+                        
+                        {/* Botão de Email - apenas para ADMIN */}
+                        {isAdmin && (
+                            <button
+                                onClick={() => handleBillingEmail(billing)}
+                                className={`rounded-lg p-2 transition-colors ${
+                                    billing.billingEmailSent
+                                        ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                                        : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'
+                                }`}
+                                title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
+                            >
+                                <Mail className="w-5 h-5" />
                             </button>
                         )}
                     </div>
@@ -984,6 +1029,21 @@ const BillingManagement: React.FC = () => {
                                                                 Ver Tarefas
                                                             </button>
                                                         )}
+                                                        
+                                                        {/* Botão de Email - apenas para ADMIN */}
+                                                        {isAdmin && (
+                                                            <button
+                                                                onClick={() => handleBillingEmail(billing)}
+                                                                className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                                                                    billing.billingEmailSent
+                                                                        ? 'text-green-600 bg-green-50 hover:bg-green-100'
+                                                                        : 'text-orange-600 bg-orange-50 hover:bg-orange-100'
+                                                                }`}
+                                                                title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
+                                                            >
+                                                                <Mail className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1300,6 +1360,111 @@ const BillingManagement: React.FC = () => {
                                         <>
                                             <CheckCircle className="w-4 h-4" />
                                             Alterar Status
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de Email de Faturamento */}
+                {showEmailModal && billingForEmail && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                            <div className="p-6 border-b border-gray-100">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-gray-900">Email de Faturamento</h3>
+                                    <button
+                                        onClick={() => {
+                                            setShowEmailModal(false);
+                                            setBillingForEmail(null);
+                                        }}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <p className="text-sm text-gray-600 mb-1">Período:</p>
+                                    <p className="font-semibold text-gray-900 text-lg">
+                                        {getMonthLabel(billingForEmail.month)} de {billingForEmail.year}
+                                    </p>
+                                    {billingForEmail.totalAmount && (
+                                        <p className="text-sm text-gray-600 mt-2">
+                                            <span className="font-medium">Valor Total:</span> R$ {billingForEmail.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {billingForEmail.billingEmailSent ? (
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                                            <Mail className="w-8 h-8 text-green-600" />
+                                        </div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            Email já enviado
+                                        </h3>
+                                        <p className="text-gray-600 mb-6">
+                                            O email de faturamento para este período já foi enviado anteriormente.
+                                            Deseja enviar novamente?
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                                            <Mail className="w-8 h-8 text-orange-600" />
+                                        </div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            Enviar email de faturamento
+                                        </h3>
+                                        <p className="text-gray-600 mb-6">
+                                            Será enviado um email para o departamento financeiro com o relatório completo deste período de faturamento.
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-sm text-blue-800 font-medium">O email incluirá:</p>
+                                        <ul className="text-sm text-blue-700 mt-1 space-y-1">
+                                            <li>• Resumo do período ({getMonthLabel(billingForEmail.month)}/{billingForEmail.year})</li>
+                                            <li>• Lista detalhada de todas as tarefas</li>
+                                            <li>• Valores individuais e total geral</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 border-t border-gray-100 flex gap-3 justify-end">
+                                <button
+                                    onClick={() => {
+                                        setShowEmailModal(false);
+                                        setBillingForEmail(null);
+                                    }}
+                                    disabled={sendingEmail}
+                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleConfirmSendBillingEmail}
+                                    disabled={sendingEmail}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {sendingEmail ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Enviando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Mail className="w-4 h-4" />
+                                            {billingForEmail.billingEmailSent ? 'Reenviar Email' : 'Enviar Email'}
                                         </>
                                     )}
                                 </button>
