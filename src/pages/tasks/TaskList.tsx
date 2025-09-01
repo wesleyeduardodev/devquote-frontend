@@ -388,10 +388,22 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '250px',
+            width: '280px',
             render: (item) => (
-                <div>
-                    <p className="font-medium text-gray-900 truncate cursor-help" title={item.title}>
+                <div className="max-w-[280px]">
+                    <p 
+                        className="font-medium text-gray-900 cursor-help line-clamp-2 break-words" 
+                        title={item.title}
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            wordBreak: 'break-word',
+                            lineHeight: '1.4'
+                        }}
+                    >
                         {item.title}
                     </p>
                 </div>
@@ -459,7 +471,14 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            render: (item) => <span className="text-sm text-gray-900">{item.requesterName || 'Não informado'}</span>,
+            width: '160px',
+            render: (item) => (
+                <div className="max-w-[160px]">
+                    <span className="text-sm text-gray-900 block truncate" title={item.requesterName || 'Não informado'}>
+                        {item.requesterName || 'Não informado'}
+                    </span>
+                </div>
+            ),
         },
         {
             key: 'link',
@@ -565,7 +584,14 @@ const TaskList: React.FC = () => {
             title: 'Criado por',
             sortable: false,
             filterable: false,
-            render: (item) => item.createdByUserName || '-',
+            width: '160px',
+            render: (item) => (
+                <div className="max-w-[160px]">
+                    <span className="text-sm text-gray-700 block truncate" title={item.createdByUserName || '-'}>
+                        {item.createdByUserName || '-'}
+                    </span>
+                </div>
+            ),
             hideable: true,
         },
 
