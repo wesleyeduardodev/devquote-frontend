@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Search, X, Check, FolderOpen, ExternalLink, Filter } from 'lucide-react';
+import { Search, X, Check, FolderOpen, ExternalLink, Filter, DollarSign } from 'lucide-react';
 
 import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
@@ -445,6 +445,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             label="Código"
                             placeholder="Digite o código da tarefa"
                             error={errors.code?.message}
+                            maxLength={100}
                             required
                         />
 
@@ -462,6 +463,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 label="Título"
                                 placeholder="Digite o título da tarefa"
                                 error={errors.title?.message}
+                                maxLength={200}
                                 required
                             />
                         </div>
@@ -481,6 +483,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             label="Módulo do Sistema"
                             placeholder="Ex: Autenticação, Relatórios, Dashboard..."
                             error={errors.systemModule?.message}
+                            maxLength={100}
                         />
                     </div>
 
@@ -489,6 +492,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         label="Servidor de Origem"
                         placeholder="Ex: Produção, Homologação, Desenvolvimento..."
                         error={errors.serverOrigin?.message}
+                        maxLength={100}
                     />
 
                     <div>
@@ -498,6 +502,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             rows={4}
                             placeholder="Descreva a tarefa (opcional)&#10;Você pode usar múltiplas linhas..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                            maxLength={200}
                         />
                         {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
                     </div>
@@ -512,6 +517,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             label="Link da Tarefa"
                             placeholder="https://exemplo.com (opcional)"
                             error={errors.link?.message}
+                            maxLength={200}
                         />
 
                         <Input
@@ -520,6 +526,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             label="Link da Reunião"
                             placeholder="https://meet.google.com/... (opcional)"
                             error={errors.meetingLink?.message}
+                            maxLength={500}
                         />
                     </div>
 
@@ -567,16 +574,17 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             </div>
                         ) : (
                             isAdmin && (
-                                <div>
+                                <div className="relative">
                                     <Input
                                         {...register('amount')}
                                         type="number"
                                         step="0.01"
                                         min="0"
                                         label="Valor da Tarefa"
-                                        placeholder="0.00"
+                                        placeholder="0,00"
                                         error={errors.amount?.message}
                                     />
+                                    <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
                                 </div>
                             )
                         )}

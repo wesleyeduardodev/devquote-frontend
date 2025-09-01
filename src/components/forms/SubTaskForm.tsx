@@ -149,6 +149,7 @@ const SubTaskForm: React.FC = () => {
                                     label="Título"
                                     placeholder="Digite o título da subtarefa"
                                     error={errors.subTasks?.[index]?.title?.message}
+                                    maxLength={200}
                                     required
                                 />
 
@@ -160,6 +161,7 @@ const SubTaskForm: React.FC = () => {
                                         rows={3}
                                         placeholder="Descreva a subtarefa (opcional)"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                        maxLength={200}
                                     />
                                     {errors.subTasks?.[index]?.description && (
                                         <p className="mt-1 text-sm text-red-600">{errors.subTasks[index].description.message}</p>
