@@ -6,6 +6,7 @@ export interface BillingPeriod {
   year: number;
   paymentDate?: string;
   status: string;
+  billingEmailSent?: boolean;
   createdAt?: string;
   updatedAt?: string;
   totalAmount?: number;
