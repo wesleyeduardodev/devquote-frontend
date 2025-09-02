@@ -1,44 +1,194 @@
 import api from './api';
+import {
+    Delivery,
+    DeliveryItem,
+    CreateDeliveryData,
+    UpdateDeliveryData,
+    DeliveryFilters,
+    DeliveryGroupResponse,
+    AvailableTask,
+    DeliveryCreationState
+} from '../types/delivery.types';
+import { PaginatedResponse } from '../types/api.types';
 
 interface SortInfo {
     field: string;
     direction: 'asc' | 'desc';
 }
 
-interface FilterParams {
-    id?: string;
-    taskName?: string;
-    taskCode?: string;
-    projectName?: string;
-    branch?: string;
-    sourceBranch?: string;
-    pullRequest?: string;
-    notes?: string;
-    status?: string;
-    startedAt?: string;
-    finishedAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
-
 interface PaginatedParams {
     page: number;
     size: number;
     sort: SortInfo[];
-    filters?: FilterParams;
+    filters?: DeliveryFilters;
+}
+
+// Interface específica para filtros de tarefas disponíveis
+interface TaskFilterParams {
+    id?: string;
+    requesterId?: string;
+    requesterName?: string;
+    title?: string;
+    description?: string;
+    code?: string;
+    link?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+interface TaskPaginatedParams {
+    page: number;
+    size: number;
+    sort: SortInfo[];
+    filters?: TaskFilterParams;
 }
 
 export const deliveryService = {
-    getAll: async (): Promise<any> => {
+    // CRUD básico para Deliveries
+    getAll: async (): Promise<Delivery[]> => {
         const response = await api.get('/deliveries');
         return response.data;
     },
 
-    getAllPaginated: async (params: PaginatedParams): Promise<any> => {
-        const {page, size, sort, filters} = params;
-
+    getAllPaginated: async (params: PaginatedParams): Promise<PaginatedResponse<Delivery>> => {
+        const { page, size, sort, filters } = params;
+        
         const sortParams = sort.map(s => `${s.field},${s.direction}`);
+        
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
 
+        // Adiciona parâmetros de ordenação
+        sortParams.forEach(sortParam => {
+            queryParams.append('sort', sortParam);
+        });
+
+        // Adiciona parâmetros de filtro (nova arquitetura - sem campos antigos)
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && value.toString().trim() !== '') {
+                    if (Array.isArray(value)) {
+                        // Para arrays (como status), adiciona múltiplos parâmetros
+                        value.forEach(v => queryParams.append(key, v));
+                    } else {
+                        queryParams.append(key, value.toString());
+                    }
+                }
+            });
+        }
+
+        const response = await api.get(`/deliveries?${queryParams.toString()}`);
+        return response.data;
+    },
+
+    getById: async (id: number): Promise<Delivery> => {
+        const response = await api.get(`/deliveries/${id}`);
+        return response.data;
+    },
+
+    create: async (data: CreateDeliveryData): Promise<Delivery> => {
+        const response = await api.post('/deliveries', data);
+        return response.data;
+    },
+
+    update: async (id: number, data: UpdateDeliveryData): Promise<Delivery> => {
+        const response = await api.put(`/deliveries/${id}`, data);
+        return response.data;
+    },
+
+    delete: async (id: number): Promise<boolean> => {
+        await api.delete(`/deliveries/${id}`);
+        return true;
+    },
+
+    deleteBulk: async (ids: number[]): Promise<void> => {
+        await api.delete('/deliveries/bulk', { data: ids });
+    },
+
+    // Métodos específicos da nova arquitetura
+    getByTaskId: async (taskId: number): Promise<Delivery | null> => {
+        try {
+            const response = await api.get(`/deliveries/by-task/${taskId}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
+    },
+
+    // Buscar tarefas sem entrega (para seleção)
+    getAvailableTasks: async (): Promise<AvailableTask[]> => {
+        const response = await api.get('/tasks/unlinked');
+        const tasks = response.data.content || [];
+        
+        // Converter TaskResponse para AvailableTask
+        return tasks.map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            code: task.code,
+            amount: task.amount,
+            requester: {
+                name: task.requesterName
+            },
+            hasDelivery: false // Por definição, são tarefas sem entrega
+        }));
+    },
+
+    // Buscar tarefas sem entrega com paginação (para modal)
+    getAvailableTasksPaginated: async (params: TaskPaginatedParams): Promise<PaginatedResponse<AvailableTask>> => {
+        const { page, size, sort, filters } = params;
+        
+        const sortParams = sort.map(s => `${s.field},${s.direction}`);
+        
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
+
+        // Adiciona parâmetros de ordenação
+        sortParams.forEach(sortParam => {
+            queryParams.append('sort', sortParam);
+        });
+
+        // Adiciona parâmetros de filtro (MESMA LÓGICA DO taskService)
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && value.toString().trim() !== '') {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+
+        const response = await api.get(`/tasks/unlinked?${queryParams.toString()}`);
+        
+        // Converter TaskResponse para AvailableTask
+        const convertedContent = (response.data.content || []).map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            code: task.code,
+            amount: task.amount,
+            requester: {
+                name: task.requesterName
+            },
+            hasDelivery: false // Por definição, são tarefas sem entrega
+        }));
+
+        return {
+            ...response.data,
+            content: convertedContent
+        };
+    },
+
+    // Agrupamento por tarefa (para listagem principal)
+    getAllGroupedByTask: async (params: PaginatedParams): Promise<PaginatedResponse<DeliveryGroupResponse>> => {
+        const { page, size, sort, filters } = params;
+        
+        const sortParams = sort.map(s => `${s.field},${s.direction}`);
+        
         const queryParams = new URLSearchParams({
             page: page.toString(),
             size: size.toString(),
@@ -53,51 +203,35 @@ export const deliveryService = {
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
-                    queryParams.append(key, value.toString());
+                    if (Array.isArray(value)) {
+                        value.forEach(v => queryParams.append(key, v));
+                    } else {
+                        queryParams.append(key, value.toString());
+                    }
                 }
             });
         }
 
-        const response = await api.get(`/deliveries?${queryParams.toString()}`);
+        const response = await api.get(`/deliveries/grouped-by-task?${queryParams.toString()}`);
         return response.data;
     },
 
-    getById: async (id: any): Promise<any> => {
-        const response = await api.get(`/deliveries/${id}`);
+    getGroupDetailsByTaskId: async (taskId: number): Promise<DeliveryGroupResponse> => {
+        const response = await api.get(`/deliveries/grouped-by-task/${taskId}`);
         return response.data;
     },
 
-    create: async (data: any): Promise<any> => {
-        const response = await api.post('/deliveries', data);
-        return response.data;
-    },
-
-    update: async (id: any, data: any): Promise<any> => {
-        const response = await api.put(`/deliveries/${id}`, data);
-        return response.data;
-    },
-
-    delete: async (id: any): Promise<boolean> => {
-        await api.delete(`/deliveries/${id}`);
-        return true;
-    },
-
-    deleteBulk: async (ids: number[]): Promise<void> => {
-        await api.delete('/deliveries/bulk', { data: ids });
-    },
-
-    deleteByQuoteId: async (quoteId: number): Promise<void> => {
-        await api.delete(`/deliveries/quote/${quoteId}`);
-    },
-
-    deleteByTaskId: async (taskId: number): Promise<void> => {
-        await api.delete(`/deliveries/task/${taskId}`);
-    },
-
+    // Export
     exportToExcel: async (): Promise<Blob> => {
         const response = await api.get('/deliveries/export/excel', {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    // Método auxiliar para verificar se tarefa já tem entrega
+    taskHasDelivery: async (taskId: number): Promise<boolean> => {
+        const delivery = await deliveryService.getByTaskId(taskId);
+        return delivery !== null;
     }
 };

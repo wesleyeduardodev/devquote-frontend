@@ -1,15 +1,20 @@
 import { BaseEntity } from './api.types';
 
-// Status específicos para entregas
+// Status específicos para entregas e itens de entrega
 export type DeliveryStatus = 'PENDING' | 'DEVELOPMENT' | 'DELIVERED' | 'HOMOLOGATION' | 'APPROVED' | 'REJECTED' | 'PRODUCTION';
 
-// Interface principal para Delivery
-export interface Delivery extends BaseEntity {
+// Interface para DeliveryItem (arquitetura nova)
+export interface DeliveryItem extends BaseEntity {
     id: number;
-    taskId: number;
+    deliveryId: number;
     projectId: number;
+    taskId: number; // Para facilitar queries
+    taskName?: string; // Para exibição
+    taskCode?: string; // Para exibição  
+    projectName?: string; // Para exibição
     status: DeliveryStatus;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
     script?: string;
     startedAt?: string;
@@ -17,12 +22,48 @@ export interface Delivery extends BaseEntity {
     notes?: string;
 }
 
-// Tipo para criação de delivery
+// Interface principal para Delivery (nova arquitetura)
+export interface Delivery extends BaseEntity {
+    id: number;
+    taskId: number;
+    taskName?: string; // Para exibição
+    taskCode?: string; // Para exibição
+    status: DeliveryStatus; // Status calculado automaticamente
+    totalItems?: number;
+    pendingCount?: number;
+    developmentCount?: number;
+    deliveredCount?: number;
+    homologationCount?: number;
+    approvedCount?: number;
+    rejectedCount?: number;
+    productionCount?: number;
+    items?: DeliveryItem[]; // Lista de itens
+}
+
+// Contadores de status para a entrega
+export interface DeliveryStatusCount {
+    pending: number;
+    development: number;
+    delivered: number;
+    homologation: number;
+    approved: number;
+    rejected: number;
+    production: number;
+}
+
+// Tipo para criação de delivery (novo fluxo)
 export interface CreateDeliveryData {
     taskId: number;
+    status?: DeliveryStatus; // Opcional, padrão PENDING
+    items: CreateDeliveryItemData[];
+}
+
+// Tipo para criação de item de entrega
+export interface CreateDeliveryItemData {
     projectId: number;
-    status: DeliveryStatus;
+    status?: DeliveryStatus; // Opcional, padrão PENDING
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
     script?: string;
     startedAt?: string;
@@ -31,8 +72,15 @@ export interface CreateDeliveryData {
 }
 
 // Tipo para atualização de delivery
-export interface UpdateDeliveryData extends Partial<CreateDeliveryData> {
-    id?: never; // Impede atualização do ID
+export interface UpdateDeliveryData {
+    taskId?: number;
+    status?: DeliveryStatus;
+    items?: UpdateDeliveryItemData[];
+}
+
+// Tipo para atualização de item de entrega
+export interface UpdateDeliveryItemData extends Partial<CreateDeliveryItemData> {
+    id?: number; // Para identificar qual item atualizar
 }
 
 // Delivery com dados relacionados (para exibição)
@@ -41,22 +89,48 @@ export interface DeliveryWithRelations extends Delivery {
         id: number;
         title?: string;
         code?: string;
-    };
-    project?: {
-        id: number;
-        name?: string;
-        repositoryUrl?: string;
+        amount?: number;
+        requester?: {
+            id: number;
+            name?: string;
+        };
     };
 }
 
-// Filtros para listagem de entregas
+// Agrupamento por tarefa (para tela de listagem)
+export interface DeliveryGroupResponse {
+    taskId: number;
+    taskName: string;
+    taskCode: string;
+    taskValue?: number;
+    deliveryStatus: DeliveryStatus;
+    statusCounts: DeliveryStatusCount;
+    totalDeliveries: number;
+    completedDeliveries: number;
+    pendingDeliveries: number;
+    createdAt?: string;
+    updatedAt?: string;
+    deliveries: Delivery[];
+}
+
+// Filtros para listagem de entregas (nova arquitetura)
 export interface DeliveryFilters {
     status?: DeliveryStatus[];
     taskId?: number;
+    taskName?: string;
+    taskCode?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+// Filtros para listagem de itens de entrega
+export interface DeliveryItemFilters {
+    status?: DeliveryStatus[];
+    deliveryId?: number;
     projectId?: number;
-    startDate?: string;
-    endDate?: string;
+    taskId?: number;
     branch?: string;
+    pullRequest?: string;
 }
 
 // Estatísticas de entregas
@@ -69,15 +143,64 @@ export interface DeliveryStats {
     inProgress: number;
 }
 
-// Form data para componentes de formulário
+// Form data para criação de delivery (fluxo em passos)
 export interface DeliveryFormData {
-    taskId: string | number;
-    projectId: string | number;
+    // Passo 1: Seleção da tarefa
+    selectedTask?: {
+        id: number;
+        title: string;
+        code: string;
+    };
+    
+    // Passo 2: Seleção de projetos
+    selectedProjects: number[];
+    
+    // Passo 3: Status inicial (opcional)
+    initialStatus: DeliveryStatus;
+    
+    // Passo 4: Detalhes por projeto
+    itemsData: Map<number, DeliveryItemFormData>;
+}
+
+// Form data para item de entrega
+export interface DeliveryItemFormData {
+    projectId: number;
+    projectName?: string;
     status: DeliveryStatus;
     branch?: string;
+    sourceBranch?: string;
     pullRequest?: string;
     script?: string;
     startedAt?: string;
     finishedAt?: string;
     notes?: string;
+}
+
+// Dados da tarefa para seleção
+export interface AvailableTask {
+    id: number;
+    title: string;
+    code: string;
+    amount?: number;
+    requester?: {
+        name: string;
+    };
+    hasDelivery?: boolean; // Para filtrar tarefas disponíveis
+}
+
+// Dados do projeto para seleção
+export interface AvailableProject {
+    id: number;
+    name: string;
+    repositoryUrl?: string;
+}
+
+// Status da criação de delivery (controle de fluxo)
+export interface DeliveryCreationState {
+    step: 1 | 2 | 3 | 4;
+    isLoading: boolean;
+    selectedTask: AvailableTask | null;
+    selectedProjects: AvailableProject[];
+    deliveryId?: number; // ID da delivery criada
+    items: DeliveryItem[];
 }

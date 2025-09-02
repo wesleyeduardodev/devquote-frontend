@@ -78,22 +78,19 @@ const DeliveryCreate: React.FC = () => {
 
                 // Inicializar dados dos formulários
                 const initialFormData = new Map<number, DeliveryItemFormData>();
-                items.forEach(item => {
-                    const project = selectedProjects.find(p => p.id === item.projectId);
-                    if (project) {
-                        initialFormData.set(project.id, {
-                            projectId: project.id,
-                            projectName: project.name,
-                            status: item.status,
-                            branch: item.branch || '',
-                            sourceBranch: item.sourceBranch || '',
-                            pullRequest: item.pullRequest || '',
-                            script: item.script || '',
-                            startedAt: item.startedAt || '',
-                            finishedAt: item.finishedAt || '',
-                            notes: item.notes || ''
-                        });
-                    }
+                selectedProjects.forEach(project => {
+                    initialFormData.set(project.id, {
+                        projectId: project.id,
+                        projectName: project.name,
+                        status: 'PENDING',
+                        branch: '',
+                        sourceBranch: '',
+                        pullRequest: '',
+                        script: '',
+                        startedAt: '',
+                        finishedAt: '',
+                        notes: ''
+                    });
                 });
                 setItemsFormData(initialFormData);
             }
@@ -108,13 +105,17 @@ const DeliveryCreate: React.FC = () => {
         }
     };
 
-    // Salvar dados de um item
+    // Salvar dados de um item específico
     const handleSaveItemData = async (projectId: number, data: DeliveryItemFormData) => {
-        const item = deliveryItems.find(item => item.projectId === projectId);
-        if (!item) return;
+        if (!createdDeliveryId) return;
 
         try {
-            await deliveryItemService.update(item.id, {
+            // Encontrar o item correspondente
+            const targetItem = deliveryItems.find(item => item.projectId === projectId);
+            if (!targetItem) return;
+
+            // Atualizar via API
+            await deliveryItemService.update(targetItem.id, {
                 status: data.status,
                 branch: data.branch,
                 sourceBranch: data.sourceBranch,
