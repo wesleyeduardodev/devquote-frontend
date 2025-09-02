@@ -93,11 +93,12 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            IN_PROGRESS: 'bg-blue-100 text-blue-800 border-blue-200',
-            TESTING: 'bg-purple-100 text-purple-800 border-purple-200',
+            DEVELOPMENT: 'bg-blue-100 text-blue-800 border-blue-200',
             DELIVERED: 'bg-green-100 text-green-800 border-green-200',
+            HOMOLOGATION: 'bg-purple-100 text-purple-800 border-purple-200',
             APPROVED: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-            REJECTED: 'bg-red-100 text-red-800 border-red-200'
+            REJECTED: 'bg-red-100 text-red-800 border-red-200',
+            PRODUCTION: 'bg-teal-100 text-teal-800 border-teal-200'
         };
         return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
     };
@@ -105,11 +106,12 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
-            IN_PROGRESS: 'Em Progresso',
-            TESTING: 'Em Teste',
+            DEVELOPMENT: 'Desenvolvimento',
             DELIVERED: 'Entregue',
+            HOMOLOGATION: 'Homologação',
             APPROVED: 'Aprovado',
-            REJECTED: 'Rejeitado'
+            REJECTED: 'Rejeitado',
+            PRODUCTION: 'Produção'
         };
         return labels[status] || status;
     };
@@ -117,11 +119,12 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
     const getStatusIcon = (status: string) => {
         const icons: Record<string, React.ReactNode> = {
             PENDING: <Clock className="w-4 h-4" />,
-            IN_PROGRESS: <Activity className="w-4 h-4" />,
-            TESTING: <Activity className="w-4 h-4" />,
+            DEVELOPMENT: <Activity className="w-4 h-4" />,
             DELIVERED: <Package className="w-4 h-4" />,
+            HOMOLOGATION: <Activity className="w-4 h-4" />,
             APPROVED: <CheckCircle2 className="w-4 h-4" />,
-            REJECTED: <AlertTriangle className="w-4 h-4" />
+            REJECTED: <AlertTriangle className="w-4 h-4" />,
+            PRODUCTION: <Check className="w-4 h-4" />
         };
         return icons[status] || <Activity className="w-4 h-4" />;
     };

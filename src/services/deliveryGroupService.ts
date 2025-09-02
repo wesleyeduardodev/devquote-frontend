@@ -1,4 +1,5 @@
 import api from './api';
+import type { DeliveryStatusCount } from '@/types/deliveryStatusCount.types';
 
 interface DeliveryGroup {
     taskId: number;
@@ -10,6 +11,7 @@ interface DeliveryGroup {
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
+    statusCounts?: DeliveryStatusCount;
     deliveries: any[];
     latestDeliveryId?: number;
 }
@@ -25,6 +27,7 @@ interface PaginatedDeliveryGroups {
 }
 
 export const deliveryGroupService = {
+    // Método original (mantido para compatibilidade)
     async getGroupedDeliveries(params: URLSearchParams): Promise<PaginatedDeliveryGroups> {
         const response = await api.get(`/deliveries/grouped?${params.toString()}`);
         return response.data;
@@ -32,6 +35,17 @@ export const deliveryGroupService = {
 
     async getGroupDetails(taskId: number): Promise<DeliveryGroup> {
         const response = await api.get(`/deliveries/group/${taskId}`);
+        return response.data;
+    },
+
+    // Novos métodos otimizados
+    async getGroupedDeliveriesOptimized(params: URLSearchParams): Promise<PaginatedDeliveryGroups> {
+        const response = await api.get(`/deliveries/grouped/optimized?${params.toString()}`);
+        return response.data;
+    },
+
+    async getGroupDetailsOptimized(taskId: number): Promise<DeliveryGroup> {
+        const response = await api.get(`/deliveries/group/${taskId}/optimized`);
         return response.data;
     },
 };

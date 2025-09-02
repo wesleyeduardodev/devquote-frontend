@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen, StickyNote, GitMerge, Check, Eye, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, GitBranch, ExternalLink, Calendar, FileCode, Truck, Search, Filter, Hash, FolderOpen, StickyNote, GitMerge, Check, Eye, Download, Clock, Activity, Package, Play, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useDeliveryGroups } from '@/hooks/useDeliveryGroups';
 import { deliveryService } from '@/services/deliveryService';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +22,15 @@ interface DeliveryGroup {
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
+    statusCounts?: {
+        pending: number;
+        development: number;
+        delivered: number;
+        homologation: number;
+        approved: number;
+        rejected: number;
+        production: number;
+    };
     deliveries: any[];
     latestDeliveryId?: number; // ID da entrega mais recente
 }
@@ -153,12 +162,13 @@ const DeliveryList: React.FC = () => {
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             PENDING: 'bg-yellow-100 text-yellow-800',
-            IN_PROGRESS: 'bg-blue-100 text-blue-800',
+            DEVELOPMENT: 'bg-blue-100 text-blue-800',
             COMPLETED: 'bg-green-100 text-green-800',
-            TESTING: 'bg-purple-100 text-purple-800',
             DELIVERED: 'bg-green-100 text-green-800',
+            HOMOLOGATION: 'bg-purple-100 text-purple-800',
             APPROVED: 'bg-emerald-100 text-emerald-800',
-            REJECTED: 'bg-red-100 text-red-800'
+            REJECTED: 'bg-red-100 text-red-800',
+            PRODUCTION: 'bg-teal-100 text-teal-800'
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -166,12 +176,13 @@ const DeliveryList: React.FC = () => {
     const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
-            IN_PROGRESS: 'Em Progresso',
+            DEVELOPMENT: 'Desenvolvimento',
             COMPLETED: 'Completado',
-            TESTING: 'Em Teste',
             DELIVERED: 'Entregue',
+            HOMOLOGATION: 'Homologação',
             APPROVED: 'Aprovado',
-            REJECTED: 'Rejeitado'
+            REJECTED: 'Rejeitado',
+            PRODUCTION: 'Produção'
         };
         return labels[status] || status;
     };
@@ -225,6 +236,30 @@ const DeliveryList: React.FC = () => {
             setIsDeleting(false);
         }
     };
+
+    // Calcular totais por status usando dados pré-calculados
+    const statusTotals = useMemo(() => {
+        return deliveryGroups.reduce((totals, group) => {
+            if (group.statusCounts) {
+                totals.pending += group.statusCounts.pending || 0;
+                totals.development += group.statusCounts.development || 0;
+                totals.delivered += group.statusCounts.delivered || 0;
+                totals.homologation += group.statusCounts.homologation || 0;
+                totals.approved += group.statusCounts.approved || 0;
+                totals.rejected += group.statusCounts.rejected || 0;
+                totals.production += group.statusCounts.production || 0;
+            }
+            return totals;
+        }, {
+            pending: 0,
+            development: 0,
+            delivered: 0,
+            homologation: 0,
+            approved: 0,
+            rejected: 0,
+            production: 0
+        });
+    }, [deliveryGroups]);
 
     // Filtrar delivery groups baseado na busca (apenas para mobile)
     const filteredDeliveryGroups = deliveryGroups.filter(group =>
@@ -588,64 +623,114 @@ const DeliveryList: React.FC = () => {
                 </Card>
             </div>
 
-            {/* Estatísticas - Responsivas */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
+            {/* Estatísticas por Status - Grid Responsivo */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                {/* Pendente */}
+                <div className="bg-white rounded-lg shadow p-4 border border-yellow-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <Truck className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+                            <Clock className="h-6 w-6 text-yellow-600" />
                         </div>
-                        <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Total</div>
-                            <div className="text-lg sm:text-2xl font-bold text-gray-900">
-                                {pagination?.totalElements || 0}
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-yellow-600">Pendente</div>
+                            <div className="text-lg font-bold text-yellow-700">
+                                {statusTotals.pending}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
+                {/* Desenvolvimento */}
+                <div className="bg-white rounded-lg shadow p-4 border border-blue-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
+                            <Activity className="h-6 w-6 text-blue-600" />
                         </div>
-                        <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Grupos</div>
-                            <div className="text-lg sm:text-2xl font-bold text-yellow-600">
-                                {deliveryGroups.length}
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-blue-600">Desenvolvimento</div>
+                            <div className="text-lg font-bold text-blue-700">
+                                {statusTotals.development}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
+                {/* Entregue */}
+                <div className="bg-white rounded-lg shadow p-4 border border-green-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+                            <Package className="h-6 w-6 text-green-600" />
                         </div>
-                        <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Total Entregas</div>
-                            <div className="text-lg sm:text-2xl font-bold text-green-600">
-                                {deliveryGroups.reduce((acc, g) => acc + g.totalDeliveries, 0)}
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-green-600">Entregue</div>
+                            <div className="text-lg font-bold text-green-700">
+                                {statusTotals.delivered}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100 col-span-2 lg:col-span-1">
+                {/* Homologação */}
+                <div className="bg-white rounded-lg shadow p-4 border border-purple-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <FileCode className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
+                            <Play className="h-6 w-6 text-purple-600" />
                         </div>
-                        <div className="ml-3 sm:ml-4">
-                            <div className="text-xs sm:text-sm font-medium text-gray-500">Concluídas</div>
-                            <div className="text-lg sm:text-2xl font-bold text-emerald-600">
-                                {deliveryGroups.reduce((acc, g) => acc + g.completedDeliveries, 0)}
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-purple-600">Homologação</div>
+                            <div className="text-lg font-bold text-purple-700">
+                                {statusTotals.homologation}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Aprovado */}
+                <div className="bg-white rounded-lg shadow p-4 border border-emerald-200">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-emerald-600">Aprovado</div>
+                            <div className="text-lg font-bold text-emerald-700">
+                                {statusTotals.approved}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Rejeitado */}
+                <div className="bg-white rounded-lg shadow p-4 border border-red-200">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                        </div>
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-red-600">Rejeitado</div>
+                            <div className="text-lg font-bold text-red-700">
+                                {statusTotals.rejected}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Produção */}
+                <div className="bg-white rounded-lg shadow p-4 border border-teal-200">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <Truck className="h-6 w-6 text-teal-600" />
+                        </div>
+                        <div className="ml-3">
+                            <div className="text-xs font-medium text-teal-600">Produção</div>
+                            <div className="text-lg font-bold text-teal-700">
+                                {statusTotals.production}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             {/* Conteúdo Responsivo */}
             {loading ? (

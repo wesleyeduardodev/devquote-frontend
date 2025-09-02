@@ -3,6 +3,7 @@ import { deliveryGroupService } from '@/services/deliveryGroupService';
 import { deliveryService } from '@/services/deliveryService';
 import toast from 'react-hot-toast';
 import { handleApiError, getUserErrorMessage } from '@/utils/errorHandler';
+import type { DeliveryStatusCount } from '@/types/deliveryStatusCount.types';
 
 interface DeliveryGroup {
     taskId: number;
@@ -14,6 +15,7 @@ interface DeliveryGroup {
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
+    statusCounts?: DeliveryStatusCount;
     deliveries: any[];
     latestDeliveryId?: number;
 }
@@ -86,7 +88,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         try {
             setLoading(true);
             const params = buildParams();
-            const response = await deliveryGroupService.getGroupedDeliveries(params);
+            const response = await deliveryGroupService.getGroupedDeliveriesOptimized(params);
 
             if (!controller.signal.aborted) {
                 setDeliveryGroups(response.content);
@@ -112,7 +114,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
 
     const getGroupDetails = useCallback(async (taskId: number): Promise<DeliveryGroup | null> => {
         try {
-            const response = await deliveryGroupService.getGroupDetails(taskId);
+            const response = await deliveryGroupService.getGroupDetailsOptimized(taskId);
             return response;
         } catch (error: any) {
             handleApiError(error, 'carregamento dos detalhes do grupo');

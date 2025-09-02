@@ -26,7 +26,7 @@ interface Delivery {
     id: number;
     name: string;
     description?: string;
-    status: 'PENDING' | 'IN_PROGRESS' | 'TESTING' | 'DELIVERED' | 'APPROVED' | 'REJECTED';
+    status: 'PENDING' | 'DEVELOPMENT' | 'DELIVERED' | 'HOMOLOGATION' | 'APPROVED' | 'REJECTED' | 'PRODUCTION';
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
@@ -113,18 +113,20 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'APPROVED':
-                return 'bg-green-100 text-green-800';
-            case 'DELIVERED':
-                return 'bg-blue-100 text-blue-800';
-            case 'TESTING':
-                return 'bg-purple-100 text-purple-800';
-            case 'IN_PROGRESS':
-                return 'bg-blue-100 text-blue-800';
             case 'PENDING':
                 return 'bg-yellow-100 text-yellow-800';
+            case 'DEVELOPMENT':
+                return 'bg-blue-100 text-blue-800';
+            case 'DELIVERED':
+                return 'bg-green-100 text-green-800';
+            case 'HOMOLOGATION':
+                return 'bg-purple-100 text-purple-800';
+            case 'APPROVED':
+                return 'bg-emerald-100 text-emerald-800';
             case 'REJECTED':
                 return 'bg-red-100 text-red-800';
+            case 'PRODUCTION':
+                return 'bg-teal-100 text-teal-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
@@ -132,18 +134,20 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'APPROVED':
-                return 'Aprovado';
-            case 'DELIVERED':
-                return 'Entregue';
-            case 'TESTING':
-                return 'Em Teste';
-            case 'IN_PROGRESS':
-                return 'Em Progresso';
             case 'PENDING':
                 return 'Pendente';
+            case 'DEVELOPMENT':
+                return 'Desenvolvimento';
+            case 'DELIVERED':
+                return 'Entregue';
+            case 'HOMOLOGATION':
+                return 'Homologação';
+            case 'APPROVED':
+                return 'Aprovado';
             case 'REJECTED':
                 return 'Rejeitado';
+            case 'PRODUCTION':
+                return 'Produção';
             default:
                 return status;
         }

@@ -3,11 +3,12 @@ export const STATUS = {
     // Delivery Status
     DELIVERY: {
         PENDING: 'PENDING',
-        IN_PROGRESS: 'IN_PROGRESS',
-        TESTING: 'TESTING',
+        DEVELOPMENT: 'DEVELOPMENT',
         DELIVERED: 'DELIVERED',
+        HOMOLOGATION: 'HOMOLOGATION',
         APPROVED: 'APPROVED',
         REJECTED: 'REJECTED',
+        PRODUCTION: 'PRODUCTION',
     },
 
     // Project Status
@@ -39,8 +40,13 @@ export const PRIORITY = {
 // Status labels for display
 export const STATUS_LABELS = {
     // Delivery Labels
-    TESTING: 'Em Teste',
+    PENDING: 'Pendente',
+    DEVELOPMENT: 'Desenvolvimento',
     DELIVERED: 'Entregue',
+    HOMOLOGATION: 'Homologação',
+    APPROVED: 'Aprovado',
+    REJECTED: 'Rejeitado',
+    PRODUCTION: 'Produção',
 
     // Project Labels
     PLANNING: 'Planejamento',
@@ -62,8 +68,13 @@ export const PRIORITY_LABELS = {
 
 // Color mappings for status badges
 export const STATUS_COLORS = {
-    TESTING: 'bg-purple-100 text-purple-800',
+    PENDING: 'bg-yellow-100 text-yellow-800',
+    DEVELOPMENT: 'bg-blue-100 text-blue-800',
     DELIVERED: 'bg-green-100 text-green-800',
+    HOMOLOGATION: 'bg-purple-100 text-purple-800',
+    APPROVED: 'bg-green-100 text-green-800',
+    REJECTED: 'bg-red-100 text-red-800',
+    PRODUCTION: 'bg-emerald-100 text-emerald-800',
 
     PLANNING: 'bg-indigo-100 text-indigo-800',
 

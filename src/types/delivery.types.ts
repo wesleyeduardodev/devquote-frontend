@@ -1,7 +1,7 @@
 import { BaseEntity } from './api.types';
 
 // Status específicos para entregas
-export type DeliveryStatus = 'PENDING' | 'IN_PROGRESS' | 'TESTING' | 'DELIVERED' | 'APPROVED' | 'REJECTED';
+export type DeliveryStatus = 'PENDING' | 'DEVELOPMENT' | 'DELIVERED' | 'HOMOLOGATION' | 'APPROVED' | 'REJECTED' | 'PRODUCTION';
 
 // Interface principal para Delivery
 export interface Delivery extends BaseEntity {

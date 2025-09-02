@@ -181,11 +181,12 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
     const statusOptions = [
         { value: 'PENDING', label: 'Pendente' },
-        { value: 'IN_PROGRESS', label: 'Em Progresso' },
-        { value: 'TESTING', label: 'Em Teste' },
+        { value: 'DEVELOPMENT', label: 'Desenvolvimento' },
         { value: 'DELIVERED', label: 'Entregue' },
+        { value: 'HOMOLOGATION', label: 'Homologação' },
         { value: 'APPROVED', label: 'Aprovado' },
-        { value: 'REJECTED', label: 'Rejeitado' }
+        { value: 'REJECTED', label: 'Rejeitado' },
+        { value: 'PRODUCTION', label: 'Produção' }
     ];
 
     return (
