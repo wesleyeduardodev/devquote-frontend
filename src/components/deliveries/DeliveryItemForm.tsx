@@ -93,6 +93,8 @@ export default function DeliveryItemForm({
     const onSubmit = (data: DeliveryItemFormData) => {
         onSave({
             ...data,
+            id: initialData?.id,
+            deliveryId: initialData?.deliveryId,
             projectId: project.id,
             projectName: project.name
         });
@@ -266,7 +268,7 @@ export default function DeliveryItemForm({
                             </label>
                             <Input
                                 {...register('startedAt')}
-                                type="datetime-local"
+                                type="date"
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
@@ -278,7 +280,7 @@ export default function DeliveryItemForm({
                             </label>
                             <Input
                                 {...register('finishedAt')}
-                                type="datetime-local"
+                                type="date"
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />

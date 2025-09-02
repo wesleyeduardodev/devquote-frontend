@@ -164,6 +164,8 @@ export interface DeliveryFormData {
 
 // Form data para item de entrega
 export interface DeliveryItemFormData {
+    id?: number; // Para identificar item existente
+    deliveryId?: number; // Para associar ao delivery
     projectId: number;
     projectName?: string;
     status: DeliveryStatus;

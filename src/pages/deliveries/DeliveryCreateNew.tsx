@@ -116,6 +116,8 @@ const DeliveryCreate: React.FC = () => {
 
             // Atualizar via API
             await deliveryItemService.update(targetItem.id, {
+                deliveryId: targetItem.deliveryId,
+                projectId: targetItem.projectId,
                 status: data.status,
                 branch: data.branch,
                 sourceBranch: data.sourceBranch,
