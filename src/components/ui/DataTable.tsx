@@ -314,7 +314,12 @@ const DataTable = <T extends Record<string, any>>({
     const pageSizeOptions = [5, 10, 25, 50, 100];
 
     const renderPaginationInfo = () => {
-        if (!pagination) return null;
+        if (!pagination || 
+            pagination.currentPage === undefined || 
+            pagination.pageSize === undefined || 
+            pagination.totalElements === undefined) {
+            return null;
+        }
 
         const start = pagination.currentPage * pagination.pageSize + 1;
         const end = Math.min((pagination.currentPage + 1) * pagination.pageSize, pagination.totalElements);
