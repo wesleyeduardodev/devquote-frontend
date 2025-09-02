@@ -59,6 +59,17 @@ export const projectService = {
         return response.data;
     },
 
+    getByIds: async (ids: number[]): Promise<any[]> => {
+        if (ids.length === 0) return [];
+        
+        // Usar a rota de listagem existente para buscar projetos específicos
+        // Fazemos chamadas individuais para cada ID (mais simples que criar nova rota)
+        const projects = await Promise.all(
+            ids.map(id => projectService.getById(id))
+        );
+        return projects;
+    },
+
     create: async (data: any): Promise<any> => {
         const response = await api.post('/projects', data);
         return response.data;

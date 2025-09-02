@@ -103,6 +103,7 @@ export interface DeliveryGroupResponse {
     taskName: string;
     taskCode: string;
     taskValue?: number;
+    deliveryId?: number; // ID da entrega principal (1:1 com task)
     deliveryStatus: DeliveryStatus;
     statusCounts: DeliveryStatusCount;
     totalDeliveries: number;
@@ -194,6 +195,7 @@ export interface AvailableTask {
 export interface AvailableProject {
     id: number;
     name: string;
+    description?: string;
     repositoryUrl?: string;
 }
 

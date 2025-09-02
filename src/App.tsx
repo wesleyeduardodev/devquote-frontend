@@ -18,6 +18,7 @@ import ProjectEdit from './pages/projects/ProjectEdit';
 import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryGroupEdit from './pages/deliveries/DeliveryGroupEdit';
+import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import ProfileManagement from './pages/profiles/ProfileManagement';
 import { UserSettings } from './pages/UserSettings';
@@ -128,6 +129,11 @@ const AppRoutes: React.FC = () => {
                             <Route path="/deliveries/group/:taskId/edit" element={
                                 <ProtectedRoute requiredScreen="deliveries">
                                     <DeliveryGroupEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/deliveries/:deliveryId/edit" element={
+                                <ProtectedRoute requiredScreen="deliveries">
+                                    <DeliveryEdit/>
                                 </ProtectedRoute>
                             }/>
                             

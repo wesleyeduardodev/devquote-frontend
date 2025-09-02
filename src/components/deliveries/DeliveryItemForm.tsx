@@ -18,6 +18,10 @@ interface DeliveryItemFormProps {
 
 // Schema de validação
 const deliveryItemSchema = yup.object({
+    id: yup.number().optional(),
+    deliveryId: yup.number().optional(),
+    projectId: yup.number().required('Projeto é obrigatório'),
+    projectName: yup.string().optional(),
     status: yup.string().required('Status é obrigatório'),
     branch: yup.string().optional(),
     sourceBranch: yup.string().optional(),
@@ -83,9 +87,9 @@ export default function DeliveryItemForm({
     useEffect(() => {
         if (initialData) {
             reset({
+                ...initialData,
                 projectId: project.id,
-                projectName: project.name,
-                ...initialData
+                projectName: project.name
             });
         }
     }, [initialData, project, reset]);

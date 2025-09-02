@@ -196,7 +196,15 @@ const DeliveryList: React.FC = () => {
     };
 
     const handleEdit = (group: DeliveryGroupResponse) => {
-        navigate(`/deliveries/task/${group.taskId}/edit`);
+        // Pegar o ID da primeira entrega (relação 1:1 com task)
+        const deliveryId = group.deliveries?.[0]?.id;
+        console.log('Editando entrega. Grupo:', group, 'DeliveryId encontrado:', deliveryId);
+        
+        if (deliveryId) {
+            navigate(`/deliveries/${deliveryId}/edit`);
+        } else {
+            toast.error('Entrega não encontrada para edição');
+        }
     };
 
     const handleDelete = (group: DeliveryGroupResponse) => {
