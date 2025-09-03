@@ -33,8 +33,8 @@ const DeliveryList: React.FC = () => {
     // Verificações de perfil
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
-    const canCreate = isAdmin || isManager;
-    const canEdit = isAdmin || isManager;
+    const canCreate = isAdmin;
+    const canEdit = isAdmin;
     const canDelete = isAdmin;
 
     // Estados principais
