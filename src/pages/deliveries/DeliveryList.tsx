@@ -19,6 +19,7 @@ import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DeliveryGroupModal from '../../components/deliveries/DeliveryGroupModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
+import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 
 interface SortInfo {
     field: string;
@@ -54,6 +55,11 @@ const DeliveryList: React.FC = () => {
     const [selectedGroup, setSelectedGroup] = useState<DeliveryGroupResponse | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState<DeliveryGroupResponse | null>(null);
+    
+    // Estados para seleção múltipla
+    const [selectedDeliveries, setSelectedDeliveries] = useState<number[]>([]);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     // Carregar estatísticas
     const fetchStatistics = async () => {
@@ -107,10 +113,86 @@ const DeliveryList: React.FC = () => {
     useEffect(() => {
         fetchDeliveryGroups();
         fetchStatistics(); // Carregar estatísticas na primeira vez
+        setSelectedDeliveries([]); // Limpar seleção quando dados mudarem
     }, [currentPage, pageSize, sorting, filters]);
+
+    // Handlers para seleção múltipla
+    const handleSelectDelivery = (deliveryId: number) => {
+        setSelectedDeliveries(prev => {
+            if (prev.includes(deliveryId)) {
+                return prev.filter(id => id !== deliveryId);
+            } else {
+                return [...prev, deliveryId];
+            }
+        });
+    };
+
+    const handleSelectAll = () => {
+        const availableDeliveryIds = deliveryGroups
+            .map(group => group.deliveries?.[0]?.id)
+            .filter((id): id is number => id !== undefined);
+
+        if (selectedDeliveries.length === availableDeliveryIds.length) {
+            setSelectedDeliveries([]);
+        } else {
+            setSelectedDeliveries(availableDeliveryIds);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedDeliveries.length === 0) return;
+
+        setIsBulkDeleting(true);
+        try {
+            await deliveryService.deleteBulk(selectedDeliveries);
+            toast.success(`${selectedDeliveries.length} entrega(s) excluída(s) com sucesso!`);
+            setSelectedDeliveries([]);
+            setShowBulkDeleteModal(false);
+            fetchDeliveryGroups();
+            fetchStatistics();
+        } catch (error) {
+            console.error('Erro ao excluir entregas:', error);
+            toast.error('Erro ao excluir entregas selecionadas');
+        } finally {
+            setIsBulkDeleting(false);
+        }
+    };
 
     // Definir colunas da tabela
     const columns: Column<DeliveryGroupResponse>[] = [
+        // Coluna de seleção
+        {
+            key: 'select',
+            title: (
+                <div className="flex items-center justify-center">
+                    <input
+                        type="checkbox"
+                        checked={selectedDeliveries.length === deliveryGroups.filter(g => g.deliveries?.[0]?.id).length && deliveryGroups.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                </div>
+            ),
+            sortable: false,
+            filterable: false,
+            render: (delivery) => {
+                const deliveryId = delivery.deliveries?.[0]?.id;
+                if (!deliveryId) return null;
+                
+                return (
+                    <div className="flex items-center justify-center">
+                        <input
+                            type="checkbox"
+                            checked={selectedDeliveries.includes(deliveryId)}
+                            onChange={() => handleSelectDelivery(deliveryId)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                    </div>
+                );
+            },
+            width: '50px',
+            align: 'center'
+        },
         {
             key: 'task.id',
             title: 'ID',
@@ -253,12 +335,16 @@ const DeliveryList: React.FC = () => {
         if (!groupToDelete) return;
 
         try {
-            // Deletar a entrega (e seus itens) pela task ID
-            const delivery = await deliveryService.getByTaskId(groupToDelete.taskId);
-            if (delivery) {
-                await deliveryService.delete(delivery.id);
+            // Pegar o ID da primeira entrega (relação 1:1 com task)
+            const deliveryId = groupToDelete.deliveries?.[0]?.id;
+            
+            if (deliveryId) {
+                await deliveryService.delete(deliveryId);
                 toast.success('Entrega excluída com sucesso!');
                 fetchDeliveryGroups(); // Recarregar lista
+                fetchStatistics(); // Recarregar estatísticas
+            } else {
+                toast.error('ID da entrega não encontrado');
             }
         } catch (error) {
             console.error('Erro ao excluir entrega:', error);
@@ -420,6 +506,18 @@ const DeliveryList: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
+                    {/* Ações em lote - visível apenas se houver seleções */}
+                    {selectedDeliveries.length > 0 && canDelete && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowBulkDeleteModal(true)}
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir ({selectedDeliveries.length})
+                        </Button>
+                    )}
+                    
                     <Button
                         variant="outline"
                         onClick={handleExport}
@@ -653,6 +751,16 @@ const DeliveryList: React.FC = () => {
                     message={`Tem certeza que deseja excluir a entrega da tarefa "${groupToDelete.taskName}"? Esta ação não pode ser desfeita.`}
                 />
             )}
+
+            {/* Modal de exclusão em lote */}
+            <BulkDeleteModal
+                isOpen={showBulkDeleteModal}
+                onClose={() => setShowBulkDeleteModal(false)}
+                onConfirm={handleBulkDelete}
+                selectedCount={selectedDeliveries.length}
+                isDeleting={isBulkDeleting}
+                entityName="entrega"
+            />
         </div>
     );
 };
