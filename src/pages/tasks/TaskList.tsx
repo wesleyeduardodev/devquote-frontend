@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Task } from '@/types/task.types';
 import {
     Plus,
     Edit,
@@ -40,32 +41,6 @@ interface SubTask {
     updatedAt?: string;
 }
 
-interface Task {
-    id: number;
-    requesterId: number;
-    requesterName?: string;
-    title: string;
-    description?: string;
-    code: string;
-    link?: string;
-    meetingLink?: string;
-    notes?: string;
-    amount?: number;
-    hasSubTasks?: boolean;
-    taskType?: string;
-    serverOrigin?: string;
-    systemModule?: string;
-    priority?: string;
-    subTasks?: SubTask[];
-    createdAt?: string;
-    updatedAt?: string;
-    createdByUserId?: number;
-    createdByUserName?: string;
-    updatedByUserId?: number;
-    updatedByUserName?: string;
-    hasDelivery?: boolean;
-    hasQuoteInBilling?: boolean;
-}
 
 const TaskList: React.FC = () => {
     const navigate = useNavigate();
