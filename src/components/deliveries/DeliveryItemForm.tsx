@@ -258,20 +258,6 @@ export default function DeliveryItemForm({
                         )}
                     </div>
 
-                    {/* Script */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Script/Comandos
-                        </label>
-                        <textarea
-                            {...register('script')}
-                            placeholder="npm run build&#10;docker build -t app .&#10;kubectl apply -f deploy.yaml"
-                            disabled={isReadOnly}
-                            rows={3}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 font-mono text-sm"
-                        />
-                    </div>
-
                     {/* Datas */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -310,6 +296,20 @@ export default function DeliveryItemForm({
                             disabled={isReadOnly}
                             rows={3}
                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                        />
+                    </div>
+
+                    {/* Script */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Script/Comandos
+                        </label>
+                        <textarea
+                            {...register('script')}
+                            placeholder="npm run build&#10;docker build -t app .&#10;kubectl apply -f deploy.yaml"
+                            disabled={isReadOnly}
+                            rows={6}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 font-mono text-sm"
                         />
                     </div>
 
