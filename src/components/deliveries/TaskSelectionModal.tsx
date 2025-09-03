@@ -196,19 +196,19 @@ export default function TaskSelectionModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
                 {/* Header */}
-                <div className="px-6 py-3 border-b border-gray-200">
+                <div className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-white sticky top-0">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate pr-2">
                                 Selecionar Tarefa para Entrega
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                            className="text-gray-400 hover:text-gray-600 transition-colors p-1 flex-shrink-0"
                             title="Fechar (ESC)"
                         >
                             <X className="w-5 h-5" />
@@ -217,7 +217,7 @@ export default function TaskSelectionModal({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto" style={{ height: 'calc(85vh - 120px)' }}>
+                <div className="flex-1 overflow-y-auto max-h-[calc(90vh-120px)] sm:max-h-[calc(85vh-120px)]">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full">
                             <LoadingSpinner size="lg" />
@@ -236,49 +236,113 @@ export default function TaskSelectionModal({
                             </div>
                         </div>
                     ) : (
-                        <DataTable
-                            data={tasks}
-                            columns={columns}
-                            loading={isLoading}
-                            showColumnToggle={false}
-                            
-                            // Paginação
-                            pagination={paginationData ? {
-                                currentPage: page,
-                                pageSize: size,
-                                totalElements: paginationData.totalElements,
-                                totalPages: paginationData.totalPages
-                            } : null}
-                            onPageChange={setPage}
-                            onPageSizeChange={setSize}
-                            
-                            // Ordenação
-                            sorting={sorting}
-                            onSort={(field, direction) => {
-                                setSorting([{ field, direction }]);
-                                setPage(0);
-                            }}
-                            
-                            // Filtros
-                            filters={filters}
-                            onFilter={(field, value) => {
-                                setFilters(prev => ({
-                                    ...prev,
-                                    [field]: value || undefined
-                                }));
-                                setPage(0);
-                            }}
-                            onClearFilters={() => {
-                                setFilters({});
-                                setPage(0);
-                            }}
-                        />
+                        <>
+                            {/* Mobile: Cards Layout */}
+                            <div className="block sm:hidden">
+                                <div className="px-4 space-y-3">
+                                    {tasks.map((task) => (
+                                        <div 
+                                            key={task.id}
+                                            className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="text-sm font-medium text-gray-600">
+                                                            #{task.id}
+                                                        </span>
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                            {task.code}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-sm font-medium text-gray-900 mb-3 leading-5">
+                                                        {task.title}
+                                                    </h3>
+                                                    <button
+                                                        onClick={() => handleRowClick(task)}
+                                                        className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        ✓ Selecionar Tarefa
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                {/* Mobile Pagination */}
+                                {paginationData && paginationData.totalPages > 1 && (
+                                    <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
+                                        <div className="flex items-center justify-between">
+                                            <button
+                                                onClick={() => setPage(Math.max(0, page - 1))}
+                                                disabled={page === 0}
+                                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Anterior
+                                            </button>
+                                            <span className="text-sm text-gray-700">
+                                                {page + 1} de {paginationData.totalPages}
+                                            </span>
+                                            <button
+                                                onClick={() => setPage(Math.min(paginationData.totalPages - 1, page + 1))}
+                                                disabled={page >= paginationData.totalPages - 1}
+                                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Próxima
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Desktop: DataTable */}
+                            <div className="hidden sm:block">
+                                <DataTable
+                                    data={tasks}
+                                    columns={columns}
+                                    loading={isLoading}
+                                    showColumnToggle={false}
+                                    
+                                    // Paginação
+                                    pagination={paginationData ? {
+                                        currentPage: page,
+                                        pageSize: size,
+                                        totalElements: paginationData.totalElements,
+                                        totalPages: paginationData.totalPages
+                                    } : null}
+                                    onPageChange={setPage}
+                                    onPageSizeChange={setSize}
+                                    
+                                    // Ordenação
+                                    sorting={sorting}
+                                    onSort={(field, direction) => {
+                                        setSorting([{ field, direction }]);
+                                        setPage(0);
+                                    }}
+                                    
+                                    // Filtros
+                                    filters={filters}
+                                    onFilter={(field, value) => {
+                                        setFilters(prev => ({
+                                            ...prev,
+                                            [field]: value || undefined
+                                        }));
+                                        setPage(0);
+                                    }}
+                                    onClearFilters={() => {
+                                        setFilters({});
+                                        setPage(0);
+                                    }}
+                                />
+                            </div>
+                        </>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-2 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 text-center">
+                <div className="px-4 sm:px-6 py-2 border-t border-gray-200 bg-white">
+                    <p className="text-xs sm:text-sm text-gray-600 text-center">
                         {paginationData?.totalElements || 0} tarefa{(paginationData?.totalElements || 0) !== 1 ? 's' : ''} disponível{(paginationData?.totalElements || 0) !== 1 ? 'eis' : ''}
                     </p>
                 </div>
