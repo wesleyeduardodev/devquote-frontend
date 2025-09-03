@@ -137,7 +137,72 @@ export default function DeliveryItemForm({
                 }`}
                 onClick={() => !isReadOnly && setIsExpanded(!isExpanded)}
             >
-                <div className="flex items-center justify-between">
+                {/* Mobile Layout */}
+                <div className="block sm:hidden">
+                    <div className="space-y-3">
+                        {/* Nome e Link */}
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                                <GitBranch className="h-4 w-4 text-gray-500 mt-1 flex-shrink-0" />
+                                <h3 className="font-medium text-gray-900 text-sm leading-5 break-words">
+                                    {project.name}
+                                </h3>
+                            </div>
+                            {project.repositoryUrl && (
+                                <a 
+                                    href={project.repositoryUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 ml-2 flex-shrink-0"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <ExternalLink className="h-4 w-4" />
+                                </a>
+                            )}
+                        </div>
+                        
+                        {/* Status e Ações */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color} bg-opacity-10`}
+                                    style={{ backgroundColor: statusInfo.color.replace('text-', 'bg-').replace('600', '50') }}>
+                                    ✓ {statusInfo.label}
+                                </span>
+                                {hasUnsavedChanges && (
+                                    <span className="inline-flex items-center gap-1 text-yellow-600 text-xs">
+                                        <AlertCircle className="h-3 w-3" />
+                                        Não salvo
+                                    </span>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                {customActions && (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                        {customActions}
+                                    </div>
+                                )}
+                                
+                                {!isReadOnly && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsExpanded(!isExpanded);
+                                        }}
+                                        className="px-2 py-1"
+                                    >
+                                        {isExpanded ? '⌃' : '⌄'}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Desktop Layout - Original */}
+                <div className="hidden sm:flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                             <GitBranch className="h-4 w-4 text-gray-500" />
@@ -216,7 +281,7 @@ export default function DeliveryItemForm({
                     </div>
 
                     {/* Branches */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Branch de Desenvolvimento
@@ -259,7 +324,7 @@ export default function DeliveryItemForm({
                     </div>
 
                     {/* Datas */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Data de Início

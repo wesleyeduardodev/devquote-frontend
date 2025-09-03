@@ -69,7 +69,20 @@ const DeliveryList: React.FC = () => {
             });
 
             setPagination(response);
-            setDeliveryGroups(response.content || []);
+            
+            // Aplicar filtro de status no frontend se necessário
+            let filteredContent = response.content || [];
+            if (filters.deliveryStatus) {
+                const statusFilter = filters.deliveryStatus.toLowerCase();
+                filteredContent = filteredContent.filter(delivery => {
+                    const actualStatus = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus || '').toLowerCase();
+                    const statusLabel = getStatusLabel((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus).toLowerCase();
+                    // Filtrar tanto pelo valor do enum quanto pelo label em português
+                    return actualStatus.includes(statusFilter) || statusLabel.includes(statusFilter);
+                });
+            }
+            
+            setDeliveryGroups(filteredContent);
         } catch (error) {
             console.error('Erro ao carregar entregas:', error);
             toast.error('Erro ao carregar entregas');
