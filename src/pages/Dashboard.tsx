@@ -199,31 +199,15 @@ const Dashboard = () => {
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white transform hover:scale-105 transition-transform duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Total de Tarefas</p>
+                <p className="text-blue-100 text-sm font-medium">Tarefas Cadastradas</p>
                 <p className="text-3xl font-bold">
                   {stats.tasks?.total || 0}
                 </p>
                 <p className="text-blue-200 text-xs mt-1">
-                  {stats.tasks?.active || 0} ativas
+                  Total no sistema
                 </p>
               </div>
               <CheckSquare className="w-12 h-12 text-blue-200" />
-            </div>
-          </Card>
-
-          {/* Completed Tasks */}
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white transform hover:scale-105 transition-transform duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm font-medium">Tarefas Concluídas</p>
-                <p className="text-3xl font-bold">
-                  {stats.tasks?.completed || 0}
-                </p>
-                <p className="text-green-200 text-xs mt-1">
-                  {((stats.tasks?.completed || 0) / (stats.tasks?.total || 1) * 100).toFixed(1)}% do total
-                </p>
-              </div>
-              <CheckCircle className="w-12 h-12 text-green-200" />
             </div>
           </Card>
 
@@ -236,23 +220,39 @@ const Dashboard = () => {
                   {stats.deliveries?.total || 0}
                 </p>
                 <p className="text-purple-200 text-xs mt-1">
-                  {stats.deliveries?.active || 0} pendentes
+                  {stats.deliveries?.active || 0} em andamento
                 </p>
               </div>
               <Truck className="w-12 h-12 text-purple-200" />
             </div>
           </Card>
 
-          {/* Completion Rate */}
+          {/* Approved Deliveries */}
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white transform hover:scale-105 transition-transform duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium">Entregas Aprovadas</p>
+                <p className="text-3xl font-bold">
+                  {stats.deliveries?.completed || 0}
+                </p>
+                <p className="text-green-200 text-xs mt-1">
+                  {((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100).toFixed(1)}% do total
+                </p>
+              </div>
+              <CheckCircle className="w-12 h-12 text-green-200" />
+            </div>
+          </Card>
+
+          {/* Taxa de Aprovação */}
           <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white transform hover:scale-105 transition-transform duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-100 text-sm font-medium">Taxa de Sucesso</p>
+                <p className="text-orange-100 text-sm font-medium">Taxa de Aprovação</p>
                 <p className="text-3xl font-bold">
-                  {stats.general?.completionRate?.toFixed(1) || 0}%
+                  {((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100).toFixed(1)}%
                 </p>
                 <p className="text-orange-200 text-xs mt-1">
-                  Performance geral
+                  Entregas aprovadas
                 </p>
               </div>
               <TrendingUp className="w-12 h-12 text-orange-200" />
@@ -387,85 +387,6 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Main Content Grid - Estatísticas de Entregas e Card de Entregas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Monthly Deliveries Stats - Movido para primeira posição */}
-          {stats.deliveriesByStatus && stats.deliveriesByStatus.length > 0 && (
-            <Card title="Estatísticas Mensais de Entregas" className="hover:shadow-xl transition-shadow duration-300">
-              <div className="space-y-4">
-                {stats.deliveriesByStatus.map((status, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-4 h-4 rounded-full ${
-                        status.status.includes('Criadas') ? 'bg-purple-500' :
-                        status.status.includes('Iniciadas') ? 'bg-orange-500' :
-                        status.status.includes('Finalizadas') ? 'bg-green-500' :
-                        'bg-gray-400'
-                      }`} />
-                      <span className="text-sm font-medium text-gray-700">
-                        {status.status}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">{status.count}</div>
-                      <div className="text-xs text-gray-500">entregas</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Deliveries Module */}
-          <Card title="Gestão de Entregas" className="hover:shadow-xl transition-shadow duration-300">
-            <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-purple-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-purple-600">{stats.deliveries?.total || 0}</div>
-                  <div className="text-xs text-purple-600 font-medium">Total</div>
-                </div>
-                <div className="bg-orange-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-orange-600">{stats.deliveries?.active || 0}</div>
-                  <div className="text-xs text-orange-600 font-medium">Pendentes</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-green-600">{stats.deliveries?.completed || 0}</div>
-                  <div className="text-xs text-green-600 font-medium">Aprovadas</div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Taxa de Aprovação</span>
-                  <span className="font-semibold text-gray-900">
-                    {((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-green-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="flex space-x-2">
-                <Link to="/deliveries" className="flex-1">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Ver Todas
-                  </Button>
-                </Link>
-                <Link to="/deliveries/create" className="flex-1">
-                  <Button size="sm" className="w-full">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Nova Entrega
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
-        </div>
       </div>
     </div>
   );
