@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Plus, Trash2, Save, Eye, Package2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Eye, Package2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { deliveryService } from '../../services/deliveryService';
 import { deliveryItemService } from '../../services/deliveryItemService';
@@ -35,7 +35,6 @@ const DeliveryEdit: React.FC = () => {
 
     // Estados principais
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
     const [delivery, setDelivery] = useState<Delivery | null>(null);
     const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>([]);
@@ -260,24 +259,6 @@ const DeliveryEdit: React.FC = () => {
         return labels[status] || status;
     };
 
-    const handleSaveDelivery = async () => {
-        if (!delivery) {
-            toast.error('Dados incompletos');
-            return;
-        }
-
-        try {
-            setSaving(true);
-
-            // Na edição, não alteramos mais a tarefa, apenas informativo
-            toast.success('Entrega salva com sucesso!');
-        } catch (error) {
-            console.error('Erro ao salvar entrega:', error);
-            toast.error('Erro ao salvar entrega');
-        } finally {
-            setSaving(false);
-        }
-    };
 
     if (loading) {
         return (
@@ -321,26 +302,6 @@ const DeliveryEdit: React.FC = () => {
                         </div>
                     </div>
 
-                    {canEdit && (
-                        <div className="flex items-center gap-3">
-                            <Button
-                                onClick={handleSaveDelivery}
-                                disabled={saving}
-                            >
-                                {saving ? (
-                                    <>
-                                        <LoadingSpinner size="sm" />
-                                        Salvando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Salvar Entrega
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    )}
                 </div>
 
                 {/* Seleção de Tarefa */}
@@ -363,17 +324,6 @@ const DeliveryEdit: React.FC = () => {
                                         Solicitante: {selectedTask.requester?.name}
                                     </div>
                                 </div>
-                                {selectedTask.amount && (
-                                    <div className="text-right">
-                                        <div className="text-sm text-gray-500">Valor</div>
-                                        <div className="font-medium text-green-600">
-                                            {new Intl.NumberFormat('pt-BR', {
-                                                style: 'currency',
-                                                currency: 'BRL'
-                                            }).format(selectedTask.amount)}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     ) : (
@@ -393,7 +343,6 @@ const DeliveryEdit: React.FC = () => {
                         {canEdit && (
                             <Button
                                 onClick={() => setShowProjectModal(true)}
-                                disabled={saving}
                             >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Adicionar Projetos

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, FolderOpen, Save } from 'lucide-react';
+import { ArrowLeft, Package, FolderOpen, Save, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import {
     AvailableTask,
@@ -137,6 +137,32 @@ const DeliveryCreate: React.FC = () => {
         } catch (error) {
             console.error('Erro ao salvar item:', error);
             toast.error('Erro ao salvar dados do projeto. Tente novamente.');
+        }
+    };
+
+    // Remover item
+    const handleRemoveItem = async (projectId: number) => {
+        const item = deliveryItems.find(item => item.projectId === projectId);
+        if (!item) return;
+
+        try {
+            await deliveryItemService.delete(item.id);
+            
+            // Remover do estado local
+            setDeliveryItems(prev => prev.filter(i => i.id !== item.id));
+            setSelectedProjects(prev => prev.filter(p => p.id !== projectId));
+            
+            // Remover do mapa de dados do formulário
+            setItemsFormData(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(projectId);
+                return newMap;
+            });
+
+            toast.success('Item removido com sucesso!');
+        } catch (error) {
+            console.error('Erro ao remover item:', error);
+            toast.error('Erro ao remover item');
         }
     };
 
@@ -298,6 +324,17 @@ const DeliveryCreate: React.FC = () => {
                                         project={project}
                                         initialData={formData}
                                         onSave={(data) => handleSaveItemData(project.id, data)}
+                                        customActions={
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleRemoveItem(project.id)}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Remover
+                                            </Button>
+                                        }
                                     />
                                 );
                             })}
