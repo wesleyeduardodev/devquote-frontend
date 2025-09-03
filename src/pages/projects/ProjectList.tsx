@@ -349,22 +349,6 @@ const ProjectList: React.FC = () => {
 
             {/* Informações do Projeto */}
             <div className="space-y-2">
-                {project.repositoryUrl && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <Github className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a
-                            href={project.repositoryUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 hover:underline truncate flex-1"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            {project.repositoryUrl}
-                        </a>
-                        <ExternalLink className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                    </div>
-                )}
-
                 {project.createdAt && (
                     <div className="flex items-center gap-2 text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
                         <Calendar className="w-4 h-4 flex-shrink-0" />
