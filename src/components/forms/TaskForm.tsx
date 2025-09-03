@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Search, X, Check, FolderOpen, ExternalLink, Filter, DollarSign } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
-import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-import DataTable, { Column } from '@/components/ui/DataTable';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -34,7 +32,6 @@ interface TaskData {
     serverOrigin?: string;
     systemModule?: string;
     priority?: string;
-    projectsIds?: number[];
     subTasks?: any[];
 }
 
@@ -45,13 +42,6 @@ interface TaskFormProps {
     loading?: boolean;
 }
 
-interface Project {
-    id: number;
-    name: string;
-    repositoryUrl?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
 
 const schema = yup.object({
     title: yup.string().required('Título é obrigatório').max(200, 'Máximo 200 caracteres'),
@@ -67,7 +57,6 @@ const schema = yup.object({
     serverOrigin: yup.string().max(100, 'Máximo 100 caracteres').optional(),
     systemModule: yup.string().max(100, 'Máximo 100 caracteres').optional(),
     priority: yup.string().required('Prioridade é obrigatória'),
-    projectsIds: yup.array().of(yup.number()).optional(),
     subTasks: yup.array().optional(),
 });
 
@@ -80,30 +69,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
 
-    const [showProjectModal, setShowProjectModal] = useState(false);
-    const [selectedProjects, setSelectedProjects] = useState<Project[]>([]);
-    const [projectSearchTerm, setProjectSearchTerm] = useState('');
-    const [createDeliveries, setCreateDeliveries] = useState(false);
-    const [linkTaskToBilling, setLinkTaskToBilling] = useState(false);
 
-    // Hook padronizado como DeliveryCreate (com paginação, ordenação e filtros)
-    const {
-        projects,
-        pagination: projectPagination,
-        loading: loadingProjects,
-        sorting: projectSorting,
-        filters: projectFilters,
-        setPage: setProjectPage,
-        setPageSize: setProjectPageSize,
-        setSorting: setProjectSorting,
-        setFilter: setProjectFilter,
-        clearFilters: clearProjectFilters,
-    } = useProjects({
-        page: 0,
-        size: 8,
-        sort: [{ field: 'name', direction: 'asc' }],
-        filters: {},
-    });
 
     const methods = useForm<TaskData>({
         resolver: yupResolver(schema),
@@ -120,7 +86,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
             serverOrigin: initialData?.serverOrigin || '',
             systemModule: initialData?.systemModule || '',
             priority: initialData?.priority || 'MEDIUM',
-            projectsIds: initialData?.projectsIds || [],
             subTasks:
                 initialData?.subTasks || [
                     {
@@ -140,15 +105,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
         control,
     } = methods;
 
-    // pré-carrega seleção (edição)
-    useEffect(() => {
-        if (initialData?.projects && Array.isArray(initialData.projects)) {
-            setSelectedProjects(initialData.projects);
-        } else if (initialData?.projectsIds?.length) {
-            // se vier só os ids, mantém e seleciona quando aparecerem na lista
-            setSelectedProjects((prev) => prev);
-        }
-    }, [initialData]);
 
     const hasSubTasks = useWatch({ control, name: 'hasSubTasks' });
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
@@ -220,9 +176,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
             const formattedData = {
                 ...data,
                 requesterId: data.requesterId || initialData?.requesterId,
-                projectsIds: selectedProjects.map((p) => p.id),
-                createDeliveries: createDeliveries && selectedProjects.length > 0,
-                linkTaskToBilling: linkTaskToBilling,
                 amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
                 subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
                     ...subTask,
@@ -236,9 +189,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
             // Só reseta se for uma criação bem-sucedida
             if (!initialData?.id) {
                 reset();
-                setSelectedProjects([]);
-                setCreateDeliveries(false);
-                setLinkTaskToBilling(false);
             }
         } catch (error: any) {
             console.error('Erro no formulário de tarefa:', error);
@@ -281,112 +231,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
         }
     };
 
-    const toggleProject = (project: Project) => {
-        setSelectedProjects((curr) => {
-            const exists = curr.some((p) => p.id === project.id);
-            if (exists) return curr.filter((p) => p.id !== project.id);
-            return [...curr, project];
-        });
-    };
-
-    const toggleAllProjects = () => {
-        const allSelected = projects.every(p => selectedProjects.some(sp => sp.id === p.id));
-        if (allSelected) {
-            // Deselecionar todos da página atual
-            setSelectedProjects(curr =>
-                curr.filter(sp => !projects.some(p => p.id === sp.id))
-            );
-        } else {
-            // Selecionar todos da página atual que ainda não estão selecionados
-            setSelectedProjects(curr => {
-                const newSelections = projects.filter(p =>
-                    !curr.some(sp => sp.id === p.id)
-                );
-                return [...curr, ...newSelections];
-            });
-        }
-    };
-
-    const removeProject = (id: number) => {
-        setSelectedProjects((curr) => curr.filter((p) => p.id !== id));
-    };
-
-    // filtragem rápida para os cards mobile (a DataTable já tem filtros por coluna)
-    const filteredProjectsMobile = useMemo(
-        () =>
-            projects.filter(
-                (p) =>
-                    p.name.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
-                    p.repositoryUrl?.toLowerCase().includes(projectSearchTerm.toLowerCase())
-            ),
-        [projects, projectSearchTerm]
-    );
-
-    // colunas padronizadas + coluna de seleção múltipla
-    const projectColumns: Column<Project>[] = [
-        {
-            key: 'select',
-            title: '',
-            width: '48px',
-            align: 'center',
-            headerRender: () => {
-                const allSelected = projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id));
-                const someSelected = projects.some(p => selectedProjects.some(sp => sp.id === p.id));
-                return (
-                    <input
-                        type="checkbox"
-                        checked={allSelected}
-                        ref={(el) => {
-                            if (el) el.indeterminate = someSelected && !allSelected;
-                        }}
-                        onChange={toggleAllProjects}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        title={allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
-                    />
-                );
-            },
-            render: (item) => {
-                const checked = selectedProjects.some((p) => p.id === item.id);
-                return (
-                    <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleProject(item)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                );
-            },
-        },
-        {
-            key: 'id',
-            title: 'ID',
-            sortable: true,
-            filterable: true,
-            filterType: 'number',
-            width: '120px',
-            align: 'center',
-            render: (item) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-          #{item.id}
-        </span>
-            ),
-        },
-        {
-            key: 'name',
-            title: 'Nome',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            render: (item) => (
-                <div className="flex items-center gap-2">
-                    <FolderOpen className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium text-gray-900" title={item.name}>
-            {item.name}
-          </span>
-                </div>
-            ),
-        },
-    ];
 
 
     const taskTypeOptions = [
@@ -591,89 +435,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     </div>
                 </div>
 
-                {/* Configurações de Cotação - apenas criação e ADMIN */}
-                {!initialData?.id && isAdmin && (
-                    <div className="border-t pt-8">
-                        <div className="space-y-6">
-                            {/* Checkbox para criar entregas automaticamente */}
-                            <div className="flex items-center space-x-3">
-                                <input
-                                    type="checkbox"
-                                    id="createDeliveries"
-                                    checked={createDeliveries}
-                                    onChange={(e) => {
-                                        setCreateDeliveries(e.target.checked);
-                                        // Limpa projetos selecionados ao desmarcar
-                                        if (!e.target.checked) {
-                                            setSelectedProjects([]);
-                                        }
-                                    }}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="createDeliveries" className="text-sm font-medium text-gray-700">
-                                    Vincular projetos e criar entregas automaticamente
-                                </label>
-                            </div>
-
-                            {/* Checkbox para vincular ao faturamento */}
-                            <div className="flex items-center space-x-3">
-                                <input
-                                    type="checkbox"
-                                    id="linkTaskToBilling"
-                                    checked={linkTaskToBilling}
-                                    onChange={(e) => setLinkTaskToBilling(e.target.checked)}
-                                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="linkTaskToBilling" className="text-sm font-medium text-gray-700">
-                                    Vincular tarefa ao faturamento automaticamente
-                                </label>
-                            </div>
-
-                            {/* Seção de projetos - só mostra se createDeliveries for true */}
-                            {createDeliveries && (
-                                <div className="space-y-4">
-                                    {/* Lista de projetos selecionados */}
-                                    {selectedProjects.length > 0 && (
-                                        <div className="space-y-2">
-                                            {selectedProjects.map((project) => (
-                                                <div
-                                                    key={project.id}
-                                                    className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <FolderOpen className="w-4 h-4 text-blue-600" />
-                                                        <div>
-                                                            <span className="text-sm font-medium text-blue-900">{project.name}</span>
-                                                            {project.repositoryUrl && (
-                                                                <div className="text-xs text-blue-700">{project.repositoryUrl}</div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeProject(project.id)}
-                                                        className="text-blue-600 hover:text-blue-800"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowProjectModal(true)}
-                                        className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
-                                    >
-                                        <Search className="w-4 h-4 mx-auto mb-1" />
-                                        Clique para adicionar projetos
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
 
                 {/* Ações */}
                 <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
@@ -688,176 +449,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 </div>
             </form>
 
-            {/* Modal Seleção de Projetos (padronizado) */}
-            {showProjectModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-2xl">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
-                            <div>
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Selecionar Projetos</h2>
-                                <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                                    Escolha os projetos para associar à tarefa ({selectedProjects.length} selecionado
-                                    {selectedProjects.length !== 1 ? 's' : ''})
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {selectedProjects.length > 0 && (
-                                    <Button size="sm" variant="primary" onClick={() => setShowProjectModal(false)}>
-                                        Confirmar ({selectedProjects.length})
-                                    </Button>
-                                )}
-                                <button onClick={() => setShowProjectModal(false)} className="text-gray-400 hover:text-gray-600 p-1">
-                                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Busca Mobile */}
-                        <div className="lg:hidden p-4 border-b border-gray-200">
-                            <div className="relative mb-3">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar projeto..."
-                                    value={projectSearchTerm}
-                                    onChange={(e) => setProjectSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                                />
-                            </div>
-                            {/* Botão Selecionar Todos Mobile */}
-                            <div className="flex items-center justify-center">
-                                <button
-                                    type="button"
-                                    onClick={toggleAllProjects}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id))}
-                                        ref={(el) => {
-                                            if (el) {
-                                                const allSelected = projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id));
-                                                const someSelected = projects.some(p => selectedProjects.some(sp => sp.id === p.id));
-                                                el.indeterminate = someSelected && !allSelected;
-                                            }
-                                        }}
-                                        onChange={toggleAllProjects}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                    {projects.length > 0 && projects.every(p => selectedProjects.some(sp => sp.id === p.id))
-                                        ? 'Desmarcar Todos'
-                                        : 'Selecionar Todos'
-                                    }
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-hidden">
-                            {/* Desktop - DataTable com filtros/ordenação/paginação */}
-                            <div className="hidden lg:block h-full">
-                                <DataTable
-                                    data={projects}
-                                    columns={projectColumns}
-                                    loading={loadingProjects}
-                                    pagination={projectPagination}
-                                    sorting={projectSorting}
-                                    filters={projectFilters}
-                                    onPageChange={setProjectPage}
-                                    onPageSizeChange={setProjectPageSize}
-                                    onSort={setProjectSorting}
-                                    onFilter={setProjectFilter}
-                                    onClearFilters={clearProjectFilters}
-                                    emptyMessage="Nenhum projeto encontrado"
-                                    showColumnToggle={false}
-                                    hiddenColumns={[]} // só 3 colunas: select, id, name
-                                />
-                            </div>
-
-                            {/* Mobile - Cards com seleção múltipla */}
-                            <div className="lg:hidden h-full overflow-y-auto">
-                                {loadingProjects ? (
-                                    <div className="flex items-center justify-center p-8">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                        <span className="ml-3 text-gray-600">Carregando...</span>
-                                    </div>
-                                ) : filteredProjectsMobile.length === 0 ? (
-                                    <div className="p-8 text-center">
-                                        <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                        <h3 className="text-lg font-medium mb-2 text-gray-900">Nenhum projeto encontrado</h3>
-                                        <p className="text-gray-600">Tente ajustar sua busca.</p>
-                                    </div>
-                                ) : (
-                                    <div className="p-4 space-y-3">
-                                        {filteredProjectsMobile.map((project) => {
-                                            const isSelected = selectedProjects.some((p) => p.id === project.id);
-                                            return (
-                                                <div
-                                                    key={project.id}
-                                                    onClick={() => toggleProject(project)}
-                                                    className={`rounded-lg border p-4 cursor-pointer transition-all ${
-                                                        isSelected
-                                                            ? 'bg-blue-50 border-blue-200 shadow-sm'
-                                                            : 'bg-white border-gray-200 hover:shadow-md hover:border-gray-300'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={isSelected}
-                                                                    onChange={() => toggleProject(project)}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                                />
-                                                                <FolderOpen className={`w-4 h-4 ${isSelected ? 'text-blue-600' : 'text-gray-500'}`} />
-                                                                <h3 className={`font-semibold ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                                                                    {project.name}
-                                                                </h3>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {/* Paginação Mobile */}
-                                {projectPagination && projectPagination.totalPages > 1 && !projectSearchTerm && (
-                                    <div className="p-4 border-t border-gray-200">
-                                        <div className="flex items-center justify-between">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setProjectPage(projectPagination.currentPage - 1)}
-                                                disabled={projectPagination.currentPage <= 1}
-                                            >
-                                                Anterior
-                                            </Button>
-
-                                            <span className="text-sm text-gray-600">
-                        Página {projectPagination.currentPage} de {projectPagination.totalPages}
-                      </span>
-
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setProjectPage(projectPagination.currentPage + 1)}
-                                                disabled={projectPagination.currentPage >= projectPagination.totalPages}
-                                            >
-                                                Próxima
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </FormProvider>
     );
 };
