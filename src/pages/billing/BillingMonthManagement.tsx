@@ -535,104 +535,50 @@ const BillingManagement: React.FC = () => {
         return (
             <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-start gap-3">
-                        {/* Checkbox - apenas para ADMIN */}
-                        {isAdmin && (
-                            <div className="pt-1">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedItems.includes(billing.id)}
-                                    onChange={() => toggleItem(billing.id)}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                            </div>
-                        )}
+                <div className="flex items-start gap-3 mb-3">
+                    {/* Checkbox - apenas para ADMIN */}
+                    {isAdmin && (
+                        <div className="pt-1">
+                            <input
+                                type="checkbox"
+                                checked={selectedItems.includes(billing.id)}
+                                onChange={() => toggleItem(billing.id)}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                        </div>
+                    )}
 
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Calendar className="w-5 h-5 text-blue-600" />
+                    <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                                    {getMonthLabel(billing.month)} {billing.year}
+                                </h3>
+                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                    #{billing.id}
+                                </span>
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
-                                        {getMonthLabel(billing.month)} {billing.year}
-                                    </h3>
-                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                    #{billing.id}
-                  </span>
-                                </div>
-                                <div className="mt-1 flex items-center gap-2">
-                                    <StatusBadge status={billing.status} />
-                                    {isAdmin && (
-                                        <button
-                                            onClick={() => handleUpdateStatus(billing)}
-                                            className="text-xs text-blue-600 hover:text-blue-800 underline"
-                                            title="Alterar status"
-                                        >
-                                            Alterar
-                                        </button>
-                                    )}
-                                </div>
+                            <div className="mt-1 flex items-center gap-2">
+                                <StatusBadge status={billing.status} />
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => handleUpdateStatus(billing)}
+                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                        title="Alterar status"
+                                    >
+                                        Alterar
+                                    </button>
+                                )}
                             </div>
                         </div>
-                    </div>
-
-                    {/* Ações */}
-                    <div className="flex gap-1 ml-2">
-                        {isAdmin ? (
-                            <>
-                                <button
-                                    onClick={() => handleLinkTasks(billing)}
-                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
-                                    title="Vincular tarefas a este período"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={() => handleUnlinkTasks(billing)}
-                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                                    title="Desvincular tarefas deste período"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteBilling(billing)}
-                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                                    title="Excluir"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                            </>
-                        ) : isManager && (
-                            <button
-                                onClick={() => handleViewTasks(billing)}
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
-                                title="Visualizar tarefas vinculadas"
-                            >
-                                <Search className="w-5 h-5" />
-                            </button>
-                        )}
-                        
-                        {/* Botão de Email - apenas para ADMIN */}
-                        {isAdmin && (
-                            <button
-                                onClick={() => handleBillingEmail(billing)}
-                                className={`rounded-lg p-2 transition-colors ${
-                                    billing.billingEmailSent
-                                        ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                                        : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'
-                                }`}
-                                title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
-                            >
-                                <Mail className="w-5 h-5" />
-                            </button>
-                        )}
                     </div>
                 </div>
 
                 {/* Infos */}
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-sm mb-3">
                     <div className="flex items-center justify-between">
                         <span className="text-gray-600">Pagamento:</span>
                         <span className="text-gray-900">{formatDate(billing.paymentDate)}</span>
@@ -648,6 +594,54 @@ const BillingManagement: React.FC = () => {
                         <span className="text-gray-600">Valor total:</span>
                         <span className="font-semibold text-green-600">{formatCurrency(total)}</span>
                     </div>
+                </div>
+
+                {/* Ações - Nova linha separada */}
+                <div className="flex items-center justify-center gap-1 pt-3 border-t border-gray-100">
+                    {isAdmin ? (
+                        <>
+                            <button
+                                onClick={() => handleLinkTasks(billing)}
+                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                                title="Vincular tarefas a este período"
+                            >
+                                <Plus className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => handleUnlinkTasks(billing)}
+                                className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                title="Desvincular tarefas deste período"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => handleDeleteBilling(billing)}
+                                className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                title="Excluir"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => handleBillingEmail(billing)}
+                                className={`rounded-lg p-2 transition-colors ${
+                                    billing.billingEmailSent
+                                        ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                                        : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'
+                                }`}
+                                title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
+                            >
+                                <Mail className="w-5 h-5" />
+                            </button>
+                        </>
+                    ) : isManager && (
+                        <button
+                            onClick={() => handleViewTasks(billing)}
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                            title="Visualizar tarefas vinculadas"
+                        >
+                            <Search className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
             </div>
         );
