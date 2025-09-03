@@ -6,6 +6,7 @@ import {
     UpdateDeliveryData,
     DeliveryFilters,
     DeliveryGroupResponse,
+    DeliveryStatusCount,
     AvailableTask,
     DeliveryCreationState
 } from '../types/delivery.types';
@@ -234,6 +235,12 @@ export const deliveryService = {
             responseType: 'blob'
         });
         return { data: response.data, headers: response.headers };
+    },
+
+    // Estatísticas globais
+    getGlobalStatistics: async (): Promise<DeliveryStatusCount> => {
+        const response = await api.get('/deliveries/statistics');
+        return response.data;
     },
 
     // Método auxiliar para verificar se tarefa já tem entrega

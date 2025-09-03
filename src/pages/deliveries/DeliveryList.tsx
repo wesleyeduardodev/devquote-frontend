@@ -8,7 +8,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { 
     DeliveryGroupResponse, 
     DeliveryFilters, 
-    DeliveryStatus 
+    DeliveryStatus,
+    DeliveryStatusCount
 } from '../../types/delivery.types';
 import { deliveryService } from '../../services/deliveryService';
 import { PaginatedResponse } from '../../types/api.types';
@@ -38,6 +39,7 @@ const DeliveryList: React.FC = () => {
     // Estados principais
     const [deliveryGroups, setDeliveryGroups] = useState<DeliveryGroupResponse[]>([]);
     const [pagination, setPagination] = useState<PaginatedResponse<DeliveryGroupResponse> | null>(null);
+    const [statistics, setStatistics] = useState<DeliveryStatusCount | null>(null);
     const [loading, setLoading] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
 
@@ -52,6 +54,16 @@ const DeliveryList: React.FC = () => {
     const [selectedGroup, setSelectedGroup] = useState<DeliveryGroupResponse | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState<DeliveryGroupResponse | null>(null);
+
+    // Carregar estatísticas
+    const fetchStatistics = async () => {
+        try {
+            const stats = await deliveryService.getGlobalStatistics();
+            setStatistics(stats);
+        } catch (error) {
+            console.error('Erro ao carregar estatísticas:', error);
+        }
+    };
 
     // Carregar dados
     const fetchDeliveryGroups = async () => {
@@ -94,6 +106,7 @@ const DeliveryList: React.FC = () => {
     // Carregar dados quando dependências mudarem
     useEffect(() => {
         fetchDeliveryGroups();
+        fetchStatistics(); // Carregar estatísticas na primeira vez
     }, [currentPage, pageSize, sorting, filters]);
 
     // Definir colunas da tabela
@@ -325,6 +338,77 @@ const DeliveryList: React.FC = () => {
         return labels[status] || status;
     };
 
+    // Função para renderizar os cards de estatísticas
+    const renderStatisticsCards = () => {
+        if (!statistics) return null;
+
+        const statusCards = [
+            { 
+                key: 'pending', 
+                label: 'Pendente', 
+                count: statistics.pending, 
+                color: 'bg-gray-100 text-gray-800 border-gray-200',
+                icon: '⏳'
+            },
+            { 
+                key: 'development', 
+                label: 'Em Desenvolvimento', 
+                count: statistics.development, 
+                color: 'bg-blue-100 text-blue-800 border-blue-200',
+                icon: '🔧'
+            },
+            { 
+                key: 'delivered', 
+                label: 'Entregue', 
+                count: statistics.delivered, 
+                color: 'bg-green-100 text-green-800 border-green-200',
+                icon: '📦'
+            },
+            { 
+                key: 'homologation', 
+                label: 'Em Homologação', 
+                count: statistics.homologation, 
+                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                icon: '🔍'
+            },
+            { 
+                key: 'approved', 
+                label: 'Aprovado', 
+                count: statistics.approved, 
+                color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                icon: '✅'
+            },
+            { 
+                key: 'rejected', 
+                label: 'Rejeitado', 
+                count: statistics.rejected, 
+                color: 'bg-red-100 text-red-800 border-red-200',
+                icon: '❌'
+            },
+            { 
+                key: 'production', 
+                label: 'Em Produção', 
+                count: statistics.production, 
+                color: 'bg-purple-100 text-purple-800 border-purple-200',
+                icon: '🚀'
+            }
+        ];
+
+        return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+                {statusCards.map(card => (
+                    <Card key={card.key} className={`p-3 border ${card.color} hover:shadow-sm transition-shadow cursor-default`}>
+                        <div className="text-center">
+                            <div className="text-lg mb-1">{card.icon}</div>
+                            <div className="text-xl font-bold mb-1">{card.count}</div>
+                            <div className="text-xs font-medium leading-tight">{card.label}</div>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
+
 
     return (
         <div className="space-y-6">
@@ -362,6 +446,9 @@ const DeliveryList: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Estatísticas por Status */}
+            {renderStatisticsCards()}
 
             {/* Mobile: Cards Layout */}
             <div className="block sm:hidden">
