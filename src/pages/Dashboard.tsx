@@ -182,10 +182,6 @@ const Dashboard = () => {
                     day: 'numeric'
                   })}
                 </div>
-                <div className="flex items-center mt-2 text-green-600">
-                  <Activity className="w-4 h-4 mr-1" />
-                  <span className="text-sm font-medium">Sistema Ativo</span>
-                </div>
               </div>
             </div>
           </div>
