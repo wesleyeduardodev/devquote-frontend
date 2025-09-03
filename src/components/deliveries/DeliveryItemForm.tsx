@@ -14,6 +14,7 @@ interface DeliveryItemFormProps {
     onSave: (data: DeliveryItemFormData) => void;
     onCancel?: () => void;
     isReadOnly?: boolean;
+    customActions?: React.ReactNode;
 }
 
 // Schema de validação
@@ -47,7 +48,8 @@ export default function DeliveryItemForm({
     initialData,
     onSave,
     onCancel,
-    isReadOnly = false
+    isReadOnly = false,
+    customActions
 }: DeliveryItemFormProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -164,6 +166,12 @@ export default function DeliveryItemForm({
                             <div className="flex items-center gap-1 text-yellow-600">
                                 <AlertCircle className="h-4 w-4" />
                                 <span className="text-xs font-medium">Não salvo</span>
+                            </div>
+                        )}
+                        
+                        {customActions && (
+                            <div onClick={(e) => e.stopPropagation()}>
+                                {customActions}
                             </div>
                         )}
                         

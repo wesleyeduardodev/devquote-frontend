@@ -19,7 +19,6 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
-import TaskSelectionModal from '../../components/deliveries/TaskSelectionModal';
 import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
@@ -43,7 +42,6 @@ const DeliveryEdit: React.FC = () => {
     const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
 
     // Estados dos modais
-    const [showTaskModal, setShowTaskModal] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<DeliveryItem | null>(null);
@@ -126,10 +124,6 @@ const DeliveryEdit: React.FC = () => {
         }
     };
 
-    const handleTaskChange = (task: AvailableTask) => {
-        setSelectedTask(task);
-        setShowTaskModal(false);
-    };
 
     const handleSaveItemData = async (projectId: number, data: DeliveryItemFormData) => {
         const item = deliveryItems.find(item => item.projectId === projectId);
@@ -239,8 +233,35 @@ const DeliveryEdit: React.FC = () => {
         }
     };
 
+    // Funções auxiliares para formatação
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
+            PENDING: 'text-gray-600 bg-gray-100',
+            DEVELOPMENT: 'text-blue-600 bg-blue-100',
+            DELIVERED: 'text-green-600 bg-green-100',
+            HOMOLOGATION: 'text-yellow-600 bg-yellow-100',
+            APPROVED: 'text-emerald-600 bg-emerald-100',
+            REJECTED: 'text-red-600 bg-red-100',
+            PRODUCTION: 'text-purple-600 bg-purple-100'
+        };
+        return colors[status] || colors.PENDING;
+    };
+
+    const getStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
+            PENDING: 'Pendente',
+            DEVELOPMENT: 'Desenvolvimento',
+            DELIVERED: 'Entregue',
+            HOMOLOGATION: 'Homologação',
+            APPROVED: 'Aprovado',
+            REJECTED: 'Rejeitado',
+            PRODUCTION: 'Produção'
+        };
+        return labels[status] || status;
+    };
+
     const handleSaveDelivery = async () => {
-        if (!delivery || !selectedTask) {
+        if (!delivery) {
             toast.error('Dados incompletos');
             return;
         }
@@ -248,14 +269,7 @@ const DeliveryEdit: React.FC = () => {
         try {
             setSaving(true);
 
-            // Atualizar dados básicos da entrega se a tarefa mudou
-            if (delivery.taskId !== selectedTask.id) {
-                const updateData: UpdateDeliveryData = {
-                    taskId: selectedTask.id
-                };
-                await deliveryService.update(delivery.id, updateData);
-            }
-
+            // Na edição, não alteramos mais a tarefa, apenas informativo
             toast.success('Entrega salva com sucesso!');
         } catch (error) {
             console.error('Erro ao salvar entrega:', error);
@@ -333,14 +347,6 @@ const DeliveryEdit: React.FC = () => {
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-gray-900">Tarefa Associada</h3>
-                        {canEdit && (
-                            <Button
-                                variant="outline"
-                                onClick={() => setShowTaskModal(true)}
-                            >
-                                Alterar Tarefa
-                            </Button>
-                        )}
                     </div>
 
                     {selectedTask ? (
@@ -374,14 +380,6 @@ const DeliveryEdit: React.FC = () => {
                         <div className="text-center py-8">
                             <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <p className="text-gray-500">Nenhuma tarefa selecionada</p>
-                            {canEdit && (
-                                <Button
-                                    className="mt-4"
-                                    onClick={() => setShowTaskModal(true)}
-                                >
-                                    Selecionar Tarefa
-                                </Button>
-                            )}
                         </div>
                     )}
                 </Card>
@@ -428,40 +426,28 @@ const DeliveryEdit: React.FC = () => {
                                 if (!item) return null;
 
                                 return (
-                                    <div key={project.id} className="border border-gray-200 rounded-lg p-1">
-                                        <div className="flex items-center justify-between p-3 bg-gray-50">
-                                            <div className="flex items-center gap-3">
-                                                <div>
-                                                    <div className="font-medium text-gray-900">
-                                                        {project.name}
-                                                    </div>
-                                                    {project.description && (
-                                                        <div className="text-sm text-gray-600">
-                                                            {project.description}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {canDelete && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setItemToDelete(item);
-                                                        setShowDeleteModal(true);
-                                                    }}
-                                                    className="text-red-600 hover:text-red-800"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                        
+                                    <div key={project.id} className="border border-gray-200 rounded-lg p-4">
                                         <DeliveryItemForm
                                             project={project}
                                             initialData={formData}
                                             onSave={(data) => handleSaveItemData(project.id, data)}
                                             isReadOnly={!canEdit}
+                                            customActions={
+                                                canDelete ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setItemToDelete(item);
+                                                            setShowDeleteModal(true);
+                                                        }}
+                                                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                                        title={`Remover ${project.name}`}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                ) : undefined
+                                            }
                                         />
                                     </div>
                                 );
@@ -472,15 +458,6 @@ const DeliveryEdit: React.FC = () => {
             </div>
 
             {/* Modais */}
-            {showTaskModal && (
-                <TaskSelectionModal
-                    isOpen={showTaskModal}
-                    onClose={() => setShowTaskModal(false)}
-                    onSelect={handleTaskChange}
-                    selectedTaskId={selectedTask?.id}
-                    allowDeliveryTasks={true} // Permitir tarefas que já têm entrega na edição
-                />
-            )}
 
             {showProjectModal && (
                 <ProjectSelectionModal
