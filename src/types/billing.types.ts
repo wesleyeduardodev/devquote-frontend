@@ -47,6 +47,18 @@ export interface BillingPeriodStatistics {
   [status: string]: number;
 }
 
+export interface BillingStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface BillingStatistics {
+  totalPeriods: number;
+  byStatus: {
+    [status: string]: number;
+  };
+}
+
 // Tipos para paginação
 export interface BillingPeriodPaginatedParams {
   page?: number;

@@ -48,7 +48,6 @@ const BillingMonthForm: React.FC<BillingMonthFormProps> = ({
 
     const statusOptions = [
         {value: 'PENDENTE', label: 'Pendente'},
-        {value: 'PROCESSANDO', label: 'Processando'},
         {value: 'FATURADO', label: 'Faturado'},
         {value: 'PAGO', label: 'Pago'},
         {value: 'ATRASADO', label: 'Atrasado'},

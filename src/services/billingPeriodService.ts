@@ -8,6 +8,7 @@ import {
   BillingPeriodPaginatedParams,
   BillingPeriodTaskPaginatedParams,
   BillingPeriodStatistics,
+  BillingStatistics,
   PaginatedResponse
 } from '@/types';
 
@@ -62,7 +63,7 @@ const billingPeriodService = {
     return res.data;
   },
 
-  getStatistics: async (): Promise<BillingPeriodStatistics> => {
+  getStatistics: async (): Promise<BillingStatistics> => {
     const res = await api.get('/billing-periods/statistics');
     return res.data;
   },

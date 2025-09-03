@@ -40,7 +40,7 @@ import {
   BillingPeriodTaskRequest 
 } from '@/types/billing.types';
 
-type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
+type StatusValue = 'PENDENTE' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
 interface TaskLinkManagementModalProps {
   isOpen: boolean;
@@ -352,7 +352,6 @@ const BillingPeriodManagement: React.FC = () => {
     switch (status) {
       case 'PAGO': return <CheckCircle className="text-green-600" size={16} />;
       case 'FATURADO': return <FileText className="text-blue-600" size={16} />;
-      case 'PROCESSANDO': return <Clock className="text-yellow-600" size={16} />;
       case 'ATRASADO': return <AlertCircle className="text-red-600" size={16} />;
       case 'CANCELADO': return <XCircle className="text-gray-600" size={16} />;
       default: return <Clock className="text-orange-600" size={16} />;
@@ -363,7 +362,6 @@ const BillingPeriodManagement: React.FC = () => {
     switch (status) {
       case 'PAGO': return 'bg-green-100 text-green-800';
       case 'FATURADO': return 'bg-blue-100 text-blue-800';
-      case 'PROCESSANDO': return 'bg-yellow-100 text-yellow-800';
       case 'ATRASADO': return 'bg-red-100 text-red-800';
       case 'CANCELADO': return 'bg-gray-100 text-gray-800';
       default: return 'bg-orange-100 text-orange-800';
@@ -452,7 +450,6 @@ const BillingPeriodManagement: React.FC = () => {
           >
             <option value="">Todos os Status</option>
             <option value="PENDENTE">Pendente</option>
-            <option value="PROCESSANDO">Processando</option>
             <option value="FATURADO">Faturado</option>
             <option value="PAGO">Pago</option>
             <option value="ATRASADO">Atrasado</option>

@@ -33,7 +33,7 @@ import LinkTasksToBillingModal from '../../components/billing/LinkTasksToBilling
 import UnlinkTasksFromBillingModal from '../../components/billing/UnlinkTasksFromBillingModal';
 import ViewTasksModal from '../../components/billing/ViewTasksModal';
 
-type StatusValue = 'PENDENTE' | 'PROCESSANDO' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
+type StatusValue = 'PENDENTE' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
 interface BillingMonth {
     id: number;
@@ -79,7 +79,6 @@ const monthOptions = [
 
 const statusOptions = [
     { value: 'PENDENTE', label: 'Pendente', color: 'amber', icon: Clock },
-    { value: 'PROCESSANDO', label: 'Processando', color: 'blue', icon: AlertCircle },
     { value: 'FATURADO', label: 'Faturado', color: 'purple', icon: FileText },
     { value: 'PAGO', label: 'Pago', color: 'green', icon: CheckCircle },
     { value: 'ATRASADO', label: 'Atrasado', color: 'red', icon: XCircle },
@@ -97,6 +96,7 @@ const BillingManagement: React.FC = () => {
     // Lista e carregamento
     const [billingMonths, setBillingMonths] = useState<BillingMonth[]>([]);
     const [loadingList, setLoadingList] = useState(true);
+    
 
     // Seleção múltipla
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -182,6 +182,7 @@ const BillingManagement: React.FC = () => {
         return monthOptions.find(m => m.value === month)?.label ?? String(month);
     }, []);
 
+
     const fetchBillingMonths = useCallback(async () => {
         setLoadingList(true);
         try {
@@ -237,9 +238,11 @@ const BillingManagement: React.FC = () => {
         const total = filteredData.reduce((sum, b) => sum + (totals[b.id] || 0), 0);
         const paid = filteredData.filter(b => b.status === 'PAGO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
         const pending = filteredData.filter(b => b.status === 'PENDENTE').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
-        const processing = filteredData.filter(b => b.status === 'PROCESSANDO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const billed = filteredData.filter(b => b.status === 'FATURADO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const overdue = filteredData.filter(b => b.status === 'ATRASADO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
+        const canceled = filteredData.filter(b => b.status === 'CANCELADO').reduce((sum, b) => sum + (totals[b.id] || 0), 0);
 
-        return { total, paid, pending, processing };
+        return { total, paid, pending, billed, overdue, canceled };
     }, [filteredBillingMonths, totals]);
 
 
@@ -479,6 +482,7 @@ const BillingManagement: React.FC = () => {
         </div>
     );
 
+
     const years = [...new Set(billingMonths.map(b => b.year))].sort((a, b) => b - a);
 
     // ===== Seleção múltipla =====
@@ -690,14 +694,28 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cards de estatísticas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                {/* Cards de estatísticas por status */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     <StatCard
                         title="Total Geral"
                         value={formatCurrency(stats.total)}
                         icon={TrendingUp}
                         color="text-purple-600"
                         subtitle={`${filteredBillingMonths.length} períodos`}
+                    />
+                    <StatCard
+                        title="Pendente"
+                        value={formatCurrency(stats.pending)}
+                        icon={Clock}
+                        color="text-amber-600"
+                        subtitle="Aguardando ação"
+                    />
+                    <StatCard
+                        title="Faturado"
+                        value={formatCurrency(stats.billed)}
+                        icon={FileText}
+                        color="text-purple-600"
+                        subtitle="Enviados"
                     />
                     <StatCard
                         title="Pago"
@@ -707,18 +725,18 @@ const BillingManagement: React.FC = () => {
                         subtitle="Valores recebidos"
                     />
                     <StatCard
-                        title="Processando"
-                        value={formatCurrency(stats.processing)}
-                        icon={Clock}
-                        color="text-blue-600"
-                        subtitle="Em andamento"
+                        title="Atrasado"
+                        value={formatCurrency(stats.overdue)}
+                        icon={XCircle}
+                        color="text-red-600"
+                        subtitle="Em atraso"
                     />
                     <StatCard
-                        title="Pendente"
-                        value={formatCurrency(stats.pending)}
-                        icon={AlertCircle}
-                        color="text-amber-600"
-                        subtitle="Aguardando ação"
+                        title="Cancelado"
+                        value={formatCurrency(stats.canceled)}
+                        icon={X}
+                        color="text-gray-600"
+                        subtitle="Cancelados"
                     />
                 </div>
 
