@@ -35,12 +35,12 @@ const deliveryItemSchema = yup.object({
 
 const statusOptions: { value: DeliveryStatus; label: string; color: string; bg: string }[] = [
     { value: 'PENDING', label: 'Pendente', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-100' },
-    { value: 'DEVELOPMENT', label: 'Em Desenvolvimento', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-100' },
+    { value: 'DEVELOPMENT', label: 'Desenvolvimento', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-100' },
     { value: 'DELIVERED', label: 'Entregue', color: 'text-green-700', bg: 'bg-green-50 border-green-100' },
-    { value: 'HOMOLOGATION', label: 'Em Homologação', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100' },
+    { value: 'HOMOLOGATION', label: 'Homologação', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100' },
     { value: 'APPROVED', label: 'Aprovado', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
     { value: 'REJECTED', label: 'Rejeitado', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-100' },
-    { value: 'PRODUCTION', label: 'Em Produção', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-100' }
+    { value: 'PRODUCTION', label: 'Produção', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-100' }
 ];
 
 export default function DeliveryItemForm({

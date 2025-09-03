@@ -438,7 +438,7 @@ const DeliveryList: React.FC = () => {
             },
             { 
                 key: 'development', 
-                label: 'Em Desenvolvimento', 
+                label: 'Desenvolvimento',
                 count: statistics.development, 
                 color: 'bg-blue-50 text-blue-700 border-blue-100',
                 icon: '🔧'
@@ -452,7 +452,7 @@ const DeliveryList: React.FC = () => {
             },
             { 
                 key: 'homologation', 
-                label: 'Em Homologação', 
+                label: 'Homologação',
                 count: statistics.homologation, 
                 color: 'bg-amber-50 text-amber-700 border-amber-100',
                 icon: '🔍'
@@ -473,7 +473,7 @@ const DeliveryList: React.FC = () => {
             },
             { 
                 key: 'production', 
-                label: 'Em Produção', 
+                label: 'Produção',
                 count: statistics.production, 
                 color: 'bg-violet-50 text-violet-700 border-violet-100',
                 icon: '🚀'

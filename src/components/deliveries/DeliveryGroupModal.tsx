@@ -84,12 +84,12 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
-            DEVELOPMENT: 'Em Desenvolvimento',
+            DEVELOPMENT: 'Desenvolvimento',
             DELIVERED: 'Entregue',
-            HOMOLOGATION: 'Em Homologação',
+            HOMOLOGATION: 'Homologação',
             APPROVED: 'Aprovado',
             REJECTED: 'Rejeitado',
-            PRODUCTION: 'Em Produção'
+            PRODUCTION: 'Produção'
         };
         return labels[status] || status;
     };
@@ -181,7 +181,7 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                             <div className="grid grid-cols-1 gap-3">
                                                                 {/* Pull Request */}
                                                                 <div>
-                                                                    <span className="text-sm text-gray-600 block mb-1">Pull Request:</span>
+                                                                    <span className="text-sm text-gray-600 block mb-1">Link da Entrega (Pull Request):</span>
                                                                     <div className="flex items-center gap-2">
                                                                         {item.pullRequest ? (
                                                                             <>
