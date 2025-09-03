@@ -105,6 +105,8 @@ export interface DeliveryGroupResponse {
     taskValue?: number;
     deliveryId?: number; // ID da entrega principal (1:1 com task)
     deliveryStatus: DeliveryStatus;
+    calculatedDeliveryStatus?: string; // Status calculado para exibição
+    totalItems?: number; // Quantidade de itens da entrega
     statusCounts: DeliveryStatusCount;
     totalDeliveries: number;
     completedDeliveries: number;

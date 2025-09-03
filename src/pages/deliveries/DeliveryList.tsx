@@ -128,7 +128,7 @@ const DeliveryList: React.FC = () => {
             sortable: true,
             filterable: true,
             render: (delivery) => {
-                const status = delivery.deliveryStatus as DeliveryStatus || 'PENDING';
+                const status = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING';
                 const statusColor = getStatusColor(status);
                 return (
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>
@@ -136,7 +136,19 @@ const DeliveryList: React.FC = () => {
                     </span>
                 );
             },
-            width: '120px'
+            width: '140px'
+        },
+        {
+            key: 'totalItems',
+            title: 'Qtd. Itens',
+            sortable: true,
+            render: (delivery) => (
+                <div className="text-center font-medium text-gray-900">
+                    {delivery.totalItems || 0}
+                </div>
+            ),
+            width: '100px',
+            align: 'center'
         },
         {
             key: 'actions',
