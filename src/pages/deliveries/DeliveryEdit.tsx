@@ -372,7 +372,7 @@ const DeliveryEdit: React.FC = () => {
                                 if (!item) return null;
 
                                 return (
-                                    <div key={project.id} className="border border-gray-200 rounded-lg p-4">
+                                    <div key={project.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
                                         <DeliveryItemForm
                                             project={project}
                                             initialData={formData}
