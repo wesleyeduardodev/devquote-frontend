@@ -3,8 +3,6 @@ import {
     X,
     Calendar,
     GitBranch,
-    GitMerge,
-    ExternalLink,
     Package,
     Truck,
     Check,
@@ -17,45 +15,21 @@ import {
     Database,
     Copy,
     StickyNote,
-    FolderOpen
+    FolderOpen,
+    ChevronRight,
+    ChevronDown,
+    ExternalLink
 } from 'lucide-react';
-
-interface Delivery {
-    id: number;
-    taskName: string;
-    taskCode: string;
-    projectName: string;
-    branch?: string;
-    sourceBranch?: string;
-    pullRequest?: string;
-    script?: string;
-    notes?: string;
-    status: string;
-    startedAt?: string;
-    finishedAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
-
-interface DeliveryGroup {
-    taskId: number;
-    taskName: string;
-    taskCode: string;
-    createdAt: string;
-    updatedAt: string;
-    totalDeliveries: number;
-    completedDeliveries: number;
-    pendingDeliveries: number;
-    deliveries: Delivery[];
-}
+import { DeliveryGroupResponse, DeliveryItem } from '../../types/delivery.types';
 
 interface DeliveryGroupModalProps {
-    deliveryGroup: DeliveryGroup | null;
+    deliveryGroup: DeliveryGroupResponse | null;
     isOpen: boolean;
     onClose: () => void;
 }
 
 const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, isOpen, onClose }) => {
+    const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
     if (!isOpen || !deliveryGroup) return null;
@@ -84,287 +58,42 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
         });
     };
 
-    const formatDateShort = (dateString?: string) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR');
+    const toggleItem = (itemId: number) => {
+        const newExpanded = new Set(expandedItems);
+        if (newExpanded.has(itemId)) {
+            newExpanded.delete(itemId);
+        } else {
+            newExpanded.add(itemId);
+        }
+        setExpandedItems(newExpanded);
     };
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
-            PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            DEVELOPMENT: 'bg-blue-100 text-blue-800 border-blue-200',
-            DELIVERED: 'bg-green-100 text-green-800 border-green-200',
-            HOMOLOGATION: 'bg-purple-100 text-purple-800 border-purple-200',
-            APPROVED: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-            REJECTED: 'bg-red-100 text-red-800 border-red-200',
-            PRODUCTION: 'bg-teal-100 text-teal-800 border-teal-200'
+            PENDING: 'text-yellow-700 bg-yellow-50 border-yellow-100',
+            DEVELOPMENT: 'text-blue-700 bg-blue-50 border-blue-100',
+            DELIVERED: 'text-green-700 bg-green-50 border-green-100',
+            HOMOLOGATION: 'text-amber-700 bg-amber-50 border-amber-100',
+            APPROVED: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+            REJECTED: 'text-rose-700 bg-rose-50 border-rose-100',
+            PRODUCTION: 'text-violet-700 bg-violet-50 border-violet-100'
         };
-        return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+        return colors[status] || 'text-gray-700 bg-gray-50 border-gray-100';
     };
 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, string> = {
             PENDING: 'Pendente',
-            DEVELOPMENT: 'Desenvolvimento',
+            DEVELOPMENT: 'Em Desenvolvimento',
             DELIVERED: 'Entregue',
-            HOMOLOGATION: 'Homologação',
+            HOMOLOGATION: 'Em Homologação',
             APPROVED: 'Aprovado',
             REJECTED: 'Rejeitado',
-            PRODUCTION: 'Produção'
+            PRODUCTION: 'Em Produção'
         };
         return labels[status] || status;
     };
 
-    const getStatusIcon = (status: string) => {
-        const icons: Record<string, React.ReactNode> = {
-            PENDING: <Clock className="w-4 h-4" />,
-            DEVELOPMENT: <Activity className="w-4 h-4" />,
-            DELIVERED: <Package className="w-4 h-4" />,
-            HOMOLOGATION: <Activity className="w-4 h-4" />,
-            APPROVED: <CheckCircle2 className="w-4 h-4" />,
-            REJECTED: <AlertTriangle className="w-4 h-4" />,
-            PRODUCTION: <Check className="w-4 h-4" />
-        };
-        return icons[status] || <Activity className="w-4 h-4" />;
-    };
-
-    const DeliveryCard: React.FC<{ delivery: Delivery }> = ({ delivery }) => (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-            {/* Header do Card */}
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <FolderOpen className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                        <h4 className="text-lg font-semibold text-gray-900">{delivery.projectName}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                ID #{delivery.id}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                                {delivery.taskName} ({delivery.taskCode})
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(delivery.status)}`}>
-                    {getStatusIcon(delivery.status)}
-                    {getStatusLabel(delivery.status)}
-                </div>
-            </div>
-
-            {/* Seção de Desenvolvimento */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <GitBranch className="w-4 h-4 text-blue-600" />
-                    Informações de Desenvolvimento
-                </h5>
-                <div className="space-y-3">
-                    <div className="grid grid-cols-1 gap-3">
-
-
-                        <div>
-                            <span className="text-sm text-gray-600 block mb-1">Link da Entrega (Pull Request):</span>
-                            <div className="flex items-center gap-2">
-                                {delivery.pullRequest ? (
-                                    <>
-                                        <a
-                                            href={delivery.pullRequest}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all bg-white px-2 py-1 rounded border flex-1"
-                                        >
-                                            {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
-                                        </a>
-                                        <button
-                                            onClick={() => handleCopy(delivery.pullRequest!, `pr-${delivery.id}`)}
-                                            className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                                copiedField === `pr-${delivery.id}`
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : 'bg-white text-gray-500 hover:bg-gray-100 border'
-                                            }`}
-                                            title="Copiar link"
-                                        >
-                                            {copiedField === `pr-${delivery.id}` ? (
-                                                <Check className="w-3 h-3" />
-                                            ) : (
-                                                <Copy className="w-3 h-3" />
-                                            )}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="text-xs bg-white text-gray-500 px-2 py-1 rounded border flex-1">
-                                        Não informado
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div>
-                            <span className="text-sm text-gray-600 block mb-1">Branch:</span>
-                            <div className="flex items-center gap-2">
-                                <code className="text-xs bg-white text-gray-800 px-2 py-1 rounded border font-mono flex-1">
-                                    {delivery.branch || 'Não informado'}
-                                </code>
-                                {delivery.branch && (
-                                    <button
-                                        onClick={() => handleCopy(delivery.branch!, `branch-${delivery.id}`)}
-                                        className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                            copiedField === `branch-${delivery.id}`
-                                                ? 'bg-green-100 text-green-600'
-                                                : 'bg-white text-gray-500 hover:bg-gray-100 border'
-                                        }`}
-                                        title="Copiar branch"
-                                    >
-                                        {copiedField === `branch-${delivery.id}` ? (
-                                            <Check className="w-3 h-3" />
-                                        ) : (
-                                            <Copy className="w-3 h-3" />
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div>
-                            <span className="text-sm text-gray-600 block mb-1">Branch de Origem:</span>
-                            <div className="flex items-center gap-2">
-                                <code className="text-xs bg-white text-gray-800 px-2 py-1 rounded border font-mono flex-1">
-                                    {delivery.sourceBranch || 'Não informado'}
-                                </code>
-                                {delivery.sourceBranch && (
-                                    <button
-                                        onClick={() => handleCopy(delivery.sourceBranch!, `sourceBranch-${delivery.id}`)}
-                                        className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                            copiedField === `sourceBranch-${delivery.id}`
-                                                ? 'bg-green-100 text-green-600'
-                                                : 'bg-white text-gray-500 hover:bg-gray-100 border'
-                                        }`}
-                                        title="Copiar branch de origem"
-                                    >
-                                        {copiedField === `sourceBranch-${delivery.id}` ? (
-                                            <Check className="w-3 h-3" />
-                                        ) : (
-                                            <Copy className="w-3 h-3" />
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Script */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between mb-3">
-                    <h5 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                        <Database className="w-4 h-4 text-blue-600" />
-                        Script de Banco de Dados
-                    </h5>
-                    {delivery.script && (
-                        <button
-                            onClick={() => handleCopy(delivery.script!, `script-${delivery.id}`)}
-                            className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg transition-all ${
-                                copiedField === `script-${delivery.id}`
-                                    ? 'bg-green-100 text-green-700 border border-green-200'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                            }`}
-                        >
-                            {copiedField === `script-${delivery.id}` ? (
-                                <>
-                                    <Check className="w-3 h-3" />
-                                    Copiado!
-                                </>
-                            ) : (
-                                <>
-                                    <Copy className="w-3 h-3" />
-                                    Copiar Script
-                                </>
-                            )}
-                        </button>
-                    )}
-                </div>
-                {delivery.script ? (
-                    <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                        <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">
-                            <code>{delivery.script}</code>
-                        </pre>
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-lg p-4 border text-center">
-                        <span className="text-gray-500 text-sm">Nenhum script de banco fornecido</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Notas */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <StickyNote className="w-4 h-4 text-blue-600" />
-                    Observações e Notas
-                </h5>
-                {delivery.notes ? (
-                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                            {delivery.notes}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-lg p-4 border text-center">
-                        <span className="text-gray-500 text-sm">Nenhuma observação adicional</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Datas e Timestamps */}
-            <div className="space-y-3 pt-3 border-t border-gray-100">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span className="text-gray-500 flex items-center gap-1 mb-1">
-                            <Play className="w-3 h-3" />
-                            Data de Início:
-                        </span>
-                        <span className="text-gray-900 font-medium">
-                            {delivery.startedAt ? formatDate(delivery.startedAt) : 'Não informado'}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="text-gray-500 flex items-center gap-1 mb-1">
-                            <Flag className="w-3 h-3" />
-                            Data de Finalização:
-                        </span>
-                        <span className="text-gray-900 font-medium">
-                            {delivery.finishedAt ? formatDate(delivery.finishedAt) : 'Não informado'}
-                        </span>
-                    </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span className="text-gray-500 flex items-center gap-1 mb-1">
-                            <Calendar className="w-3 h-3" />
-                            Criado em:
-                        </span>
-                        <span className="text-gray-700">
-                            {delivery.createdAt ? formatDate(delivery.createdAt) : 'Não informado'}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="text-gray-500 flex items-center gap-1 mb-1">
-                            <Calendar className="w-3 h-3" />
-                            Atualizado em:
-                        </span>
-                        <span className="text-gray-700">
-                            {delivery.updatedAt ? formatDate(delivery.updatedAt) : 'Não informado'}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -396,37 +125,240 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                     </div>
                 </div>
 
-                {/* Summary */}
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-blue-600">{deliveryGroup.totalDeliveries}</div>
-                            <div className="text-sm text-gray-600">Total</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600">{deliveryGroup.completedDeliveries}</div>
-                            <div className="text-sm text-gray-600">Concluídas</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-2xl font-bold text-yellow-600">{deliveryGroup.pendingDeliveries}</div>
-                            <div className="text-sm text-gray-600">Pendentes</div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Content */}
                 <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
                     <div className="p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <Package className="w-5 h-5 text-blue-600" />
-                            Entregas por Projeto
+                            Itens de Entrega ({deliveryGroup.deliveries?.[0]?.items?.length || 0})
                         </h3>
                         
-                        {deliveryGroup.deliveries && deliveryGroup.deliveries.length > 0 ? (
-                            <div className="grid gap-6">
-                                {deliveryGroup.deliveries.map((delivery) => (
-                                    <DeliveryCard key={delivery.id} delivery={delivery} />
-                                ))}
+                        {deliveryGroup.deliveries?.[0]?.items && deliveryGroup.deliveries[0].items.length > 0 ? (
+                            <div className="space-y-3">
+                                {deliveryGroup.deliveries[0].items.map((item) => {
+                                    const isExpanded = expandedItems.has(item.id);
+                                    
+                                    return (
+                                        <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                            {/* Header clicável */}
+                                            <div 
+                                                className="bg-white p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                                onClick={() => toggleItem(item.id)}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        {isExpanded ? (
+                                                            <ChevronDown className="w-5 h-5 text-gray-500" />
+                                                        ) : (
+                                                            <ChevronRight className="w-5 h-5 text-gray-500" />
+                                                        )}
+                                                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                            <FolderOpen className="w-5 h-5 text-blue-600" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-medium text-gray-900">{item.projectName}</h4>
+                                                            <p className="text-sm text-gray-500">Item #{item.id}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
+                                                        {getStatusLabel(item.status)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Conteúdo expansível */}
+                                            {isExpanded && (
+                                                <div className="bg-gray-50 p-4 border-t border-gray-200">
+                                                    <div className="space-y-4">
+                                                        {/* Informações de Desenvolvimento */}
+                                                        <div>
+                                                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                                                <GitBranch className="w-4 h-4 text-blue-600" />
+                                                                Informações de Desenvolvimento
+                                                            </h5>
+                                                            
+                                                            <div className="grid grid-cols-1 gap-3">
+                                                                {/* Pull Request */}
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600 block mb-1">Pull Request:</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {item.pullRequest ? (
+                                                                            <>
+                                                                                <a
+                                                                                    href={item.pullRequest}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all bg-white px-2 py-1 rounded border flex-1"
+                                                                                >
+                                                                                    <ExternalLink className="w-3 h-3 inline mr-1" />
+                                                                                    {item.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
+                                                                                </a>
+                                                                                <button
+                                                                                    onClick={() => handleCopy(item.pullRequest!, `pr-${item.id}`)}
+                                                                                    className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                                                        copiedField === `pr-${item.id}`
+                                                                                            ? 'bg-green-100 text-green-600'
+                                                                                            : 'bg-white text-gray-500 hover:bg-gray-100 border'
+                                                                                    }`}
+                                                                                    title="Copiar link"
+                                                                                >
+                                                                                    {copiedField === `pr-${item.id}` ? (
+                                                                                        <Check className="w-3 h-3" />
+                                                                                    ) : (
+                                                                                        <Copy className="w-3 h-3" />
+                                                                                    )}
+                                                                                </button>
+                                                                            </>
+                                                                        ) : (
+                                                                            <div className="text-xs bg-white text-gray-500 px-2 py-1 rounded border flex-1">
+                                                                                Não informado
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Branch */}
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600 block mb-1">Branch:</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <code className="text-xs bg-white text-gray-800 px-2 py-1 rounded border font-mono flex-1">
+                                                                            {item.branch || 'Não informado'}
+                                                                        </code>
+                                                                        {item.branch && (
+                                                                            <button
+                                                                                onClick={() => handleCopy(item.branch!, `branch-${item.id}`)}
+                                                                                className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                                                    copiedField === `branch-${item.id}`
+                                                                                        ? 'bg-green-100 text-green-600'
+                                                                                        : 'bg-white text-gray-500 hover:bg-gray-100 border'
+                                                                                }`}
+                                                                                title="Copiar branch"
+                                                                            >
+                                                                                {copiedField === `branch-${item.id}` ? (
+                                                                                    <Check className="w-3 h-3" />
+                                                                                ) : (
+                                                                                    <Copy className="w-3 h-3" />
+                                                                                )}
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Branch de Origem */}
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600 block mb-1">Branch de Origem:</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <code className="text-xs bg-white text-gray-800 px-2 py-1 rounded border font-mono flex-1">
+                                                                            {item.sourceBranch || 'Não informado'}
+                                                                        </code>
+                                                                        {item.sourceBranch && (
+                                                                            <button
+                                                                                onClick={() => handleCopy(item.sourceBranch!, `sourceBranch-${item.id}`)}
+                                                                                className={`flex items-center justify-center p-1.5 rounded transition-all ${
+                                                                                    copiedField === `sourceBranch-${item.id}`
+                                                                                        ? 'bg-green-100 text-green-600'
+                                                                                        : 'bg-white text-gray-500 hover:bg-gray-100 border'
+                                                                                }`}
+                                                                                title="Copiar branch de origem"
+                                                                            >
+                                                                                {copiedField === `sourceBranch-${item.id}` ? (
+                                                                                    <Check className="w-3 h-3" />
+                                                                                ) : (
+                                                                                    <Copy className="w-3 h-3" />
+                                                                                )}
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Script */}
+                                                        {item.script && (
+                                                            <div>
+                                                                <div className="flex items-center justify-between mb-3">
+                                                                    <h5 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                                                        <Database className="w-4 h-4 text-blue-600" />
+                                                                        Script de Banco
+                                                                    </h5>
+                                                                    <button
+                                                                        onClick={() => handleCopy(item.script!, `script-${item.id}`)}
+                                                                        className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg transition-all ${
+                                                                            copiedField === `script-${item.id}`
+                                                                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                                                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                                                        }`}
+                                                                    >
+                                                                        {copiedField === `script-${item.id}` ? (
+                                                                            <>
+                                                                                <Check className="w-3 h-3" />
+                                                                                Copiado!
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <Copy className="w-3 h-3" />
+                                                                                Copiar Script
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                </div>
+                                                                <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                                                    <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">
+                                                                        <code>{item.script}</code>
+                                                                    </pre>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Observações */}
+                                                        {item.notes && (
+                                                            <div>
+                                                                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                                                    <StickyNote className="w-4 h-4 text-blue-600" />
+                                                                    Observações
+                                                                </h5>
+                                                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                                                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                                                        {item.notes}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Datas */}
+                                                        <div>
+                                                            <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                                                <Calendar className="w-4 h-4 text-blue-600" />
+                                                                Cronograma
+                                                            </h5>
+                                                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                                                <div>
+                                                                    <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                        <Play className="w-3 h-3" />
+                                                                        Início:
+                                                                    </span>
+                                                                    <span className="text-gray-900 font-medium">
+                                                                        {item.startedAt ? formatDate(item.startedAt) : 'Não informado'}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                        <Flag className="w-3 h-3" />
+                                                                        Finalização:
+                                                                    </span>
+                                                                    <span className="text-gray-900 font-medium">
+                                                                        {item.finishedAt ? formatDate(item.finishedAt) : 'Não informado'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="text-center py-12">
@@ -434,10 +366,10 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                     <Package className="w-12 h-12 mx-auto" />
                                 </div>
                                 <h4 className="text-lg font-medium text-gray-900 mb-2">
-                                    Nenhuma entrega encontrada
+                                    Nenhum item encontrado
                                 </h4>
                                 <p className="text-gray-600">
-                                    Este grupo ainda não possui entregas cadastradas.
+                                    Esta entrega ainda não possui itens cadastrados.
                                 </p>
                             </div>
                         )}

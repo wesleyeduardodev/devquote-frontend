@@ -218,7 +218,7 @@ export const deliveryService = {
     },
 
     getGroupDetailsByTaskId: async (taskId: number): Promise<DeliveryGroupResponse> => {
-        const response = await api.get(`/deliveries/grouped-by-task/${taskId}`);
+        const response = await api.get(`/deliveries/group/${taskId}`);
         return response.data;
     },
 
