@@ -172,7 +172,11 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             
             // Extrair mensagem de erro detalhada
             let errorMessage = 'Erro ao criar tarefa';
-            if (err.response?.data?.detail) {
+            
+            // Verificar se é erro de código duplicado
+            if (err.response?.data?.errorCode === 'DUPLICATE_TASK_CODE') {
+                errorMessage = err.response.data.message || 'Já existe uma tarefa com este código. Por favor, use um código diferente.';
+            } else if (err.response?.data?.detail) {
                 errorMessage = err.response.data.detail;
             } else if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
                 // Formatar erros de validação
@@ -210,6 +214,22 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             return updatedTask;
         } catch (err: any) {
             console.error('Erro ao atualizar tarefa:', err);
+            
+            // Extrair mensagem de erro detalhada
+            let errorMessage = 'Erro ao atualizar tarefa';
+            
+            // Verificar se é erro de código duplicado
+            if (err.response?.data?.errorCode === 'DUPLICATE_TASK_CODE') {
+                errorMessage = err.response.data.message || 'Já existe uma tarefa com este código. Por favor, use um código diferente.';
+            } else if (err.response?.data?.detail) {
+                errorMessage = err.response.data.detail;
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
+            toast.error(errorMessage);
             throw err;
         }
     }, [fetchTasks]);
