@@ -314,13 +314,13 @@ const DeliveryList: React.FC = () => {
 
     const getStatusColor = (status: DeliveryStatus) => {
         const colors = {
-            PENDING: 'text-gray-600 bg-gray-100',
-            DEVELOPMENT: 'text-blue-600 bg-blue-100',
-            DELIVERED: 'text-green-600 bg-green-100',
-            HOMOLOGATION: 'text-yellow-600 bg-yellow-100',
-            APPROVED: 'text-emerald-600 bg-emerald-100',
-            REJECTED: 'text-red-600 bg-red-100',
-            PRODUCTION: 'text-purple-600 bg-purple-100'
+            PENDING: 'text-yellow-700 bg-yellow-50 border border-yellow-100',
+            DEVELOPMENT: 'text-blue-700 bg-blue-50 border border-blue-100',
+            DELIVERED: 'text-green-700 bg-green-50 border border-green-100',
+            HOMOLOGATION: 'text-amber-700 bg-amber-50 border border-amber-100',
+            APPROVED: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
+            REJECTED: 'text-rose-700 bg-rose-50 border border-rose-100',
+            PRODUCTION: 'text-violet-700 bg-violet-50 border border-violet-100'
         };
         return colors[status] || colors.PENDING;
     };
@@ -347,49 +347,49 @@ const DeliveryList: React.FC = () => {
                 key: 'pending', 
                 label: 'Pendente', 
                 count: statistics.pending, 
-                color: 'bg-gray-100 text-gray-800 border-gray-200',
+                color: 'bg-yellow-50 text-yellow-700 border-yellow-100',
                 icon: '⏳'
             },
             { 
                 key: 'development', 
                 label: 'Em Desenvolvimento', 
                 count: statistics.development, 
-                color: 'bg-blue-100 text-blue-800 border-blue-200',
+                color: 'bg-blue-50 text-blue-700 border-blue-100',
                 icon: '🔧'
             },
             { 
                 key: 'delivered', 
                 label: 'Entregue', 
                 count: statistics.delivered, 
-                color: 'bg-green-100 text-green-800 border-green-200',
+                color: 'bg-green-50 text-green-700 border-green-100',
                 icon: '📦'
             },
             { 
                 key: 'homologation', 
                 label: 'Em Homologação', 
                 count: statistics.homologation, 
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                color: 'bg-amber-50 text-amber-700 border-amber-100',
                 icon: '🔍'
             },
             { 
                 key: 'approved', 
                 label: 'Aprovado', 
                 count: statistics.approved, 
-                color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                color: 'bg-emerald-50 text-emerald-700 border-emerald-100',
                 icon: '✅'
             },
             { 
                 key: 'rejected', 
                 label: 'Rejeitado', 
                 count: statistics.rejected, 
-                color: 'bg-red-100 text-red-800 border-red-200',
+                color: 'bg-rose-50 text-rose-700 border-rose-100',
                 icon: '❌'
             },
             { 
                 key: 'production', 
                 label: 'Em Produção', 
                 count: statistics.production, 
-                color: 'bg-purple-100 text-purple-800 border-purple-200',
+                color: 'bg-violet-50 text-violet-700 border-violet-100',
                 icon: '🚀'
             }
         ];

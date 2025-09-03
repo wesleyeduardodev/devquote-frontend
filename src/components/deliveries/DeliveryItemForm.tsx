@@ -33,14 +33,14 @@ const deliveryItemSchema = yup.object({
     notes: yup.string().optional()
 });
 
-const statusOptions: { value: DeliveryStatus; label: string; color: string }[] = [
-    { value: 'PENDING', label: 'Pendente', color: 'text-gray-600' },
-    { value: 'DEVELOPMENT', label: 'Em Desenvolvimento', color: 'text-blue-600' },
-    { value: 'DELIVERED', label: 'Entregue', color: 'text-green-600' },
-    { value: 'HOMOLOGATION', label: 'Em Homologação', color: 'text-yellow-600' },
-    { value: 'APPROVED', label: 'Aprovado', color: 'text-emerald-600' },
-    { value: 'REJECTED', label: 'Rejeitado', color: 'text-red-600' },
-    { value: 'PRODUCTION', label: 'Em Produção', color: 'text-purple-600' }
+const statusOptions: { value: DeliveryStatus; label: string; color: string; bg: string }[] = [
+    { value: 'PENDING', label: 'Pendente', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-100' },
+    { value: 'DEVELOPMENT', label: 'Em Desenvolvimento', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-100' },
+    { value: 'DELIVERED', label: 'Entregue', color: 'text-green-700', bg: 'bg-green-50 border-green-100' },
+    { value: 'HOMOLOGATION', label: 'Em Homologação', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100' },
+    { value: 'APPROVED', label: 'Aprovado', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
+    { value: 'REJECTED', label: 'Rejeitado', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-100' },
+    { value: 'PRODUCTION', label: 'Em Produção', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-100' }
 ];
 
 export default function DeliveryItemForm({
@@ -164,8 +164,7 @@ export default function DeliveryItemForm({
                         {/* Status e Ações */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color} bg-opacity-10`}
-                                    style={{ backgroundColor: statusInfo.color.replace('text-', 'bg-').replace('600', '50') }}>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.color} ${statusInfo.bg}`}>
                                     ✓ {statusInfo.label}
                                 </span>
                                 {hasUnsavedChanges && (
@@ -223,7 +222,7 @@ export default function DeliveryItemForm({
                     </div>
                     
                     <div className="flex items-center gap-3">
-                        <span className={`text-sm font-medium ${statusInfo.color}`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.color} ${statusInfo.bg}`}>
                             {statusInfo.label}
                         </span>
                         
