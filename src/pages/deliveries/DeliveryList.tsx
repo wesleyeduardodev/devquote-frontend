@@ -339,8 +339,151 @@ const DeliveryList: React.FC = () => {
                 </div>
             </div>
 
-            {/* Tabela */}
-            <Card className="p-0">
+            {/* Mobile: Cards Layout */}
+            <div className="block sm:hidden">
+                {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                        <LoadingSpinner size="lg" />
+                        <span className="ml-3 text-gray-600">Carregando entregas...</span>
+                    </div>
+                ) : deliveryGroups.filter(delivery => delivery && delivery.taskId).length === 0 ? (
+                    <div className="text-center py-12">
+                        <Package className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma entrega criada</h3>
+                        <p className="mt-1 text-sm text-gray-500">Crie sua primeira entrega para começar</p>
+                        {canCreate && (
+                            <Button onClick={() => navigate('/deliveries/create')} className="mt-4">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nova Entrega
+                            </Button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {deliveryGroups.filter(delivery => delivery && delivery.taskId).map((delivery) => (
+                            <Card key={delivery.taskId} className="p-4">
+                                <div className="space-y-3">
+                                    {/* Header com ID e Código */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-900">
+                                                #{delivery.taskId || 'N/A'}
+                                            </span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                {delivery.taskCode || 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleView(delivery)}
+                                                title="Ver detalhes"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                            
+                                            {canEdit && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleEdit(delivery)}
+                                                    title="Editar"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                            
+                                            {canDelete && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleDelete(delivery)}
+                                                    title="Excluir"
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Título da Tarefa */}
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-900 leading-5">
+                                            {delivery.taskName || 'N/A'}
+                                        </h3>
+                                    </div>
+
+                                    {/* Status e Quantidade */}
+                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                        <div className="flex items-center gap-4">
+                                            <div>
+                                                <span className="text-xs text-gray-500">Status:</span>
+                                                <div className="mt-1">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}`}>
+                                                        {getStatusLabel((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs text-gray-500">Itens:</span>
+                                                <div className="mt-1">
+                                                    <span className="text-sm font-medium text-gray-900">
+                                                        {delivery.totalItems || 0}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                        
+                        {/* Mobile Pagination */}
+                        {pagination && pagination.totalPages > 1 && (
+                            <div className="flex items-center justify-center space-x-1 py-4">
+                                <button
+                                    onClick={() => setCurrentPage(0)}
+                                    disabled={currentPage === 0}
+                                    className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
+                                    title="Primeira página"
+                                >
+                                    ⇤
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                    disabled={currentPage === 0}
+                                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
+                                >
+                                    ‹
+                                </button>
+                                <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+                                    {currentPage + 1} de {pagination.totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage(Math.min(pagination.totalPages - 1, currentPage + 1))}
+                                    disabled={currentPage >= pagination.totalPages - 1}
+                                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
+                                >
+                                    ›
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(pagination.totalPages - 1)}
+                                    disabled={currentPage >= pagination.totalPages - 1}
+                                    className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
+                                    title="Última página"
+                                >
+                                    ⇥
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop: DataTable */}
+            <Card className="p-0 hidden sm:block">
                 <DataTable
                     data={deliveryGroups.filter(delivery => delivery && delivery.taskId)}
                     columns={columns}

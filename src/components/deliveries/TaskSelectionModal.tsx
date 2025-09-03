@@ -239,7 +239,60 @@ export default function TaskSelectionModal({
                         <>
                             {/* Mobile: Cards Layout */}
                             <div className="block sm:hidden">
-                                <div className="px-4 space-y-3">
+                                {/* Mobile Filters */}
+                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                Filtrar por código:
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Digite o código..."
+                                                value={filters.code || ''}
+                                                onChange={(e) => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        code: e.target.value || undefined
+                                                    }));
+                                                    setPage(0);
+                                                }}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                Filtrar por título:
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Digite o título..."
+                                                value={filters.title || ''}
+                                                onChange={(e) => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        title: e.target.value || undefined
+                                                    }));
+                                                    setPage(0);
+                                                }}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        {(filters.code || filters.title) && (
+                                            <button
+                                                onClick={() => {
+                                                    setFilters({});
+                                                    setPage(0);
+                                                }}
+                                                className="text-xs text-blue-600 font-medium hover:text-blue-800"
+                                            >
+                                                Limpar filtros
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="px-4 space-y-3 py-4">
                                     {tasks.map((task) => (
                                         <div 
                                             key={task.id}
@@ -273,23 +326,48 @@ export default function TaskSelectionModal({
                                 {/* Mobile Pagination */}
                                 {paginationData && paginationData.totalPages > 1 && (
                                     <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-center space-x-1">
+                                            {/* Primeira página */}
+                                            <button
+                                                onClick={() => setPage(0)}
+                                                disabled={page === 0}
+                                                className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title="Primeira página"
+                                            >
+                                                ⇤
+                                            </button>
+                                            
+                                            {/* Página anterior */}
                                             <button
                                                 onClick={() => setPage(Math.max(0, page - 1))}
                                                 disabled={page === 0}
                                                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Anterior
+                                                ‹
                                             </button>
-                                            <span className="text-sm text-gray-700">
+                                            
+                                            {/* Indicador de página atual */}
+                                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
                                                 {page + 1} de {paginationData.totalPages}
                                             </span>
+                                            
+                                            {/* Próxima página */}
                                             <button
                                                 onClick={() => setPage(Math.min(paginationData.totalPages - 1, page + 1))}
                                                 disabled={page >= paginationData.totalPages - 1}
                                                 className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Próxima
+                                                ›
+                                            </button>
+                                            
+                                            {/* Última página */}
+                                            <button
+                                                onClick={() => setPage(paginationData.totalPages - 1)}
+                                                disabled={page >= paginationData.totalPages - 1}
+                                                className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title="Última página"
+                                            >
+                                                ⇥
                                             </button>
                                         </div>
                                     </div>
