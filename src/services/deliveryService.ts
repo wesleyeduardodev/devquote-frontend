@@ -123,7 +123,7 @@ export const deliveryService = {
 
     // Buscar tarefas sem entrega (para seleção)
     getAvailableTasks: async (): Promise<AvailableTask[]> => {
-        const response = await api.get('/tasks/unlinked');
+        const response = await api.get('/tasks/unlinked-delivery');
         const tasks = response.data.content || [];
         
         // Converter TaskResponse para AvailableTask
@@ -164,7 +164,7 @@ export const deliveryService = {
             });
         }
 
-        const response = await api.get(`/tasks/unlinked?${queryParams.toString()}`);
+        const response = await api.get(`/tasks/unlinked-delivery?${queryParams.toString()}`);
         
         // Converter TaskResponse para AvailableTask
         const convertedContent = (response.data.content || []).map((task: any) => ({

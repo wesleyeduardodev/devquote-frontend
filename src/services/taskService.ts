@@ -84,7 +84,7 @@ export const taskService = {
             });
         }
 
-        const response = await api.get(`/tasks/unlinked?${queryParams.toString()}`);
+        const response = await api.get(`/tasks/unlinked-billing?${queryParams.toString()}`);
         return response.data;
     },
 
