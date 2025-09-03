@@ -259,12 +259,23 @@ const DeliveryList: React.FC = () => {
     const handleExport = async () => {
         try {
             setIsExporting(true);
-            const blob = await deliveryService.exportToExcel();
+            const response = await deliveryService.exportToExcelWithResponse();
             
-            const url = window.URL.createObjectURL(blob);
+            // Extrair nome do arquivo do Content-Disposition ou usar fallback
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = `relatorio_entregas_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}_${new Date().toLocaleTimeString('pt-BR').replace(/:/g, '-')}.xlsx`;
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+            
+            const url = window.URL.createObjectURL(response.data);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `entregas_${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

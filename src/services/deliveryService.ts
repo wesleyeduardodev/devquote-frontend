@@ -229,6 +229,13 @@ export const deliveryService = {
         return response.data;
     },
 
+    exportToExcelWithResponse: async (): Promise<{ data: Blob; headers: any }> => {
+        const response = await api.get('/deliveries/export/excel', {
+            responseType: 'blob'
+        });
+        return { data: response.data, headers: response.headers };
+    },
+
     // Método auxiliar para verificar se tarefa já tem entrega
     taskHasDelivery: async (taskId: number): Promise<boolean> => {
         const delivery = await deliveryService.getByTaskId(taskId);
