@@ -461,23 +461,17 @@ const BillingManagement: React.FC = () => {
         );
     };
 
-    const StatCard = ({ title, value, icon: Icon, color, subtitle }: {
+    const StatCard = ({ title, value, color, subtitle }: {
         title: string;
         value: string;
-        icon: any;
         color: string;
         subtitle?: string;
     }) => (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-600">{title}</p>
-                    <p className={`text-2xl font-bold ${color}`}>{value}</p>
-                    {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-                </div>
-                <div className={`p-3 rounded-lg ${color.includes('green') ? 'bg-green-100' : color.includes('blue') ? 'bg-blue-100' : color.includes('amber') ? 'bg-amber-100' : 'bg-purple-100'}`}>
-                    <Icon className={`w-6 h-6 ${color}`} />
-                </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div>
+                <p className="text-sm font-medium text-gray-600">{title}</p>
+                <p className={`text-xl sm:text-2xl font-bold ${color} mt-1`}>{value}</p>
+                {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
             </div>
         </div>
     );
@@ -699,42 +693,36 @@ const BillingManagement: React.FC = () => {
                     <StatCard
                         title="Total Geral"
                         value={formatCurrency(stats.total)}
-                        icon={TrendingUp}
                         color="text-purple-600"
                         subtitle={`${filteredBillingMonths.length} períodos`}
                     />
                     <StatCard
                         title="Pendente"
                         value={formatCurrency(stats.pending)}
-                        icon={Clock}
                         color="text-amber-600"
                         subtitle="Aguardando ação"
                     />
                     <StatCard
                         title="Faturado"
                         value={formatCurrency(stats.billed)}
-                        icon={FileText}
                         color="text-purple-600"
                         subtitle="Enviados"
                     />
                     <StatCard
                         title="Pago"
                         value={formatCurrency(stats.paid)}
-                        icon={CheckCircle}
                         color="text-green-600"
                         subtitle="Valores recebidos"
                     />
                     <StatCard
                         title="Atrasado"
                         value={formatCurrency(stats.overdue)}
-                        icon={XCircle}
                         color="text-red-600"
                         subtitle="Em atraso"
                     />
                     <StatCard
                         title="Cancelado"
                         value={formatCurrency(stats.canceled)}
-                        icon={X}
                         color="text-gray-600"
                         subtitle="Cancelados"
                     />
