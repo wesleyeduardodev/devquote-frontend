@@ -158,7 +158,6 @@ const DeliveryEdit: React.FC = () => {
         if (!delivery) return;
 
         try {
-            setSaving(true);
             const newItems: DeliveryItem[] = [];
 
             // Criar novos itens para cada projeto selecionado
@@ -203,8 +202,6 @@ const DeliveryEdit: React.FC = () => {
         } catch (error) {
             console.error('Erro ao adicionar itens:', error);
             toast.error('Erro ao adicionar itens');
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -412,9 +409,8 @@ const DeliveryEdit: React.FC = () => {
                 <ProjectSelectionModal
                     isOpen={showProjectModal}
                     onClose={() => setShowProjectModal(false)}
-                    onSelect={handleAddProjects}
-                    selectedProjectIds={selectedProjects.map(p => p.id)}
-                    excludeSelected={true}
+                    onProjectsSelect={handleAddProjects}
+                    excludeProjectIds={selectedProjects.map(p => p.id)}
                 />
             )}
 

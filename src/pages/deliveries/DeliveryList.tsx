@@ -198,7 +198,6 @@ const DeliveryList: React.FC = () => {
     const handleEdit = (group: DeliveryGroupResponse) => {
         // Pegar o ID da primeira entrega (relação 1:1 com task)
         const deliveryId = group.deliveries?.[0]?.id;
-        console.log('Editando entrega. Grupo:', group, 'DeliveryId encontrado:', deliveryId);
         
         if (deliveryId) {
             navigate(`/deliveries/${deliveryId}/edit`);

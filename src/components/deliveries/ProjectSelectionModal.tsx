@@ -11,13 +11,15 @@ interface ProjectSelectionModalProps {
     onClose: () => void;
     onProjectsSelect: (projects: AvailableProject[]) => void;
     selectedTaskTitle?: string;
+    excludeProjectIds?: number[];
 }
 
 export default function ProjectSelectionModal({
     isOpen,
     onClose,
     onProjectsSelect,
-    selectedTaskTitle
+    selectedTaskTitle,
+    excludeProjectIds = []
 }: ProjectSelectionModalProps) {
     const [projects, setProjects] = useState<AvailableProject[]>([]);
     const [allProjects, setAllProjects] = useState<AvailableProject[]>([]);
@@ -30,7 +32,7 @@ export default function ProjectSelectionModal({
 
     // Estados para DataTable
     const [page, setPage] = useState(0);
-    const [size, setSize] = useState(5);
+    const [size, setSize] = useState(10);
     const [sortField, setSortField] = useState('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [filters, setFilters] = useState<Record<string, string>>({});
@@ -54,12 +56,14 @@ export default function ProjectSelectionModal({
                 filters: searchFilters
             });
 
-            // Converter para o formato esperado
-            const availableProjects: AvailableProject[] = (response.content || []).map(project => ({
-                id: project.id,
-                name: project.name,
-                repositoryUrl: project.repositoryUrl
-            }));
+            // Converter para o formato esperado e filtrar projetos excluídos
+            const availableProjects: AvailableProject[] = (response.content || [])
+                .map(project => ({
+                    id: project.id,
+                    name: project.name,
+                    repositoryUrl: project.repositoryUrl
+                }))
+                .filter(project => !excludeProjectIds.includes(project.id));
 
             setProjects(availableProjects);
             setPaginationData(response);
@@ -68,11 +72,13 @@ export default function ProjectSelectionModal({
             if (page === 0) {
                 try {
                     const allResponse = await projectService.getAll();
-                    const allAvailableProjects = (allResponse.content || []).map(project => ({
-                        id: project.id,
-                        name: project.name,
-                        repositoryUrl: project.repositoryUrl
-                    }));
+                    const allAvailableProjects = (allResponse.content || [])
+                        .map(project => ({
+                            id: project.id,
+                            name: project.name,
+                            repositoryUrl: project.repositoryUrl
+                        }))
+                        .filter(project => !excludeProjectIds.includes(project.id));
                     setAllProjects(allAvailableProjects);
                 } catch (e) {
                     console.warn('Não foi possível carregar todos os projetos:', e);

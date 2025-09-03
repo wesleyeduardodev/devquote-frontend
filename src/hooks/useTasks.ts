@@ -270,9 +270,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const exportToExcel = useCallback(async () => {
         try {
             setExporting(true);
-            console.log('Iniciando exportação de tarefas...');
             const blob = await taskService.exportToExcel();
-            console.log('Blob recebido:', blob);
             
             // Criar nome do arquivo com timestamp
             const now = new Date();

@@ -29,22 +29,14 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
   const fetchProfileUsers = async () => {
     try {
       setLoading(true);
-      console.log('fetchProfileUsers - Total users:', users.length);
-      console.log('fetchProfileUsers - Profile ID:', profile.id);
-      console.log('fetchProfileUsers - Users data:', users);
-      
       // Get all users and filter those with this profile
       const usersWithProfile = users.filter(user => {
-        console.log(`User ${user.username} profiles:`, user.profiles);
         return user.profiles?.some(p => p.id === profile.id);
       });
       
       const usersWithoutProfile = users.filter(user => 
         !user.profiles?.some(p => p.id === profile.id)
       );
-
-      console.log('Users with profile:', usersWithProfile);
-      console.log('Users without profile:', usersWithoutProfile);
 
       setAssignedUsers(usersWithProfile);
       setAvailableUsers(usersWithoutProfile);
