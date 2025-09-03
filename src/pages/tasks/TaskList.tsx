@@ -15,10 +15,12 @@ import {
     Eye,
     Download,
     Mail,
+    ChevronsLeft,
+    ChevronsRight,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
-import { formatPaginationText } from '@/utils/paginationUtils';
+import { formatPaginationText, formatMobileRecordCountText } from '@/utils/paginationUtils';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -667,102 +669,106 @@ const TaskList: React.FC = () => {
     const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox - para usuários que podem criar tarefas */}
-                    {canCreateTasks && (
-                        <div className="flex-shrink-0 pt-1">
-                            <input
-                                type="checkbox"
-                                checked={selectedItems.includes(task.id)}
-                                onChange={() => toggleItem(task.id)}
-                                disabled={!canModifyTask(task)}
-                                className={`w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
-                                    !canModifyTask(task) ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                                title={canModifyTask(task) ? 'Selecionar tarefa' : 'Você não pode modificar esta tarefa'}
-                            />
-                        </div>
-                    )}
-
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                #{task.id}
-              </span>
-                            <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                {task.code}
-              </span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority || 'MEDIUM')}`}>
-                {getPriorityLabel(task.priority || 'MEDIUM')}
-              </span>
-                        </div>
-                        <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">{task.title}</h3>
-                        {task.taskType && (
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
-                                    {getTaskTypeLabel(task.taskType)}
-                                </span>
-                            </div>
-                        )}
+            <div className="flex items-start gap-3 mb-3">
+                {/* Checkbox - para usuários que podem criar tarefas */}
+                {canCreateTasks && (
+                    <div className="flex-shrink-0 pt-1">
+                        <input
+                            type="checkbox"
+                            checked={selectedItems.includes(task.id)}
+                            onChange={() => toggleItem(task.id)}
+                            disabled={!canModifyTask(task)}
+                            className={`w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
+                                !canModifyTask(task) ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            title={canModifyTask(task) ? 'Selecionar tarefa' : 'Você não pode modificar esta tarefa'}
+                        />
                     </div>
-                </div>
+                )}
 
-                {/* Ações */}
-                <div className="flex gap-1 ml-2">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleView(task)}
-                        title="Visualizar detalhes"
-                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                    >
-                        <Eye className="w-4 h-4" />
-                    </Button>
-                    {canModifyTask(task) && (
-                        <>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(task.id)}
-                                title="Editar"
-                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                            >
-                                <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDelete(task)}
-                                title="Excluir"
-                                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        </>
-                    )}
-                    {isAdmin && (
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleFinancialEmail(task)}
-                            title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
-                            className={`${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
-                        >
-                            <Mail className="w-4 h-4" />
-                        </Button>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+            #{task.id}
+          </span>
+                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+            {task.code}
+          </span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority || 'MEDIUM')}`}>
+            {getPriorityLabel(task.priority || 'MEDIUM')}
+          </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">{task.title}</h3>
+                    {task.taskType && (
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                                {getTaskTypeLabel(task.taskType)}
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* Informações da Task */}
             <div className="space-y-2">
-                {task.requesterName && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span className="text-gray-700">{task.requesterName}</span>
+                {/* Ações + Solicitante - na mesma linha para economizar espaço */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm flex-1">
+                        {/* Ações compactas */}
+                        <div className="flex gap-1 mr-3">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleView(task)}
+                                title="Visualizar detalhes"
+                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
+                            >
+                                <Eye className="w-3.5 h-3.5" />
+                            </Button>
+                            {canModifyTask(task) && (
+                                <>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEdit(task.id)}
+                                        title="Editar"
+                                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
+                                    >
+                                        <Edit className="w-3.5 h-3.5" />
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDelete(task)}
+                                        title="Excluir"
+                                        className="text-gray-600 hover:text-red-600 hover:bg-red-50 p-1"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                </>
+                            )}
+                            {isAdmin && (
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleFinancialEmail(task)}
+                                    title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
+                                    className={`p-1 ${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                                >
+                                    <Mail className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+                        </div>
+                        
+                        {/* Solicitante */}
+                        {task.requesterName && (
+                            <>
+                                <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                <span className="text-gray-700 truncate">{task.requesterName}</span>
+                            </>
+                        )}
                     </div>
-                )}
+                </div>
 
                 {task.systemModule && (
                     <div className="flex items-center gap-2 text-sm">
@@ -990,31 +996,73 @@ const TaskList: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Paginação Simplificada (mobile) */}
+                        {/* Paginação Melhorada (mobile) */}
                         {pagination && pagination.totalPages > 1 && (
                             <Card className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => setPage(pagination.currentPage - 1)}
-                                        disabled={pagination.currentPage <= 1}
-                                    >
-                                        Anterior
-                                    </Button>
+                                <div className="space-y-3">
+                                    {/* Informação de registros */}
+                                    <div className="text-center text-sm text-gray-600">
+                                        {formatMobileRecordCountText(
+                                            pagination.currentPage,
+                                            pagination.pageSize,
+                                            pagination.totalElements
+                                        )}
+                                    </div>
+                                    
+                                    {/* Controles de navegação */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-1">
+                                            {/* Primeira página */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setPage(0)}
+                                                disabled={pagination.currentPage <= 0}
+                                                title="Primeira página"
+                                                className="p-2"
+                                            >
+                                                <ChevronsLeft className="w-4 h-4" />
+                                            </Button>
+                                            {/* Página anterior */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setPage(pagination.currentPage - 1)}
+                                                disabled={pagination.currentPage <= 0}
+                                                title="Página anterior"
+                                            >
+                                                Anterior
+                                            </Button>
+                                        </div>
 
-                                    <span className="text-sm text-gray-600">
-{formatPaginationText(pagination.currentPage, pagination.totalPages)}
-                  </span>
+                                        <span className="text-sm text-gray-600 font-medium">
+                                            {formatPaginationText(pagination.currentPage, pagination.totalPages)}
+                                        </span>
 
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => setPage(pagination.currentPage + 1)}
-                                        disabled={pagination.currentPage >= pagination.totalPages}
-                                    >
-                                        Próxima
-                                    </Button>
+                                        <div className="flex gap-1">
+                                            {/* Próxima página */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setPage(pagination.currentPage + 1)}
+                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
+                                                title="Próxima página"
+                                            >
+                                                Próxima
+                                            </Button>
+                                            {/* Última página */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setPage(pagination.totalPages - 1)}
+                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
+                                                title="Última página"
+                                                className="p-2"
+                                            >
+                                                <ChevronsRight className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
                             </Card>
                         )}

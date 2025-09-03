@@ -16,3 +16,33 @@ export const formatMobilePaginationText = (currentPage: number, totalPages: numb
     const displayPage = getDisplayPageNumber(currentPage, totalPages);
     return `${displayPage}/${totalPages}`;
 };
+
+export const formatRecordCountText = (
+    currentPage: number, 
+    pageSize: number, 
+    totalElements: number
+): string => {
+    if (totalElements === 0) {
+        return "Nenhum registro encontrado";
+    }
+    
+    const startRecord = (currentPage * pageSize) + 1;
+    const endRecord = Math.min((currentPage + 1) * pageSize, totalElements);
+    
+    return `${startRecord}-${endRecord} de ${totalElements} registro${totalElements !== 1 ? 's' : ''}`;
+};
+
+export const formatMobileRecordCountText = (
+    currentPage: number, 
+    pageSize: number, 
+    totalElements: number
+): string => {
+    if (totalElements === 0) {
+        return "0 registros";
+    }
+    
+    const startRecord = (currentPage * pageSize) + 1;
+    const endRecord = Math.min((currentPage + 1) * pageSize, totalElements);
+    
+    return `${startRecord}-${endRecord} de ${totalElements}`;
+};
