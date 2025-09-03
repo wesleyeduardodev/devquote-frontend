@@ -502,7 +502,6 @@ const DeliveryList: React.FC = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Entregas</h1>
-                    <p className="text-gray-600">Gerencie suas entregas agrupadas por tarefa</p>
                 </div>
                 
                 <div className="flex items-center gap-3">
