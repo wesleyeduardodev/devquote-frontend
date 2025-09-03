@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    Plus, Edit, Trash2, Eye, Download, Package
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,6 +13,7 @@ import {
 } from '../../types/delivery.types';
 import { deliveryService } from '../../services/deliveryService';
 import { PaginatedResponse } from '../../types/api.types';
+import { formatMobileRecordCountText } from '../../utils/paginationUtils';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -572,8 +573,8 @@ const DeliveryList: React.FC = () => {
                             <Card key={delivery.taskId} className="p-4">
                                 <div className="space-y-3">
                                     {/* Header com ID e Código */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex items-center gap-2 flex-1">
                                             <span className="text-sm font-medium text-gray-900">
                                                 #{delivery.taskId || 'N/A'}
                                             </span>
@@ -581,110 +582,142 @@ const DeliveryList: React.FC = () => {
                                                 {delivery.taskCode || 'N/A'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleView(delivery)}
-                                                title="Ver detalhes"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                            
-                                            {canEdit && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleEdit(delivery)}
-                                                    title="Editar"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                            )}
-                                            
-                                            {canDelete && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(delivery)}
-                                                    title="Excluir"
-                                                    className="text-red-600 hover:text-red-800"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            )}
-                                        </div>
                                     </div>
 
                                     {/* Título da Tarefa */}
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-900 leading-5">
+                                        <h3 className="font-semibold text-gray-900 text-lg leading-tight">
                                             {delivery.taskName || 'N/A'}
                                         </h3>
                                     </div>
 
-                                    {/* Status e Quantidade */}
-                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                                        <div className="flex items-center gap-4">
-                                            <div>
-                                                <span className="text-xs text-gray-500">Status:</span>
-                                                <div className="mt-1">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}`}>
-                                                        {getStatusLabel((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}
-                                                    </span>
-                                                </div>
+                                    {/* Ações + Informações - na mesma linha para economizar espaço */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-sm flex-1">
+                                            {/* Ações compactas */}
+                                            <div className="flex gap-1 mr-3">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleView(delivery)}
+                                                    title="Ver detalhes"
+                                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
+                                                >
+                                                    <Eye className="w-3.5 h-3.5" />
+                                                </Button>
+                                                
+                                                {canEdit && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleEdit(delivery)}
+                                                        title="Editar"
+                                                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
+                                                    >
+                                                        <Edit className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
+                                                
+                                                {canDelete && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(delivery)}
+                                                        title="Excluir"
+                                                        className="text-gray-600 hover:text-red-600 hover:bg-red-50 p-1"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                            <div>
-                                                <span className="text-xs text-gray-500">Itens:</span>
-                                                <div className="mt-1">
-                                                    <span className="text-sm font-medium text-gray-900">
-                                                        {delivery.totalItems || 0}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                            
+                                            {/* Status */}
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}`}>
+                                                {getStatusLabel((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Informações Adicionais */}
+                                    <div className="flex items-center gap-4 text-sm text-gray-600 pt-2 border-t border-gray-100">
+                                        <div className="flex items-center gap-2">
+                                            <Package className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                            <span>{delivery.totalItems || 0} item(s)</span>
                                         </div>
                                     </div>
                                 </div>
                             </Card>
                         ))}
                         
-                        {/* Mobile Pagination */}
+                        {/* Paginação Melhorada (mobile) */}
                         {pagination && pagination.totalPages > 1 && (
-                            <div className="flex items-center justify-center space-x-1 py-4">
-                                <button
-                                    onClick={() => setCurrentPage(0)}
-                                    disabled={currentPage === 0}
-                                    className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
-                                    title="Primeira página"
-                                >
-                                    ⇤
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                                    disabled={currentPage === 0}
-                                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
-                                >
-                                    ‹
-                                </button>
-                                <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
-                                    {currentPage + 1} de {pagination.totalPages}
-                                </span>
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(pagination.totalPages - 1, currentPage + 1))}
-                                    disabled={currentPage >= pagination.totalPages - 1}
-                                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
-                                >
-                                    ›
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(pagination.totalPages - 1)}
-                                    disabled={currentPage >= pagination.totalPages - 1}
-                                    className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50"
-                                    title="Última página"
-                                >
-                                    ⇥
-                                </button>
-                            </div>
+                            <Card className="p-4">
+                                <div className="space-y-3">
+                                    {/* Informação de registros */}
+                                    <div className="text-center text-sm text-gray-600">
+                                        {formatMobileRecordCountText(
+                                            currentPage,
+                                            10, // pageSize padrão das entregas
+                                            pagination.totalElements || 0
+                                        )}
+                                    </div>
+                                    
+                                    {/* Controles de navegação */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-1">
+                                            {/* Primeira página */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setCurrentPage(0)}
+                                                disabled={currentPage <= 0}
+                                                title="Primeira página"
+                                                className="p-2"
+                                            >
+                                                <ChevronsLeft className="w-4 h-4" />
+                                            </Button>
+                                            {/* Página anterior */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                                disabled={currentPage <= 0}
+                                                title="Página anterior"
+                                            >
+                                                Anterior
+                                            </Button>
+                                        </div>
+
+                                        <span className="text-sm text-gray-600 font-medium">
+                                            Página {currentPage + 1} de {pagination.totalPages}
+                                        </span>
+
+                                        <div className="flex gap-1">
+                                            {/* Próxima página */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setCurrentPage(Math.min(pagination.totalPages - 1, currentPage + 1))}
+                                                disabled={currentPage >= pagination.totalPages - 1}
+                                                title="Próxima página"
+                                            >
+                                                Próxima
+                                            </Button>
+                                            {/* Última página */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setCurrentPage(pagination.totalPages - 1)}
+                                                disabled={currentPage >= pagination.totalPages - 1}
+                                                title="Última página"
+                                                className="p-2"
+                                            >
+                                                <ChevronsRight className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
                         )}
                     </div>
                 )}
