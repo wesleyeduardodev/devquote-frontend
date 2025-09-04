@@ -155,6 +155,8 @@ const DeliveryList: React.FC = () => {
             key: 'task.id',
             title: 'ID',
             sortable: true,
+            filterable: true,
+            filterType: 'number',
             render: (delivery) => (
                 <span className="font-medium text-gray-900">
                     #{delivery.taskId || 'N/A'}
