@@ -1,54 +1,15 @@
-import {useState, useEffect, useCallback, useRef} from 'react';
-import {deliveryService} from '@/services/deliveryService';
-import {deliveryGroupService} from '@/services/deliveryGroupService';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { deliveryService } from '../services/deliveryService';
+import { 
+    DeliveryGroupResponse, 
+    DeliveryFilters
+} from '../types/delivery.types';
+import { PaginatedResponse } from '../types/api.types';
 import toast from 'react-hot-toast';
 
-interface Delivery {
-    id: number;
-    taskName: string;
-    taskCode: string;
-    projectName: string;
-    branch?: string;
-    sourceBranch?: string;
-    pullRequest?: string;
-    script?: string;
-    notes?: string;
-    status: string;
-    startedAt?: string;
-    finishedAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
-
-interface DeliveryCreate {
-    quoteId: number;
-    projectId: number;
-    branch?: string;
-    sourceBranch?: string;
-    pullRequest?: string;
-    script?: string;
-    notes?: string;
-    status: string;
-    startedAt?: string;
-    finishedAt?: string;
-}
-
-interface DeliveryUpdate extends Partial<DeliveryCreate> {
-    id?: number;
-}
-
-interface DeliveryGroup {
-    quoteId: number;
-    taskName: string;
-    taskCode: string;
-    quoteStatus: string;
-    quoteValue: number;
-    createdAt: string;
-    updatedAt: string;
-    totalDeliveries: number;
-    completedDeliveries: number;
-    pendingDeliveries: number;
-    deliveries: Delivery[];
+interface SortInfo {
+    field: string;
+    direction: 'asc' | 'desc';
 }
 
 interface PaginationInfo {
@@ -60,71 +21,48 @@ interface PaginationInfo {
     last: boolean;
 }
 
-interface SortInfo {
-    field: string;
-    direction: 'asc' | 'desc';
-}
-
-interface FilterParams {
-    [key: string]: string | undefined;
-    id?: string;
-    taskName?: string;
-    taskCode?: string;
-    projectName?: string;
-    branch?: string;
-    sourceBranch?: string;
-    pullRequest?: string;
-    notes?: string;
-    status?: string;
-    startedAt?: string;
-    finishedAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
-
 interface UseDeliveriesParams {
     page?: number;
     size?: number;
     sort?: SortInfo[];
-    filters?: FilterParams;
+    filters?: DeliveryFilters;
 }
 
 interface UseDeliveriesReturn {
-    deliveries: Delivery[];
+    deliveryGroups: DeliveryGroupResponse[];
     pagination: PaginationInfo | null;
     loading: boolean;
     error: string | null;
+    exporting: boolean;
     sorting: SortInfo[];
-    filters: FilterParams;
-    fetchDeliveries: (params?: UseDeliveriesParams) => Promise<void>;
-    createDelivery: (deliveryData: DeliveryCreate) => Promise<Delivery>;
-    updateDelivery: (id: number, deliveryData: DeliveryUpdate) => Promise<Delivery>;
-    deleteDelivery: (id: number) => Promise<void>;
-    deleteBulkDeliveries: (ids: number[]) => Promise<void>;
-    exportToExcel: () => Promise<void>;
+    filters: DeliveryFilters;
+    fetchDeliveryGroups: (params?: UseDeliveriesParams) => Promise<void>;
+    deleteBulk: (ids: number[]) => Promise<void>;
     setPage: (page: number) => void;
     setPageSize: (size: number) => void;
     setSorting: (field: string, direction: 'asc' | 'desc') => void;
     setFilter: (field: string, value: string) => void;
     clearFilters: () => void;
+    exportToExcel: () => Promise<void>;
 }
 
 export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliveriesReturn => {
-    const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+    const [deliveryGroups, setDeliveryGroups] = useState<DeliveryGroupResponse[]>([]);
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [exporting, setExporting] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
     const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
-    const [sorting, setSortingState] = useState<SortInfo[]>(
-        initialParams?.sort || [{ field: 'id', direction: 'desc' }]
-    );
-    const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
+    const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
+        { field: 'task.id', direction: 'desc' }
+    ]);
+    const [filters, setFilters] = useState<DeliveryFilters>(initialParams?.filters || {});
 
     // Refs para controlar o debounce
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const fetchDeliveries = useCallback(async (params?: UseDeliveriesParams): Promise<void> => {
+    const fetchDeliveryGroups = useCallback(async (params?: UseDeliveriesParams): Promise<void> => {
         try {
             setLoading(true);
             setError(null);
@@ -134,76 +72,95 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
             const sort = params?.sort ?? sorting;
             const currentFilters = params?.filters ?? filters;
 
-            const data = await deliveryService.getAllPaginated({
+            // Converter e mapear campos do frontend para o backend
+            const apiFilters: DeliveryFilters = {};
+            
+            // Mapear campos específicos do frontend para backend
+            Object.entries(currentFilters).forEach(([key, value]) => {
+                if (!value || value.toString().trim() === '') {
+                    return; // Ignora valores vazios
+                }
+                
+                // Mapeamento de campos frontend -> backend
+                switch (key) {
+                    case 'deliveryStatus':
+                        // Converter status do português para inglês (enum)
+                        const convertStatusLabelToEnum = (label: string): string | undefined => {
+                            const labelToEnum: Record<string, string> = {
+                                'Pendente': 'PENDING',
+                                'Desenvolvimento': 'DEVELOPMENT', 
+                                'Entregue': 'DELIVERED',
+                                'Homologação': 'HOMOLOGATION',
+                                'Aprovado': 'APPROVED',
+                                'Rejeitado': 'REJECTED',
+                                'Produção': 'PRODUCTION'
+                            };
+                            return labelToEnum[label] || label; // Se não encontrar, usa o valor original
+                        };
+                        apiFilters.status = convertStatusLabelToEnum(value as string) || value as string;
+                        break;
+                    case 'task.code':
+                        apiFilters.taskCode = value as string;
+                        break;
+                    case 'task.title':
+                        apiFilters.taskName = value as string;
+                        break;
+                    case 'task.id':
+                        apiFilters.taskId = parseInt(value as string, 10);
+                        break;
+                    // Campos que não precisam de mapeamento
+                    case 'taskId':
+                    case 'taskName':
+                    case 'taskCode':
+                    case 'status':
+                    case 'createdAt':
+                    case 'updatedAt':
+                        (apiFilters as any)[key] = value;
+                        break;
+                    default:
+                        // Para outros campos, usar o nome original
+                        (apiFilters as any)[key] = value;
+                        break;
+                }
+            });
+
+            const response = await deliveryService.getAllGroupedByTask({
                 page,
                 size,
                 sort,
-                filters: currentFilters,
+                filters: apiFilters
             });
 
-            setDeliveries(data.content);
+            setDeliveryGroups(response.content || []);
             setPagination({
-                currentPage: data.currentPage,
-                totalPages: data.totalPages,
-                pageSize: data.pageSize,
-                totalElements: data.totalElements,
-                first: data.first,
-                last: data.last,
+                currentPage: response.number || 0,
+                totalPages: response.totalPages || 0,
+                pageSize: response.size || 10,
+                totalElements: response.totalElements || 0,
+                first: response.first || false,
+                last: response.last || false
             });
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao buscar entregas';
             setError(errorMessage);
             console.error('Erro ao buscar entregas:', err);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
     }, [currentPage, pageSize, sorting, filters]);
 
-    const createDelivery = useCallback(async (deliveryData: DeliveryCreate): Promise<Delivery> => {
-        try {
-            const newDelivery = await deliveryService.create(deliveryData);
-            await fetchDeliveries(); // Recarrega a lista após criação
-            toast.success('Entrega criada com sucesso!');
-            return newDelivery;
-        } catch (err: any) {
-            console.error('Erro ao criar entrega:', err);
-            throw err;
-        }
-    }, [fetchDeliveries]);
-
-    const updateDelivery = useCallback(async (id: number, deliveryData: DeliveryUpdate): Promise<Delivery> => {
-        try {
-            const updatedDelivery = await deliveryService.update(id, deliveryData);
-            await fetchDeliveries(); // Recarrega a lista após atualização
-            toast.success('Entrega atualizada com sucesso!');
-            return updatedDelivery;
-        } catch (err: any) {
-            console.error('Erro ao atualizar entrega:', err);
-            throw err;
-        }
-    }, [fetchDeliveries]);
-
-    const deleteDelivery = useCallback(async (id: number): Promise<void> => {
-        try {
-            await deliveryService.delete(id);
-            await fetchDeliveries(); // Recarrega a lista após exclusão
-            toast.success('Entrega excluída com sucesso!');
-        } catch (err: any) {
-            console.error('Erro ao excluir entrega:', err);
-            throw err;
-        }
-    }, [fetchDeliveries]);
-
-    const deleteBulkDeliveries = useCallback(async (ids: number[]): Promise<void> => {
+    const deleteBulk = useCallback(async (ids: number[]): Promise<void> => {
         try {
             await deliveryService.deleteBulk(ids);
-            await fetchDeliveries(); // Recarrega a lista após exclusão
+            await fetchDeliveryGroups(); // Recarrega a lista após exclusão
             toast.success(`${ids.length} entrega${ids.length === 1 ? '' : 's'} excluída${ids.length === 1 ? '' : 's'} com sucesso!`);
         } catch (err: any) {
             console.error('Erro ao excluir entregas:', err);
+            toast.error('Erro ao excluir entregas selecionadas');
             throw err;
         }
-    }, [fetchDeliveries]);
+    }, [fetchDeliveryGroups]);
 
     const setPage = useCallback((page: number) => {
         setCurrentPage(page);
@@ -216,7 +173,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
 
     const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
         setSortingState(prevSorting => {
-            // Remove existing sort para este campo e adiciona o novo no início
+            // Remove existing sort for this field and add new one at the beginning
             const filteredSorting = prevSorting.filter(s => s.field !== field);
             return [{ field, direction }, ...filteredSorting];
         });
@@ -226,7 +183,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
     const setFilter = useCallback((field: string, value: string) => {
         setFilters(prev => ({
             ...prev,
-            [field]: value || undefined,
+            [field]: value || undefined
         }));
         setCurrentPage(0); // Reset to first page when filter changes
     }, []);
@@ -236,76 +193,75 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         setCurrentPage(0);
     }, []);
 
-    const exportToExcel = useCallback(async (): Promise<void> => {
+    const exportToExcel = useCallback(async () => {
         try {
-            setLoading(true);
-            const blob = await deliveryService.exportToExcel();
+            setExporting(true);
+            const response = await deliveryService.exportToExcelWithResponse();
             
-            // Criar URL para download
-            const url = window.URL.createObjectURL(blob);
+            // Extrair nome do arquivo do Content-Disposition ou usar fallback
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = `relatorio_entregas_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}_${new Date().toLocaleTimeString('pt-BR').replace(/:/g, '-')}.xlsx`;
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+            
+            const url = window.URL.createObjectURL(response.data);
             const link = document.createElement('a');
             link.href = url;
-            
-            // Nome do arquivo com timestamp
-            const now = new Date();
-            const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-            link.download = `relatorio_entregas_${timestamp}.xlsx`;
-            
-            // Trigger download
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
-            
-            // Cleanup
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
             
-            toast.success('Relatório exportado com sucesso!');
-        } catch (err: any) {
-            console.error('Erro ao exportar relatório:', err);
-            toast.error('Erro ao exportar relatório');
-            throw err;
+            toast.success('Exportação concluída!');
+        } catch (error: any) {
+            console.error('Erro ao exportar:', error);
+            toast.error('Erro ao exportar dados');
         } finally {
-            setLoading(false);
+            setExporting(false);
         }
     }, []);
 
-    // Effect para buscar dados quando parâmetros mudarem (com debounce para filtros)
+    // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
-        // Limpa timer anterior
+        // Clear previous timer
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
 
-        // Define novo timer de debounce (1s)
+        // Set new timer for debounce (1 second)
         debounceTimerRef.current = setTimeout(() => {
-            fetchDeliveries();
+            fetchDeliveryGroups();
         }, 1000);
 
-        // Cleanup
+        // Cleanup on unmount or when dependencies change
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
         };
-    }, [currentPage, pageSize, sorting, filters, fetchDeliveries]);
+    }, [currentPage, pageSize, sorting, filters]);
 
     return {
-        deliveries,
+        deliveryGroups,
         pagination,
         loading,
         error,
+        exporting,
         sorting,
         filters,
-        fetchDeliveries,
-        createDelivery,
-        updateDelivery,
-        deleteDelivery,
-        deleteBulkDeliveries,
-        exportToExcel,
+        fetchDeliveryGroups,
+        deleteBulk,
         setPage,
         setPageSize,
         setSorting,
         setFilter,
         clearFilters,
+        exportToExcel,
     };
 };

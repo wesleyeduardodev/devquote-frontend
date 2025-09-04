@@ -118,7 +118,8 @@ export interface DeliveryGroupResponse {
 
 // Filtros para listagem de entregas (nova arquitetura)
 export interface DeliveryFilters {
-    status?: DeliveryStatus[];
+    status?: DeliveryStatus | string; // Para backend
+    deliveryStatus?: DeliveryStatus | string; // Para frontend (campo da coluna)
     taskId?: number;
     taskName?: string;
     taskCode?: string;

@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
+import { useDeliveries } from '../../hooks/useDeliveries';
 import { 
     DeliveryGroupResponse, 
-    DeliveryFilters, 
     DeliveryStatus,
     DeliveryStatusCount
 } from '../../types/delivery.types';
 import { deliveryService } from '../../services/deliveryService';
-import { PaginatedResponse } from '../../types/api.types';
 import { formatMobileRecordCountText } from '../../utils/paginationUtils';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import Button from '../../components/ui/Button';
@@ -22,14 +21,26 @@ import DeliveryGroupModal from '../../components/deliveries/DeliveryGroupModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 
-interface SortInfo {
-    field: string;
-    direction: 'asc' | 'desc';
-}
-
 const DeliveryList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile } = useAuth();
+
+    // Usar o hook useDeliveries
+    const {
+        deliveryGroups,
+        pagination,
+        loading,
+        exporting,
+        sorting,
+        filters,
+        setPage,
+        setPageSize,
+        setSorting,
+        setFilter,
+        clearFilters,
+        exportToExcel,
+        deleteBulk
+    } = useDeliveries();
 
     // Verificações de perfil
     const isAdmin = hasProfile('ADMIN');
@@ -38,20 +49,8 @@ const DeliveryList: React.FC = () => {
     const canEdit = isAdmin;
     const canDelete = isAdmin;
 
-    // Estados principais
-    const [deliveryGroups, setDeliveryGroups] = useState<DeliveryGroupResponse[]>([]);
-    const [pagination, setPagination] = useState<PaginatedResponse<DeliveryGroupResponse> | null>(null);
+    // Estados para estatísticas e modals
     const [statistics, setStatistics] = useState<DeliveryStatusCount | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isExporting, setIsExporting] = useState(false);
-
-    // Estados de filtros e busca
-    const [filters, setFilters] = useState<DeliveryFilters>({});
-    const [sorting, setSorting] = useState<SortInfo>({ field: 'task.id', direction: 'desc' });
-    const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
-
-    // Estados dos modals
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<DeliveryGroupResponse | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -62,7 +61,7 @@ const DeliveryList: React.FC = () => {
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
-    // Carregar estatísticas
+    // Carregar estatísticas (função independente)
     const fetchStatistics = async () => {
         try {
             const stats = await deliveryService.getGlobalStatistics();
@@ -72,50 +71,10 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    // Carregar dados
-    const fetchDeliveryGroups = async () => {
-        setLoading(true);
-        try {
-            const searchFilters: DeliveryFilters = {
-                ...filters
-            };
-
-            const response = await deliveryService.getAllGroupedByTask({
-                page: currentPage,
-                size: pageSize,
-                sort: [sorting],
-                filters: searchFilters
-            });
-
-            setPagination(response);
-            
-            // Aplicar filtro de status no frontend se necessário
-            let filteredContent = response.content || [];
-            if (filters.deliveryStatus) {
-                const statusFilter = filters.deliveryStatus.toLowerCase();
-                filteredContent = filteredContent.filter(delivery => {
-                    const actualStatus = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus || '').toLowerCase();
-                    const statusLabel = getStatusLabel((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus).toLowerCase();
-                    // Filtrar tanto pelo valor do enum quanto pelo label em português
-                    return actualStatus.includes(statusFilter) || statusLabel.includes(statusFilter);
-                });
-            }
-            
-            setDeliveryGroups(filteredContent);
-        } catch (error) {
-            console.error('Erro ao carregar entregas:', error);
-            toast.error('Erro ao carregar entregas');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Carregar dados quando dependências mudarem
-    useEffect(() => {
-        fetchDeliveryGroups();
-        fetchStatistics(); // Carregar estatísticas na primeira vez
-        setSelectedDeliveries([]); // Limpar seleção quando dados mudarem
-    }, [currentPage, pageSize, sorting, filters]);
+    // Carregar estatísticas uma vez
+    React.useEffect(() => {
+        fetchStatistics();
+    }, []);
 
     // Handlers para seleção múltipla
     const handleSelectDelivery = (deliveryId: number) => {
@@ -145,11 +104,9 @@ const DeliveryList: React.FC = () => {
 
         setIsBulkDeleting(true);
         try {
-            await deliveryService.deleteBulk(selectedDeliveries);
-            toast.success(`${selectedDeliveries.length} entrega(s) excluída(s) com sucesso!`);
+            await deleteBulk(selectedDeliveries);
             setSelectedDeliveries([]);
             setShowBulkDeleteModal(false);
-            fetchDeliveryGroups();
             fetchStatistics();
         } catch (error) {
             console.error('Erro ao excluir entregas:', error);
@@ -236,6 +193,17 @@ const DeliveryList: React.FC = () => {
             title: 'Status',
             sortable: true,
             filterable: true,
+            filterType: 'select',
+            filterOptions: [
+                { value: '', label: 'Todos os Status' },
+                { value: 'Pendente', label: 'Pendente' },
+                { value: 'Desenvolvimento', label: 'Desenvolvimento' },
+                { value: 'Entregue', label: 'Entregue' },
+                { value: 'Homologação', label: 'Homologação' },
+                { value: 'Aprovado', label: 'Aprovado' },
+                { value: 'Rejeitado', label: 'Rejeitado' },
+                { value: 'Produção', label: 'Produção' }
+            ],
             render: (delivery) => {
                 const status = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING';
                 const statusColor = getStatusColor(status);
@@ -342,7 +310,6 @@ const DeliveryList: React.FC = () => {
             if (deliveryId) {
                 await deliveryService.delete(deliveryId);
                 toast.success('Entrega excluída com sucesso!');
-                fetchDeliveryGroups(); // Recarregar lista
                 fetchStatistics(); // Recarregar estatísticas
             } else {
                 toast.error('ID da entrega não encontrado');
@@ -356,45 +323,10 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    const handleExport = async () => {
-        try {
-            setIsExporting(true);
-            const response = await deliveryService.exportToExcelWithResponse();
-            
-            // Extrair nome do arquivo do Content-Disposition ou usar fallback
-            const contentDisposition = response.headers['content-disposition'];
-            let filename = `relatorio_entregas_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}_${new Date().toLocaleTimeString('pt-BR').replace(/:/g, '-')}.xlsx`;
-            
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1].replace(/['"]/g, '');
-                }
-            }
-            
-            const url = window.URL.createObjectURL(response.data);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            
-            toast.success('Exportação concluída!');
-        } catch (error) {
-            console.error('Erro ao exportar:', error);
-            toast.error('Erro ao exportar dados');
-        } finally {
-            setIsExporting(false);
-        }
-    };
+    const handleExport = () => exportToExcel();
 
-    const handleSort = (field: string) => {
-        setSorting(prev => ({
-            field,
-            direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
-        }));
+    const handleSort = (field: string, direction: 'asc' | 'desc') => {
+        setSorting(field, direction);
     };
 
     // Formatadores
@@ -521,9 +453,9 @@ const DeliveryList: React.FC = () => {
                     <Button
                         variant="outline"
                         onClick={handleExport}
-                        disabled={isExporting}
+                        disabled={exporting}
                     >
-                        {isExporting ? (
+                        {exporting ? (
                             <>
                                 <LoadingSpinner size="sm" />
                                 Exportando...
@@ -656,8 +588,8 @@ const DeliveryList: React.FC = () => {
                                     {/* Informação de registros */}
                                     <div className="text-center text-sm text-gray-600">
                                         {formatMobileRecordCountText(
-                                            currentPage,
-                                            10, // pageSize padrão das entregas
+                                            pagination.currentPage,
+                                            pagination.pageSize,
                                             pagination.totalElements || 0
                                         )}
                                     </div>
@@ -669,8 +601,8 @@ const DeliveryList: React.FC = () => {
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => setCurrentPage(0)}
-                                                disabled={currentPage <= 0}
+                                                onClick={() => setPage(0)}
+                                                disabled={pagination.currentPage <= 0}
                                                 title="Primeira página"
                                                 className="p-2"
                                             >
@@ -680,8 +612,8 @@ const DeliveryList: React.FC = () => {
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                                                disabled={currentPage <= 0}
+                                                onClick={() => setPage(Math.max(0, pagination.currentPage - 1))}
+                                                disabled={pagination.currentPage <= 0}
                                                 title="Página anterior"
                                             >
                                                 Anterior
@@ -689,7 +621,7 @@ const DeliveryList: React.FC = () => {
                                         </div>
 
                                         <span className="text-sm text-gray-600 font-medium">
-                                            Página {currentPage + 1} de {pagination.totalPages}
+                                            Página {pagination.currentPage + 1} de {pagination.totalPages}
                                         </span>
 
                                         <div className="flex gap-1">
@@ -697,8 +629,8 @@ const DeliveryList: React.FC = () => {
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => setCurrentPage(Math.min(pagination.totalPages - 1, currentPage + 1))}
-                                                disabled={currentPage >= pagination.totalPages - 1}
+                                                onClick={() => setPage(Math.min(pagination.totalPages - 1, pagination.currentPage + 1))}
+                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
                                                 title="Próxima página"
                                             >
                                                 Próxima
@@ -707,8 +639,8 @@ const DeliveryList: React.FC = () => {
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => setCurrentPage(pagination.totalPages - 1)}
-                                                disabled={currentPage >= pagination.totalPages - 1}
+                                                onClick={() => setPage(pagination.totalPages - 1)}
+                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
                                                 title="Última página"
                                                 className="p-2"
                                             >
@@ -737,19 +669,13 @@ const DeliveryList: React.FC = () => {
                         first: pagination.first || false,
                         last: pagination.last || false
                     } : null}
-                    onPageChange={setCurrentPage}
+                    onPageChange={setPage}
                     onPageSizeChange={setPageSize}
-                    sorting={[{ field: sorting.field, direction: sorting.direction }]}
-                    onSort={(field, direction) => setSorting({ field, direction })}
+                    sorting={sorting}
+                    onSort={handleSort}
                     filters={filters}
-                    onFilter={(field, value) => {
-                        setFilters(prev => ({
-                            ...prev,
-                            [field]: value || undefined
-                        }));
-                        setCurrentPage(0);
-                    }}
-                    onClearFilters={() => setFilters({})}
+                    onFilter={setFilter}
+                    onClearFilters={clearFilters}
                     emptyState={{
                         icon: Package,
                         title: 'Nenhuma entrega criada',
