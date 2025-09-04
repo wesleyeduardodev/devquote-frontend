@@ -1,34 +1,35 @@
 # DevQuote Frontend
 
-Interface web moderna e responsiva para o sistema empresarial DevQuote de gestão de orçamentos, projetos, tarefas e entregas.  
+Interface moderna e responsiva para o sistema de gestão de tarefas e entregas para desenvolvedores freelancers.  
 Desenvolvido com **React 18**, **TypeScript 5.5** e **Vite 5**, oferecendo uma experiência rápida, type-safe e otimizada.
 
 ## 🚀 Tecnologias
 
 ### Core
-- **React 18.2** - Biblioteca UI
-- **TypeScript 5.5** - Type safety
-- **Vite 5.0** - Build tool ultrarrápida
+- **React 18.2.0** - Biblioteca UI
+- **TypeScript 5.5.4** - Type safety e IntelliSense
+- **Vite 5.0** - Build tool e dev server ultrarrápido
 
 ### Roteamento e Estado
-- **React Router DOM 6.30** - Navegação SPA
+- **React Router DOM 6.30.1** - Navegação SPA
 - **Custom Hooks** - Gerenciamento de estado local
 - **Context API** - Estado global (autenticação)
 
 ### UI/UX
-- **Tailwind CSS 3.4** - Estilização utility-first
-- **Lucide React** - Ícones modernos
+- **Tailwind CSS 3.4.17** - Estilização utility-first
+- **Lucide React** - Ícones modernos (⚡ como símbolo principal)
 - **React Hot Toast** - Notificações elegantes
-- **Clsx** - Gestão condicional de classes
+- **Gradientes Modernos** - Design visual azul-roxo (#3b82f6 → #8b5cf6)
 
 ### Formulários e Validação
-- **React Hook Form 7.62** - Gestão de formulários performática
-- **Yup 1.7** - Schema validation
+- **React Hook Form 7.62.0** - Gestão de formulários performática
+- **Yup 1.7.0** - Schema validation
 - **@hookform/resolvers** - Integração RHF + Yup
 
 ### Comunicação HTTP
-- **Axios 1.11** - Cliente HTTP com interceptors
+- **Axios 1.11.0** - Cliente HTTP com interceptadores
 - **API REST** - Integração com backend Spring Boot
+- **JWT** - Autenticação com refresh token automático
 
 ## 📦 Arquitetura do Projeto
 
@@ -45,7 +46,6 @@ src/
 │   │   ├── BillingMonthForm
 │   │   ├── DeliveryForm
 │   │   ├── ProjectForm
-│   │   ├── QuoteForm
 │   │   ├── RequesterForm
 │   │   ├── SubTaskForm
 │   │   └── TaskForm
@@ -80,7 +80,6 @@ src/
 │   ├── deliveries/     # CRUD de entregas
 │   ├── profiles/       # Gestão de perfis e permissões
 │   ├── projects/       # CRUD de projetos
-│   ├── quotes/         # CRUD de orçamentos
 │   ├── requesters/     # CRUD de solicitantes
 │   ├── tasks/          # CRUD de tarefas
 │   ├── Dashboard.tsx   # Página inicial com métricas
@@ -90,23 +89,26 @@ src/
 ├── services/           # Camada de serviços/API
 │   ├── api.ts          # Configuração do Axios
 │   ├── authService.ts
-│   ├── billingMonthService.ts
+│   ├── billingPeriodService.ts
 │   ├── deliveryService.ts
+│   ├── deliveryItemService.ts
 │   ├── projectService.ts
-│   ├── quoteService.ts
 │   ├── requesterService.ts
 │   ├── taskService.ts
+│   ├── subTaskService.ts
+│   ├── permissionService.ts
+│   ├── profileService.ts
 │   └── userManagementService.ts
 ├── types/              # TypeScript types/interfaces
 │   ├── api.types.ts    # Tipos da API
 │   ├── auth.ts         # Tipos de autenticação
+│   ├── billing.types.ts # Tipos de faturamento
 │   ├── common.types.ts # Tipos compartilhados
 │   ├── dashboard.ts
 │   ├── delivery.types.ts
 │   ├── form.types.ts
 │   ├── profile.ts
 │   ├── project.types.ts
-│   ├── quote.types.ts
 │   ├── requester.types.ts
 │   ├── task.types.ts
 │   └── user.ts
@@ -259,12 +261,12 @@ EXPOSE 80
 </ProtectedRoute>
 
 // Controlar acesso a recurso
-<ResourceGuard resource="QUOTE" operation="CREATE">
-  <Button>Criar Orçamento</Button>
+<ResourceGuard resource="TASKS" operation="CREATE">
+  <Button>Criar Tarefa</Button>
 </ResourceGuard>
 
 // Controlar visibilidade de campo
-<FieldGuard resource="QUOTE" field="value" operation="UPDATE">
+<FieldGuard resource="BILLING" field="value" operation="UPDATE">
   <Input name="value" />
 </FieldGuard>
 ```
@@ -272,25 +274,25 @@ EXPOSE 80
 ## 📊 Funcionalidades Implementadas
 
 ### Módulos de Negócio
-- ✅ **Dashboard** - KPIs e métricas em tempo real
-- ✅ **Orçamentos** - Criação, edição e acompanhamento
-- ✅ **Projetos** - Gestão completa com timeline
-- ✅ **Tarefas** - Kanban e lista com subtarefas
-- ✅ **Entregas** - Controle de entregas agrupadas
-- ✅ **Faturamento** - Gestão mensal de cobranças
-- ✅ **Solicitantes** - CRM básico de clientes
-- ✅ **Perfis** - Gestão de usuários e permissões
+- ✅ **Dashboard** - KPIs e métricas em tempo real com gráficos
+- ✅ **Projetos** - Gestão completa com hierarquia
+- ✅ **Tarefas** - CRUD completo com subtarefas aninhadas
+- ✅ **Entregas** - Sistema completo com itens de entrega (DeliveryItem)
+- ✅ **Faturamento** - Gestão mensal com envio de email automático
+- ✅ **Solicitantes** - CRUD com email obrigatório para notificações
+- ✅ **Perfis** - Gestão RBAC com 8 tipos de recursos
 
 ### Recursos Técnicos
-- ✅ **Paginação** - DataTable com controles
+- ✅ **Paginação** - DataTable com controles e debounce
 - ✅ **Busca e Filtros** - Em todas as listagens
 - ✅ **Ordenação** - Colunas clicáveis
-- ✅ **Loading States** - Feedback visual
-- ✅ **Error Handling** - Tratamento global
+- ✅ **Loading States** - LoadingSpinner com animação
+- ✅ **Error Handling** - Tratamento global com Correlation ID
 - ✅ **Toast Notifications** - Feedback de ações
-- ✅ **Formulários Dinâmicos** - Validação em tempo real
-- ✅ **Responsividade** - Mobile-first design
-- ✅ **Dark Mode Ready** - Preparado para tema escuro
+- ✅ **Formulários Dinâmicos** - React Hook Form + Yup validation
+- ✅ **Responsividade** - Mobile-first design com Tailwind
+- ✅ **Guards de Autorização** - Controle granular de acesso
+- ✅ **Lazy Loading** - Otimização de carregamento
 
 ## 🎨 Padrões de Desenvolvimento
 
@@ -354,7 +356,7 @@ export const Component: React.FC<ComponentProps> = ({ title, onAction }) => {
 - **LCP:** < 2.5s
 - **FID:** < 100ms
 - **CLS:** < 0.1
-- **Bundle Size:** < 500KB gzipped
+- **Bundle Size:** < 500KB gzipped (Atual: ~669KB - necessita otimização)
 
 ## 🤝 Contribuindo
 
@@ -388,9 +390,28 @@ export const Component: React.FC<ComponentProps> = ({ title, onAction }) => {
 
 Este projeto é privado e proprietário. Todos os direitos reservados.
 
+## 🎨 Design System
+
+### Identidade Visual
+- **Logo:** Raio (⚡) com gradiente azul-roxo
+- **Cores Principais:**
+  - Azul: `#3b82f6` (blue-600)
+  - Roxo: `#8b5cf6` (purple-600)
+  - Verde: `#10b981` (emerald-500)
+- **Gradientes:** `from-blue-600 to-purple-700`
+- **Tipografia:** Inter (system fonts)
+- **Bordas:** `rounded-lg`, `rounded-xl`
+
+### Responsividade Mobile-First
+- **Breakpoints:** `sm:` (640px+), `md:` (768px+), `lg:` (1024px+)
+- **Modais Mobile:** Bottom sheet com `items-end`
+- **Modais Desktop:** Centralizado com `sm:items-center`
+- **Padding Adaptativo:** `px-4 sm:px-6`
+- **Tipografia Responsiva:** `text-lg sm:text-xl`
+
 ## 👥 Equipe
 
-Desenvolvido com ❤️ para a comunidade de desenvolvedores freelancers.
+- **Desenvolvedor Principal:** Wesley
 
 ---
 
