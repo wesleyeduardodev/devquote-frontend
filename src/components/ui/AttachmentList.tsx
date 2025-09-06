@@ -12,13 +12,15 @@ interface AttachmentListProps {
     refreshTrigger?: number;
     className?: string;
     forceExpanded?: boolean;
+    readOnly?: boolean;
 }
 
 const AttachmentList: React.FC<AttachmentListProps> = ({ 
     taskId, 
     refreshTrigger = 0,
     className = '',
-    forceExpanded = false
+    forceExpanded = false,
+    readOnly = false
 }) => {
     const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -270,20 +272,22 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                             <Download className="w-4 h-4" />
                                         </Button>
                                         
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => handleDeleteClick(attachment)}
-                                            disabled={deletingId === attachment.id}
-                                            className="p-2 hover:bg-red-100 hover:text-red-600"
-                                            title="Excluir arquivo"
-                                        >
-                                            {deletingId === attachment.id ? (
-                                                <LoadingSpinner size="xs" />
-                                            ) : (
-                                                <Trash2 className="w-4 h-4" />
-                                            )}
-                                        </Button>
+                                        {!readOnly && (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => handleDeleteClick(attachment)}
+                                                disabled={deletingId === attachment.id}
+                                                className="p-2 hover:bg-red-100 hover:text-red-600"
+                                                title="Excluir arquivo"
+                                            >
+                                                {deletingId === attachment.id ? (
+                                                    <LoadingSpinner size="xs" />
+                                                ) : (
+                                                    <Trash2 className="w-4 h-4" />
+                                                )}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -302,14 +306,16 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
             )}
             
             {/* Modal de Confirmação de Exclusão */}
-            <DeleteConfirmationModal
-                isOpen={deleteModal.isOpen}
-                onClose={handleDeleteCancel}
-                onConfirm={handleDeleteConfirm}
-                title="Excluir Arquivo"
-                itemName={deleteModal.attachment?.originalFileName}
-                isDeleting={deletingId === deleteModal.attachment?.id}
-            />
+            {!readOnly && (
+                <DeleteConfirmationModal
+                    isOpen={deleteModal.isOpen}
+                    onClose={handleDeleteCancel}
+                    onConfirm={handleDeleteConfirm}
+                    title="Excluir Arquivo"
+                    itemName={deleteModal.attachment?.originalFileName}
+                    isDeleting={deletingId === deleteModal.attachment?.id}
+                />
+            )}
         </div>
     );
 };

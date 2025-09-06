@@ -19,8 +19,14 @@ import {
     Link,
     DollarSign,
     Copy,
-    Check
+    Check,
+    Paperclip,
+    ChevronDown,
+    ChevronUp,
+    Download
 } from 'lucide-react';
+
+import AttachmentList from '../ui/AttachmentList';
 
 interface Subtask {
     id: number;
@@ -73,6 +79,7 @@ interface TaskDetailModalProps {
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose, canViewValues = false }) => {
     const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [isAttachmentSectionExpanded, setIsAttachmentSectionExpanded] = useState(false);
 
     if (!isOpen || !task) return null;
 
@@ -528,6 +535,50 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 </div>
                             </div>
                         )}
+
+                        {/* Attachments Section */}
+                        <div>
+                            {/* Cabeçalho clicável da seção de anexos */}
+                            <div 
+                                className="cursor-pointer border border-gray-200 rounded-lg"
+                                onClick={() => setIsAttachmentSectionExpanded(!isAttachmentSectionExpanded)}
+                            >
+                                <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Paperclip className="w-5 h-5 text-gray-500" />
+                                            <span className="text-lg font-semibold text-gray-900">Anexos</span>
+                                            <span className="text-sm text-gray-500">(clique para visualizar)</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-500">
+                                                {isAttachmentSectionExpanded ? 'Recolher' : 'Expandir'}
+                                            </span>
+                                            {isAttachmentSectionExpanded ? (
+                                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                                            ) : (
+                                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Conteúdo da seção quando expandida */}
+                            {isAttachmentSectionExpanded && (
+                                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        Arquivos anexados à esta tarefa
+                                    </p>
+                                    
+                                    <AttachmentList 
+                                        taskId={task.id}
+                                        forceExpanded={true}
+                                        readOnly={true}
+                                    />
+                                </div>
+                            )}
+                        </div>
 
                         {/* Timestamps Section */}
                         <div>
