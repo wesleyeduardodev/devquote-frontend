@@ -21,6 +21,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { DeliveryGroupResponse, DeliveryItem } from '../../types/delivery.types';
+import { DeliveryAttachmentList } from './DeliveryAttachmentList';
 
 interface DeliveryGroupModalProps {
     deliveryGroup: DeliveryGroupResponse | null;
@@ -128,11 +129,24 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
 
                 {/* Content */}
                 <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Package className="w-5 h-5 text-blue-600" />
-                            Itens de Entrega ({deliveryGroup.deliveries?.[0]?.items?.length || 0})
-                        </h3>
+                    <div className="p-6 space-y-6">
+                        {/* Anexos da Entrega */}
+                        {deliveryGroup.deliveries?.[0] && (
+                            <div>
+                                <DeliveryAttachmentList
+                                    deliveryId={deliveryGroup.deliveries[0].id}
+                                    readOnly={true}
+                                    forceExpanded={false}
+                                />
+                            </div>
+                        )}
+                        
+                        {/* Itens de Entrega */}
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <Package className="w-5 h-5 text-blue-600" />
+                                Itens de Entrega ({deliveryGroup.deliveries?.[0]?.items?.length || 0})
+                            </h3>
                         
                         {deliveryGroup.deliveries?.[0]?.items && deliveryGroup.deliveries[0].items.length > 0 ? (
                             <div className="space-y-3">
@@ -274,6 +288,16 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                             </div>
                                                         </div>
 
+                                                        {/* Anexos do Item */}
+                                                        <div>
+                                                            <DeliveryAttachmentList
+                                                                deliveryItemId={item.id}
+                                                                readOnly={true}
+                                                                forceExpanded={false}
+                                                                className="border-t pt-4"
+                                                            />
+                                                        </div>
+
                                                         {/* Script */}
                                                         {item.script && (
                                                             <div>
@@ -373,6 +397,7 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                 </p>
                             </div>
                         )}
+                        </div>
                     </div>
                 </div>
             </div>
