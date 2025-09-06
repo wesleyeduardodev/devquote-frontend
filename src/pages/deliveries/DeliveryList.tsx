@@ -250,8 +250,8 @@ const DeliveryList: React.FC = () => {
                         <Eye className="h-4 w-4" />
                     </Button>
 
-                    {/* Botão de Email - disponível para ADMIN e MANAGER */}
-                    {(isAdmin || isManager) && (
+                    {/* Botão de Email - disponível apenas para ADMIN */}
+                    {isAdmin && (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -588,8 +588,8 @@ const DeliveryList: React.FC = () => {
                                                     <Eye className="w-3.5 h-3.5" />
                                                 </Button>
 
-                                                {/* Botão de Email - disponível para ADMIN e MANAGER */}
-                                                {(isAdmin || isManager) && (
+                                                {/* Botão de Email - disponível apenas para ADMIN */}
+                                                {isAdmin && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
