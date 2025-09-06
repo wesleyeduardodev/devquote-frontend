@@ -18,6 +18,20 @@ export const attachmentService = {
         await api.delete(`/task-attachments/${attachmentId}`);
     },
 
+    async uploadFiles(taskId: number, files: File[]): Promise<TaskAttachment[]> {
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const response = await api.post(`/task-attachments/upload/${taskId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
     async getAttachment(attachmentId: number): Promise<TaskAttachment> {
         const response = await api.get(`/task-attachments/${attachmentId}`);
         return response.data;
