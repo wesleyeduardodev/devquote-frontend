@@ -214,7 +214,6 @@ const DeliveryCreate: React.FC = () => {
                     </Button>
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Nova Entrega</h1>
-                        <p className="text-sm sm:text-base text-gray-600">Crie uma nova entrega vinculada a uma tarefa</p>
                     </div>
                 </div>
 
@@ -226,9 +225,6 @@ const DeliveryCreate: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Tarefa <span className="text-red-500">*</span>
                             </label>
-                            <p className="text-sm text-gray-500 mb-3">
-                                Selecione uma tarefa que ainda não possui entrega vinculada
-                            </p>
 
                             {selectedTask ? (
                                 <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
@@ -272,9 +268,6 @@ const DeliveryCreate: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Projetos/Repositórios
                             </label>
-                            <p className="text-sm text-gray-500 mb-3">
-                                Selecione os repositórios onde você vai trabalhar nesta tarefa (opcional)
-                            </p>
 
                             {selectedProjects.length > 0 ? (
                                 <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
@@ -313,9 +306,6 @@ const DeliveryCreate: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Anexos da Entrega
                             </label>
-                            <p className="text-sm text-gray-500 mb-3">
-                                Adicione documentos, imagens ou outros arquivos relacionados à entrega (opcional)
-                            </p>
                             <LocalFileUpload
                                 files={localFiles}
                                 onFilesChange={setLocalFiles}

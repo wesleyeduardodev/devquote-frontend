@@ -175,9 +175,6 @@ const DeliveryCreate: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Tarefa <span className="text-red-500">*</span>
                             </label>
-                            <p className="text-sm text-gray-500 mb-3">
-                                Selecione uma tarefa que ainda não possui entrega vinculada
-                            </p>
 
                             {selectedTask ? (
                                 <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
@@ -221,9 +218,6 @@ const DeliveryCreate: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Projetos/Repositórios
                             </label>
-                            <p className="text-sm text-gray-500 mb-3">
-                                Selecione os repositórios onde você vai trabalhar nesta tarefa (opcional)
-                            </p>
 
                             {selectedProjects.length > 0 ? (
                                 <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
