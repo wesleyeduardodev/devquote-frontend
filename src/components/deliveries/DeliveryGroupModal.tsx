@@ -288,16 +288,6 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                             </div>
                                                         </div>
 
-                                                        {/* Anexos do Item */}
-                                                        <div>
-                                                            <DeliveryAttachmentList
-                                                                deliveryItemId={item.id}
-                                                                readOnly={true}
-                                                                forceExpanded={false}
-                                                                className="border-t pt-4"
-                                                            />
-                                                        </div>
-
                                                         {/* Script */}
                                                         {item.script && (
                                                             <div>
@@ -376,6 +366,16 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                                     </span>
                                                                 </div>
                                                             </div>
+                                                        </div>
+
+                                                        {/* Anexos do Item */}
+                                                        <div>
+                                                            <DeliveryAttachmentList
+                                                                deliveryItemId={item.id}
+                                                                readOnly={true}
+                                                                forceExpanded={false}
+                                                                className="border-t pt-4"
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
