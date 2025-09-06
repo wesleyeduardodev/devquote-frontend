@@ -11,17 +11,19 @@ interface AttachmentListProps {
     taskId?: number;
     refreshTrigger?: number;
     className?: string;
+    forceExpanded?: boolean;
 }
 
 const AttachmentList: React.FC<AttachmentListProps> = ({ 
     taskId, 
     refreshTrigger = 0,
-    className = ''
+    className = '',
+    forceExpanded = false
 }) => {
     const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<number | null>(null);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(forceExpanded);
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;
         attachment: TaskAttachment | null;
@@ -166,8 +168,8 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         );
     };
 
-    // Se não está expandido, mostra apenas o cabeçalho
-    if (!isExpanded) {
+    // Se não está expandido E não é forceExpanded, mostra apenas o cabeçalho
+    if (!isExpanded && !forceExpanded) {
         return renderHeader();
     }
 
@@ -200,27 +202,29 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     }
 
     return (
-        <div className={`border border-gray-200 rounded-lg ${className}`}>
-            <div 
-                className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => setIsExpanded(false)}
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Upload className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-900">Anexos</span>
-                        <span className="text-xs text-gray-500">({attachments.length})</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">
-                            {attachments.length === 0 ? 'Nenhum arquivo anexado' :
-                             attachments.length === 1 ? '1 arquivo anexado' :
-                             `${attachments.length} arquivos anexados`}
-                        </span>
-                        <ChevronUp className="w-4 h-4 text-gray-400" />
+        <div className={`${forceExpanded ? '' : 'border border-gray-200 rounded-lg'} ${className}`}>
+            {!forceExpanded && (
+                <div 
+                    className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => setIsExpanded(false)}
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Upload className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium text-gray-900">Anexos</span>
+                            <span className="text-xs text-gray-500">({attachments.length})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">
+                                {attachments.length === 0 ? 'Nenhum arquivo anexado' :
+                                 attachments.length === 1 ? '1 arquivo anexado' :
+                                 `${attachments.length} arquivos anexados`}
+                            </span>
+                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
             
             {/* Conteúdo quando não há anexos */}
             {attachments.length === 0 ? (

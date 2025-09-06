@@ -519,6 +519,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                         <AttachmentList 
                                             taskId={taskId}
                                             refreshTrigger={attachmentRefresh}
+                                            forceExpanded={true}
                                         />
                                     </div>
                                 </>
