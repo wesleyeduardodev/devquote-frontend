@@ -51,7 +51,7 @@ const TaskList: React.FC = () => {
     const isManager = hasProfile('MANAGER');
     const isUser = hasProfile('USER');
     const canCreateTasks = isAdmin || isManager || isUser; // Todos podem criar tarefas
-    const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
+    const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
     const canViewDeliveryColumns = isAdmin || isManager; // Apenas ADMIN e MANAGER podem ver colunas de entrega
     const currentUserId = user?.id;
 
@@ -407,6 +407,8 @@ const TaskList: React.FC = () => {
             filterType: 'text',
             width: '120px',
             align: 'center' as const,
+            hideable: true,
+            hidden: true,
             render: (item) => (
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(item.priority || 'MEDIUM')}`}>
                     {getPriorityLabel(item.priority || 'MEDIUM')}
@@ -569,9 +571,10 @@ const TaskList: React.FC = () => {
                 </div>
             ),
             hideable: true,
+            hidden: true,
         },
 
-        // Coluna de valor total - apenas para ADMIN (por último)
+        // Coluna de valor total - para ADMIN e MANAGER (por último)
         ...(canViewValues ? [{
             key: 'total',
             title: 'Valor Total',
@@ -620,6 +623,7 @@ const TaskList: React.FC = () => {
             width: '150px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
+                    {/* 1. Visualizar */}
                     <Button
                         size="sm"
                         variant="ghost"
@@ -629,22 +633,8 @@ const TaskList: React.FC = () => {
                     >
                         <Eye className="w-4 h-4" />
                     </Button>
-                    {canModifyTask(item) && (
-                        <>
-                            <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
-                                <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDelete(item)}
-                                title="Excluir"
-                                className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        </>
-                    )}
+                    
+                    {/* 2. Email Financeiro - apenas ADMIN */}
                     {isAdmin && (
                         <Button
                             size="sm"
@@ -657,8 +647,8 @@ const TaskList: React.FC = () => {
                         </Button>
                     )}
                     
-                    {/* Botão de Email da Tarefa - disponível para ADMIN e MANAGER */}
-                    {(isAdmin || isManager) && (
+                    {/* 3. Email da Tarefa - apenas ADMIN */}
+                    {isAdmin && (
                         <Button
                             size="sm"
                             variant="ghost"
@@ -667,6 +657,26 @@ const TaskList: React.FC = () => {
                             className={`${item.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
                         >
                             <Mail className="w-4 h-4" />
+                        </Button>
+                    )}
+
+                    {/* 4. Editar - apenas quem pode modificar */}
+                    {canModifyTask(item) && (
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
+                            <Edit className="w-4 h-4" />
+                        </Button>
+                    )}
+
+                    {/* 5. Excluir - apenas quem pode modificar */}
+                    {canModifyTask(item) && (
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(item)}
+                            title="Excluir"
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                        >
+                            <Trash2 className="w-4 h-4" />
                         </Button>
                     )}
                 </div>
@@ -725,6 +735,7 @@ const TaskList: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm flex-1">
                         {/* Ações compactas */}
                         <div className="flex gap-1 mr-3">
+                            {/* 1. Visualizar */}
                             <Button
                                 size="sm"
                                 variant="ghost"
@@ -734,28 +745,8 @@ const TaskList: React.FC = () => {
                             >
                                 <Eye className="w-3.5 h-3.5" />
                             </Button>
-                            {canModifyTask(task) && (
-                                <>
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEdit(task.id)}
-                                        title="Editar"
-                                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
-                                    >
-                                        <Edit className="w-3.5 h-3.5" />
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleDelete(task)}
-                                        title="Excluir"
-                                        className="text-gray-600 hover:text-red-600 hover:bg-red-50 p-1"
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
-                                </>
-                            )}
+                            
+                            {/* 2. Email Financeiro - apenas ADMIN */}
                             {isAdmin && (
                                 <Button
                                     size="sm"
@@ -768,8 +759,8 @@ const TaskList: React.FC = () => {
                                 </Button>
                             )}
                             
-                            {/* Botão de Email da Tarefa - disponível para ADMIN e MANAGER */}
-                            {(isAdmin || isManager) && (
+                            {/* 3. Email da Tarefa - apenas ADMIN */}
+                            {isAdmin && (
                                 <Button
                                     size="sm"
                                     variant="ghost"
@@ -778,6 +769,32 @@ const TaskList: React.FC = () => {
                                     className={`p-1 ${task.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
                                 >
                                     <Mail className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+
+                            {/* 4. Editar - apenas quem pode modificar */}
+                            {canModifyTask(task) && (
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(task.id)}
+                                    title="Editar"
+                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
+                                >
+                                    <Edit className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+
+                            {/* 5. Excluir - apenas quem pode modificar */}
+                            {canModifyTask(task) && (
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDelete(task)}
+                                    title="Excluir"
+                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 p-1"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
                                 </Button>
                             )}
                         </div>
@@ -995,7 +1012,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule', 'link', 'meetingLink']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule', 'link', 'meetingLink', 'priority', 'createdByUserName']}
                             />
                         </Card>
                     </div>
