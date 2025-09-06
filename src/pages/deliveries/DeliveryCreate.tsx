@@ -97,6 +97,8 @@ const DeliveryCreate: React.FC = () => {
                     const project = selectedProjects.find(p => p.id === item.projectId);
                     if (project) {
                         initialFormData.set(project.id, {
+                            id: item.id, // ← IMPORTANTE: Adicionando o ID do item
+                            deliveryId: item.deliveryId,
                             projectId: project.id,
                             projectName: project.name,
                             status: item.status,
@@ -149,7 +151,11 @@ const DeliveryCreate: React.FC = () => {
 
             // Atualizar dados locais
             const newFormData = new Map(itemsFormData);
-            newFormData.set(projectId, data);
+            newFormData.set(projectId, {
+                ...data,
+                id: item.id, // Garantir que o ID esteja presente
+                deliveryId: item.deliveryId
+            });
             setItemsFormData(newFormData);
 
             toast.success(`Dados do projeto ${data.projectName} salvos com sucesso!`);
