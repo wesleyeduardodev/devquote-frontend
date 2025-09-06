@@ -89,9 +89,29 @@ export const deliveryService = {
         return response.data;
     },
 
-    create: async (data: CreateDeliveryData): Promise<Delivery> => {
-        const response = await api.post('/deliveries', data);
-        return response.data;
+    create: async (data: CreateDeliveryData, files?: File[]): Promise<Delivery> => {
+        if (files && files.length > 0) {
+            const formData = new FormData();
+            
+            // Adicionar dados da entrega como JSON
+            formData.append('dto', JSON.stringify(data));
+            
+            // Adicionar arquivos
+            files.forEach(file => {
+                formData.append('files', file);
+            });
+
+            const response = await api.post('/deliveries', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            
+            return response.data;
+        } else {
+            const response = await api.post('/deliveries', data);
+            return response.data;
+        }
     },
 
     update: async (id: number, data: UpdateDeliveryData): Promise<Delivery> => {

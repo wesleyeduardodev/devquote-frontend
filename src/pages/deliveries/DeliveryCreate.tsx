@@ -16,6 +16,15 @@ import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { LocalFileUpload } from '../../components/deliveries/LocalFileUpload';
+
+interface LocalFile {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+}
 
 const DeliveryCreate: React.FC = () => {
     const navigate = useNavigate();
@@ -26,6 +35,7 @@ const DeliveryCreate: React.FC = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [createdDeliveryId, setCreatedDeliveryId] = useState<number | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
+    const [localFiles, setLocalFiles] = useState<LocalFile[]>([]);
 
     // Estados dos modais
     const [showTaskModal, setShowTaskModal] = useState(false);
@@ -68,7 +78,12 @@ const DeliveryCreate: React.FC = () => {
                 }))
             };
 
-            const createdDelivery = await deliveryService.create(deliveryData);
+            // Determinar se há arquivos para enviar
+            const filesToUpload = localFiles.length > 0 ? localFiles.map(lf => lf.file) : undefined;
+            
+            // Criar entrega com arquivos (se houver)
+            const createdDelivery = await deliveryService.create(deliveryData, filesToUpload);
+                
             setCreatedDeliveryId(createdDelivery.id);
 
             // Buscar itens criados se houver projetos
@@ -98,7 +113,12 @@ const DeliveryCreate: React.FC = () => {
                 setItemsFormData(initialFormData);
             }
 
-            toast.success('Entrega criada com sucesso!');
+            // Feedback de sucesso
+            if (localFiles.length > 0) {
+                toast.success(`Entrega criada com ${localFiles.length} arquivo(s) anexado(s)!`);
+            } else {
+                toast.success('Entrega criada com sucesso!');
+            }
 
         } catch (error) {
             console.error('Erro ao criar entrega:', error);
@@ -280,6 +300,21 @@ const DeliveryCreate: React.FC = () => {
                                     <p>Clique para selecionar projetos (opcional)</p>
                                 </button>
                             )}
+                        </div>
+
+                        {/* Anexos da Entrega */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Anexos da Entrega
+                            </label>
+                            <p className="text-sm text-gray-500 mb-3">
+                                Adicione documentos, imagens ou outros arquivos relacionados à entrega (opcional)
+                            </p>
+                            <LocalFileUpload
+                                files={localFiles}
+                                onFilesChange={setLocalFiles}
+                                readOnly={createdDeliveryId !== null}
+                            />
                         </div>
 
                         {/* Botão Criar Entrega */}

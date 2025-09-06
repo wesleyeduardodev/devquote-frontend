@@ -7,6 +7,7 @@ import Button from '../ui/Button';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { DeliveryAttachmentList } from './DeliveryAttachmentList';
 
 interface DeliveryItemFormProps {
     project: AvailableProject;
@@ -376,6 +377,15 @@ export default function DeliveryItemForm({
                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 font-mono text-sm"
                         />
                     </div>
+
+                    {/* Anexos do Item */}
+                    {initialData?.id && (
+                        <DeliveryAttachmentList
+                            deliveryItemId={initialData.id}
+                            readOnly={isReadOnly}
+                            className="border-t pt-4 mt-6"
+                        />
+                    )}
 
                     {/* Ações */}
                     {!isReadOnly && (

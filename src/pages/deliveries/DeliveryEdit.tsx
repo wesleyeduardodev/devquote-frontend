@@ -21,6 +21,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
 import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
+import { DeliveryAttachmentList } from '../../components/deliveries/DeliveryAttachmentList';
 
 const DeliveryEdit: React.FC = () => {
     const { deliveryId } = useParams<{ deliveryId: string }>();
@@ -329,6 +330,16 @@ const DeliveryEdit: React.FC = () => {
                             <p className="text-gray-500">Nenhuma tarefa selecionada</p>
                         </div>
                     )}
+
+                    {/* Anexos da Entrega */}
+                    {delivery && (
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <DeliveryAttachmentList
+                                deliveryId={delivery.id}
+                                forceExpanded={false}
+                            />
+                        </div>
+                    )}
                 </Card>
 
                 {/* Itens de Entrega */}
@@ -401,6 +412,7 @@ const DeliveryEdit: React.FC = () => {
                         </div>
                     )}
                 </Card>
+
             </div>
 
             {/* Modais */}
