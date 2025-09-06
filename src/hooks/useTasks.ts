@@ -97,7 +97,7 @@ interface UseTasksReturn {
     sorting: SortInfo[];
     filters: FilterParams;
     fetchTasks: (params?: UseTasksParams) => Promise<void>;
-    createTaskWithSubTasks: (taskData: TaskCreate) => Promise<Task>;
+    createTaskWithSubTasks: (taskData: TaskCreate, files?: File[]) => Promise<Task>;
     updateTaskWithSubTasks: (id: number, taskData: TaskUpdate) => Promise<Task>;
     deleteTaskWithSubTasks: (id: number) => Promise<void>;
     deleteBulkTasks: (ids: number[]) => Promise<void>;
@@ -108,6 +108,7 @@ interface UseTasksReturn {
     clearFilters: () => void;
     exportToExcel: () => Promise<void>;
     sendFinancialEmail: (taskId: number) => Promise<void>;
+    sendTaskEmail: (taskId: number) => Promise<void>;
 }
 
 export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
@@ -161,18 +162,28 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [currentPage, pageSize, sorting, filters]);
 
-    const createTaskWithSubTasks = useCallback(async (taskData: TaskCreate): Promise<Task> => {
+    const createTaskWithSubTasks = useCallback(async (taskData: TaskCreate, files?: File[]): Promise<Task> => {
         try {
-            const newTask = await taskService.createWithSubTasks(taskData);
+            let newTask;
+
+            // Se há arquivos, usa a rota que aceita arquivos
+            if (files && files.length > 0) {
+                newTask = await taskService.createWithSubTasksAndFiles(taskData, files);
+                toast.success(`Tarefa criada com ${files.length} arquivo(s) anexado(s)!`);
+            } else {
+                // Caso contrário, usa a rota normal
+                newTask = await taskService.createWithSubTasks(taskData);
+                toast.success('Tarefa criada com sucesso!');
+            }
+
             await fetchTasks(); // Recarrega a lista após criação
-            toast.success('Tarefa criada com sucesso!');
             return newTask;
         } catch (err: any) {
             console.error('Erro ao criar tarefa:', err);
-            
+
             // Extrair mensagem de erro detalhada
             let errorMessage = 'Erro ao criar tarefa';
-            
+
             // Verificar se é erro de código duplicado
             if (err.response?.data?.errorCode === 'DUPLICATE_TASK_CODE') {
                 errorMessage = err.response.data.message || 'Já existe uma tarefa com este código. Por favor, use um código diferente.';
@@ -200,7 +211,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             } else if (err.message) {
                 errorMessage = err.message;
             }
-            
+
             toast.error(errorMessage);
             throw err;
         }
@@ -214,10 +225,10 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             return updatedTask;
         } catch (err: any) {
             console.error('Erro ao atualizar tarefa:', err);
-            
+
             // Extrair mensagem de erro detalhada
             let errorMessage = 'Erro ao atualizar tarefa';
-            
+
             // Verificar se é erro de código duplicado
             if (err.response?.data?.errorCode === 'DUPLICATE_TASK_CODE') {
                 errorMessage = err.response.data.message || 'Já existe uma tarefa com este código. Por favor, use um código diferente.';
@@ -228,7 +239,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             } else if (err.message) {
                 errorMessage = err.message;
             }
-            
+
             toast.error(errorMessage);
             throw err;
         }
@@ -291,12 +302,12 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         try {
             setExporting(true);
             const blob = await taskService.exportToExcel();
-            
+
             // Criar nome do arquivo com timestamp
             const now = new Date();
             const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
             const filename = `Relatorio_Tarefas_${timestamp}.xlsx`;
-            
+
             // Criar e baixar o arquivo
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -306,7 +317,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            
+
             toast.success('Relatório exportado com sucesso!');
         } catch (error: any) {
             console.error('Erro ao exportar relatório:', error);
@@ -317,26 +328,6 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             setExporting(false);
         }
     }, []);
-
-    // Effect to fetch data when parameters change (with debounce for filters)
-    useEffect(() => {
-        // Clear previous timer
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-
-        // Set new timer for debounce (1 second)
-        debounceTimerRef.current = setTimeout(() => {
-            fetchTasks();
-        }, 1000);
-
-        // Cleanup on unmount or when dependencies change
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, [currentPage, pageSize, sorting, filters]);
 
     const sendFinancialEmail = useCallback(async (taskId: number): Promise<void> => {
         try {
@@ -361,6 +352,26 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             throw err;
         }
     }, [fetchTasks]);
+
+    // Effect to fetch data when parameters change (with debounce for filters)
+    useEffect(() => {
+        // Clear previous timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        // Set new timer for debounce (1 second)
+        debounceTimerRef.current = setTimeout(() => {
+            fetchTasks();
+        }, 1000);
+
+        // Cleanup on unmount or when dependencies change
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [currentPage, pageSize, sorting, filters]);
 
     return {
         tasks,

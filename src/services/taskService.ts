@@ -98,6 +98,28 @@ export const taskService = {
         return response.data;
     },
 
+    createWithSubTasksAndFiles: async (data: any, files: File[]): Promise<any> => {
+        const formData = new FormData();
+
+        // Adiciona o JSON da tarefa como uma parte do FormData
+        formData.append('task', new Blob([JSON.stringify(data)], {
+            type: 'application/json'
+        }));
+
+        // Adiciona cada arquivo
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const response = await api.post('/tasks/full/with-files', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
+
+        return response.data;
+    },
+
     updateWithSubTasks: async (id: any, data: any): Promise<any> => {
         const response = await api.put(`/tasks/full/${id}`, data);
         return response.data;
