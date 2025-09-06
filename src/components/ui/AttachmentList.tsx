@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Trash2, File, FileText, Image, Archive, Music, Video, AlertTriangle } from 'lucide-react';
+import { Download, Trash2, File, FileText, Image, Archive, Music, Video, AlertTriangle, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { attachmentService } from '@/services/attachmentService';
 import { TaskAttachment } from '@/types/attachments';
 import LoadingSpinner from './LoadingSpinner';
@@ -21,6 +21,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;
         attachment: TaskAttachment | null;
@@ -131,10 +132,66 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         });
     };
 
+    // Renderização do cabeçalho colapsável
+    const renderHeader = () => {
+        const attachmentCount = loading ? '...' : attachments.length;
+        const statusText = loading ? 'Carregando...' : 
+                          attachments.length === 0 ? 'Nenhum arquivo anexado' :
+                          attachments.length === 1 ? '1 arquivo anexado' :
+                          `${attachments.length} arquivos anexados`;
+
+        return (
+            <div 
+                className={`border border-gray-200 rounded-lg cursor-pointer transition-all ${className}`}
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Upload className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium text-gray-900">Anexos</span>
+                            <span className="text-xs text-gray-500">({attachmentCount})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">{statusText}</span>
+                            {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                            ) : (
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Se não está expandido, mostra apenas o cabeçalho
+    if (!isExpanded) {
+        return renderHeader();
+    }
+
+    // Se está expandido, mostra conteúdo completo
     if (loading) {
         return (
-            <div className={`border border-gray-200 rounded-lg p-4 ${className}`}>
-                <div className="flex items-center justify-center py-4">
+            <div className={`border border-gray-200 rounded-lg ${className}`}>
+                <div 
+                    className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => setIsExpanded(false)}
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Upload className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium text-gray-900">Anexos</span>
+                            <span className="text-xs text-gray-500">(...)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">Carregando...</span>
+                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center justify-center py-6">
                     <LoadingSpinner size="sm" />
                     <span className="ml-2 text-gray-600 text-sm">Carregando arquivos...</span>
                 </div>
@@ -142,85 +199,102 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         );
     }
 
-    if (attachments.length === 0) {
-        return (
-            <div className={`border border-gray-200 rounded-lg p-4 ${className}`}>
-                <div className="text-center py-4">
-                    <File className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">Nenhum arquivo anexado</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className={`border border-gray-200 rounded-lg ${className}`}>
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                    <File className="w-4 h-4 text-gray-500" />
-                    Arquivos Anexados ({attachments.length})
-                </h4>
-            </div>
-            
-            <div className="divide-y divide-gray-200">
-                {attachments.map((attachment) => (
-                    <div key={attachment.id} className="p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center flex-1 min-w-0">
-                                <div className="flex-shrink-0">
-                                    {getFileIcon(attachment.contentType)}
-                                </div>
-                                
-                                <div className="ml-3 flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-gray-900 truncate">
-                                        {attachment.originalFileName}
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                                        <span>{formatFileSize(attachment.fileSize)}</span>
-                                        <span>•</span>
-                                        <span>Enviado em {formatDate(attachment.createdAt)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-2 ml-4">
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleDownload(attachment)}
-                                    className="p-2 hover:bg-blue-100 hover:text-blue-600"
-                                    title="Baixar arquivo"
-                                >
-                                    <Download className="w-4 h-4" />
-                                </Button>
-                                
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleDeleteClick(attachment)}
-                                    disabled={deletingId === attachment.id}
-                                    className="p-2 hover:bg-red-100 hover:text-red-600"
-                                    title="Excluir arquivo"
-                                >
-                                    {deletingId === attachment.id ? (
-                                        <LoadingSpinner size="xs" />
-                                    ) : (
-                                        <Trash2 className="w-4 h-4" />
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
+            <div 
+                className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => setIsExpanded(false)}
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-900">Anexos</span>
+                        <span className="text-xs text-gray-500">({attachments.length})</span>
                     </div>
-                ))}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">
+                            {attachments.length === 0 ? 'Nenhum arquivo anexado' :
+                             attachments.length === 1 ? '1 arquivo anexado' :
+                             `${attachments.length} arquivos anexados`}
+                        </span>
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                    </div>
+                </div>
             </div>
             
-            {attachments.length > 5 && (
-                <div className="px-4 py-2 bg-gray-50 text-center border-t border-gray-200">
-                    <p className="text-xs text-gray-500">
-                        <AlertTriangle className="w-3 h-3 inline mr-1" />
-                        Muitos arquivos anexados. Considere organizar em pastas compactadas.
+            {/* Conteúdo quando não há anexos */}
+            {attachments.length === 0 ? (
+                <div className="text-center py-6">
+                    <File className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-4">Nenhum arquivo anexado</p>
+                    <p className="text-xs text-gray-400">
+                        Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa
                     </p>
                 </div>
+            ) : (
+                /* Lista de anexos */
+                <>
+                    <div className="divide-y divide-gray-200">
+                        {attachments.map((attachment) => (
+                            <div key={attachment.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center flex-1 min-w-0">
+                                        <div className="flex-shrink-0">
+                                            {getFileIcon(attachment.contentType)}
+                                        </div>
+                                        
+                                        <div className="ml-3 flex-1 min-w-0">
+                                            <div className="text-sm font-medium text-gray-900 truncate">
+                                                {attachment.originalFileName}
+                                            </div>
+                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                                <span>{formatFileSize(attachment.fileSize)}</span>
+                                                <span>•</span>
+                                                <span>Enviado em {formatDate(attachment.createdAt)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 ml-4">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleDownload(attachment)}
+                                            className="p-2 hover:bg-blue-100 hover:text-blue-600"
+                                            title="Baixar arquivo"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                        </Button>
+                                        
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleDeleteClick(attachment)}
+                                            disabled={deletingId === attachment.id}
+                                            className="p-2 hover:bg-red-100 hover:text-red-600"
+                                            title="Excluir arquivo"
+                                        >
+                                            {deletingId === attachment.id ? (
+                                                <LoadingSpinner size="xs" />
+                                            ) : (
+                                                <Trash2 className="w-4 h-4" />
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {attachments.length > 5 && (
+                        <div className="px-4 py-2 bg-gray-50 text-center border-t border-gray-200">
+                            <p className="text-xs text-gray-500">
+                                <AlertTriangle className="w-3 h-3 inline mr-1" />
+                                Muitos arquivos anexados. Considere organizar em pastas compactadas.
+                            </p>
+                        </div>
+                    )}
+                </>
             )}
             
             {/* Modal de Confirmação de Exclusão */}

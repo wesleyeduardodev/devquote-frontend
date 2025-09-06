@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { DollarSign, Upload, Paperclip } from 'lucide-react';
+import { DollarSign, Upload, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
 import Input from '../ui/Input';
@@ -124,6 +124,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
     
     // Estado para arquivos pendentes (para criação de tarefa)
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+    
+    // Estado para controlar se a seção de anexos está expandida
+    const [isAttachmentSectionExpanded, setIsAttachmentSectionExpanded] = useState(false);
 
     // Validação quando tentar desmarcar a flag com subtarefas existentes
     const handleHasSubTasksChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -448,57 +451,90 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     </div>
                 </div>
 
-                {/* Seção de Anexos */}
+                {/* Seção de Anexos - Colapsável */}
                 <div className="border-t pt-6">
-                    <div className="mb-4">
-                        <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                            <Paperclip className="w-5 h-5" />
-                            Anexos
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                            {taskId 
-                                ? "Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa"
-                                : "Selecione arquivos que serão anexados após criar a tarefa"
-                            }
-                        </p>
-                    </div>
-                    
-                    {/* Para edição: Upload direto */}
-                    {taskId && taskId > 0 && (
-                        <>
-                            <FileUpload
-                                taskId={taskId}
-                                onUploadSuccess={(attachments) => {
-                                    onFilesUploaded?.(attachments);
-                                    setAttachmentRefresh(prev => prev + 1);
-                                }}
-                                onUploadError={(error) => {
-                                    setFormError(error);
-                                }}
-                                maxFiles={10}
-                                maxFileSize={10}
-                                disabled={isSubmitting || loading}
-                            />
-                            
-                            {/* Lista de arquivos anexados */}
-                            <div className="mt-4">
-                                <AttachmentList 
-                                    taskId={taskId}
-                                    refreshTrigger={attachmentRefresh}
-                                />
+                    {/* Cabeçalho clicável */}
+                    <div 
+                        className="cursor-pointer border border-gray-200 rounded-lg"
+                        onClick={() => setIsAttachmentSectionExpanded(!isAttachmentSectionExpanded)}
+                    >
+                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Paperclip className="w-5 h-5 text-gray-500" />
+                                    <span className="text-lg font-medium text-gray-900">Anexos</span>
+                                    <span className="text-sm text-gray-500">
+                                        {!taskId ? (
+                                            `(${pendingFiles.length} selecionados)`
+                                        ) : (
+                                            `(clique para gerenciar)`
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-500">
+                                        {isAttachmentSectionExpanded ? 'Recolher' : 'Expandir'}
+                                    </span>
+                                    {isAttachmentSectionExpanded ? (
+                                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                                    ) : (
+                                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    )}
+                                </div>
                             </div>
-                        </>
-                    )}
-                    
-                    {/* Para criação: Seleção local */}
-                    {!taskId && (
-                        <FilePicker
-                            files={pendingFiles}
-                            onFilesChange={setPendingFiles}
-                            maxFiles={10}
-                            maxFileSize={10}
-                            disabled={isSubmitting || loading}
-                        />
+                        </div>
+                    </div>
+
+                    {/* Conteúdo da seção quando expandida */}
+                    {isAttachmentSectionExpanded && (
+                        <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                            <div className="mb-4">
+                                <p className="text-sm text-gray-500">
+                                    {taskId 
+                                        ? "Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa"
+                                        : "Selecione arquivos que serão anexados após criar a tarefa"
+                                    }
+                                </p>
+                            </div>
+                            
+                            {/* Para edição: Upload direto */}
+                            {taskId && taskId > 0 && (
+                                <>
+                                    <FileUpload
+                                        taskId={taskId}
+                                        onUploadSuccess={(attachments) => {
+                                            onFilesUploaded?.(attachments);
+                                            setAttachmentRefresh(prev => prev + 1);
+                                        }}
+                                        onUploadError={(error) => {
+                                            setFormError(error);
+                                        }}
+                                        maxFiles={10}
+                                        maxFileSize={10}
+                                        disabled={isSubmitting || loading}
+                                    />
+                                    
+                                    {/* Lista de arquivos anexados */}
+                                    <div className="mt-4">
+                                        <AttachmentList 
+                                            taskId={taskId}
+                                            refreshTrigger={attachmentRefresh}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            
+                            {/* Para criação: Seleção local */}
+                            {!taskId && (
+                                <FilePicker
+                                    files={pendingFiles}
+                                    onFilesChange={setPendingFiles}
+                                    maxFiles={10}
+                                    maxFileSize={10}
+                                    disabled={isSubmitting || loading}
+                                />
+                            )}
+                        </div>
                     )}
                 </div>
 
