@@ -33,6 +33,7 @@ const DeliveryList: React.FC = () => {
         exporting,
         sorting,
         filters,
+        fetchDeliveryGroups,
         setPage,
         setPageSize,
         setSorting,
@@ -329,7 +330,9 @@ const DeliveryList: React.FC = () => {
             if (deliveryId) {
                 await deliveryService.delete(deliveryId);
                 toast.success('Entrega excluída com sucesso!');
-                fetchStatistics(); // Recarregar estatísticas
+                // Recarregar a lista de entregas e estatísticas
+                await fetchDeliveryGroups();
+                fetchStatistics();
             } else {
                 toast.error('ID da entrega não encontrado');
             }
@@ -359,7 +362,7 @@ const DeliveryList: React.FC = () => {
                 await deliveryService.sendDeliveryEmail(deliveryId);
                 toast.success('Email de entrega enviado com sucesso!');
                 // Recarregar a listagem para atualizar o status do email
-                window.location.reload();
+                await fetchDeliveryGroups();
             } else {
                 toast.error('ID da entrega não encontrado');
             }
