@@ -91,7 +91,7 @@ const TaskEdit = () => {
         setShowRequesterModal(false);
     };
 
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: any, pendingFiles?: File[]) => {
         if (!id) return;
 
         if (!selectedRequester) {
@@ -116,6 +116,10 @@ const TaskEdit = () => {
             };
 
             await updateTaskWithSubTasks(Number(id), taskData);
+            
+            // Na edição, não deveria haver arquivos pendentes (upload é direto)
+            // Mas mantemos compatibilidade
+            
             navigate('/tasks');
         } catch (error) {
             // Error handled by the hook and form
@@ -398,6 +402,10 @@ const TaskEdit = () => {
                             onSubmit={handleSubmit}
                             onCancel={handleCancel}
                             loading={loading}
+                            taskId={(task as any)?.id}
+                            onFilesUploaded={() => {
+                                toast.success('Arquivos enviados com sucesso!');
+                            }}
                         />
                     </div>
                 </Card>

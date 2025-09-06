@@ -9,6 +9,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import TaskForm from '../../components/forms/TaskForm';
+import toast from 'react-hot-toast';
 
 interface Requester {
     id: number;
@@ -56,7 +57,7 @@ const TaskCreate = () => {
         setRequesterError(null); // Limpa o erro quando um requester é selecionado
     };
 
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: any, pendingFiles?: File[]) => {
         try {
             setLoading(true);
 
@@ -73,7 +74,21 @@ const TaskCreate = () => {
                 requesterId: selectedRequester?.id || data.requesterId
             };
 
-            await createTaskWithSubTasks(taskData);
+            // Criar a tarefa
+            const createdTask = await createTaskWithSubTasks(taskData);
+            
+            // Se há arquivos pendentes, fazer upload após criar a tarefa
+            if (pendingFiles && pendingFiles.length > 0 && createdTask?.id) {
+                try {
+                    const { taskAttachmentService } = await import('../../services/taskAttachmentService');
+                    await taskAttachmentService.uploadFiles(createdTask.id, pendingFiles);
+                    toast.success(`Tarefa criada com ${pendingFiles.length} arquivo(s) anexado(s)!`);
+                } catch (uploadError) {
+                    console.error('Erro ao fazer upload dos arquivos:', uploadError);
+                    toast.error('Tarefa criada, mas houve erro no upload dos arquivos');
+                }
+            }
+            
             navigate('/tasks');
         } catch (error) {
             // Error handled by the hook and form
@@ -335,6 +350,12 @@ const TaskCreate = () => {
                                 <Plus className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                                 <div>
                                     <strong>Subtarefas:</strong> Adicione quantas subtarefas precisar com valores individuais
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Mail className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <strong>Anexos:</strong> Após criar a tarefa, você poderá adicionar arquivos anexos
                                 </div>
                             </div>
                         </div>

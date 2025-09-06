@@ -2,13 +2,17 @@ import React, { useState, useCallback } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, Upload, Paperclip } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import SubTaskForm from './SubTaskForm';
+import FileUpload from '../ui/FileUpload';
+import FilePicker from '../ui/FilePicker';
+import AttachmentList from '../ui/AttachmentList';
+import { TaskAttachmentResponse } from '@/services/taskAttachmentService';
 
 interface SubTask {
     title: string;
@@ -37,9 +41,11 @@ interface TaskData {
 
 interface TaskFormProps {
     initialData?: any;
-    onSubmit: (data: any) => Promise<void>;
+    onSubmit: (data: any, pendingFiles?: File[]) => Promise<void>;
     onCancel?: () => void;
     loading?: boolean;
+    taskId?: number; // Para permitir upload de anexos após criação
+    onFilesUploaded?: (attachments: TaskAttachmentResponse[]) => void;
 }
 
 
@@ -65,6 +71,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                                onSubmit,
                                                onCancel,
                                                loading = false,
+                                               taskId,
+                                               onFilesUploaded,
                                            }) => {
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
@@ -112,6 +120,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
     // Estado para controlar mensagem de erro
     const [subTaskError, setSubTaskError] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
+    const [attachmentRefresh, setAttachmentRefresh] = useState(0);
+    
+    // Estado para arquivos pendentes (para criação de tarefa)
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
     // Validação quando tentar desmarcar a flag com subtarefas existentes
     const handleHasSubTasksChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,11 +196,12 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 })) : [],
             };
 
-            await onSubmit(formattedData);
+            await onSubmit(formattedData, pendingFiles.length > 0 ? pendingFiles : undefined);
             
             // Só reseta se for uma criação bem-sucedida
             if (!initialData?.id) {
                 reset();
+                setPendingFiles([]); // Limpa arquivos pendentes após criação
             }
         } catch (error: any) {
             console.error('Erro no formulário de tarefa:', error);
@@ -435,6 +448,59 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     </div>
                 </div>
 
+                {/* Seção de Anexos */}
+                <div className="border-t pt-6">
+                    <div className="mb-4">
+                        <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                            <Paperclip className="w-5 h-5" />
+                            Anexos
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {taskId 
+                                ? "Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa"
+                                : "Selecione arquivos que serão anexados após criar a tarefa"
+                            }
+                        </p>
+                    </div>
+                    
+                    {/* Para edição: Upload direto */}
+                    {taskId && taskId > 0 && (
+                        <>
+                            <FileUpload
+                                taskId={taskId}
+                                onUploadSuccess={(attachments) => {
+                                    onFilesUploaded?.(attachments);
+                                    setAttachmentRefresh(prev => prev + 1);
+                                }}
+                                onUploadError={(error) => {
+                                    setFormError(error);
+                                }}
+                                maxFiles={10}
+                                maxFileSize={10}
+                                disabled={isSubmitting || loading}
+                            />
+                            
+                            {/* Lista de arquivos anexados */}
+                            <div className="mt-4">
+                                <AttachmentList 
+                                    taskId={taskId}
+                                    refreshTrigger={attachmentRefresh}
+                                />
+                            </div>
+                        </>
+                    )}
+                    
+                    {/* Para criação: Seleção local */}
+                    {!taskId && (
+                        <FilePicker
+                            files={pendingFiles}
+                            onFilesChange={setPendingFiles}
+                            maxFiles={10}
+                            maxFileSize={10}
+                            disabled={isSubmitting || loading}
+                        />
+                    )}
+                </div>
 
                 {/* Ações */}
                 <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
