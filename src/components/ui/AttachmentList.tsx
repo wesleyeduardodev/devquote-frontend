@@ -4,6 +4,7 @@ import { attachmentService } from '@/services/attachmentService';
 import { TaskAttachment } from '@/types/attachments';
 import LoadingSpinner from './LoadingSpinner';
 import Button from './Button';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 import toast from 'react-hot-toast';
 
 interface AttachmentListProps {
@@ -20,6 +21,10 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{
+        isOpen: boolean;
+        attachment: TaskAttachment | null;
+    }>({ isOpen: false, attachment: null });
 
     useEffect(() => {
         fetchAttachments();
@@ -64,23 +69,28 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         }
     };
 
-    const handleDelete = async (attachment: TaskAttachment) => {
-        const confirmDelete = window.confirm(
-            `Tem certeza que deseja excluir o arquivo "${attachment.originalFileName}"?`
-        );
-        
-        if (!confirmDelete) return;
+    const handleDeleteClick = (attachment: TaskAttachment) => {
+        setDeleteModal({ isOpen: true, attachment });
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteModal.attachment) return;
 
         try {
-            setDeletingId(attachment.id);
-            await attachmentService.deleteAttachment(attachment.id);
-            setAttachments(prev => prev.filter(a => a.id !== attachment.id));
+            setDeletingId(deleteModal.attachment.id);
+            await attachmentService.deleteAttachment(deleteModal.attachment.id);
+            setAttachments(prev => prev.filter(a => a.id !== deleteModal.attachment!.id));
             toast.success('Arquivo excluído com sucesso!');
+            setDeleteModal({ isOpen: false, attachment: null });
         } catch (error) {
             toast.error('Erro ao excluir arquivo');
         } finally {
             setDeletingId(null);
         }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteModal({ isOpen: false, attachment: null });
     };
 
     const getFileIcon = (contentType: string) => {
@@ -187,7 +197,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                 <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => handleDelete(attachment)}
+                                    onClick={() => handleDeleteClick(attachment)}
                                     disabled={deletingId === attachment.id}
                                     className="p-2 hover:bg-red-100 hover:text-red-600"
                                     title="Excluir arquivo"
@@ -212,6 +222,16 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                     </p>
                 </div>
             )}
+            
+            {/* Modal de Confirmação de Exclusão */}
+            <DeleteConfirmationModal
+                isOpen={deleteModal.isOpen}
+                onClose={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                title="Excluir Arquivo"
+                itemName={deleteModal.attachment?.originalFileName}
+                isDeleting={deletingId === deleteModal.attachment?.id}
+            />
         </div>
     );
 };
