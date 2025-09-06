@@ -3,6 +3,7 @@ import { Upload, File, Download, Trash2, ChevronDown, ChevronRight, AlertCircle,
 import { deliveryAttachmentService, type DeliveryAttachmentResponse } from '../../services/deliveryAttachmentService';
 import { deliveryItemAttachmentService, type DeliveryItemAttachmentResponse } from '../../services/deliveryItemAttachmentService';
 import { formatFileSize } from '../../utils/formatters';
+import DeleteConfirmationModal from '../ui/DeleteConfirmationModal';
 import toast from 'react-hot-toast';
 
 type AttachmentType = DeliveryAttachmentResponse | DeliveryItemAttachmentResponse;
@@ -30,6 +31,11 @@ export function DeliveryAttachmentList({
   const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    attachment: AttachmentType | null;
+  }>({ isOpen: false, attachment: null });
 
   // Determinar qual service usar baseado nos props
   const isDeliveryAttachment = deliveryId !== undefined;
@@ -147,21 +153,29 @@ export function DeliveryAttachmentList({
     }
   };
 
-  const handleDelete = async (attachment: AttachmentType) => {
-    if (readOnly) return;
-    
-    if (!confirm(`Tem certeza que deseja excluir o arquivo "${attachment.originalFileName}"?`)) {
-      return;
-    }
+  const handleDeleteClick = (attachment: AttachmentType) => {
+    setDeleteModal({ isOpen: true, attachment });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.attachment) return;
 
     try {
-      await service.deleteAttachment(attachment.id);
+      setDeletingId(deleteModal.attachment.id);
+      await service.deleteAttachment(deleteModal.attachment.id);
+      setAttachments(prev => prev.filter(a => a.id !== deleteModal.attachment!.id));
       toast.success('Arquivo excluído com sucesso!');
-      loadAttachments();
+      setDeleteModal({ isOpen: false, attachment: null });
     } catch (error) {
       console.error('Error deleting file:', error);
       toast.error('Erro ao excluir arquivo');
+    } finally {
+      setDeletingId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, attachment: null });
   };
 
   const toggleExpanded = () => {
@@ -278,11 +292,16 @@ export function DeliveryAttachmentList({
                     {!readOnly && (
                       <button
                         type="button"
-                        onClick={() => handleDelete(attachment)}
-                        className="p-1 text-red-600 hover:text-red-800"
+                        onClick={() => handleDeleteClick(attachment)}
+                        disabled={deletingId === attachment.id}
+                        className="p-1 text-red-600 hover:text-red-800 disabled:opacity-50"
                         title="Excluir arquivo"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {deletingId === attachment.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     )}
                   </div>
@@ -371,6 +390,18 @@ export function DeliveryAttachmentList({
             </div>
           )}
         </div>
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {!readOnly && (
+        <DeleteConfirmationModal
+          isOpen={deleteModal.isOpen}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          title="Excluir Arquivo"
+          itemName={deleteModal.attachment?.originalFileName}
+          isDeleting={deletingId === deleteModal.attachment?.id}
+        />
       )}
     </div>
   );
