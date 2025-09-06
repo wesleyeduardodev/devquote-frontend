@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -60,6 +60,10 @@ const DeliveryList: React.FC = () => {
     const [selectedDeliveries, setSelectedDeliveries] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+    // Estados para email modal
+    const [showDeliveryEmailModal, setShowDeliveryEmailModal] = useState(false);
+    const [groupForEmail, setGroupForEmail] = useState<DeliveryGroupResponse | null>(null);
 
     // Carregar estatísticas (função independente)
     const fetchStatistics = async () => {
@@ -244,6 +248,19 @@ const DeliveryList: React.FC = () => {
                     >
                         <Eye className="h-4 w-4" />
                     </Button>
+
+                    {/* Botão de Email - disponível para ADMIN e MANAGER */}
+                    {(isAdmin || isManager) && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeliveryEmail(delivery)}
+                            title={delivery.deliveries?.[0]?.deliveryEmailSent ? "Email de entrega já enviado - Reenviar?" : "Enviar email de entrega"}
+                            className={`${delivery.deliveries?.[0]?.deliveryEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                        >
+                            <Mail className="h-4 w-4" />
+                        </Button>
+                    )}
                     
                     {canEdit && (
                         <Button
@@ -326,6 +343,34 @@ const DeliveryList: React.FC = () => {
     };
 
     const handleExport = () => exportToExcel();
+
+    // Handler para email de entrega
+    const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
+        setGroupForEmail(group);
+        setShowDeliveryEmailModal(true);
+    };
+
+    const confirmSendDeliveryEmail = async () => {
+        if (!groupForEmail) return;
+
+        try {
+            const deliveryId = groupForEmail.deliveries?.[0]?.id;
+            if (deliveryId) {
+                await deliveryService.sendDeliveryEmail(deliveryId);
+                toast.success('Email de entrega enviado com sucesso!');
+                // Recarregar a listagem para atualizar o status do email
+                window.location.reload();
+            } else {
+                toast.error('ID da entrega não encontrado');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar email:', error);
+            toast.error('Falha ao enviar email');
+        } finally {
+            setShowDeliveryEmailModal(false);
+            setGroupForEmail(null);
+        }
+    };
 
     const handleSort = (field: string, direction: 'asc' | 'desc') => {
         setSorting(field, direction);
@@ -539,6 +584,19 @@ const DeliveryList: React.FC = () => {
                                                 >
                                                     <Eye className="w-3.5 h-3.5" />
                                                 </Button>
+
+                                                {/* Botão de Email - disponível para ADMIN e MANAGER */}
+                                                {(isAdmin || isManager) && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDeliveryEmail(delivery)}
+                                                        title={delivery.deliveries?.[0]?.deliveryEmailSent ? "Email de entrega já enviado - Reenviar?" : "Enviar email de entrega"}
+                                                        className={`p-1 ${delivery.deliveries?.[0]?.deliveryEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                                                    >
+                                                        <Mail className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
                                                 
                                                 {canEdit && (
                                                     <Button
@@ -710,6 +768,76 @@ const DeliveryList: React.FC = () => {
                     title="Excluir Entrega"
                     message={`Tem certeza que deseja excluir a entrega da tarefa "${groupToDelete.taskName}"? Esta ação não pode ser desfeita.`}
                 />
+            )}
+
+            {/* Modal de confirmação de email de entrega */}
+            {showDeliveryEmailModal && groupForEmail && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            {/* Header */}
+                            <div className="flex items-center justify-center mb-4">
+                                <div className="bg-blue-100 p-3 rounded-full">
+                                    📧 Email de Entrega
+                                </div>
+                            </div>
+                            
+                            <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+                                Tarefa: {groupForEmail.taskCode}
+                            </h2>
+
+                            <div className="mb-6">
+                                {groupForEmail.deliveries?.[0]?.deliveryEmailSent ? (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                                        <div className="flex items-center mb-2">
+                                            <span className="text-amber-600 mr-2">⚠️</span>
+                                            <span className="font-semibold text-amber-800">Email já enviado</span>
+                                        </div>
+                                        <p className="text-amber-700 text-sm">
+                                            O email de entrega para esta tarefa já foi enviado anteriormente.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                        <div className="flex items-center mb-2">
+                                            <span className="text-blue-600 mr-2">📧</span>
+                                            <span className="font-semibold text-blue-800">Enviar email de entrega</span>
+                                        </div>
+                                        <p className="text-blue-700 text-sm">
+                                            Deseja enviar um email com os detalhes da entrega para o solicitante?
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="bg-gray-50 rounded-lg p-3">
+                                    <h4 className="font-medium text-gray-900 mb-2">{groupForEmail.taskName}</h4>
+                                    <div className="text-sm text-gray-600 space-y-1">
+                                        <p><strong>Código:</strong> {groupForEmail.taskCode}</p>
+                                        <p><strong>Itens:</strong> {groupForEmail.totalItems || 0} item(s)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowDeliveryEmailModal(false);
+                                        setGroupForEmail(null);
+                                    }}
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmSendDeliveryEmail}
+                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                >
+                                    {groupForEmail.deliveries?.[0]?.deliveryEmailSent ? 'Reenviar' : 'Enviar Email'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Modal de exclusão em lote */}

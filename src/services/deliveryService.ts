@@ -247,5 +247,11 @@ export const deliveryService = {
     taskHasDelivery: async (taskId: number): Promise<boolean> => {
         const delivery = await deliveryService.getByTaskId(taskId);
         return delivery !== null;
+    },
+
+    // Envio de email manual para entrega
+    sendDeliveryEmail: async (id: number): Promise<void> => {
+        const response = await api.post(`/deliveries/${id}/send-delivery-email`);
+        return response.data;
     }
 };

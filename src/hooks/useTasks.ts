@@ -350,6 +350,18 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [fetchTasks]);
 
+    const sendTaskEmail = useCallback(async (taskId: number): Promise<void> => {
+        try {
+            await taskService.sendTaskEmail(taskId);
+            await fetchTasks(); // Atualiza a lista para refletir as mudanças
+            toast.success('Email de tarefa enviado com sucesso!');
+        } catch (err: any) {
+            console.error('Erro ao enviar email de tarefa:', err);
+            toast.error(err.message || 'Erro ao enviar email de tarefa');
+            throw err;
+        }
+    }, [fetchTasks]);
+
     return {
         tasks,
         pagination,
@@ -370,5 +382,6 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         clearFilters,
         exportToExcel,
         sendFinancialEmail,
+        sendTaskEmail,
     };
 };

@@ -30,6 +30,7 @@ export interface Task extends BaseEntity {
     hasDelivery?: boolean;
     hasQuoteInBilling?: boolean;
     financialEmailSent?: boolean;
+    taskEmailSent?: boolean;
 }
 
 // Subtarefa

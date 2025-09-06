@@ -135,5 +135,9 @@ export const taskService = {
 
     sendFinancialEmail: async (taskId: number): Promise<void> => {
         await api.post(`/tasks/${taskId}/send-financial-email`);
+    },
+
+    sendTaskEmail: async (taskId: number): Promise<void> => {
+        await api.post(`/tasks/${taskId}/send-task-email`);
     }
 };

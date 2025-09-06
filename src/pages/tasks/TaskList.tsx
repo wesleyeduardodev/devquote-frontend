@@ -70,6 +70,8 @@ const TaskList: React.FC = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showFinancialEmailModal, setShowFinancialEmailModal] = useState(false);
     const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
+    const [showTaskEmailModal, setShowTaskEmailModal] = useState(false);
+    const [taskForTaskEmail, setTaskForTaskEmail] = useState<Task | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
     const [isDeletingSingle, setIsDeletingSingle] = useState(false);
@@ -90,6 +92,7 @@ const TaskList: React.FC = () => {
         deleteBulkTasks, // <-- deve existir no hook; ajuste o nome se necessário
         exportToExcel,
         sendFinancialEmail,
+        sendTaskEmail,
     } = useTasks();
 
     const handleEdit = (id: number) => {
@@ -168,6 +171,24 @@ const TaskList: React.FC = () => {
         } finally {
             setShowFinancialEmailModal(false);
             setTaskForEmail(null);
+        }
+    };
+
+    const handleTaskEmail = (task: Task) => {
+        setTaskForTaskEmail(task);
+        setShowTaskEmailModal(true);
+    };
+
+    const confirmSendTaskEmail = async () => {
+        if (!taskForTaskEmail) return;
+
+        try {
+            await sendTaskEmail(taskForTaskEmail.id);
+        } catch (error) {
+            // Error already handled by the hook
+        } finally {
+            setShowTaskEmailModal(false);
+            setTaskForTaskEmail(null);
         }
     };
 
@@ -632,6 +653,19 @@ const TaskList: React.FC = () => {
                             title={item.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
                             className={`${item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
                         >
+                            <DollarSign className="w-4 h-4" />
+                        </Button>
+                    )}
+                    
+                    {/* Botão de Email da Tarefa - disponível para ADMIN e MANAGER */}
+                    {(isAdmin || isManager) && (
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleTaskEmail(item)}
+                            title={item.taskEmailSent ? "Email de tarefa já enviado - Reenviar?" : "Enviar email de tarefa"}
+                            className={`${item.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                        >
                             <Mail className="w-4 h-4" />
                         </Button>
                     )}
@@ -729,6 +763,19 @@ const TaskList: React.FC = () => {
                                     onClick={() => handleFinancialEmail(task)}
                                     title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
                                     className={`p-1 ${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                                >
+                                    <DollarSign className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+                            
+                            {/* Botão de Email da Tarefa - disponível para ADMIN e MANAGER */}
+                            {(isAdmin || isManager) && (
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleTaskEmail(task)}
+                                    title={task.taskEmailSent ? "Email de tarefa já enviado - Reenviar?" : "Enviar email de tarefa"}
+                                    className={`p-1 ${task.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
                                 >
                                     <Mail className="w-3.5 h-3.5" />
                                 </Button>
@@ -1136,6 +1183,84 @@ const TaskList: React.FC = () => {
                                 >
                                     <Mail className="w-4 h-4 mr-2" />
                                     {taskForEmail.financialEmailSent ? 'Reenviar' : 'Enviar Email'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de confirmação de email de tarefa */}
+            {showTaskEmailModal && taskForTaskEmail && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    📧 Email de Tarefa
+                                </h2>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Tarefa: {taskForTaskEmail.code}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                            {taskForTaskEmail.taskEmailSent ? (
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                                        <Mail className="w-8 h-8 text-green-600" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                        Email já enviado
+                                    </h3>
+                                    <p className="text-gray-600 mb-6">
+                                        O email desta tarefa já foi enviado anteriormente.
+                                        Deseja enviar novamente?
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <Mail className="w-8 h-8 text-blue-600" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                        Enviar email de tarefa
+                                    </h3>
+                                    <p className="text-gray-600 mb-6">
+                                        Deseja enviar um email com os detalhes desta tarefa para o solicitante?
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                                <h4 className="font-medium text-gray-900 mb-2">{taskForTaskEmail.title}</h4>
+                                <div className="text-sm text-gray-600">
+                                    <p><strong>Código:</strong> {taskForTaskEmail.code}</p>
+                                    <p><strong>Solicitante:</strong> {taskForTaskEmail.requesterName}</p>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center justify-end space-x-3">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setShowTaskEmailModal(false);
+                                        setTaskForTaskEmail(null);
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    onClick={confirmSendTaskEmail}
+                                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                                >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    {taskForTaskEmail.taskEmailSent ? 'Reenviar' : 'Enviar Email'}
                                 </Button>
                             </div>
                         </div>
