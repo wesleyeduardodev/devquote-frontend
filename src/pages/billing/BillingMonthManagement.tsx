@@ -20,6 +20,7 @@ import {
     Loader2,
     Hash,
     Mail,
+    File,
 } from 'lucide-react';
 
 // Hooks e serviços existentes
@@ -32,6 +33,7 @@ import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import LinkTasksToBillingModal from '../../components/billing/LinkTasksToBillingModal';
 import UnlinkTasksFromBillingModal from '../../components/billing/UnlinkTasksFromBillingModal';
 import ViewTasksModal from '../../components/billing/ViewTasksModal';
+import BillingPeriodAttachmentModal from '../../components/billing/BillingPeriodAttachmentModal';
 
 type StatusValue = 'PENDENTE' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO';
 
@@ -133,6 +135,10 @@ const BillingManagement: React.FC = () => {
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [billingForEmail, setBillingForEmail] = useState<BillingMonth | null>(null);
     const [sendingEmail, setSendingEmail] = useState(false);
+
+    // Estados do modal de anexos
+    const [showAttachmentModal, setShowAttachmentModal] = useState(false);
+    const [billingForAttachment, setBillingForAttachment] = useState<BillingMonth | null>(null);
 
     // Filtros gerais (desktop + mobile)
     const [searchTerm, setSearchTerm] = useState('');
@@ -319,6 +325,12 @@ const BillingManagement: React.FC = () => {
             setSendingEmail(false);
         }
     }, [billingForEmail, fetchBillingMonths]);
+
+    // Handler para abrir modal de anexos
+    const handleAttachments = useCallback((billing: BillingMonth) => {
+        setBillingForAttachment(billing);
+        setShowAttachmentModal(true);
+    }, []);
 
     const handleExportToExcel = useCallback(async () => {
         try {
@@ -633,7 +645,7 @@ const BillingManagement: React.FC = () => {
                                 <Mail className="w-5 h-5" />
                             </button>
                         </>
-                    ) : isManager && (
+                    ) : isManager ? (
                         <button
                             onClick={() => handleViewTasks(billing)}
                             className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
@@ -641,7 +653,7 @@ const BillingManagement: React.FC = () => {
                         >
                             <Search className="w-5 h-5" />
                         </button>
-                    )}
+                    ) : null}
                 </div>
             </div>
         );
@@ -905,13 +917,14 @@ const BillingManagement: React.FC = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarefas</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pagamento</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                                    <th className="px-3 py-3 w-20 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Anexos</th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                 {filteredBillingMonths.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                                             <Calendar className="w-8 h-8 mx-auto mb-3 text-gray-300" />
                                             <p>Nenhum período encontrado</p>
                                         </td>
@@ -987,6 +1000,21 @@ const BillingManagement: React.FC = () => {
                                                     ) : (
                                                         <p className="font-semibold text-gray-900">{formatCurrency(totals[billing.id] || 0)}</p>
                                                     )}
+                                                </td>
+
+                                                {/* Coluna de Anexos */}
+                                                <td className="px-3 py-4 w-20">
+                                                    <div className="flex items-center justify-center">
+                                                        {isAdmin && (
+                                                            <button
+                                                                onClick={() => handleAttachments(billing)}
+                                                                className="inline-flex items-center justify-center w-8 h-8 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                                                                title="Gerenciar anexos do período"
+                                                            >
+                                                                <FileText className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
 
                                                 <td className="px-6 py-4">
@@ -1470,6 +1498,19 @@ const BillingManagement: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Modal de anexos do período */}
+                {showAttachmentModal && billingForAttachment && (
+                    <BillingPeriodAttachmentModal
+                        isOpen={showAttachmentModal}
+                        onClose={() => {
+                            setShowAttachmentModal(false);
+                            setBillingForAttachment(null);
+                        }}
+                        billingPeriodId={billingForAttachment.id}
+                        billingPeriodTitle={billingForAttachment.title}
+                    />
                 )}
 
                 {/* Modal de exclusão em massa */}
