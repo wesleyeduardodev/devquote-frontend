@@ -10,13 +10,15 @@ interface BillingPeriodAttachmentModalProps {
   onClose: () => void;
   billingPeriodId: number;
   billingPeriodTitle: string; // Ex: "Janeiro 2025"
+  isAdmin?: boolean; // Indica se o usuário pode upload/delete
 }
 
 const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> = ({
   isOpen,
   onClose,
   billingPeriodId,
-  billingPeriodTitle
+  billingPeriodTitle,
+  isAdmin = false
 }) => {
   const [attachments, setAttachments] = useState<BillingPeriodAttachmentResponse[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -172,113 +174,124 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
         {/* Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
           <div className="space-y-6">
-            {/* Upload Area */}
-            <div
-              className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors ${
-                isDragOver ? 'border-blue-400 bg-blue-50' : 'hover:border-gray-400'
-              }`}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-            >
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">
-                Faça upload de documentos relacionados ao período de faturamento
-              </p>
-              <p className="text-xs text-gray-500 mb-3">
-                Arraste e solte arquivos aqui ou clique para selecionar (máx. 10MB por arquivo)
-              </p>
-              <input
-                type="file"
-                multiple
-                onChange={handleFileInput}
-                className="hidden"
-                id="billing-period-file-input"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
-              />
-              <label
-                htmlFor="billing-period-file-input"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
-              >
-                Selecionar Arquivos
-              </label>
-            </div>
-
-            {/* Arquivos selecionados para upload */}
-            {selectedFiles.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-gray-900">
-                    Arquivos selecionados ({selectedFiles.length})
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={clearSelectedFiles}
-                    className="text-xs text-gray-500 hover:text-red-600 font-medium"
+            {/* Upload Area - Apenas para Admin */}
+            {isAdmin && (
+              <div className="space-y-6">
+                <div
+                  className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors ${
+                    isDragOver ? 'border-blue-400 bg-blue-50' : 'hover:border-gray-400'
+                  }`}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                >
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">
+                    Faça upload de documentos relacionados ao período de faturamento
+                  </p>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Arraste e solte arquivos aqui ou clique para selecionar (máx. 10MB por arquivo)
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileInput}
+                    className="hidden"
+                    id="billing-period-file-input"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
+                  />
+                  <label
+                    htmlFor="billing-period-file-input"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
                   >
-                    Limpar todos
-                  </button>
+                    Selecionar Arquivos
+                  </label>
                 </div>
 
-                <div className="space-y-2">
-                  {selectedFiles.map((file, index) => (
-                    <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center flex-1 min-w-0">
-                        <div className="flex-shrink-0">
-                          <File className="w-4 h-4 text-gray-500" />
-                        </div>
-                        <div className="ml-3 flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {file.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {formatFileSize(file.size)}
-                          </p>
-                        </div>
-                      </div>
+                {/* Arquivos selecionados para upload */}
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Arquivos selecionados ({selectedFiles.length})
+                      </h4>
                       <button
                         type="button"
-                        onClick={() => removeSelectedFile(index)}
-                        className="ml-3 p-1 hover:bg-red-100 hover:text-red-600 rounded text-gray-400"
-                        title="Remover arquivo"
+                        onClick={clearSelectedFiles}
+                        className="text-xs text-gray-500 hover:text-red-600 font-medium"
                       >
-                        <X className="w-4 h-4" />
+                        Limpar todos
                       </button>
                     </div>
-                  ))}
-                </div>
 
-                {/* Botão de upload */}
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleUploadFiles}
-                    disabled={uploading}
-                    className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      uploading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Enviar {selectedFiles.length} arquivo(s)
-                      </>
-                    )}
-                  </button>
-                </div>
+                    <div className="space-y-2">
+                      {selectedFiles.map((file, index) => (
+                        <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center flex-1 min-w-0">
+                            <div className="flex-shrink-0">
+                              <File className="w-4 h-4 text-gray-500" />
+                            </div>
+                            <div className="ml-3 flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatFileSize(file.size)}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedFile(index)}
+                            className="ml-3 p-1 hover:bg-red-100 hover:text-red-600 rounded text-gray-400"
+                            title="Remover arquivo"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Botão de upload */}
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleUploadFiles}
+                        disabled={uploading}
+                        className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          uploading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Enviar {selectedFiles.length} arquivo(s)
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Lista de anexos */}
             <div>
-              <h4 className="text-lg font-medium text-gray-900 mb-4">
-                Anexos ({attachments.length})
-              </h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-medium text-gray-900">
+                  Anexos ({attachments.length})
+                </h4>
+                {!isAdmin && (
+                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    Modo visualização - apenas download disponível
+                  </div>
+                )}
+              </div>
               
               {loading ? (
                 <div className="text-center py-8">
@@ -309,19 +322,22 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
                         >
                           <Download className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteClick(attachment)}
-                          disabled={deletingId === attachment.id}
-                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-md disabled:opacity-50"
-                          title="Excluir arquivo"
-                        >
-                          {deletingId === attachment.id ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
+                        {/* Botão de delete - apenas para Admin */}
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(attachment)}
+                            disabled={deletingId === attachment.id}
+                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-md disabled:opacity-50"
+                            title="Excluir arquivo"
+                          >
+                            {deletingId === attachment.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}

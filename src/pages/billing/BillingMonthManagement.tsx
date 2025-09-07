@@ -1005,11 +1005,11 @@ const BillingManagement: React.FC = () => {
                                                 {/* Coluna de Anexos */}
                                                 <td className="px-3 py-4 w-20">
                                                     <div className="flex items-center justify-center">
-                                                        {isAdmin && (
+                                                        {(isAdmin || isManager) && (
                                                             <button
                                                                 onClick={() => handleAttachments(billing)}
                                                                 className="inline-flex items-center justify-center w-8 h-8 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
-                                                                title="Gerenciar anexos do período"
+                                                                title={isAdmin ? "Gerenciar anexos do período" : "Visualizar anexos do período"}
                                                             >
                                                                 <FileText className="w-4 h-4" />
                                                             </button>
@@ -1510,6 +1510,7 @@ const BillingManagement: React.FC = () => {
                         }}
                         billingPeriodId={billingForAttachment.id}
                         billingPeriodTitle={billingForAttachment.title}
+                        isAdmin={isAdmin}
                     />
                 )}
 
