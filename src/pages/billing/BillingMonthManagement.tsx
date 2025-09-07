@@ -644,15 +644,31 @@ const BillingManagement: React.FC = () => {
                             >
                                 <Mail className="w-5 h-5" />
                             </button>
+                            <button
+                                onClick={() => handleAttachments(billing)}
+                                className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg p-2 transition-colors"
+                                title={isAdmin ? "Gerenciar anexos do período" : "Visualizar anexos do período"}
+                            >
+                                <FileText className="w-5 h-5" />
+                            </button>
                         </>
                     ) : isManager ? (
-                        <button
-                            onClick={() => handleViewTasks(billing)}
-                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
-                            title="Visualizar tarefas vinculadas"
-                        >
-                            <Search className="w-5 h-5" />
-                        </button>
+                        <>
+                            <button
+                                onClick={() => handleViewTasks(billing)}
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                                title="Visualizar tarefas vinculadas"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => handleAttachments(billing)}
+                                className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg p-2 transition-colors"
+                                title="Visualizar anexos do período"
+                            >
+                                <FileText className="w-5 h-5" />
+                            </button>
+                        </>
                     ) : null}
                 </div>
             </div>
