@@ -81,24 +81,15 @@ const FilePicker: React.FC<FilePickerProps> = ({
         const fileName = file.name.toLowerCase();
         const fileExtension = fileName.split('.').pop();
         
-        // DEBUG: Log para verificar o que está sendo detectado
-        console.log('🐛 DEBUG FILE:', {
-            fileName: file.name,
-            fileType: file.type,
-            fileExtension,
-            fileSize: file.size
-        });
         
         // Lista de extensões permitidas - FORÇAR JSON e POWERPOINT
         const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
         
         // VALIDAÇÃO SIMPLES: Se a extensão está na lista, SEMPRE aceitar
         if (fileExtension && allowedExtensions.includes(fileExtension)) {
-            console.log('✅ Arquivo FORÇADAMENTE aceito pela extensão:', fileExtension);
             // Prosseguir direto para validação de tamanho - NÃO verificar MIME
         } else {
-            console.log('❌ Extensão não permitida:', fileExtension);
-            return `🚨 VERSÃO ATUALIZADA - Extensão não permitida: .${fileExtension}`;
+            return `Extensão não permitida: .${fileExtension}`;
         }
         
         const maxSizeBytes = maxFileSize * 1024 * 1024;
