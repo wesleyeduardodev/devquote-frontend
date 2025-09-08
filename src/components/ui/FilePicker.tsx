@@ -32,12 +32,16 @@ const FilePicker: React.FC<FilePickerProps> = ({
     const allowedTypes = [
         // Documentos
         'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/msword',  // Word .doc
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // Word .docx
+        'application/vnd.ms-excel',  // Excel .xls
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // Excel .xlsx
+        'application/vnd.ms-powerpoint',  // PowerPoint .ppt
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',  // PowerPoint .pptx
         'text/plain',
         'text/csv',
+        'application/json',  // JSON
+        'text/json',  // JSON alternativo
         // Imagens
         'image/jpeg',
         'image/jpg',
@@ -48,19 +52,39 @@ const FilePicker: React.FC<FilePickerProps> = ({
         'video/mp4',
         'video/webm',
         'video/ogg',
+        'video/avi',
+        'video/quicktime',
+        'video/x-msvideo',
         // Áudio
         'audio/mp3',
+        'audio/mpeg',
         'audio/wav',
         'audio/ogg',
         // Compactados
         'application/zip',
         'application/x-rar-compressed',
-        'application/x-7z-compressed'
+        'application/x-7z-compressed',
+        // Tipos genéricos que alguns navegadores podem usar
+        'application/octet-stream'  // Tipo genérico para arquivos binários
     ];
 
     const validateFile = useCallback((file: File): string | null => {
-        if (!allowedTypes.includes(file.type)) {
-            return `Tipo de arquivo não permitido: ${file.type}`;
+        // Para alguns arquivos, o browser pode não detectar o tipo MIME corretamente
+        // Vamos verificar também pela extensão do arquivo
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.split('.').pop();
+        
+        // Verificar por extensão para casos especiais
+        const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
+        
+        // Primeiro: verificar se a extensão é permitida (prioridade)
+        if (fileExtension && allowedExtensions.includes(fileExtension)) {
+            // Arquivo permitido pela extensão - prosseguir para validação de tamanho
+        } else if (allowedTypes.includes(file.type)) {
+            // Arquivo permitido pelo tipo MIME - prosseguir para validação de tamanho
+        } else {
+            // Nem extensão nem tipo MIME são permitidos
+            return `Tipo de arquivo não permitido: ${file.type} (${fileName})`;
         }
         
         const maxSizeBytes = maxFileSize * 1024 * 1024;
