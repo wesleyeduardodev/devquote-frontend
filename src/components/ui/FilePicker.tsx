@@ -3,6 +3,7 @@ import { Upload, X, File, FileText, Image, Video, Archive, AlertCircle } from 'l
 import Button from './Button';
 import toast from 'react-hot-toast';
 import { taskAttachmentService } from '@/services/taskAttachmentService';
+import { deliveryAttachmentService } from '@/services/deliveryAttachmentService';
 
 interface FilePickerProps {
     files?: File[];
@@ -13,6 +14,8 @@ interface FilePickerProps {
     className?: string;
     // Para upload direto (edição de tarefas)
     taskId?: number;
+    // Para upload direto (edição de entregas)
+    deliveryId?: number;
     onUploadSuccess?: (attachments: any[]) => void;
     showUploadButton?: boolean;
 }
@@ -31,6 +34,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
     disabled = false,
     className = '',
     taskId,
+    deliveryId,
     onUploadSuccess,
     showUploadButton = false
 }) => {
@@ -191,11 +195,20 @@ const FilePicker: React.FC<FilePickerProps> = ({
     };
 
     const handleUpload = async () => {
-        if (!taskId || !files.length || uploading) return;
+        if ((!taskId && !deliveryId) || !files.length || uploading) return;
         
         setUploading(true);
         try {
-            const attachments = await taskAttachmentService.uploadFiles(taskId, files);
+            let attachments;
+            
+            if (taskId) {
+                // Upload para tarefa
+                attachments = await taskAttachmentService.uploadFiles(taskId, files);
+            } else if (deliveryId) {
+                // Upload para entrega
+                attachments = await deliveryAttachmentService.uploadFiles(deliveryId, files);
+            }
+            
             toast.success(`${files.length} arquivo(s) enviado(s) com sucesso!`);
             onUploadSuccess?.(attachments);
             onFilesChange?.([]); // Limpar arquivos após upload
@@ -272,7 +285,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
                         </h4>
                         <div className="flex items-center space-x-2">
                             {/* Botão de Upload (apenas na edição) */}
-                            {showUploadButton && files.length > 0 && taskId && !disabled && (
+                            {showUploadButton && files.length > 0 && (taskId || deliveryId) && !disabled && (
                                 <Button
                                     type="button"
                                     size="sm"

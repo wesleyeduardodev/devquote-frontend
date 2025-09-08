@@ -16,15 +16,8 @@ import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { LocalFileUpload } from '../../components/deliveries/LocalFileUpload';
+import FilePicker from '../../components/ui/FilePicker';
 
-interface LocalFile {
-  id: string;
-  file: File;
-  name: string;
-  size: number;
-  type: string;
-}
 
 const DeliveryCreate: React.FC = () => {
     const navigate = useNavigate();
@@ -35,7 +28,7 @@ const DeliveryCreate: React.FC = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [createdDeliveryId, setCreatedDeliveryId] = useState<number | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
-    const [localFiles, setLocalFiles] = useState<LocalFile[]>([]);
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
     // Estados dos modais
     const [showTaskModal, setShowTaskModal] = useState(false);
@@ -79,7 +72,7 @@ const DeliveryCreate: React.FC = () => {
             };
 
             // Determinar se há arquivos para enviar
-            const filesToUpload = localFiles.length > 0 ? localFiles.map(lf => lf.file) : undefined;
+            const filesToUpload = pendingFiles.length > 0 ? pendingFiles : undefined;
             
             // Criar entrega com arquivos (se houver)
             const createdDelivery = await deliveryService.create(deliveryData, filesToUpload);
@@ -116,8 +109,8 @@ const DeliveryCreate: React.FC = () => {
             }
 
             // Feedback de sucesso
-            if (localFiles.length > 0) {
-                toast.success(`Entrega criada com ${localFiles.length} arquivo(s) anexado(s)!`);
+            if (pendingFiles.length > 0) {
+                toast.success(`Entrega criada com ${pendingFiles.length} arquivo(s) anexado(s)!`);
             } else {
                 toast.success('Entrega criada com sucesso!');
             }
@@ -306,10 +299,13 @@ const DeliveryCreate: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Anexos da Entrega
                             </label>
-                            <LocalFileUpload
-                                files={localFiles}
-                                onFilesChange={setLocalFiles}
-                                readOnly={createdDeliveryId !== null}
+                            <FilePicker
+                                files={pendingFiles}
+                                onFilesChange={setPendingFiles}
+                                maxFiles={10}
+                                maxFileSize={10}
+                                disabled={createdDeliveryId !== null}
+                                className="mt-2"
                             />
                         </div>
 

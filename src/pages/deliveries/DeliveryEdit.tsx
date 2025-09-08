@@ -48,6 +48,7 @@ const DeliveryEdit: React.FC = () => {
 
     // Estados dos formulários
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
+    const [attachmentRefresh, setAttachmentRefresh] = useState(0);
 
     // Carregar dados da entrega
     useEffect(() => {
@@ -336,7 +337,9 @@ const DeliveryEdit: React.FC = () => {
                         <div className="mt-6 pt-6 border-t border-gray-200">
                             <DeliveryAttachmentList
                                 deliveryId={delivery.id}
+                                refreshTrigger={attachmentRefresh}
                                 forceExpanded={false}
+                                readOnly={!canEdit}
                             />
                         </div>
                     )}
