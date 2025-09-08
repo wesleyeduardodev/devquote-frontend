@@ -9,7 +9,6 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import SubTaskForm from './SubTaskForm';
-import FileUpload from '../ui/FileUpload';
 import FilePicker from '../ui/FilePicker';
 import AttachmentList from '../ui/AttachmentList';
 import { TaskAttachmentResponse } from '@/services/taskAttachmentService';
@@ -497,43 +496,30 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 </p>
                             </div>
                             
-                            {/* Para edição: Upload direto */}
-                            {taskId && taskId > 0 && (
-                                <>
-                                    <FileUpload
-                                        taskId={taskId}
-                                        onUploadSuccess={(attachments) => {
-                                            onFilesUploaded?.(attachments);
-                                            setAttachmentRefresh(prev => prev + 1);
-                                        }}
-                                        onUploadError={(error) => {
-                                            setFormError(error);
-                                        }}
-                                        maxFiles={10}
-                                        maxFileSize={10}
-                                        disabled={isSubmitting || loading}
-                                    />
-                                    
-                                    {/* Lista de arquivos anexados */}
-                                    <div className="mt-4">
-                                        <AttachmentList 
-                                            taskId={taskId}
-                                            refreshTrigger={attachmentRefresh}
-                                            forceExpanded={true}
-                                        />
-                                    </div>
-                                </>
-                            )}
+                            {/* Componente único para criação e edição */}
+                            <FilePicker
+                                files={pendingFiles}
+                                onFilesChange={setPendingFiles}
+                                maxFiles={10}
+                                maxFileSize={10}
+                                disabled={isSubmitting || loading}
+                                taskId={taskId}
+                                showUploadButton={!!taskId} // Mostrar botão apenas na edição
+                                onUploadSuccess={(attachments) => {
+                                    onFilesUploaded?.(attachments);
+                                    setAttachmentRefresh(prev => prev + 1);
+                                }}
+                            />
                             
-                            {/* Para criação: Seleção local */}
-                            {!taskId && (
-                                <FilePicker
-                                    files={pendingFiles}
-                                    onFilesChange={setPendingFiles}
-                                    maxFiles={10}
-                                    maxFileSize={10}
-                                    disabled={isSubmitting || loading}
-                                />
+                            {/* Lista de arquivos anexados (apenas na edição) */}
+                            {taskId && taskId > 0 && (
+                                <div className="mt-4">
+                                    <AttachmentList 
+                                        taskId={taskId}
+                                        refreshTrigger={attachmentRefresh}
+                                        forceExpanded={true}
+                                    />
+                                </div>
                             )}
                         </div>
                     )}

@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, File, FileText, Image, Video, Archive, AlertCircle } from 'lucide-react';
 import Button from './Button';
 import toast from 'react-hot-toast';
+import { taskAttachmentService } from '@/services/taskAttachmentService';
 
 interface FilePickerProps {
     files?: File[];
@@ -10,6 +11,10 @@ interface FilePickerProps {
     maxFileSize?: number; // in MB
     disabled?: boolean;
     className?: string;
+    // Para upload direto (edição de tarefas)
+    taskId?: number;
+    onUploadSuccess?: (attachments: any[]) => void;
+    showUploadButton?: boolean;
 }
 
 interface FileWithPreview {
@@ -24,9 +29,13 @@ const FilePicker: React.FC<FilePickerProps> = ({
     maxFiles = 10,
     maxFileSize = 10, // 10MB default
     disabled = false,
-    className = ''
+    className = '',
+    taskId,
+    onUploadSuccess,
+    showUploadButton = false
 }) => {
     const [isDragOver, setIsDragOver] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const allowedTypes = [
@@ -69,22 +78,27 @@ const FilePicker: React.FC<FilePickerProps> = ({
     ];
 
     const validateFile = useCallback((file: File): string | null => {
-        // Para alguns arquivos, o browser pode não detectar o tipo MIME corretamente
-        // Vamos verificar também pela extensão do arquivo
         const fileName = file.name.toLowerCase();
         const fileExtension = fileName.split('.').pop();
         
-        // Verificar por extensão para casos especiais
+        // DEBUG: Log para verificar o que está sendo detectado
+        console.log('🐛 DEBUG FILE:', {
+            fileName: file.name,
+            fileType: file.type,
+            fileExtension,
+            fileSize: file.size
+        });
+        
+        // Lista de extensões permitidas - FORÇAR JSON e POWERPOINT
         const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
         
-        // Primeiro: verificar se a extensão é permitida (prioridade)
+        // VALIDAÇÃO SIMPLES: Se a extensão está na lista, SEMPRE aceitar
         if (fileExtension && allowedExtensions.includes(fileExtension)) {
-            // Arquivo permitido pela extensão - prosseguir para validação de tamanho
-        } else if (allowedTypes.includes(file.type)) {
-            // Arquivo permitido pelo tipo MIME - prosseguir para validação de tamanho
+            console.log('✅ Arquivo FORÇADAMENTE aceito pela extensão:', fileExtension);
+            // Prosseguir direto para validação de tamanho - NÃO verificar MIME
         } else {
-            // Nem extensão nem tipo MIME são permitidos
-            return `Tipo de arquivo não permitido: ${file.type} (${fileName})`;
+            console.log('❌ Extensão não permitida:', fileExtension);
+            return `🚨 VERSÃO ATUALIZADA - Extensão não permitida: .${fileExtension}`;
         }
         
         const maxSizeBytes = maxFileSize * 1024 * 1024;
@@ -185,6 +199,23 @@ const FilePicker: React.FC<FilePickerProps> = ({
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const handleUpload = async () => {
+        if (!taskId || !files.length || uploading) return;
+        
+        setUploading(true);
+        try {
+            const attachments = await taskAttachmentService.uploadFiles(taskId, files);
+            toast.success(`${files.length} arquivo(s) enviado(s) com sucesso!`);
+            onUploadSuccess?.(attachments);
+            onFilesChange?.([]); // Limpar arquivos após upload
+        } catch (error) {
+            console.error('Error uploading files:', error);
+            toast.error('Erro ao enviar arquivos');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     return (
         <div className={className}>
             {/* Drop Zone */}
@@ -248,17 +279,31 @@ const FilePicker: React.FC<FilePickerProps> = ({
                         <h4 className="text-sm font-medium text-gray-900">
                             Arquivos selecionados ({files.length})
                         </h4>
-                        {!disabled && (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => onFilesChange?.([])}
-                                className="text-xs text-gray-500 hover:text-red-600"
-                            >
-                                Remover todos
-                            </Button>
-                        )}
+                        <div className="flex items-center space-x-2">
+                            {/* Botão de Upload (apenas na edição) */}
+                            {showUploadButton && files.length > 0 && taskId && !disabled && (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleUpload}
+                                    disabled={uploading}
+                                    className="text-xs"
+                                >
+                                    {uploading ? 'Enviando...' : `Enviar ${files.length} arquivo(s)`}
+                                </Button>
+                            )}
+                            {!disabled && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onFilesChange?.([])}
+                                    className="text-xs text-gray-500 hover:text-red-600"
+                                >
+                                    Limpar todos
+                                </Button>
+                            )}
+                        </div>
                     </div>
                     
                     <div className="space-y-2">

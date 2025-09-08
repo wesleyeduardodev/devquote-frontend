@@ -40,12 +40,16 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const allowedTypes = [
         // Documentos
         'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/msword',  // Word .doc
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // Word .docx
+        'application/vnd.ms-excel',  // Excel .xls
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // Excel .xlsx
+        'application/vnd.ms-powerpoint',  // PowerPoint .ppt
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',  // PowerPoint .pptx
         'text/plain',
         'text/csv',
+        'application/json',  // JSON
+        'text/json',  // JSON alternativo
         // Imagens
         'image/jpeg',
         'image/png',
@@ -59,13 +63,29 @@ const FileUpload: React.FC<FileUploadProps> = ({
         // Arquivos compactados
         'application/zip',
         'application/x-rar-compressed',
-        'application/x-7z-compressed'
+        'application/x-7z-compressed',
+        // Tipo genérico
+        'application/octet-stream'
     ];
 
     const validateFile = (file: File): string | null => {
-        if (!allowedTypes.includes(file.type)) {
+        // Verificar por extensão primeiro
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.split('.').pop();
+        const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
+        
+        console.log('🚨 FileUpload.tsx validating:', { fileName: file.name, fileType: file.type, fileExtension });
+        
+        // Se a extensão é permitida, aceitar
+        if (fileExtension && allowedExtensions.includes(fileExtension)) {
+            console.log('✅ FileUpload - Arquivo aceito pela extensão:', fileExtension);
+        } else if (allowedTypes.includes(file.type)) {
+            console.log('✅ FileUpload - Arquivo aceito pelo tipo MIME:', file.type);
+        } else {
+            console.log('❌ FileUpload - Arquivo rejeitado');
             return 'Tipo de arquivo não permitido';
         }
+        
         if (file.size > maxFileSize * 1024 * 1024) {
             return `Arquivo muito grande (máx: ${maxFileSize}MB)`;
         }
