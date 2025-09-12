@@ -1,7 +1,7 @@
 // Screen protection
 export { ScreenGuard, MultipleScreenGuard, AccessDenied } from './ScreenGuard';
 
-// Resource protection  
+// Resource protection   
 export { ResourceGuard, MultipleResourceGuard, ProtectedButton } from './ResourceGuard';
 
 // Field protection
