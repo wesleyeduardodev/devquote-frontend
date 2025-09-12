@@ -352,15 +352,15 @@ export default function DeliveryItemForm({
 
                     {/* Observações */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             Observações
                         </label>
                         <textarea
                             {...register('notes')}
-                            placeholder="Observações sobre a implementação, problemas encontrados, etc."
+                            rows={6}
+                            placeholder="Descreva as observações sobre a implementação em detalhes&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
                             disabled={isReadOnly}
-                            rows={3}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical disabled:bg-gray-100"
                         />
                     </div>
 
