@@ -317,14 +317,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         </Select>
 
                         <div className="md:col-span-2">
-                            <Input
-                                {...register('title')}
-                                label="Título"
-                                placeholder="Digite o título da tarefa"
-                                error={errors.title?.message}
-                                maxLength={200}
-                                required
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Título <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    {...register('title')}
+                                    rows={2}
+                                    placeholder="Digite o título da tarefa&#10;Máximo 200 caracteres"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                    maxLength={200}
+                                />
+                                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
+                            </div>
                         </div>
                     </div>
 
@@ -358,10 +363,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
                         <textarea
                             {...register('description')}
-                            rows={4}
-                            placeholder="Descreva a tarefa (opcional)&#10;Você pode usar múltiplas linhas..."
+                            rows={6}
+                            placeholder="Descreva a tarefa em detalhes (opcional)&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                            maxLength={200}
                         />
                         {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
                     </div>
