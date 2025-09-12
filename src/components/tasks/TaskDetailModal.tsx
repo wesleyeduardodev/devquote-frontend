@@ -169,8 +169,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
     const completionPercentage = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <div className="flex items-center justify-between">
@@ -254,9 +254,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 </div>
 
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Nome da Tarefa</p>
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-base font-medium text-gray-900">{task.name}</p>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <p className="text-sm text-gray-500">Nome da Tarefa</p>
                                         {canViewValues && (
                                             <div className="flex items-center gap-2">
                                                 <DollarSign className="w-4 h-4 text-green-600" />
@@ -266,12 +265,21 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             </div>
                                         )}
                                     </div>
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <div className="max-h-20 overflow-y-auto">
+                                            <p className="text-base font-medium text-gray-900 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.name}</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 {task.description && (
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Descrição</p>
-                                        <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                                        <div className="bg-gray-50 rounded-lg p-4">
+                                            <div className="max-h-32 overflow-y-auto">
+                                                <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
@@ -484,18 +492,26 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                         <div className="flex items-start justify-between mb-1">
                                                             <div className="flex-1">
                                                                 {subtask.title && (
-                                                                    <p className={`text-sm font-medium mb-1 ${
-                                                                        subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
-                                                                    }`}>
-                                                                        {subtask.title}
-                                                                    </p>
+                                                                    <div className="bg-gray-50 rounded p-2 mb-2">
+                                                                        <div className="max-h-16 overflow-y-auto">
+                                                                            <p className={`text-sm font-medium whitespace-pre-wrap break-words ${
+                                                                                subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                                                                            }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                                                                {subtask.title}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
                                                                 )}
                                                                 {subtask.description && (
-                                                                    <p className={`text-sm ${
-                                                                        subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
-                                                                    }`}>
-                                                                        {subtask.description}
-                                                                    </p>
+                                                                    <div className="bg-gray-50 rounded p-2">
+                                                                        <div className="max-h-20 overflow-y-auto">
+                                                                            <p className={`text-sm whitespace-pre-wrap break-words ${
+                                                                                subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
+                                                                            }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                                                                {subtask.description}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                             {canViewValues && subtask.amount !== undefined && (
