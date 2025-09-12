@@ -158,22 +158,28 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
+                    <div className="flex items-center">
+                        <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
+                            <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
                                 <Package className="w-6 h-6 text-white" />
                             </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-white">Detalhes da Entrega</h2>
-                                <p className="text-blue-100 text-sm">ID #{delivery.id}</p>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-xl font-bold text-white truncate">
+                                    {delivery.taskName ? delivery.taskName : 'Detalhes da Entrega'}
+                                </h2>
+                                <p className="text-blue-100 text-sm truncate">
+                                    {delivery.taskCode && `${delivery.taskCode} • `}ID #{delivery.id}
+                                </p>
                             </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-2 transition-all"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+                        <div className="w-10 flex-shrink-0">
+                            <button
+                                onClick={onClose}
+                                className="w-full h-10 text-white/80 hover:text-white hover:bg-white/20 rounded-lg flex items-center justify-center transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
