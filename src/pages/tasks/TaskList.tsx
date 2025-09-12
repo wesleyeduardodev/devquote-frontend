@@ -716,7 +716,23 @@ const TaskList: React.FC = () => {
             {getPriorityLabel(task.priority || 'MEDIUM')}
           </span>
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-2">{task.title}</h3>
+                    <div className="mb-2">
+                        <h3 
+                            className="font-semibold text-gray-900 text-lg leading-tight cursor-help line-clamp-2 break-words" 
+                            title={task.title}
+                            style={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                wordBreak: 'break-word',
+                                lineHeight: '1.4'
+                            }}
+                        >
+                            {task.title}
+                        </h3>
+                    </div>
                     {task.taskType && (
                         <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
