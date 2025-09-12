@@ -290,42 +290,6 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                             </div>
                                                         </div>
 
-                                                        {/* Script */}
-                                                        {item.script && (
-                                                            <div>
-                                                                <div className="flex items-center justify-between mb-3">
-                                                                    <h5 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                                                        <Database className="w-4 h-4 text-blue-600" />
-                                                                        Script de Banco
-                                                                    </h5>
-                                                                    <button
-                                                                        onClick={() => handleCopy(item.script!, `script-${item.id}`)}
-                                                                        className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg transition-all ${
-                                                                            copiedField === `script-${item.id}`
-                                                                                ? 'bg-green-100 text-green-700 border border-green-200'
-                                                                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                                                                        }`}
-                                                                    >
-                                                                        {copiedField === `script-${item.id}` ? (
-                                                                            <>
-                                                                                <Check className="w-3 h-3" />
-                                                                                Copiado!
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <Copy className="w-3 h-3" />
-                                                                                Copiar Script
-                                                                            </>
-                                                                        )}
-                                                                    </button>
-                                                                </div>
-                                                                <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                                                    <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">
-                                                                        <code>{item.script}</code>
-                                                                    </pre>
-                                                                </div>
-                                                            </div>
-                                                        )}
 
                                                         {/* Observações */}
                                                         {item.notes && (

@@ -16,7 +16,6 @@ export interface DeliveryItem extends BaseEntity {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
-    script?: string;
     startedAt?: string;
     finishedAt?: string;
     notes?: string;
@@ -65,7 +64,6 @@ export interface CreateDeliveryItemData {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
-    script?: string;
     startedAt?: string;
     finishedAt?: string;
     notes?: string;
@@ -176,7 +174,6 @@ export interface DeliveryItemFormData {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
-    script?: string;
     startedAt?: string;
     finishedAt?: string;
     notes?: string;

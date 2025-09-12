@@ -30,7 +30,6 @@ interface Delivery {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
-    script?: string;
     notes?: string;
     startedAt?: string;
     finishedAt?: string;
@@ -79,10 +78,6 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
         }
     };
 
-    const handleCopyScript = async () => {
-        if (!delivery.script) return;
-        await handleCopy(delivery.script, 'script');
-    };
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-';
@@ -403,51 +398,6 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                             </div>
                         </div>
 
-                        {/* Script SQL */}
-                        <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <Database className="w-5 h-5 text-blue-600" />
-                                    Script de Banco de Dados
-                                </h3>
-                                {delivery.script && (
-                                    <button
-                                        onClick={handleCopyScript}
-                                        className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-all ${
-                                            copiedField === 'script'
-                                                ? 'bg-green-100 text-green-700 border border-green-200' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
-                                        }`}
-                                        title="Copiar script"
-                                    >
-                                        {copiedField === 'script' ? (
-                                            <>
-                                                <Check className="w-4 h-4" />
-                                                Copiado!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="w-4 h-4" />
-                                                Copiar
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                {delivery.script ? (
-                                    <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                        <pre className="text-sm text-green-400 font-mono whitespace-pre-wrap">
-                                            <code>{delivery.script}</code>
-                                        </pre>
-                                    </div>
-                                ) : (
-                                    <div className="bg-gray-100 rounded-lg p-4 text-center">
-                                        <span className="text-gray-400">-</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
 
                         {/* Observações */}
                         <div>
