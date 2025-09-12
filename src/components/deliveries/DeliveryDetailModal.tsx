@@ -443,16 +443,18 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                             </div>
                         </div>
 
-                        {/* Notas */}
+                        {/* Observações */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <StickyNote className="w-5 h-5 text-blue-600" />
-                                Notas
+                                Observações
                             </h3>
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                                <p className="text-gray-700 whitespace-pre-wrap">
-                                    {delivery.notes || '-'}
-                                </p>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="max-h-32 overflow-y-auto">
+                                    <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                        {delivery.notes || '-'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
