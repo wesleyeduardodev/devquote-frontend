@@ -15,7 +15,6 @@ export interface Task extends BaseEntity {
     assignedTo?: string;
     link?: string;
     meetingLink?: string;
-    notes?: string;
     estimatedHours?: number;
     actualHours?: number;
     startDate?: string;

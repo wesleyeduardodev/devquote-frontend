@@ -28,7 +28,6 @@ interface TaskData {
     code: string;
     link?: string;
     meetingLink?: string;
-    notes?: string;
     hasSubTasks?: boolean;
     amount?: string;
     taskType?: string;
@@ -55,7 +54,6 @@ const schema = yup.object({
     requesterId: yup.mixed().required('Solicitante é obrigatório'),
     link: yup.string().url('URL inválida').optional(),
     meetingLink: yup.string().url('URL inválida').max(500, 'Máximo 500 caracteres').optional(),
-    notes: yup.string().max(256, 'Máximo 256 caracteres').optional(),
     hasSubTasks: yup.boolean().optional(),
     amount: yup.string().optional(),
     taskType: yup.string().optional(),
@@ -86,7 +84,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
             code: initialData?.code || '',
             link: initialData?.link || '',
             meetingLink: initialData?.meetingLink || '',
-            notes: initialData?.notes || '',
             hasSubTasks: initialData?.hasSubTasks !== undefined ? initialData.hasSubTasks : false,
             amount: initialData?.amount || '',
             taskType: initialData?.taskType || '',
@@ -393,17 +390,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
-                        <textarea
-                            {...register('notes')}
-                            rows={3}
-                            placeholder="Adicione notas sobre a tarefa (opcional)&#10;Máximo 256 caracteres..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                            maxLength={256}
-                        />
-                        {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>}
-                    </div>
                 </div>
 
                 {/* Configuração de Subtarefas/Valor */}

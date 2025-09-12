@@ -143,25 +143,31 @@ const SubTaskForm: React.FC = () => {
                             </div>
 
                             <div className="space-y-4 pr-16">
-                                {/* Título - linha completa */}
-                                <Input
-                                    {...register(`subTasks.${index}.title`)}
-                                    label="Título"
-                                    placeholder="Digite o título da subtarefa"
-                                    error={errors.subTasks?.[index]?.title?.message}
-                                    maxLength={200}
-                                    required
-                                />
+                                {/* Título - textarea com 2 linhas */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Título <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        {...register(`subTasks.${index}.title`)}
+                                        rows={2}
+                                        placeholder="Digite o título da subtarefa&#10;Máximo 200 caracteres"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                        maxLength={200}
+                                    />
+                                    {errors.subTasks?.[index]?.title && (
+                                        <p className="mt-1 text-sm text-red-600">{errors.subTasks[index].title.message}</p>
+                                    )}
+                                </div>
 
                                 {/* Descrição - textarea em linha completa */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
                                     <textarea
                                         {...register(`subTasks.${index}.description`)}
-                                        rows={3}
-                                        placeholder="Descreva a subtarefa (opcional)"
+                                        rows={4}
+                                        placeholder="Descreva a subtarefa em detalhes (opcional)&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                                        maxLength={200}
                                     />
                                     {errors.subTasks?.[index]?.description && (
                                         <p className="mt-1 text-sm text-red-600">{errors.subTasks[index].description.message}</p>

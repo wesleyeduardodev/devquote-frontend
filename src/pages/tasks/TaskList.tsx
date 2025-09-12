@@ -117,7 +117,6 @@ const TaskList: React.FC = () => {
             projects: undefined, // Pode ser preenchido se houver dados de projetos
             link: task.link,
             meetingLink: task.meetingLink,
-            notes: task.notes,
             subtasks: task.subTasks?.map(subtask => ({
                 id: subtask.id || 0,
                 title: subtask.title,

@@ -59,7 +59,6 @@ interface Task {
     projects?: Project[];
     link?: string;
     meetingLink?: string;
-    notes?: string;
     subtasks?: Subtask[];
     totalAmount?: number;
     createdAt?: string;
@@ -298,17 +297,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                     </div>
                                 )}
 
-                                {task.notes && (
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                                            <StickyNote className="w-3 h-3" />
-                                            Notas
-                                        </p>
-                                        <p className="text-gray-700 whitespace-pre-wrap bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
-                                            {task.notes}
-                                        </p>
-                                    </div>
-                                )}
 
                                 {/* Links */}
                                 <div className="space-y-4 pt-2">
