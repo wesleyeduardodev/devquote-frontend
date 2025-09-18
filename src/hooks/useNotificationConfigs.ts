@@ -141,8 +141,8 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             const newConfig = await notificationConfigService.create(data);
+            await fetchNotificationConfigs(); // Recarrega a lista após criação
             toast.success('Configuração de notificação criada com sucesso!');
-            await fetchNotificationConfigs();
             return newConfig;
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao criar configuração de notificação';
@@ -157,8 +157,8 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             const updatedConfig = await notificationConfigService.update(id, data);
+            await fetchNotificationConfigs(); // Recarrega a lista após atualização
             toast.success('Configuração de notificação atualizada com sucesso!');
-            await fetchNotificationConfigs();
             return updatedConfig;
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao atualizar configuração de notificação';
@@ -173,8 +173,8 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             await notificationConfigService.delete(id);
+            await fetchNotificationConfigs(); // Recarrega a lista após exclusão
             toast.success('Configuração de notificação excluída com sucesso!');
-            await fetchNotificationConfigs();
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao excluir configuração de notificação';
             toast.error(errorMessage);
@@ -188,8 +188,8 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             await notificationConfigService.deleteBulk(ids);
+            await fetchNotificationConfigs(); // Recarrega a lista após exclusão em lote
             toast.success(`${ids.length} configuração(ões) excluída(s) com sucesso!`);
-            await fetchNotificationConfigs();
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao excluir configurações de notificação';
             toast.error(errorMessage);
@@ -233,7 +233,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
 
     useEffect(() => {
         fetchNotificationConfigs();
-    }, [currentPage, pageSize, sorting, filters]);
+    }, [fetchNotificationConfigs, currentPage, pageSize, sorting, filters]);
 
     useEffect(() => {
         return () => {

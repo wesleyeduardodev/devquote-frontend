@@ -85,6 +85,7 @@ const NotificationList: React.FC = () => {
         clearFilters,
         deleteNotificationConfig,
         deleteBulkNotificationConfigs,
+        fetchNotificationConfigs, // ← Adicionar função de fetch manual
     } = useNotificationConfigs();
 
     const handleEdit = (notification: NotificationConfig) => {
@@ -320,9 +321,12 @@ const NotificationList: React.FC = () => {
         );
     }, [notificationConfigs, searchTerm]);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = async () => {
         setShowNotificationModal(false);
         setEditingNotification(null);
+
+        // Força um refresh da listagem após fechar o modal
+        await fetchNotificationConfigs();
     };
 
     if (authLoading) {
