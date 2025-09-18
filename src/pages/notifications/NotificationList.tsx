@@ -27,7 +27,9 @@ interface NotificationConfig {
     id: number;
     configType: NotificationConfigType;
     notificationType: NotificationType;
+    useRequesterContact: boolean;
     primaryEmail?: string;
+    primaryPhone?: string;
     copyEmails: string[];
     phoneNumbers: string[];
     createdAt?: string;

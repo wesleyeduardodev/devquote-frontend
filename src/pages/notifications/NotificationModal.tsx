@@ -9,7 +9,9 @@ interface NotificationConfig {
     id: number;
     configType: NotificationConfigType;
     notificationType: NotificationType;
+    useRequesterContact: boolean;
     primaryEmail?: string;
+    primaryPhone?: string;
     copyEmails: string[];
     phoneNumbers: string[];
     createdAt?: string;
@@ -29,7 +31,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
     const [formData, setFormData] = useState({
         configType: NotificationConfigType.NOTIFICACAO_DADOS_TAREFA,
         notificationType: NotificationType.EMAIL,
+        useRequesterContact: false,
         primaryEmail: '',
+        primaryPhone: '',
         copyEmails: [''],
         phoneNumbers: ['']
     });
@@ -41,7 +45,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
             setFormData({
                 configType: notification.configType,
                 notificationType: notification.notificationType,
+                useRequesterContact: notification.useRequesterContact,
                 primaryEmail: notification.primaryEmail || '',
+                primaryPhone: notification.primaryPhone || '',
                 copyEmails: notification.copyEmails.length > 0 ? notification.copyEmails : [''],
                 phoneNumbers: notification.phoneNumbers.length > 0 ? notification.phoneNumbers : ['']
             });
@@ -49,7 +55,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
             setFormData({
                 configType: NotificationConfigType.NOTIFICACAO_DADOS_TAREFA,
                 notificationType: NotificationType.EMAIL,
+                useRequesterContact: false,
                 primaryEmail: '',
+                primaryPhone: '',
                 copyEmails: [''],
                 phoneNumbers: ['']
             });
@@ -86,11 +94,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
             }
         });
 
-        // Telefones obrigatórios para SMS/WhatsApp
-        if ((formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP)) {
-            const validPhones = formData.phoneNumbers.filter(phone => phone.trim());
-            if (validPhones.length === 0) {
-                newErrors.phoneNumbers = 'Pelo menos um telefone é obrigatório para este tipo de notificação';
+        // Telefones obrigatórios para SMS/WhatsApp apenas quando não usar solicitante
+        if ((formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && !formData.useRequesterContact) {
+            if (!formData.primaryPhone?.trim()) {
+                newErrors.primaryPhone = 'Telefone principal é obrigatório quando não usar solicitante';
             }
         }
 
@@ -110,7 +117,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
             const data = {
                 configType: formData.configType,
                 notificationType: formData.notificationType,
+                useRequesterContact: formData.useRequesterContact,
                 primaryEmail: formData.primaryEmail.trim() || undefined,
+                primaryPhone: formData.primaryPhone.trim() || undefined,
                 copyEmails: formData.copyEmails.filter(email => email.trim()).map(email => email.trim()),
                 phoneNumbers: formData.phoneNumbers.filter(phone => phone.trim()).map(phone => phone.trim())
             };
@@ -261,8 +270,26 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         </div>
                     </div>
 
-                    {/* E-mail Principal (apenas para EMAIL) */}
-                    {formData.notificationType === NotificationType.EMAIL && (
+                    {/* Checkbox para usar contato do solicitante */}
+                    <div>
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={formData.useRequesterContact}
+                                onChange={(e) => handleInputChange('useRequesterContact', e.target.checked)}
+                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                {formData.notificationType === NotificationType.EMAIL
+                                    ? 'Usar e-mail do solicitante da tarefa'
+                                    : 'Usar telefone do solicitante da tarefa'
+                                }
+                            </span>
+                        </label>
+                    </div>
+
+                    {/* E-mail Principal (apenas para EMAIL e quando não usar solicitante) */}
+                    {formData.notificationType === NotificationType.EMAIL && !formData.useRequesterContact && (
                         <div>
                             <Input
                                 label="E-mail Principal"
@@ -274,6 +301,39 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                             />
                         </div>
                     )}
+
+                    {/* Telefone Principal (apenas para SMS/WhatsApp e quando não usar solicitante) */}
+                    {(formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && !formData.useRequesterContact && (
+                        <div>
+                            <Input
+                                label="Telefone Principal"
+                                type="tel"
+                                value={formData.primaryPhone}
+                                onChange={(e) => handleInputChange('primaryPhone', e.target.value)}
+                                error={errors.primaryPhone}
+                                placeholder="(11) 99999-9999"
+                            />
+                        </div>
+                    )}
+
+                    {/* E-mail Principal (quando usar solicitante - apenas informativo) */}
+                    {formData.notificationType === NotificationType.EMAIL && formData.useRequesterContact && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-sm text-blue-700">
+                                <strong>E-mail principal:</strong> Será usado o e-mail do solicitante vinculado à tarefa
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Telefone Principal (quando usar solicitante - apenas informativo) */}
+                    {(formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && formData.useRequesterContact && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-sm text-blue-700">
+                                <strong>Telefone principal:</strong> Será usado o telefone do solicitante vinculado à tarefa
+                            </p>
+                        </div>
+                    )}
+
 
                     {/* E-mails em Cópia (apenas para EMAIL) */}
                     {formData.notificationType === NotificationType.EMAIL && (
@@ -320,11 +380,11 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         </div>
                     )}
 
-                    {/* Telefones (para WhatsApp e SMS) */}
+                    {/* Telefones em Cópia (para WhatsApp e SMS) */}
                     {(formData.notificationType === NotificationType.WHATSAPP || formData.notificationType === NotificationType.SMS) && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Telefones *
+                                Telefones em Cópia
                             </label>
                             <div className="space-y-2">
                                 {formData.phoneNumbers.map((phone, index) => (
