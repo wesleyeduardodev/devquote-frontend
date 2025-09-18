@@ -190,7 +190,8 @@ const NotificationList: React.FC = () => {
     const columns: Column<NotificationConfig>[] = useMemo(() => [
         {
             key: 'select',
-            header: (
+            title: '',
+            headerRender: () => (
                 <input
                     type="checkbox"
                     checked={notificationConfigs.length > 0 && selectedItems.length === notificationConfigs.length}
@@ -211,75 +212,69 @@ const NotificationList: React.FC = () => {
         },
         {
             key: 'id',
-            header: 'ID',
+            title: 'ID',
             render: (notification) => notification.id,
-            sortable: true,
+            sortable: false,
             width: '80px'
         },
         {
             key: 'configType',
-            header: 'Tipo de Configuração',
+            title: 'Configuração',
             render: (notification) => (
                 <div className="flex items-center gap-2">
                     <Bell className="w-4 h-4 text-gray-500" />
                     <span className="font-medium">{getConfigTypeLabel(notification.configType)}</span>
                 </div>
             ),
-            sortable: true
+            sortable: false
         },
         {
             key: 'notificationType',
-            header: 'Tipo de Notificação',
+            title: 'Notificação',
             render: (notification) => (
                 <div className="flex items-center gap-2">
                     {getNotificationTypeIcon(notification.notificationType)}
                     <span>{getNotificationTypeLabel(notification.notificationType)}</span>
                 </div>
             ),
-            sortable: true
+            sortable: false
         },
         {
             key: 'primaryEmail',
-            header: 'E-mail Principal',
+            title: 'E-mail Principal',
             render: (notification) => notification.primaryEmail || '-',
-            sortable: true
-        },
-        {
-            key: 'copyEmails',
-            header: 'E-mails em Cópia',
-            render: (notification) => (
-                <span className="text-sm text-gray-600">
-                    {notification.copyEmails.length > 0
-                        ? `${notification.copyEmails.length} email(s)`
-                        : '-'
-                    }
-                </span>
-            ),
             sortable: false
         },
         {
-            key: 'phoneNumbers',
-            header: 'Telefones',
-            render: (notification) => (
-                <span className="text-sm text-gray-600">
-                    {notification.phoneNumbers.length > 0
-                        ? `${notification.phoneNumbers.length} telefone(s)`
-                        : '-'
-                    }
-                </span>
-            ),
+            key: 'quantity',
+            title: 'Quantidade em Cópia',
+            render: (notification) => {
+                if (notification.notificationType === 'EMAIL') {
+                    return (
+                        <span className="text-sm text-gray-600">
+                            {notification.copyEmails.length > 0
+                                ? `${notification.copyEmails.length} email(s)`
+                                : '-'
+                            }
+                        </span>
+                    );
+                } else if (notification.notificationType === 'WHATSAPP' || notification.notificationType === 'SMS') {
+                    return (
+                        <span className="text-sm text-gray-600">
+                            {notification.phoneNumbers.length > 0
+                                ? `${notification.phoneNumbers.length} telefone(s)`
+                                : '-'
+                            }
+                        </span>
+                    );
+                }
+                return <span className="text-sm text-gray-600">-</span>;
+            },
             sortable: false
-        },
-        {
-            key: 'createdAt',
-            header: 'Criado em',
-            render: (notification) => formatDate(notification.createdAt),
-            sortable: true,
-            width: '180px'
         },
         {
             key: 'actions',
-            header: 'Ações',
+            title: 'Ações',
             render: (notification) => (
                 <div className="flex items-center gap-2">
                     {isAdmin && (
@@ -371,18 +366,6 @@ const NotificationList: React.FC = () => {
                 <Card className="mb-6">
                     <div className="p-4">
                         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-                            {/* Search */}
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar configurações..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                            </div>
-
                             {/* Actions */}
                             <div className="flex items-center gap-2">
                                 {selectedItems.length > 0 && isAdmin && (
@@ -393,16 +376,6 @@ const NotificationList: React.FC = () => {
                                     >
                                         <Trash2 className="w-4 h-4 mr-2" />
                                         Excluir ({selectedItems.length})
-                                    </Button>
-                                )}
-
-                                {Object.keys(filters).some(key => filters[key]) && (
-                                    <Button
-                                        variant="outline"
-                                        onClick={clearFilters}
-                                    >
-                                        <Filter className="w-4 h-4 mr-2" />
-                                        Limpar Filtros
                                     </Button>
                                 )}
                             </div>
@@ -419,7 +392,7 @@ const NotificationList: React.FC = () => {
                         pagination={pagination}
                         onPageChange={setPage}
                         onPageSizeChange={setPageSize}
-                        onSort={setSorting}
+                        showColumnToggle={false}
                         emptyMessage="Nenhuma configuração de notificação encontrada"
                         emptyDescription="Comece criando uma nova configuração de notificação"
                     />
