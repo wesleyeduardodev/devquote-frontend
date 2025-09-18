@@ -374,9 +374,6 @@ const NotificationList: React.FC = () => {
                                 <Bell className="w-6 h-6" />
                                 Configurações de Notificação
                             </h1>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Gerencie as configurações de notificação do sistema
-                            </p>
                         </div>
                         {isAdmin && (
                             <Button
