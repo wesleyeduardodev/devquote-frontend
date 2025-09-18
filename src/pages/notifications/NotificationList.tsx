@@ -243,8 +243,29 @@ const NotificationList: React.FC = () => {
         },
         {
             key: 'primaryEmail',
-            title: 'E-mail Principal',
-            render: (notification) => notification.primaryEmail || '-',
+            title: 'Contato Principal',
+            render: (notification) => {
+                if (notification.notificationType === 'EMAIL') {
+                    if (notification.useRequesterContact) {
+                        return (
+                            <span className="text-sm text-blue-600 font-medium">
+                                Email do solicitante
+                            </span>
+                        );
+                    }
+                    return notification.primaryEmail || '-';
+                } else if (notification.notificationType === 'SMS' || notification.notificationType === 'WHATSAPP') {
+                    if (notification.useRequesterContact) {
+                        return (
+                            <span className="text-sm text-blue-600 font-medium">
+                                Telefone do solicitante
+                            </span>
+                        );
+                    }
+                    return notification.primaryPhone || '-';
+                }
+                return '-';
+            },
             sortable: false
         },
         {
