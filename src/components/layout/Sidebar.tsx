@@ -10,6 +10,7 @@ import {
     CreditCard,
     BarChart3,
     Settings,
+    Bell,
     X
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -45,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         {path: '/projects', label: 'Projetos', icon: FolderOpen, screen: 'projects'},
         {path: '/billing', label: 'Faturamento', icon: CreditCard, screen: 'billing'},
         {path: '/reports', label: 'Relatórios', icon: BarChart3, screen: 'reports'},
+        {path: '/notifications', label: 'Notificações', icon: Bell, screen: 'settings'},
         {path: '/settings', label: 'Configurações', icon: Settings, screen: 'settings'}
     ];
 

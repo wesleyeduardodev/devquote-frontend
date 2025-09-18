@@ -52,7 +52,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/tasks', label: 'Tarefas', screen: 'tasks' },
         { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
         { path: '/billing', label: 'Faturamento', screen: 'billing' },
-        { path: '/profiles', label: 'Perfis', screen: 'users' } // Apenas ADMIN (gerenciamento de usuários)
+        { path: '/profiles', label: 'Perfis', screen: 'users' }, // Apenas ADMIN (gerenciamento de usuários)
+        { path: '/notifications', label: 'Notificações', screen: 'settings' } // Apenas ADMIN (configurações de notificação)
     ];
 
     // Filtra itens baseado nas permissões do usuário (Dashboard sempre incluído)
@@ -61,8 +62,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             // Dashboard sempre acessível
             if (item.screen === '') return true;
 
-            // Projetos e Perfis apenas para ADMIN
-            if (item.screen === 'projects' || item.screen === 'users') {
+            // Projetos, Perfis e Notificações apenas para ADMIN
+            if (item.screen === 'projects' || item.screen === 'users' || item.screen === 'settings') {
                 return hasProfile('ADMIN');
             }
 

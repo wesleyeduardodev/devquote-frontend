@@ -21,6 +21,7 @@ import DeliveryGroupEdit from './pages/deliveries/DeliveryGroupEdit';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import ProfileManagement from './pages/profiles/ProfileManagement';
+import NotificationList from './pages/notifications/NotificationList';
 import { UserSettings } from './pages/UserSettings';
 import NotFound from './pages/NotFound';
 
@@ -148,6 +149,13 @@ const AppRoutes: React.FC = () => {
                             <Route path="/profiles" element={
                                 <ProtectedRoute requiredScreen="settings">
                                     <ProfileManagement/>
+                                </ProtectedRoute>
+                            }/>
+
+                            {/* Notification Configurations - Apenas ADMIN */}
+                            <Route path="/notifications" element={
+                                <ProtectedRoute requiredScreen="settings">
+                                    <NotificationList/>
                                 </ProtectedRoute>
                             }/>
                             
