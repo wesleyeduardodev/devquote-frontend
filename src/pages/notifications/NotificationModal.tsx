@@ -73,10 +73,6 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        // Email obrigatório apenas para tipo EMAIL
-        if (formData.notificationType === NotificationType.EMAIL && !formData.primaryEmail.trim()) {
-            newErrors.primaryEmail = 'E-mail principal é obrigatório para notificações por e-mail';
-        }
 
         // Validar formato de email se preenchido
         if (formData.primaryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)) {
@@ -275,7 +271,6 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                                 onChange={(e) => handleInputChange('primaryEmail', e.target.value)}
                                 error={errors.primaryEmail}
                                 placeholder="email@exemplo.com"
-                                required
                             />
                         </div>
                     )}
