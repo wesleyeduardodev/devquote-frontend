@@ -91,13 +91,24 @@ const TaskForm: React.FC<TaskFormProps> = ({
             systemModule: initialData?.systemModule || '',
             priority: initialData?.priority || 'MEDIUM',
             subTasks:
-                initialData?.subTasks || [
-                    {
-                        title: '',
-                        description: '',
-                        amount: '',
-                    },
-                ],
+                // Ordenar subtarefas por ID se estiver editando
+                initialData?.subTasks
+                    ? [...initialData.subTasks].sort((a, b) => {
+                        // Se ambos têm ID, ordenar por ID
+                        if (a.id && b.id) return a.id - b.id;
+                        // Se apenas um tem ID, o que tem ID vem primeiro
+                        if (a.id) return -1;
+                        if (b.id) return 1;
+                        // Se nenhum tem ID, manter ordem original
+                        return 0;
+                    })
+                    : [
+                        {
+                            title: '',
+                            description: '',
+                            amount: '',
+                        },
+                    ],
         },
     });
 

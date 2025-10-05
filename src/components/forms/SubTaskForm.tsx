@@ -212,9 +212,16 @@ const SubTaskForm: React.FC = () => {
                             <div className="mt-4 pt-4 border-t border-gray-200">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                                            Subtarefa #{index + 1}
-                                        </span>
+                                        {/* Mostrar ID do banco quando existe (edição), ou número sequencial (criação) */}
+                                        {subTask?.id ? (
+                                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                                                Subtarefa #{subTask.id}
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white">
+                                                Nova Subtarefa
+                                            </span>
+                                        )}
                                     </div>
                                     {canViewValues && watchSubTasks?.[index]?.amount && (
                                         <span className="text-lg font-bold text-green-600">
