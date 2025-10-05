@@ -371,7 +371,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
                         <textarea
                             {...register('description')}
-                            rows={6}
+                            rows={8}
                             placeholder="Descreva a tarefa em detalhes (opcional)&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
                         />
