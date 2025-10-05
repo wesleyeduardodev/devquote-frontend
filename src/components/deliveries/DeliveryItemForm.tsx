@@ -355,7 +355,7 @@ export default function DeliveryItemForm({
                         </label>
                         <textarea
                             {...register('notes')}
-                            rows={6}
+                            rows={8}
                             placeholder="Descreva as observações sobre a implementação em detalhes&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
                             disabled={isReadOnly}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical disabled:bg-gray-100"
