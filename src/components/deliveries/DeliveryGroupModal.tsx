@@ -21,6 +21,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { DeliveryGroupResponse, DeliveryItem } from '../../types/delivery.types';
+import { DeliveryAttachmentList } from './DeliveryAttachmentList';
 
 interface DeliveryGroupModalProps {
     deliveryGroup: DeliveryGroupResponse | null;
