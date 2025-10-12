@@ -50,8 +50,8 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortField, setSortField] = useState<string>('task.code');
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [sortField, setSortField] = useState<string>('task.id');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [filters, setFilters] = useState<Record<string, string>>({});
     
     // Estados para paginação
@@ -80,7 +80,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             const response = await billingPeriodService.findTaskLinksPaginated(billingPeriod.id, {
                 page: currentPage,
                 size: pageSize,
-                sortBy: sortField === 'task.code' ? 'task.code' : sortField,
+                sortBy: sortField === 'task.id' ? 'task.id' : sortField,
                 sortDirection: sortDirection
             });
             
@@ -254,7 +254,12 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             sortable: true,
             filterable: true,
             render: (link: BillingPeriodTask) => (
-                <span className="font-medium">{link?.task?.title || '-'}</span>
+                <span
+                    className="font-medium block truncate max-w-xs cursor-help"
+                    title={link?.task?.title || '-'}
+                >
+                    {link?.task?.title || '-'}
+                </span>
             )
         },
         {

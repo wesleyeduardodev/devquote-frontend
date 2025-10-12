@@ -196,7 +196,12 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             sortable: true,
             filterable: true,
             render: (task: Task) => (
-                <span className="font-medium">{task.title}</span>
+                <span
+                    className="font-medium block truncate max-w-xs cursor-help"
+                    title={task.title}
+                >
+                    {task.title}
+                </span>
             )
         },
         {
