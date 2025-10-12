@@ -21,7 +21,6 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { DeliveryGroupResponse, DeliveryItem } from '../../types/delivery.types';
-import { DeliveryAttachmentList } from './DeliveryAttachmentList';
 
 interface DeliveryGroupModalProps {
     deliveryGroup: DeliveryGroupResponse | null;
@@ -132,17 +131,6 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                 {/* Content */}
                 <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
                     <div className="p-6 space-y-6">
-                        {/* Anexos da Entrega */}
-                        {deliveryGroup.deliveries?.[0] && (
-                            <div>
-                                <DeliveryAttachmentList
-                                    deliveryId={deliveryGroup.deliveries[0].id}
-                                    readOnly={true}
-                                    forceExpanded={false}
-                                />
-                            </div>
-                        )}
-                        
                         {/* Itens de Entrega */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
