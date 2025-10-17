@@ -65,6 +65,8 @@ const DeliveryList: React.FC = () => {
     // Estados para email modal
     const [showDeliveryEmailModal, setShowDeliveryEmailModal] = useState(false);
     const [groupForEmail, setGroupForEmail] = useState<DeliveryGroupResponse | null>(null);
+    const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
+    const [currentEmailInput, setCurrentEmailInput] = useState('');
 
     // Carregar estatísticas (função independente)
     const fetchStatistics = async () => {
@@ -350,6 +352,8 @@ const DeliveryList: React.FC = () => {
     // Handler para email de entrega
     const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
         setGroupForEmail(group);
+        setAdditionalEmails([]);
+        setCurrentEmailInput('');
         setShowDeliveryEmailModal(true);
     };
 
@@ -359,7 +363,7 @@ const DeliveryList: React.FC = () => {
         try {
             const deliveryId = groupForEmail.deliveries?.[0]?.id;
             if (deliveryId) {
-                await deliveryService.sendDeliveryEmail(deliveryId);
+                await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails);
                 toast.success('Email de entrega enviado com sucesso!');
                 // Recarregar a listagem para atualizar o status do email
                 await fetchDeliveryGroups();
@@ -372,7 +376,27 @@ const DeliveryList: React.FC = () => {
         } finally {
             setShowDeliveryEmailModal(false);
             setGroupForEmail(null);
+            setAdditionalEmails([]);
+            setCurrentEmailInput('');
         }
+    };
+
+    const addEmail = () => {
+        const email = currentEmailInput.trim();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (!additionalEmails.includes(email)) {
+                setAdditionalEmails([...additionalEmails, email]);
+                setCurrentEmailInput('');
+            } else {
+                toast.error('Este email já foi adicionado');
+            }
+        } else if (email) {
+            toast.error('Email inválido');
+        }
+    };
+
+    const removeEmail = (index: number) => {
+        setAdditionalEmails(additionalEmails.filter((_, i) => i !== index));
     };
 
     const handleSort = (field: string, direction: 'asc' | 'desc') => {
@@ -812,12 +836,62 @@ const DeliveryList: React.FC = () => {
                                     </div>
                                 )}
 
-                                <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="bg-gray-50 rounded-lg p-3 mb-4">
                                     <h4 className="font-medium text-gray-900 mb-2">{groupForEmail.taskName}</h4>
                                     <div className="text-sm text-gray-600 space-y-1">
                                         <p><strong>Código:</strong> {groupForEmail.taskCode}</p>
                                         <p><strong>Itens:</strong> {groupForEmail.totalItems || 0} item(s)</p>
                                     </div>
+                                </div>
+
+                                {/* Campo para adicionar emails extras em cópia */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Emails adicionais em cópia (opcional)
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="email"
+                                            value={currentEmailInput}
+                                            onChange={(e) => setCurrentEmailInput(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addEmail();
+                                                }
+                                            }}
+                                            placeholder="exemplo@email.com"
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                        <Button
+                                            onClick={addEmail}
+                                            variant="outline"
+                                            type="button"
+                                        >
+                                            Adicionar
+                                        </Button>
+                                    </div>
+
+                                    {/* Lista de emails adicionados */}
+                                    {additionalEmails.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {additionalEmails.map((email, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                                                >
+                                                    {email}
+                                                    <button
+                                                        onClick={() => removeEmail(index)}
+                                                        className="hover:text-blue-900 font-bold"
+                                                        title="Remover email"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

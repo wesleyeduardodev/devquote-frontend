@@ -270,8 +270,12 @@ export const deliveryService = {
     },
 
     // Envio de email manual para entrega
-    sendDeliveryEmail: async (id: number): Promise<void> => {
-        const response = await api.post(`/deliveries/${id}/send-delivery-email`);
+    sendDeliveryEmail: async (id: number, additionalEmails?: string[]): Promise<void> => {
+        const payload = additionalEmails && additionalEmails.length > 0
+            ? { additionalEmails }
+            : {};
+
+        const response = await api.post(`/deliveries/${id}/send-delivery-email`, payload);
         return response.data;
     }
 };
