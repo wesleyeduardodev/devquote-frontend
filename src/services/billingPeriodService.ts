@@ -179,8 +179,10 @@ const billingPeriodService = {
   },
 
   // Send billing email
-  sendBillingEmail: async (id: number): Promise<void> => {
-    await api.post(`/billing-periods/${id}/send-billing-email`);
+  sendBillingEmail: async (id: number, additionalEmails?: string[]): Promise<void> => {
+    await api.post(`/billing-periods/${id}/send-billing-email`, {
+      additionalEmails: additionalEmails || []
+    });
   }
 };
 

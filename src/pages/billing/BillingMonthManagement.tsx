@@ -135,6 +135,9 @@ const BillingManagement: React.FC = () => {
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [billingForEmail, setBillingForEmail] = useState<BillingMonth | null>(null);
     const [sendingEmail, setSendingEmail] = useState(false);
+    const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
+    const [emailInput, setEmailInput] = useState('');
+    const [emailError, setEmailError] = useState('');
 
     // Estados do modal de anexos
     const [showAttachmentModal, setShowAttachmentModal] = useState(false);
@@ -306,17 +309,55 @@ const BillingManagement: React.FC = () => {
     const handleBillingEmail = useCallback((billing: BillingMonth) => {
         setBillingForEmail(billing);
         setShowEmailModal(true);
+        setAdditionalEmails([]);
+        setEmailInput('');
+        setEmailError('');
     }, []);
+
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const handleAddEmail = () => {
+        const trimmedEmail = emailInput.trim();
+
+        if (!trimmedEmail) {
+            setEmailError('Digite um email');
+            return;
+        }
+
+        if (!validateEmail(trimmedEmail)) {
+            setEmailError('Email inválido');
+            return;
+        }
+
+        if (additionalEmails.includes(trimmedEmail)) {
+            setEmailError('Este email já foi adicionado');
+            return;
+        }
+
+        setAdditionalEmails(prev => [...prev, trimmedEmail]);
+        setEmailInput('');
+        setEmailError('');
+    };
+
+    const handleRemoveEmail = (emailToRemove: string) => {
+        setAdditionalEmails(prev => prev.filter(email => email !== emailToRemove));
+    };
 
     const handleConfirmSendBillingEmail = useCallback(async () => {
         if (!billingForEmail) return;
-        
+
         setSendingEmail(true);
         try {
-            await billingPeriodService.sendBillingEmail(billingForEmail.id);
+            await billingPeriodService.sendBillingEmail(billingForEmail.id, additionalEmails);
             await fetchBillingMonths();
             setShowEmailModal(false);
             setBillingForEmail(null);
+            setAdditionalEmails([]);
+            setEmailInput('');
+            setEmailError('');
             toast.success('Email de faturamento enviado com sucesso!');
         } catch (error: any) {
             console.error('Erro ao enviar email de faturamento:', error);
@@ -324,7 +365,7 @@ const BillingManagement: React.FC = () => {
         } finally {
             setSendingEmail(false);
         }
-    }, [billingForEmail, fetchBillingMonths]);
+    }, [billingForEmail, additionalEmails, fetchBillingMonths]);
 
     // Handler para abrir modal de anexos
     const handleAttachments = useCallback((billing: BillingMonth) => {
@@ -1480,6 +1521,62 @@ const BillingManagement: React.FC = () => {
                                             <li>• Valores individuais e total geral</li>
                                         </ul>
                                     </div>
+                                </div>
+
+                                {/* Campo de emails adicionais */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Emails adicionais (opcional)
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="email"
+                                            value={emailInput}
+                                            onChange={(e) => setEmailInput(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleAddEmail();
+                                                }
+                                            }}
+                                            placeholder="email@exemplo.com"
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            disabled={sendingEmail}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddEmail}
+                                            disabled={sendingEmail}
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    {emailError && (
+                                        <p className="mt-1 text-sm text-red-600">{emailError}</p>
+                                    )}
+
+                                    {/* Lista de emails adicionados */}
+                                    {additionalEmails.length > 0 && (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {additionalEmails.map((email, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                                                >
+                                                    {email}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveEmail(email)}
+                                                        disabled={sendingEmail}
+                                                        className="hover:bg-blue-200 rounded-full p-0.5 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
