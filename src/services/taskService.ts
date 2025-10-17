@@ -161,7 +161,9 @@ export const taskService = {
         });
     },
 
-    sendTaskEmail: async (taskId: number): Promise<void> => {
-        await api.post(`/tasks/${taskId}/send-task-email`);
+    sendTaskEmail: async (taskId: number, additionalEmails?: string[]): Promise<void> => {
+        await api.post(`/tasks/${taskId}/send-task-email`, {
+            additionalEmails: additionalEmails || []
+        });
     }
 };

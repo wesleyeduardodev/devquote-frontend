@@ -199,6 +199,8 @@ const TaskList: React.FC = () => {
 
     const handleTaskEmail = (task: Task) => {
         setTaskForTaskEmail(task);
+        setAdditionalEmails([]);
+        setCurrentEmailInput('');
         setShowTaskEmailModal(true);
     };
 
@@ -206,12 +208,14 @@ const TaskList: React.FC = () => {
         if (!taskForTaskEmail) return;
 
         try {
-            await sendTaskEmail(taskForTaskEmail.id);
+            await sendTaskEmail(taskForTaskEmail.id, additionalEmails);
         } catch (error) {
             // Error already handled by the hook
         } finally {
             setShowTaskEmailModal(false);
             setTaskForTaskEmail(null);
+            setAdditionalEmails([]);
+            setCurrentEmailInput('');
         }
     };
 
@@ -1343,12 +1347,64 @@ const TaskList: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                            <div className="bg-gray-50 rounded-lg p-4 mb-4">
                                 <h4 className="font-medium text-gray-900 mb-2">{taskForTaskEmail.title}</h4>
                                 <div className="text-sm text-gray-600">
                                     <p><strong>Código:</strong> {taskForTaskEmail.code}</p>
                                     <p><strong>Solicitante:</strong> {taskForTaskEmail.requesterName}</p>
                                 </div>
+                            </div>
+
+                            {/* Seção de Emails Adicionais */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Emails adicionais em cópia (opcional)
+                                </label>
+
+                                {/* Input para adicionar email */}
+                                <div className="flex gap-2 mb-3">
+                                    <input
+                                        type="email"
+                                        value={currentEmailInput}
+                                        onChange={(e) => setCurrentEmailInput(e.target.value)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                addEmail();
+                                            }
+                                        }}
+                                        placeholder="exemplo@email.com"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={addEmail}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                                    >
+                                        Adicionar
+                                    </Button>
+                                </div>
+
+                                {/* Lista de emails adicionados */}
+                                {additionalEmails.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {additionalEmails.map((email, index) => (
+                                            <span
+                                                key={index}
+                                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                                            >
+                                                {email}
+                                                <button
+                                                    onClick={() => removeEmail(index)}
+                                                    className="hover:text-blue-900 font-bold"
+                                                    title="Remover email"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Actions */}

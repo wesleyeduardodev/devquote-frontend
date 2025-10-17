@@ -108,7 +108,7 @@ interface UseTasksReturn {
     clearFilters: () => void;
     exportToExcel: () => Promise<void>;
     sendFinancialEmail: (taskId: number, additionalEmails?: string[]) => Promise<void>;
-    sendTaskEmail: (taskId: number) => Promise<void>;
+    sendTaskEmail: (taskId: number, additionalEmails?: string[]) => Promise<void>;
 }
 
 export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
@@ -341,9 +341,9 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [fetchTasks]);
 
-    const sendTaskEmail = useCallback(async (taskId: number): Promise<void> => {
+    const sendTaskEmail = useCallback(async (taskId: number, additionalEmails?: string[]): Promise<void> => {
         try {
-            await taskService.sendTaskEmail(taskId);
+            await taskService.sendTaskEmail(taskId, additionalEmails);
             await fetchTasks(); // Atualiza a lista para refletir as mudanças
             toast.success('Email de tarefa enviado com sucesso!');
         } catch (err: any) {
