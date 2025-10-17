@@ -70,6 +70,8 @@ const TaskList: React.FC = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showFinancialEmailModal, setShowFinancialEmailModal] = useState(false);
     const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
+    const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
+    const [currentEmailInput, setCurrentEmailInput] = useState('');
     const [showTaskEmailModal, setShowTaskEmailModal] = useState(false);
     const [taskForTaskEmail, setTaskForTaskEmail] = useState<Task | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -157,6 +159,8 @@ const TaskList: React.FC = () => {
 
     const handleFinancialEmail = (task: Task) => {
         setTaskForEmail(task);
+        setAdditionalEmails([]);
+        setCurrentEmailInput('');
         setShowFinancialEmailModal(true);
     };
 
@@ -164,13 +168,33 @@ const TaskList: React.FC = () => {
         if (!taskForEmail) return;
 
         try {
-            await sendFinancialEmail(taskForEmail.id);
+            await sendFinancialEmail(taskForEmail.id, additionalEmails);
         } catch (error) {
             // Error already handled by the hook
         } finally {
             setShowFinancialEmailModal(false);
             setTaskForEmail(null);
+            setAdditionalEmails([]);
+            setCurrentEmailInput('');
         }
+    };
+
+    const addEmail = () => {
+        const email = currentEmailInput.trim();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (!additionalEmails.includes(email)) {
+                setAdditionalEmails([...additionalEmails, email]);
+                setCurrentEmailInput('');
+            } else {
+                toast.error('Este email já foi adicionado');
+            }
+        } else if (email) {
+            toast.error('Email inválido');
+        }
+    };
+
+    const removeEmail = (index: number) => {
+        setAdditionalEmails(additionalEmails.filter((_, i) => i !== index));
     };
 
     const handleTaskEmail = (task: Task) => {
@@ -1190,11 +1214,63 @@ const TaskList: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                            <div className="bg-gray-50 rounded-lg p-4 mb-4">
                                 <h4 className="font-medium text-gray-900 mb-2">{taskForEmail.title}</h4>
                                 <div className="text-sm text-gray-600">
                                     <p><strong>Solicitante:</strong> {taskForEmail.requesterName}</p>
                                 </div>
+                            </div>
+
+                            {/* Seção de Emails Adicionais */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Emails adicionais em cópia (opcional)
+                                </label>
+
+                                {/* Input para adicionar email */}
+                                <div className="flex gap-2 mb-3">
+                                    <input
+                                        type="email"
+                                        value={currentEmailInput}
+                                        onChange={(e) => setCurrentEmailInput(e.target.value)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                addEmail();
+                                            }
+                                        }}
+                                        placeholder="exemplo@email.com"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={addEmail}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                                    >
+                                        Adicionar
+                                    </Button>
+                                </div>
+
+                                {/* Lista de emails adicionados */}
+                                {additionalEmails.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {additionalEmails.map((email, index) => (
+                                            <span
+                                                key={index}
+                                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                                            >
+                                                {email}
+                                                <button
+                                                    onClick={() => removeEmail(index)}
+                                                    className="hover:text-blue-900 font-bold"
+                                                    title="Remover email"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Actions */}

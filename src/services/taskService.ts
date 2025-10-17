@@ -155,8 +155,10 @@ export const taskService = {
         return response.data;
     },
 
-    sendFinancialEmail: async (taskId: number): Promise<void> => {
-        await api.post(`/tasks/${taskId}/send-financial-email`);
+    sendFinancialEmail: async (taskId: number, additionalEmails?: string[]): Promise<void> => {
+        await api.post(`/tasks/${taskId}/send-financial-email`, {
+            additionalEmails: additionalEmails || []
+        });
     },
 
     sendTaskEmail: async (taskId: number): Promise<void> => {
