@@ -88,6 +88,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
         scrollbarColor: '#9ca3af #e5e7eb',
     };
 
+    // Estilo para campos redimensionáveis
+    const resizableStyle: React.CSSProperties = {
+        scrollbarWidth: 'thin' as const,
+        scrollbarColor: '#9ca3af #e5e7eb',
+        resize: 'vertical' as const,
+        overflow: 'auto',
+    };
+
     const handleCopy = async (content: string, fieldName: string) => {
         if (!content || content === '-') return;
         
@@ -282,8 +290,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Descrição</p>
                                         <div
-                                            className="bg-gray-50 rounded-lg p-4 max-h-[40vh] overflow-y-auto"
-                                            style={scrollbarStyle}
+                                            className="bg-gray-50 rounded-lg p-4 min-h-[100px] max-h-[40vh]"
+                                            style={resizableStyle}
                                         >
                                             <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
                                         </div>
@@ -503,8 +511,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                             <div className="flex-1">
                                                                 {subtask.title && (
                                                                     <div
-                                                                        className="bg-gray-50 rounded p-2 mb-2 max-h-[15vh] overflow-y-auto"
-                                                                        style={scrollbarStyle}
+                                                                        className="bg-gray-50 rounded p-2 mb-2 min-h-[60px] max-h-[15vh]"
+                                                                        style={resizableStyle}
                                                                     >
                                                                         <p className={`text-sm font-medium whitespace-pre-wrap break-words ${
                                                                             subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
@@ -515,8 +523,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                                 )}
                                                                 {subtask.description && (
                                                                     <div
-                                                                        className="bg-gray-50 rounded p-2 max-h-[20vh] overflow-y-auto"
-                                                                        style={scrollbarStyle}
+                                                                        className="bg-gray-50 rounded p-2 min-h-[80px] max-h-[20vh]"
+                                                                        style={resizableStyle}
                                                                     >
                                                                         <p className={`text-sm whitespace-pre-wrap break-words ${
                                                                             subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
