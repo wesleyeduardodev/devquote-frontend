@@ -82,6 +82,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
     if (!isOpen || !task) return null;
 
+    // Estilo customizado para scrollbar
+    const scrollbarStyle: React.CSSProperties = {
+        scrollbarWidth: 'thin' as const,
+        scrollbarColor: '#9ca3af #e5e7eb',
+    };
+
     const handleCopy = async (content: string, fieldName: string) => {
         if (!content || content === '-') return;
         
@@ -275,10 +281,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 {task.description && (
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Descrição</p>
-                                        <div className="bg-gray-50 rounded-lg p-4">
-                                            <div className="max-h-32 overflow-y-auto">
-                                                <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
-                                            </div>
+                                        <div
+                                            className="bg-gray-50 rounded-lg p-4 max-h-[40vh] overflow-y-auto"
+                                            style={scrollbarStyle}
+                                        >
+                                            <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
                                         </div>
                                     </div>
                                 )}
@@ -470,7 +477,10 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 </div>
 
                                 <div className="bg-gray-50 rounded-lg p-4">
-                                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                                    <div
+                                        className="space-y-3 max-h-[50vh] overflow-y-auto"
+                                        style={scrollbarStyle}
+                                    >
                                         {task.subtasks.map((subtask) => (
                                             <div 
                                                 key={subtask.id}
@@ -492,25 +502,27 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                         <div className="flex items-start justify-between mb-1">
                                                             <div className="flex-1">
                                                                 {subtask.title && (
-                                                                    <div className="bg-gray-50 rounded p-2 mb-2">
-                                                                        <div className="max-h-16 overflow-y-auto">
-                                                                            <p className={`text-sm font-medium whitespace-pre-wrap break-words ${
-                                                                                subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
-                                                                            }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                                                                {subtask.title}
-                                                                            </p>
-                                                                        </div>
+                                                                    <div
+                                                                        className="bg-gray-50 rounded p-2 mb-2 max-h-[15vh] overflow-y-auto"
+                                                                        style={scrollbarStyle}
+                                                                    >
+                                                                        <p className={`text-sm font-medium whitespace-pre-wrap break-words ${
+                                                                            subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                                                                        }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                                                            {subtask.title}
+                                                                        </p>
                                                                     </div>
                                                                 )}
                                                                 {subtask.description && (
-                                                                    <div className="bg-gray-50 rounded p-2">
-                                                                        <div className="max-h-20 overflow-y-auto">
-                                                                            <p className={`text-sm whitespace-pre-wrap break-words ${
-                                                                                subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
-                                                                            }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                                                                {subtask.description}
-                                                                            </p>
-                                                                        </div>
+                                                                    <div
+                                                                        className="bg-gray-50 rounded p-2 max-h-[20vh] overflow-y-auto"
+                                                                        style={scrollbarStyle}
+                                                                    >
+                                                                        <p className={`text-sm whitespace-pre-wrap break-words ${
+                                                                            subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
+                                                                        }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                                                            {subtask.description}
+                                                                        </p>
                                                                     </div>
                                                                 )}
                                                             </div>
