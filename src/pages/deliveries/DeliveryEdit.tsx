@@ -40,6 +40,8 @@ const DeliveryEdit: React.FC = () => {
     const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>([]);
     const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
     const [notes, setNotes] = useState<string>('');
+    const [originalNotes, setOriginalNotes] = useState<string>('');
+    const [savingNotes, setSavingNotes] = useState(false);
 
     // Estados dos modais
     const [showProjectModal, setShowProjectModal] = useState(false);
@@ -62,7 +64,9 @@ const DeliveryEdit: React.FC = () => {
             // 1. Carregar dados básicos da entrega
             const deliveryData = await deliveryService.getById(parseInt(deliveryId));
             setDelivery(deliveryData);
-            setNotes(deliveryData.notes || '');
+            const initialNotes = deliveryData.notes || '';
+            setNotes(initialNotes);
+            setOriginalNotes(initialNotes);
 
             // 2. Carregar dados da tarefa associada
             if (deliveryData.taskId) {
@@ -347,21 +351,36 @@ const DeliveryEdit: React.FC = () => {
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-gray-900">Observações Gerais da Entrega</h3>
+                        {canEdit && notes !== originalNotes && (
+                            <Button
+                                onClick={async () => {
+                                    if (!delivery) return;
+                                    try {
+                                        setSavingNotes(true);
+                                        await deliveryService.update(delivery.id, {
+                                            taskId: delivery.taskId,
+                                            notes: notes
+                                        });
+                                        setOriginalNotes(notes);
+                                        toast.success('Observações salvas com sucesso!');
+                                    } catch (error) {
+                                        console.error('Erro ao salvar observações:', error);
+                                        toast.error('Erro ao salvar observações');
+                                    } finally {
+                                        setSavingNotes(false);
+                                    }
+                                }}
+                                disabled={savingNotes}
+                                size="sm"
+                            >
+                                {savingNotes ? 'Salvando...' : 'Salvar'}
+                            </Button>
+                        )}
                     </div>
                     <div>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            onBlur={async () => {
-                                if (!delivery || !canEdit) return;
-                                try {
-                                    await deliveryService.update(delivery.id, { notes });
-                                    toast.success('Observações salvas com sucesso!');
-                                } catch (error) {
-                                    console.error('Erro ao salvar observações:', error);
-                                    toast.error('Erro ao salvar observações');
-                                }
-                            }}
                             rows={4}
                             readOnly={!canEdit}
                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y ${
@@ -369,11 +388,6 @@ const DeliveryEdit: React.FC = () => {
                             }`}
                             placeholder={canEdit ? "Digite observações gerais sobre esta entrega..." : "Nenhuma observação registrada"}
                         />
-                        {canEdit && (
-                            <p className="text-xs text-gray-500 mt-2">
-                                As observações são salvas automaticamente ao sair do campo
-                            </p>
-                        )}
                     </div>
                 </Card>
 
