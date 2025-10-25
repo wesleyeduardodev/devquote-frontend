@@ -353,6 +353,21 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                             </div>
                         )}
                         </div>
+
+                        {/* Observações Gerais da Entrega */}
+                        {deliveryGroup.deliveries?.[0]?.notes && (
+                            <div className="mt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <StickyNote className="w-5 h-5 text-amber-600" />
+                                    Observações Gerais da Entrega
+                                </h3>
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                    <p className="text-gray-700 whitespace-pre-wrap">
+                                        {deliveryGroup.deliveries[0].notes}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

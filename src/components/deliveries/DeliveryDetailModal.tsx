@@ -30,7 +30,8 @@ interface Delivery {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
-    notes?: string;
+    notes?: string; // Observações do item de entrega
+    deliveryNotes?: string; // Observações gerais da entrega
     startedAt?: string;
     finishedAt?: string;
     // Dados da Tarefa
@@ -289,6 +290,23 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                             </div>
                         </div>
 
+                        {/* Observações Gerais da Entrega */}
+                        {delivery.deliveryNotes && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <StickyNote className="w-5 h-5 text-amber-600" />
+                                    Observações Gerais da Entrega
+                                </h3>
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                    <div className="max-h-32 overflow-y-auto">
+                                        <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                            {delivery.deliveryNotes}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Git e Pull Request */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -399,20 +417,22 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         </div>
 
 
-                        {/* Observações */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <StickyNote className="w-5 h-5 text-blue-600" />
-                                Observações
-                            </h3>
+                        {/* Observações do Item */}
+                        {delivery.notes && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <StickyNote className="w-5 h-5 text-blue-600" />
+                                    Observações do Item
+                                </h3>
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <div className="max-h-32 overflow-y-auto">
                                     <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                        {delivery.notes || '-'}
+                                        {delivery.notes}
                                     </p>
                                 </div>
                             </div>
                         </div>
+                        )}
 
                         {/* Timestamps Section */}
                         <div>

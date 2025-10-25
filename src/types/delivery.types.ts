@@ -36,6 +36,7 @@ export interface Delivery extends BaseEntity {
     approvedCount?: number;
     rejectedCount?: number;
     productionCount?: number;
+    notes?: string; // Observações gerais da entrega
     items?: DeliveryItem[]; // Lista de itens
 }
 
@@ -54,6 +55,7 @@ export interface DeliveryStatusCount {
 export interface CreateDeliveryData {
     taskId: number;
     status?: DeliveryStatus; // Opcional, padrão PENDING
+    notes?: string; // Observações gerais da entrega
     items: CreateDeliveryItemData[];
 }
 
@@ -73,6 +75,7 @@ export interface CreateDeliveryItemData {
 export interface UpdateDeliveryData {
     taskId?: number;
     status?: DeliveryStatus;
+    notes?: string; // Observações gerais da entrega
     items?: UpdateDeliveryItemData[];
 }
 

@@ -23,6 +23,7 @@ const DeliveryCreate: React.FC = () => {
     // Estados principais
     const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
     const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
+    const [notes, setNotes] = useState<string>('');
     const [isCreating, setIsCreating] = useState(false);
     const [createdDeliveryId, setCreatedDeliveryId] = useState<number | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
@@ -62,6 +63,7 @@ const DeliveryCreate: React.FC = () => {
             const deliveryData: CreateDeliveryData = {
                 taskId: selectedTask.id,
                 status: 'PENDING',
+                notes: notes,
                 items: selectedProjects.map(project => ({
                     projectId: project.id,
                     status: 'PENDING'
@@ -211,6 +213,20 @@ const DeliveryCreate: React.FC = () => {
                                     <p>Clique para selecionar uma tarefa</p>
                                 </button>
                             )}
+                        </div>
+
+                        {/* Observações Gerais */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Observações Gerais da Entrega
+                            </label>
+                            <textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                                placeholder="Digite observações gerais sobre esta entrega..."
+                            />
                         </div>
 
                         {/* Seleção de Projetos */}

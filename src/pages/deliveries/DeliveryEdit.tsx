@@ -39,6 +39,7 @@ const DeliveryEdit: React.FC = () => {
     const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>([]);
     const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
+    const [notes, setNotes] = useState<string>('');
 
     // Estados dos modais
     const [showProjectModal, setShowProjectModal] = useState(false);
@@ -61,6 +62,7 @@ const DeliveryEdit: React.FC = () => {
             // 1. Carregar dados básicos da entrega
             const deliveryData = await deliveryService.getById(parseInt(deliveryId));
             setDelivery(deliveryData);
+            setNotes(deliveryData.notes || '');
 
             // 2. Carregar dados da tarefa associada
             if (deliveryData.taskId) {
@@ -82,12 +84,12 @@ const DeliveryEdit: React.FC = () => {
             const items = await deliveryItemService.getByDeliveryId(deliveryData.id);
             setDeliveryItems(items);
 
-            // 4. Inicializar dados dos formulários dos itens
+            // 4. Inicializar dados dos formulários dos itens (usando item.id como chave para suportar projetos repetidos)
             const initialFormData = new Map<number, DeliveryItemFormData>();
             const projectIds: number[] = [];
 
             for (const item of items) {
-                initialFormData.set(item.projectId, {
+                initialFormData.set(item.id, {
                     id: item.id,
                     deliveryId: item.deliveryId,
                     projectId: item.projectId,
@@ -105,9 +107,10 @@ const DeliveryEdit: React.FC = () => {
             }
             setItemsFormData(initialFormData);
 
-            // 5. Carregar dados dos projetos para exibição
+            // 5. Carregar dados dos projetos únicos para exibição
             if (projectIds.length > 0) {
-                const projects = await projectService.getByIds(projectIds);
+                const uniqueProjectIds = Array.from(new Set(projectIds));
+                const projects = await projectService.getByIds(uniqueProjectIds);
                 setSelectedProjects(projects.map(p => ({
                     id: p.id,
                     name: p.name,
@@ -124,8 +127,8 @@ const DeliveryEdit: React.FC = () => {
     };
 
 
-    const handleSaveItemData = async (projectId: number, data: DeliveryItemFormData) => {
-        const item = deliveryItems.find(item => item.projectId === projectId);
+    const handleSaveItemData = async (itemId: number, data: DeliveryItemFormData) => {
+        const item = deliveryItems.find(item => item.id === itemId);
         if (!item || !delivery) return;
 
         try {
@@ -142,9 +145,9 @@ const DeliveryEdit: React.FC = () => {
                 notes: data.notes
             });
 
-            // Atualizar dados locais
+            // Atualizar dados locais (usando itemId como chave para suportar projetos repetidos)
             const newFormData = new Map(itemsFormData);
-            newFormData.set(projectId, data);
+            newFormData.set(itemId, data);
             setItemsFormData(newFormData);
 
             toast.success('Item salvo com sucesso!');
@@ -160,12 +163,8 @@ const DeliveryEdit: React.FC = () => {
         try {
             const newItems: DeliveryItem[] = [];
 
-            // Criar novos itens para cada projeto selecionado
+            // Criar novos itens para cada projeto selecionado (permitindo projetos repetidos)
             for (const project of projects) {
-                // Verificar se já existe item para este projeto
-                const existingItem = deliveryItems.find(item => item.projectId === project.id);
-                if (existingItem) continue;
-
                 const newItem = await deliveryItemService.create({
                     deliveryId: delivery.id,
                     projectId: project.id,
@@ -174,9 +173,9 @@ const DeliveryEdit: React.FC = () => {
 
                 newItems.push(newItem);
 
-                // Inicializar dados do formulário
+                // Inicializar dados do formulário (usando item.id como chave para suportar projetos repetidos)
                 const newFormData = new Map(itemsFormData);
-                newFormData.set(project.id, {
+                newFormData.set(newItem.id, {
                     id: newItem.id,
                     deliveryId: newItem.deliveryId,
                     projectId: newItem.projectId,
@@ -195,7 +194,14 @@ const DeliveryEdit: React.FC = () => {
 
             // Atualizar listas locais
             setDeliveryItems([...deliveryItems, ...newItems]);
-            setSelectedProjects([...selectedProjects, ...projects]);
+
+            // Adicionar projetos únicos ao selectedProjects (se ainda não existirem)
+            const existingProjectIds = new Set(selectedProjects.map(p => p.id));
+            const newUniqueProjects = projects.filter(p => !existingProjectIds.has(p.id));
+            if (newUniqueProjects.length > 0) {
+                setSelectedProjects([...selectedProjects, ...newUniqueProjects]);
+            }
+
             setShowProjectModal(false);
 
             toast.success(`${newItems.length} item(s) adicionado(s) com sucesso!`);
@@ -211,13 +217,19 @@ const DeliveryEdit: React.FC = () => {
         try {
             await deliveryItemService.delete(itemToDelete.id);
 
-            // Remover das listas locais
-            setDeliveryItems(deliveryItems.filter(item => item.id !== itemToDelete.id));
-            setSelectedProjects(selectedProjects.filter(p => p.id !== itemToDelete.projectId));
+            // Remover item da lista
+            const updatedItems = deliveryItems.filter(item => item.id !== itemToDelete.id);
+            setDeliveryItems(updatedItems);
 
-            // Remover dos dados do formulário
+            // Remover projeto apenas se não houver outros itens usando o mesmo projeto
+            const stillHasProject = updatedItems.some(item => item.projectId === itemToDelete.projectId);
+            if (!stillHasProject) {
+                setSelectedProjects(selectedProjects.filter(p => p.id !== itemToDelete.projectId));
+            }
+
+            // Remover dos dados do formulário (usando item.id como chave)
             const newFormData = new Map(itemsFormData);
-            newFormData.delete(itemToDelete.projectId);
+            newFormData.delete(itemToDelete.id);
             setItemsFormData(newFormData);
 
             setShowDeleteModal(false);
@@ -331,6 +343,40 @@ const DeliveryEdit: React.FC = () => {
                     )}
                 </Card>
 
+                {/* Observações Gerais */}
+                <Card className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">Observações Gerais da Entrega</h3>
+                    </div>
+                    <div>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            onBlur={async () => {
+                                if (!delivery || !canEdit) return;
+                                try {
+                                    await deliveryService.update(delivery.id, { notes });
+                                    toast.success('Observações salvas com sucesso!');
+                                } catch (error) {
+                                    console.error('Erro ao salvar observações:', error);
+                                    toast.error('Erro ao salvar observações');
+                                }
+                            }}
+                            rows={4}
+                            readOnly={!canEdit}
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y ${
+                                !canEdit ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300'
+                            }`}
+                            placeholder={canEdit ? "Digite observações gerais sobre esta entrega..." : "Nenhuma observação registrada"}
+                        />
+                        {canEdit && (
+                            <p className="text-xs text-gray-500 mt-2">
+                                As observações são salvas automaticamente ao sair do campo
+                            </p>
+                        )}
+                    </div>
+                </Card>
+
                 {/* Itens de Entrega */}
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-6">
@@ -365,18 +411,18 @@ const DeliveryEdit: React.FC = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {selectedProjects.map((project) => {
-                                const formData = itemsFormData.get(project.id);
-                                const item = deliveryItems.find(item => item.projectId === project.id);
-                                
-                                if (!item) return null;
+                            {deliveryItems.map((item) => {
+                                const project = selectedProjects.find(p => p.id === item.projectId);
+                                const formData = itemsFormData.get(item.id);
+
+                                if (!project) return null;
 
                                 return (
-                                    <div key={project.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
+                                    <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
                                         <DeliveryItemForm
                                             project={project}
                                             initialData={formData}
-                                            onSave={(data) => handleSaveItemData(project.id, data)}
+                                            onSave={(data) => handleSaveItemData(item.id, data)}
                                             isReadOnly={!canEdit}
                                             customActions={
                                                 canDelete ? (
@@ -411,7 +457,6 @@ const DeliveryEdit: React.FC = () => {
                     isOpen={showProjectModal}
                     onClose={() => setShowProjectModal(false)}
                     onProjectsSelect={handleAddProjects}
-                    excludeProjectIds={selectedProjects.map(p => p.id)}
                 />
             )}
 
