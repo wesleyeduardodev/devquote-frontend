@@ -357,10 +357,7 @@ const DeliveryEdit: React.FC = () => {
                                     if (!delivery) return;
                                     try {
                                         setSavingNotes(true);
-                                        await deliveryService.update(delivery.id, {
-                                            taskId: delivery.taskId,
-                                            notes: notes
-                                        });
+                                        await deliveryService.updateNotes(delivery.id, notes);
                                         setOriginalNotes(notes);
                                         toast.success('Observações salvas com sucesso!');
                                     } catch (error) {
