@@ -87,17 +87,17 @@ const Dashboard = () => {
   const handleExportGeneral = async () => {
     try {
       setExportingGeneral(true);
-      
+
       // Escolhe o relatório baseado no perfil do usuário
-      const blob = hasProfile('ADMIN') || hasProfile('MANAGER') 
+      const blob = hasProfile('ADMIN') || hasProfile('MANAGER')
         ? await taskService.exportGeneralReport()
         : await taskService.exportGeneralReportForUser();
-      
+
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      const filename = hasProfile('ADMIN') || hasProfile('MANAGER') 
+      const filename = hasProfile('ADMIN') || hasProfile('MANAGER')
         ? `relatorio_geral_completo_${timestamp}.xlsx`
         : `relatorio_geral_user_${timestamp}.xlsx`;
-      
+
       downloadBlob(blob, filename);
       toast.success('Relatório geral exportado com sucesso!');
     } catch (error: any) {
@@ -166,9 +166,6 @@ const Dashboard = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Dashboard Geral
-                </h1>
                 <p className="text-gray-600 mt-2">
                   Bem-vindo de volta, {user?.username || 'Usuário'}!
                 </p>
