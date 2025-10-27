@@ -9,6 +9,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'Dockerfile'
+      - '.env*'
       - '.github/workflows/docker-build.yml'
   pull_request:
     branches: [ main, master ]
@@ -75,6 +76,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=https://devquote.com.br/api
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
