@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -25,6 +25,7 @@ interface TaskData {
     requesterId: number;
     title: string;
     description?: string;
+    flowType: string;
     code: string;
     link?: string;
     meetingLink?: string;
@@ -50,7 +51,12 @@ interface TaskFormProps {
 const schema = yup.object({
     title: yup.string().required('Título é obrigatório').max(200, 'Máximo 200 caracteres'),
     description: yup.string().optional(),
-    code: yup.string().required('Código é obrigatório').max(50, 'Máximo 50 caracteres'),
+    flowType: yup.string().required('Tipo de fluxo é obrigatório'),
+    code: yup.string().when('flowType', {
+        is: 'DESENVOLVIMENTO',
+        then: (schema) => schema.required('Código é obrigatório para tarefas de desenvolvimento').max(50, 'Máximo 50 caracteres'),
+        otherwise: (schema) => schema.optional(),
+    }),
     requesterId: yup.mixed().required('Solicitante é obrigatório'),
     link: yup.string().url('URL inválida').optional(),
     meetingLink: yup.string().url('URL inválida').max(500, 'Máximo 500 caracteres').optional(),
@@ -81,6 +87,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
         defaultValues: {
             title: initialData?.title || '',
             description: initialData?.description || '',
+            flowType: initialData?.flowType || 'DESENVOLVIMENTO',
             code: initialData?.code || '',
             link: initialData?.link || '',
             meetingLink: initialData?.meetingLink || '',
@@ -123,8 +130,14 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
     const hasSubTasks = useWatch({ control, name: 'hasSubTasks' });
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
+    const flowType = useWatch({ control, name: 'flowType' });
 
-    // Estado para controlar mensagem de erro
+    useEffect(() => {
+        if (flowType === 'OPERACIONAL') {
+            methods.setValue('code', '');
+        }
+    }, [flowType, methods]);
+
     const [subTaskError, setSubTaskError] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
     const [attachmentRefresh, setAttachmentRefresh] = useState(0);
@@ -256,12 +269,24 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
 
 
-    const taskTypeOptions = [
+    const desenvolvimentoTaskTypeOptions = [
         { value: '', label: 'Selecione...' },
         { value: 'BUG', label: '🐛 Bug' },
         { value: 'ENHANCEMENT', label: '📨 Melhoria' },
         { value: 'NEW_FEATURE', label: '✨ Nova Funcionalidade' },
     ];
+
+    const operacionalTaskTypeOptions = [
+        { value: '', label: 'Selecione...' },
+        { value: 'BACKUP', label: '💾 Backup' },
+        { value: 'DEPLOY', label: '🚀 Deploy' },
+        { value: 'LOGS', label: '📋 Logs' },
+        { value: 'NOVO_SERVIDOR', label: '🖥️ Novo Servidor' },
+        { value: 'MONITORING', label: '📊 Monitoramento' },
+        { value: 'SUPPORT', label: '🛠️ Suporte' },
+    ];
+
+    const taskTypeOptions = flowType === 'OPERACIONAL' ? operacionalTaskTypeOptions : desenvolvimentoTaskTypeOptions;
 
     const priorityOptions = [
         { value: 'LOW', label: '🟢 Baixa' },
@@ -300,20 +325,45 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         </div>
                     </div>
                 )}
-                {/* Campo hidden para requesterId */}
                 <input {...register('requesterId')} type="hidden" />
-                
-                {/* Informações Básicas */}
+
                 <div className="space-y-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                            Tipo de Fluxo <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex gap-6">
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                    {...register('flowType')}
+                                    type="radio"
+                                    value="DESENVOLVIMENTO"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                />
+                                <span className="text-sm font-medium text-gray-700">💻 Desenvolvimento</span>
+                            </label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                    {...register('flowType')}
+                                    type="radio"
+                                    value="OPERACIONAL"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                />
+                                <span className="text-sm font-medium text-gray-700">⚙️ Operacional</span>
+                            </label>
+                        </div>
+                        {errors.flowType && <p className="mt-1 text-sm text-red-600">{errors.flowType.message}</p>}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('code')}
                             label="Código"
-                            placeholder="Digite o código da tarefa"
+                            placeholder={flowType === 'OPERACIONAL' ? 'Será gerado automaticamente' : 'Digite o código da tarefa'}
                             error={errors.code?.message}
                             maxLength={100}
-                            required
+                            required={flowType === 'DESENVOLVIMENTO'}
+                            disabled={flowType === 'OPERACIONAL'}
                         />
 
                         <Select {...register('priority')} label="Prioridade" error={errors.priority?.message} required>

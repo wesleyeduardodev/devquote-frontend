@@ -17,6 +17,7 @@ interface FilterParams {
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
+    flowTypes?: string[];
 }
 
 interface PaginatedParams {
@@ -47,10 +48,15 @@ export const taskService = {
             queryParams.append('sort', sortParam);
         });
 
-        // Adiciona parâmetros de filtro
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
-                if (value && value.toString().trim() !== '') {
+                if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        if (item && item.toString().trim() !== '') {
+                            queryParams.append(key, item.toString());
+                        }
+                    });
+                } else if (value && value.toString().trim() !== '') {
                     queryParams.append(key, value.toString());
                 }
             });
@@ -75,10 +81,15 @@ export const taskService = {
             queryParams.append('sort', sortParam);
         });
 
-        // Adiciona parâmetros de filtro
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
-                if (value && value.toString().trim() !== '') {
+                if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        if (item && item.toString().trim() !== '') {
+                            queryParams.append(key, item.toString());
+                        }
+                    });
+                } else if (value && value.toString().trim() !== '') {
                     queryParams.append(key, value.toString());
                 }
             });

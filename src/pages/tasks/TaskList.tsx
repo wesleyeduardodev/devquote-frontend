@@ -400,6 +400,28 @@ const TaskList: React.FC = () => {
             ),
         },
         {
+            key: 'flowType',
+            title: 'Fluxo',
+            sortable: true,
+            filterable: true,
+            filterType: 'checkbox',
+            filterOptions: [
+                { value: 'DESENVOLVIMENTO', label: '💻 Desenvolvimento' },
+                { value: 'OPERACIONAL', label: '⚙️ Operacional' }
+            ],
+            width: '140px',
+            align: 'center' as const,
+            render: (item) => (
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    item.flowType === 'OPERACIONAL'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                }`}>
+                    {item.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                </span>
+            ),
+        },
+        {
             key: 'title',
             title: 'Título',
             sortable: true,

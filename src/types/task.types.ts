@@ -1,14 +1,27 @@
 import { BaseEntity } from './api.types';
 
-// Prioridade da tarefa
+export type FlowType = 'DESENVOLVIMENTO' | 'OPERACIONAL';
+
+export type TaskType =
+    | 'BUG'
+    | 'ENHANCEMENT'
+    | 'NEW_FEATURE'
+    | 'BACKUP'
+    | 'DEPLOY'
+    | 'LOGS'
+    | 'NOVO_SERVIDOR'
+    | 'MONITORING'
+    | 'SUPPORT';
+
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-// Interface principal para Task
 export interface Task extends BaseEntity {
     id: number;
     code: string;
     title: string;
     description?: string;
+    flowType: FlowType;
+    taskType?: TaskType;
     priority?: TaskPriority;
     requesterId: number | string;
     requesterName?: string;
@@ -46,11 +59,12 @@ export interface SubTask extends BaseEntity {
     order?: number;
 }
 
-// Tipo para criação de tarefa
 export interface CreateTaskData {
     code?: string;
     title: string;
     description?: string;
+    flowType: FlowType;
+    taskType?: TaskType;
     priority?: TaskPriority;
     requesterId: number | string;
     assignedTo?: string;
@@ -102,8 +116,8 @@ export interface TaskWithRelations extends Task {
     };
 }
 
-// Filtros para listagem de tarefas
 export interface TaskFilters {
+    flowTypes?: FlowType[];
     priority?: TaskPriority[];
     requesterId?: number | string;
     assignedTo?: string;
@@ -127,11 +141,12 @@ export interface TaskStats {
     actualHours: number;
 }
 
-// Form data para componentes de formulário
 export interface TaskFormData {
     code?: string;
     title: string;
     description?: string;
+    flowType: FlowType;
+    taskType?: TaskType;
     priority: TaskPriority;
     requesterId: string | number;
     assignedTo?: string;
