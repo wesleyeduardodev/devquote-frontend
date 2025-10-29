@@ -48,15 +48,17 @@ interface TaskFormProps {
 }
 
 
-const schema = yup.object({
+const createSchema = (isEdit: boolean) => yup.object({
     title: yup.string().required('Título é obrigatório').max(200, 'Máximo 200 caracteres'),
     description: yup.string().optional(),
     flowType: yup.string().required('Tipo de fluxo é obrigatório'),
-    code: yup.string().when('flowType', {
-        is: 'DESENVOLVIMENTO',
-        then: (schema) => schema.required('Código é obrigatório para tarefas de desenvolvimento').max(50, 'Máximo 50 caracteres'),
-        otherwise: (schema) => schema.optional(),
-    }),
+    code: isEdit
+        ? yup.string().required('Código é obrigatório').max(50, 'Máximo 50 caracteres')
+        : yup.string().when('flowType', {
+            is: 'DESENVOLVIMENTO',
+            then: (schema) => schema.required('Código é obrigatório para tarefas de desenvolvimento').max(50, 'Máximo 50 caracteres'),
+            otherwise: (schema) => schema.optional(),
+        }),
     requesterId: yup.mixed().required('Solicitante é obrigatório'),
     link: yup.string().url('URL inválida').optional(),
     meetingLink: yup.string().url('URL inválida').max(500, 'Máximo 500 caracteres').optional(),
@@ -79,11 +81,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                            }) => {
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
-
-
+    const isEdit = !!initialData?.id;
 
     const methods = useForm<TaskData>({
-        resolver: yupResolver(schema),
+        resolver: yupResolver(createSchema(isEdit)),
         defaultValues: {
             title: initialData?.title || '',
             description: initialData?.description || '',
@@ -133,10 +134,37 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const flowType = useWatch({ control, name: 'flowType' });
 
     useEffect(() => {
-        if (flowType === 'OPERACIONAL') {
+        if (flowType === 'OPERACIONAL' && !initialData?.id) {
             methods.setValue('code', '');
         }
-    }, [flowType, methods]);
+    }, [flowType, methods, initialData?.id]);
+
+    useEffect(() => {
+        if (initialData?.id) {
+            reset({
+                title: initialData?.title || '',
+                description: initialData?.description || '',
+                flowType: initialData?.flowType || 'DESENVOLVIMENTO',
+                code: initialData?.code || '',
+                link: initialData?.link || '',
+                meetingLink: initialData?.meetingLink || '',
+                hasSubTasks: initialData?.hasSubTasks !== undefined ? initialData.hasSubTasks : false,
+                amount: initialData?.amount || '',
+                taskType: initialData?.taskType || '',
+                serverOrigin: initialData?.serverOrigin || '',
+                systemModule: initialData?.systemModule || '',
+                priority: initialData?.priority || 'MEDIUM',
+                subTasks: initialData?.subTasks
+                    ? [...initialData.subTasks].sort((a, b) => {
+                        if (a.id && b.id) return a.id - b.id;
+                        if (a.id) return -1;
+                        if (b.id) return 1;
+                        return 0;
+                    })
+                    : [{ title: '', description: '', amount: '' }],
+            });
+        }
+    }, [initialData, reset]);
 
     const [subTaskError, setSubTaskError] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
@@ -333,37 +361,48 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             Tipo de Fluxo <span className="text-red-500">*</span>
                         </label>
                         <div className="flex gap-6">
-                            <label className="flex items-center space-x-2 cursor-pointer">
+                            <label className={`flex items-center space-x-2 ${initialData?.id ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
                                 <input
                                     {...register('flowType')}
                                     type="radio"
                                     value="DESENVOLVIMENTO"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    disabled={!!initialData?.id}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                                 <span className="text-sm font-medium text-gray-700">💻 Desenvolvimento</span>
                             </label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
+                            <label className={`flex items-center space-x-2 ${initialData?.id ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
                                 <input
                                     {...register('flowType')}
                                     type="radio"
                                     value="OPERACIONAL"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    disabled={!!initialData?.id}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                                 <span className="text-sm font-medium text-gray-700">⚙️ Operacional</span>
                             </label>
                         </div>
                         {errors.flowType && <p className="mt-1 text-sm text-red-600">{errors.flowType.message}</p>}
+                        {initialData?.id && (
+                            <p className="mt-2 text-xs text-gray-500">
+                                O tipo de fluxo não pode ser alterado após a criação da tarefa
+                            </p>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('code')}
                             label="Código"
-                            placeholder={flowType === 'OPERACIONAL' ? 'Será gerado automaticamente' : 'Digite o código da tarefa'}
+                            placeholder={
+                                initialData?.id
+                                    ? 'Digite o código da tarefa'
+                                    : (flowType === 'OPERACIONAL' ? 'Será gerado automaticamente' : 'Digite o código da tarefa')
+                            }
                             error={errors.code?.message}
                             maxLength={100}
-                            required={flowType === 'DESENVOLVIMENTO'}
-                            disabled={flowType === 'OPERACIONAL'}
+                            required={flowType === 'DESENVOLVIMENTO' || !!initialData?.id}
+                            disabled={flowType === 'OPERACIONAL' && !initialData?.id}
                         />
 
                         <Select {...register('priority')} label="Prioridade" error={errors.priority?.message} required>
