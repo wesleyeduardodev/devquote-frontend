@@ -50,6 +50,7 @@ interface Task {
     description?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     taskType?: string;
+    flowType?: 'DESENVOLVIMENTO' | 'OPERACIONAL';
     serverOrigin?: string;
     systemModule?: string;
     estimatedHours?: number;
@@ -253,6 +254,19 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                                                 <AlertCircle className="w-3 h-3 mr-1" />
                                                 {getPriorityLabel(task.priority)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {task.flowType && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">Fluxo:</span>
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                                                task.flowType === 'OPERACIONAL'
+                                                    ? 'bg-purple-100 text-purple-800'
+                                                    : 'bg-blue-100 text-blue-800'
+                                            }`}>
+                                                {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                                             </span>
                                         </div>
                                     )}

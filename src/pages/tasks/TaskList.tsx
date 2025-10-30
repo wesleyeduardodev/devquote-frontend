@@ -125,6 +125,7 @@ const TaskList: React.FC = () => {
             description: task.description,
             priority: task.priority || 'MEDIUM',
             taskType: task.taskType,
+            flowType: task.flowType,
             serverOrigin: task.serverOrigin,
             systemModule: task.systemModule,
             estimatedHours: undefined,
