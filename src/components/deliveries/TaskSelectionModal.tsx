@@ -181,16 +181,16 @@ export default function TaskSelectionModal({
             sortable: true,
             filterable: true,
             render: (task) => (
-                <div className="max-w-sm">
-                    <div 
-                        className="font-medium text-gray-900 truncate cursor-help" 
+                <div className="max-w-xs">
+                    <div
+                        className="font-medium text-gray-900 truncate cursor-help"
                         title={task.title}
                     >
                         {task.title}
                     </div>
                 </div>
             ),
-            width: '300px'
+            width: '250px'
         },
         {
             key: 'selected',
@@ -219,7 +219,7 @@ export default function TaskSelectionModal({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-7xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
                 {/* Header */}
                 <div className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-white sticky top-0">
                     <div className="flex items-center justify-between">
