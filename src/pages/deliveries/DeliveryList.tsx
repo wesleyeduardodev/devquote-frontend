@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
     Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import { useDeliveries } from '../../hooks/useDeliveries';
-import { 
-    DeliveryGroupResponse, 
+import {
+    DeliveryGroupResponse,
     DeliveryStatus,
     DeliveryStatusCount
 } from '../../types/delivery.types';
@@ -20,6 +20,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DeliveryGroupModal from '../../components/deliveries/DeliveryGroupModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
+import { FlowTypeFilter, FlowTypeFilterValue } from '../../components/filters/FlowTypeFilter';
 
 const DeliveryList: React.FC = () => {
     const navigate = useNavigate();
@@ -173,9 +174,10 @@ const DeliveryList: React.FC = () => {
         },
         {
             key: 'task.code',
-            title: 'Código',
+            title: 'CÓDIGO',
             sortable: true,
             filterable: true,
+            align: 'center' as const,
             render: (delivery) => (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                     {delivery.taskCode || 'N/A'}
@@ -184,8 +186,32 @@ const DeliveryList: React.FC = () => {
             width: '120px'
         },
         {
+            key: 'flowType',
+            title: 'FLUXO',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '150px',
+            align: 'center' as const,
+            render: (delivery: DeliveryGroupResponse) => {
+                // Buscar flowType da delivery (que vem da task)
+                const flowType = delivery.deliveries?.[0]?.flowType;
+                return flowType ? (
+                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                        flowType === 'OPERACIONAL'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                            : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                        {flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                    </span>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                );
+            }
+        },
+        {
             key: 'task.title',
-            title: 'Título da Tarefa',
+            title: 'TÍTULO DA TAREFA',
             sortable: true,
             filterable: true,
             render: (delivery) => (
@@ -507,10 +533,13 @@ const DeliveryList: React.FC = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Entregas</h1>
+                <div className="flex items-center gap-4">
+                    <FlowTypeFilter
+                        value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
+                        onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
+                    />
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                     {/* Ações em lote - visível apenas se houver seleções */}
                     {selectedDeliveries.length > 0 && canDelete && (

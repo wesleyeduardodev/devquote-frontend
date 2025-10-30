@@ -196,7 +196,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
     const exportToExcel = useCallback(async () => {
         try {
             setExporting(true);
-            const response = await deliveryService.exportToExcelWithResponse();
+            const response = await deliveryService.exportToExcelWithResponse(filters.flowType || '');
             
             // Extrair nome do arquivo do Content-Disposition ou usar fallback
             const contentDisposition = response.headers['content-disposition'];
@@ -225,7 +225,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         } finally {
             setExporting(false);
         }
-    }, []);
+    }, [filters.flowType]);
 
     // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {

@@ -250,15 +250,25 @@ export const deliveryService = {
     },
 
     // Export
-    exportToExcel: async (): Promise<Blob> => {
+    exportToExcel: async (flowType?: string): Promise<Blob> => {
+        const params: any = {};
+        if (flowType && flowType !== 'TODOS') {
+            params.flowType = flowType;
+        }
         const response = await api.get('/deliveries/export/excel', {
+            params,
             responseType: 'blob'
         });
         return response.data;
     },
 
-    exportToExcelWithResponse: async (): Promise<{ data: Blob; headers: any }> => {
+    exportToExcelWithResponse: async (flowType?: string): Promise<{ data: Blob; headers: any }> => {
+        const params: any = {};
+        if (flowType && flowType !== 'TODOS') {
+            params.flowType = flowType;
+        }
         const response = await api.get('/deliveries/export/excel', {
+            params,
             responseType: 'blob'
         });
         return { data: response.data, headers: response.headers };
