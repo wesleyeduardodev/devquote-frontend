@@ -152,9 +152,7 @@ export default function DeliveryOperationalItemForm({
                                         size="sm"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (window.confirm('Deseja realmente excluir este item?')) {
-                                                onDelete();
-                                            }
+                                            onDelete();
                                         }}
                                         className="text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1"
                                     >
@@ -207,9 +205,7 @@ export default function DeliveryOperationalItemForm({
                                 size="sm"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm('Deseja realmente excluir este item?')) {
-                                        onDelete();
-                                    }
+                                    onDelete();
                                 }}
                                 className="text-red-600 hover:text-red-800 hover:bg-red-50"
                             >

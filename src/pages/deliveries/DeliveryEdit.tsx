@@ -51,7 +51,7 @@ const DeliveryEdit: React.FC = () => {
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<DeliveryItem | null>(null);
-    const [showAddOperationalModal, setShowAddOperationalModal] = useState(false);
+    const [showDeleteOperationalModal, setShowDeleteOperationalModal] = useState(false);
     const [operationalItemToDelete, setOperationalItemToDelete] = useState<DeliveryOperationalItem | null>(null);
 
     // Estados dos formulários
@@ -302,13 +302,20 @@ const DeliveryEdit: React.FC = () => {
         }
     };
 
-    const handleDeleteOperationalItem = async (itemId: number) => {
-        if (!window.confirm('Deseja realmente excluir este item operacional?')) return;
+    const handleDeleteOperationalItemClick = (item: DeliveryOperationalItem) => {
+        setOperationalItemToDelete(item);
+        setShowDeleteOperationalModal(true);
+    };
+
+    const handleConfirmDeleteOperationalItem = async () => {
+        if (!operationalItemToDelete) return;
 
         try {
-            await deliveryOperationalService.deleteItem(itemId);
-            setOperationalItems(operationalItems.filter(item => item.id !== itemId));
+            await deliveryOperationalService.deleteItem(operationalItemToDelete.id);
+            setOperationalItems(operationalItems.filter(item => item.id !== operationalItemToDelete.id));
             toast.success('Item operacional excluído com sucesso!');
+            setShowDeleteOperationalModal(false);
+            setOperationalItemToDelete(null);
         } catch (error) {
             console.error('Erro ao excluir item operacional:', error);
             toast.error('Erro ao excluir item operacional');
@@ -519,7 +526,7 @@ const DeliveryEdit: React.FC = () => {
                                         <DeliveryOperationalItemForm
                                             initialData={item}
                                             onSave={(data) => handleSaveOperationalItem(item.id, data)}
-                                            onDelete={() => handleDeleteOperationalItem(item.id)}
+                                            onDelete={() => handleDeleteOperationalItemClick(item)}
                                             isReadOnly={!canEdit}
                                         />
                                     </div>
@@ -605,6 +612,18 @@ const DeliveryEdit: React.FC = () => {
                     message={`Tem certeza que deseja remover este item de entrega? Esta ação não pode ser desfeita.`}
                 />
             )}
+
+            {/* Modal de confirmação para excluir item operacional */}
+            <DeleteConfirmationModal
+                isOpen={showDeleteOperationalModal}
+                onClose={() => {
+                    setShowDeleteOperationalModal(false);
+                    setOperationalItemToDelete(null);
+                }}
+                onConfirm={handleConfirmDeleteOperationalItem}
+                title="Excluir Item Operacional"
+                itemName={operationalItemToDelete?.title}
+            />
         </div>
     );
 };
