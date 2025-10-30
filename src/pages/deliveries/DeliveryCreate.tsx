@@ -108,6 +108,13 @@ const DeliveryCreate: React.FC = () => {
             // Feedback de sucesso
             toast.success('Entrega criada com sucesso!');
 
+            // Se for OPERACIONAL, redirecionar para tela de edição onde itens operacionais serão adicionados
+            if (selectedTask.flowType === 'OPERACIONAL') {
+                toast.success('Agora você pode adicionar os itens operacionais!');
+                navigate(`/deliveries/${createdDelivery.id}/edit`);
+                return;
+            }
+
         } catch (error) {
             console.error('Erro ao criar entrega:', error);
             toast.error('Erro ao criar entrega. Tente novamente.');
@@ -260,43 +267,45 @@ const DeliveryCreate: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Seleção de Projetos */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Projetos/Repositórios
-                            </label>
+                        {/* Seleção de Projetos - Somente para fluxo DESENVOLVIMENTO */}
+                        {selectedTask?.flowType !== 'OPERACIONAL' && (
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Projetos/Repositórios
+                                </label>
 
-                            {selectedProjects.length > 0 ? (
-                                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                                    <div className="space-y-2">
-                                        {selectedProjects.map(project => (
-                                            <div key={project.id} className="flex items-center gap-3">
-                                                <FolderOpen className="h-4 w-4 text-green-600" />
-                                                <span className="text-sm font-medium text-gray-900">{project.name}</span>
-                                            </div>
-                                        ))}
+                                {selectedProjects.length > 0 ? (
+                                    <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                                        <div className="space-y-2">
+                                            {selectedProjects.map(project => (
+                                                <div key={project.id} className="flex items-center gap-3">
+                                                    <FolderOpen className="h-4 w-4 text-green-600" />
+                                                    <span className="text-sm font-medium text-gray-900">{project.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="pt-3 border-t border-gray-200 mt-3">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowProjectModal(true)}
+                                            >
+                                                Alterar Seleção
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="pt-3 border-t border-gray-200 mt-3">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowProjectModal(true)}
-                                        >
-                                            Alterar Seleção
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={() => setShowProjectModal(true)}
-                                    className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg transition-colors hover:border-gray-400 text-gray-600 hover:text-gray-700"
-                                >
-                                    <FolderOpen className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                                    <p>Clique para selecionar projetos (opcional)</p>
-                                </button>
-                            )}
-                        </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowProjectModal(true)}
+                                        className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg transition-colors hover:border-gray-400 text-gray-600 hover:text-gray-700"
+                                    >
+                                        <FolderOpen className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                        <p>Clique para selecionar projetos (opcional)</p>
+                                    </button>
+                                )}
+                            </div>
+                        )}
 
                         {/* Observações Gerais */}
                         <div className="mb-6">

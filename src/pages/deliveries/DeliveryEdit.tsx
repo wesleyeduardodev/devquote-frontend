@@ -5,6 +5,7 @@ import { ArrowLeft, Plus, Trash2, Eye, Package2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { deliveryService } from '../../services/deliveryService';
 import { deliveryItemService } from '../../services/deliveryItemService';
+import deliveryOperationalService from '../../services/deliveryOperationalService';
 import { projectService } from '../../services/projectService';
 import { taskService } from '../../services/taskService';
 import {
@@ -15,10 +16,12 @@ import {
     AvailableProject,
     AvailableTask
 } from '../../types/delivery.types';
+import { DeliveryOperationalItem } from '../../types/deliveryOperational';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
+import DeliveryOperationalItemForm, { DeliveryOperationalItemFormData } from '../../components/deliveries/DeliveryOperationalItemForm';
 import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 
@@ -38,6 +41,7 @@ const DeliveryEdit: React.FC = () => {
     const [delivery, setDelivery] = useState<Delivery | null>(null);
     const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>([]);
+    const [operationalItems, setOperationalItems] = useState<DeliveryOperationalItem[]>([]);
     const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
     const [notes, setNotes] = useState<string>('');
     const [originalNotes, setOriginalNotes] = useState<string>('');
@@ -47,6 +51,8 @@ const DeliveryEdit: React.FC = () => {
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<DeliveryItem | null>(null);
+    const [showAddOperationalModal, setShowAddOperationalModal] = useState(false);
+    const [operationalItemToDelete, setOperationalItemToDelete] = useState<DeliveryOperationalItem | null>(null);
 
     // Estados dos formulários
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
@@ -69,8 +75,11 @@ const DeliveryEdit: React.FC = () => {
             setOriginalNotes(initialNotes);
 
             // 2. Carregar dados da tarefa associada
+            let taskFlowType: string | undefined;
             if (deliveryData.taskId) {
                 const taskData = await taskService.getById(deliveryData.taskId);
+                taskFlowType = taskData.flowType;
+
                 setSelectedTask({
                     id: taskData.id,
                     title: taskData.title,
@@ -85,42 +94,49 @@ const DeliveryEdit: React.FC = () => {
                 });
             }
 
-            // 3. Carregar itens da entrega
-            const items = await deliveryItemService.getByDeliveryId(deliveryData.id);
-            setDeliveryItems(items);
+            // 3. Carregar itens da entrega baseado no flowType
+            if (taskFlowType === 'OPERACIONAL') {
+                // Carregar itens operacionais
+                const opItems = await deliveryOperationalService.getItemsByDelivery(deliveryData.id);
+                setOperationalItems(opItems);
+            } else {
+                // Carregar itens de desenvolvimento (comportamento original)
+                const items = await deliveryItemService.getByDeliveryId(deliveryData.id);
+                setDeliveryItems(items);
 
-            // 4. Inicializar dados dos formulários dos itens (usando item.id como chave para suportar projetos repetidos)
-            const initialFormData = new Map<number, DeliveryItemFormData>();
-            const projectIds: number[] = [];
+                // 4. Inicializar dados dos formulários dos itens (usando item.id como chave para suportar projetos repetidos)
+                const initialFormData = new Map<number, DeliveryItemFormData>();
+                const projectIds: number[] = [];
 
-            for (const item of items) {
-                initialFormData.set(item.id, {
-                    id: item.id,
-                    deliveryId: item.deliveryId,
-                    projectId: item.projectId,
-                    projectName: item.projectName,
-                    status: item.status,
-                    branch: item.branch || '',
-                    sourceBranch: item.sourceBranch || '',
-                    pullRequest: item.pullRequest || '',
-                    script: item.script || '',
-                    startedAt: item.startedAt || '',
-                    finishedAt: item.finishedAt || '',
-                    notes: item.notes || ''
-                });
-                projectIds.push(item.projectId);
-            }
-            setItemsFormData(initialFormData);
+                for (const item of items) {
+                    initialFormData.set(item.id, {
+                        id: item.id,
+                        deliveryId: item.deliveryId,
+                        projectId: item.projectId,
+                        projectName: item.projectName,
+                        status: item.status,
+                        branch: item.branch || '',
+                        sourceBranch: item.sourceBranch || '',
+                        pullRequest: item.pullRequest || '',
+                        script: item.script || '',
+                        startedAt: item.startedAt || '',
+                        finishedAt: item.finishedAt || '',
+                        notes: item.notes || ''
+                    });
+                    projectIds.push(item.projectId);
+                }
+                setItemsFormData(initialFormData);
 
-            // 5. Carregar dados dos projetos únicos para exibição
-            if (projectIds.length > 0) {
-                const uniqueProjectIds = Array.from(new Set(projectIds));
-                const projects = await projectService.getByIds(uniqueProjectIds);
-                setSelectedProjects(projects.map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    description: p.description
-                })));
+                // 5. Carregar dados dos projetos únicos para exibição
+                if (projectIds.length > 0) {
+                    const uniqueProjectIds = Array.from(new Set(projectIds));
+                    const projects = await projectService.getByIds(uniqueProjectIds);
+                    setSelectedProjects(projects.map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        description: p.description
+                    })));
+                }
             }
 
         } catch (error) {
@@ -243,6 +259,59 @@ const DeliveryEdit: React.FC = () => {
         } catch (error) {
             console.error('Erro ao remover item:', error);
             toast.error('Erro ao remover item');
+        }
+    };
+
+    // ========== Funções para Itens Operacionais ==========
+
+    const handleAddOperationalItem = async () => {
+        if (!delivery) return;
+
+        try {
+            const newItem = await deliveryOperationalService.createItem({
+                deliveryId: delivery.id,
+                title: 'Novo Item Operacional',
+                status: 'PENDING'
+            });
+
+            setOperationalItems([...operationalItems, newItem]);
+            toast.success('Item operacional criado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao criar item operacional:', error);
+            toast.error('Erro ao criar item operacional');
+        }
+    };
+
+    const handleSaveOperationalItem = async (itemId: number, data: DeliveryOperationalItemFormData) => {
+        try {
+            const updated = await deliveryOperationalService.updateItem(itemId, {
+                deliveryId: delivery!.id,
+                title: data.title,
+                description: data.description,
+                status: data.status,
+                startedAt: data.startedAt,
+                finishedAt: data.finishedAt
+            });
+
+            // Atualizar localmente
+            setOperationalItems(operationalItems.map(item => item.id === itemId ? updated : item));
+            toast.success('Item operacional salvo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao salvar item operacional:', error);
+            toast.error('Erro ao salvar item operacional');
+        }
+    };
+
+    const handleDeleteOperationalItem = async (itemId: number) => {
+        if (!window.confirm('Deseja realmente excluir este item operacional?')) return;
+
+        try {
+            await deliveryOperationalService.deleteItem(itemId);
+            setOperationalItems(operationalItems.filter(item => item.id !== itemId));
+            toast.success('Item operacional excluído com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir item operacional:', error);
+            toast.error('Erro ao excluir item operacional');
         }
     };
 
@@ -404,70 +473,114 @@ const DeliveryEdit: React.FC = () => {
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-medium text-gray-900">
-                            Itens de Entrega ({deliveryItems.length})
+                            {selectedTask?.flowType === 'OPERACIONAL'
+                                ? `Itens Operacionais (${operationalItems.length})`
+                                : `Itens de Entrega (${deliveryItems.length})`
+                            }
                         </h3>
-                        {canEdit && (
+                        {canEdit && selectedTask && (
                             <Button
-                                onClick={() => setShowProjectModal(true)}
+                                onClick={selectedTask.flowType === 'OPERACIONAL'
+                                    ? handleAddOperationalItem
+                                    : () => setShowProjectModal(true)
+                                }
                             >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Adicionar Projetos
+                                {selectedTask.flowType === 'OPERACIONAL'
+                                    ? 'Adicionar Item Operacional'
+                                    : 'Adicionar Projetos'
+                                }
                             </Button>
                         )}
                     </div>
 
-                    {deliveryItems.length === 0 ? (
-                        <div className="text-center py-12">
-                            <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <h4 className="text-lg font-medium text-gray-900 mb-2">
-                                Nenhum item de entrega
-                            </h4>
-                            <p className="text-gray-500 mb-4">
-                                Adicione projetos para criar itens de entrega
-                            </p>
-                            {canEdit && (
-                                <Button onClick={() => setShowProjectModal(true)}>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Adicionar Projetos
-                                </Button>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {deliveryItems.map((item) => {
-                                const project = selectedProjects.find(p => p.id === item.projectId);
-                                const formData = itemsFormData.get(item.id);
-
-                                if (!project) return null;
-
-                                return (
-                                    <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
-                                        <DeliveryItemForm
-                                            project={project}
-                                            initialData={formData}
-                                            onSave={(data) => handleSaveItemData(item.id, data)}
+                    {/* Renderização Condicional: Itens Operacionais */}
+                    {selectedTask?.flowType === 'OPERACIONAL' ? (
+                        operationalItems.length === 0 ? (
+                            <div className="text-center py-12">
+                                <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                                    Nenhum item operacional
+                                </h4>
+                                <p className="text-gray-500 mb-4">
+                                    Adicione itens operacionais para esta entrega
+                                </p>
+                                {canEdit && (
+                                    <Button onClick={handleAddOperationalItem}>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Adicionar Item Operacional
+                                    </Button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {operationalItems.map((item) => (
+                                    <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-150">
+                                        <DeliveryOperationalItemForm
+                                            initialData={item}
+                                            onSave={(data) => handleSaveOperationalItem(item.id, data)}
+                                            onDelete={() => handleDeleteOperationalItem(item.id)}
                                             isReadOnly={!canEdit}
-                                            customActions={
-                                                canDelete ? (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setItemToDelete(item);
-                                                            setShowDeleteModal(true);
-                                                        }}
-                                                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                                                        title={`Remover ${project.name}`}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                ) : undefined
-                                            }
                                         />
                                     </div>
-                                );
-                            })}
-                        </div>
+                                ))}
+                            </div>
+                        )
+                    ) : (
+                        /* Renderização Original: Itens de Desenvolvimento */
+                        deliveryItems.length === 0 ? (
+                            <div className="text-center py-12">
+                                <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                                    Nenhum item de entrega
+                                </h4>
+                                <p className="text-gray-500 mb-4">
+                                    Adicione projetos para criar itens de entrega
+                                </p>
+                                {canEdit && (
+                                    <Button onClick={() => setShowProjectModal(true)}>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Adicionar Projetos
+                                    </Button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {deliveryItems.map((item) => {
+                                    const project = selectedProjects.find(p => p.id === item.projectId);
+                                    const formData = itemsFormData.get(item.id);
+
+                                    if (!project) return null;
+
+                                    return (
+                                        <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
+                                            <DeliveryItemForm
+                                                project={project}
+                                                initialData={formData}
+                                                onSave={(data) => handleSaveItemData(item.id, data)}
+                                                isReadOnly={!canEdit}
+                                                customActions={
+                                                    canDelete ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setItemToDelete(item);
+                                                                setShowDeleteModal(true);
+                                                            }}
+                                                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                                            title={`Remover ${project.name}`}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    ) : undefined
+                                                }
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )
                     )}
                 </Card>
 
