@@ -142,6 +142,28 @@ export default function TaskSelectionModal({
             width: '100px'
         },
         {
+            key: 'flowType',
+            title: 'Fluxo',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '150px',
+            align: 'center' as const,
+            render: (task) => (
+                task.flowType ? (
+                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                        task.flowType === 'OPERACIONAL'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                            : 'bg-blue-100 text-blue-800 border border-blue-200'
+                    }`}>
+                        {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                    </span>
+                ) : (
+                    <span className="text-gray-400">-</span>
+                )
+            )
+        },
+        {
             key: 'code',
             title: 'Código',
             sortable: true,
@@ -244,6 +266,42 @@ export default function TaskSelectionModal({
                                     <div className="space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                Filtrar por ID:
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Digite o ID..."
+                                                value={filters.id || ''}
+                                                onChange={(e) => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        id: e.target.value || undefined
+                                                    }));
+                                                    setPage(0);
+                                                }}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                Filtrar por fluxo:
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Digite OPERACIONAL ou DESENVOLVIMENTO..."
+                                                value={filters.flowType || ''}
+                                                onChange={(e) => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        flowType: e.target.value || undefined
+                                                    }));
+                                                    setPage(0);
+                                                }}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
                                                 Filtrar por código:
                                             </label>
                                             <input
@@ -278,7 +336,7 @@ export default function TaskSelectionModal({
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
-                                        {(filters.code || filters.title) && (
+                                        {(filters.id || filters.flowType || filters.code || filters.title) && (
                                             <button
                                                 onClick={() => {
                                                     setFilters({});
@@ -294,7 +352,7 @@ export default function TaskSelectionModal({
                                 
                                 <div className="px-4 space-y-3 py-4">
                                     {tasks.map((task) => (
-                                        <div 
+                                        <div
                                             key={task.id}
                                             className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
                                         >
@@ -308,6 +366,17 @@ export default function TaskSelectionModal({
                                                             {task.code}
                                                         </span>
                                                     </div>
+                                                    {task.flowType && (
+                                                        <div className="mb-2">
+                                                            <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                                                                task.flowType === 'OPERACIONAL'
+                                                                    ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                                            }`}>
+                                                                {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     <h3 className="text-sm font-medium text-gray-900 mb-3 leading-5">
                                                         {task.title}
                                                     </h3>
