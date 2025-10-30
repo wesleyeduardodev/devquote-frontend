@@ -277,6 +277,21 @@ const TaskList: React.FC = () => {
             BUG: '🐛 Bug',
             ENHANCEMENT: '📨 Melhoria',
             NEW_FEATURE: '✨ Nova Funcionalidade',
+            FEATURE: '⭐ Funcionalidade',
+            MAINTENANCE: '🔧 Manutenção',
+            DOCUMENTATION: '📚 Documentação',
+            REFACTOR: '♻️ Refatoração',
+            TEST: '🧪 Teste',
+            RESEARCH: '🔍 Pesquisa',
+            SUPPORT: '🎧 Suporte',
+            MONITORING: '📊 Monitoramento',
+            HOTFIX: '🔥 Correção Urgente',
+            TASK: '📋 Tarefa',
+            BACKUP: '💾 Backup',
+            DEPLOY: '🚀 Deploy',
+            LOGS: '📝 Logs',
+            DATABASE: '🗄️ Banco de Dados',
+            INFRASTRUCTURE: '🏗️ Infraestrutura',
         };
         return labels[taskType] || taskType;
     };
