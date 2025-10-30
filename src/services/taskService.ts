@@ -145,8 +145,13 @@ export const taskService = {
         await api.delete('/tasks/bulk', { data: ids });
     },
 
-    exportToExcel: async (): Promise<Blob> => {
+    exportToExcel: async (flowType?: string): Promise<Blob> => {
+        const params: any = {};
+        if (flowType && flowType !== 'TODOS') {
+            params.flowType = flowType;
+        }
         const response = await api.get('/tasks/export/excel', {
+            params,
             responseType: 'blob'
         });
         return response.data;

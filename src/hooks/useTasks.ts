@@ -301,7 +301,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const exportToExcel = useCallback(async () => {
         try {
             setExporting(true);
-            const blob = await taskService.exportToExcel();
+            const blob = await taskService.exportToExcel(filters.flowType);
 
             // Criar nome do arquivo com timestamp
             const now = new Date();
@@ -327,7 +327,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         } finally {
             setExporting(false);
         }
-    }, []);
+    }, [filters.flowType]);
 
     const sendFinancialEmail = useCallback(async (taskId: number, additionalEmails?: string[]): Promise<void> => {
         try {
