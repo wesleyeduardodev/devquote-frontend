@@ -419,11 +419,12 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'code',
-            title: 'Código',
+            title: 'CÓDIGO',
             sortable: true,
             filterable: true,
             filterType: 'text',
             width: '100px',
+            align: 'center' as const,
             render: (item) => (
                 <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
           {item.code}
@@ -432,8 +433,10 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'flowType',
-            title: 'Fluxo',
+            title: 'FLUXO',
             sortable: true,
+            filterable: true,
+            filterType: 'text',
             width: '140px',
             align: 'center' as const,
             render: (item) => (
@@ -448,15 +451,16 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'title',
-            title: 'Título',
+            title: 'TÍTULO',
             sortable: true,
             filterable: true,
             filterType: 'text',
             width: '280px',
+            align: 'center' as const,
             render: (item) => (
                 <div className="max-w-[280px]">
-                    <p 
-                        className="font-medium text-gray-900 cursor-help line-clamp-2 break-words" 
+                    <p
+                        className="font-medium text-gray-900 cursor-help line-clamp-2 break-words"
                         title={item.title}
                         style={{
                             display: '-webkit-box',
@@ -475,7 +479,7 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'priority',
-            title: 'Prioridade',
+            title: 'PRIORIDADE',
             sortable: true,
             filterable: true,
             filterType: 'text',
@@ -491,11 +495,12 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'taskType',
-            title: 'Tipo',
+            title: 'TIPO',
             sortable: true,
             filterable: true,
             filterType: 'text',
             width: '150px',
+            align: 'center' as const,
             render: (item) => (
                 <span className="text-sm text-gray-700">
                     {getTaskTypeLabel(item.taskType)}
@@ -505,11 +510,12 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'systemModule',
-            title: 'Módulo',
+            title: 'MÓDULO',
             sortable: true,
             filterable: true,
             filterType: 'text',
             width: '120px',
+            align: 'center' as const,
             render: (item) => (
                 <span className="text-sm text-gray-600" title={item.systemModule}>
                     {item.systemModule ? item.systemModule.substring(0, 15) + (item.systemModule.length > 15 ? '...' : '') : '-'}
@@ -519,11 +525,12 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'requesterName',
-            title: 'Solicitante',
+            title: 'SOLICITANTE',
             sortable: true,
             filterable: true,
             filterType: 'text',
             width: '160px',
+            align: 'center' as const,
             render: (item) => (
                 <div className="max-w-[160px]">
                     <span className="text-sm text-gray-900 block truncate" title={item.requesterName || 'Não informado'}>
@@ -534,7 +541,7 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'link',
-            title: 'Link',
+            title: 'LINK',
             width: '80px',
             align: 'center' as const,
             render: (item) =>
@@ -556,7 +563,7 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'meetingLink',
-            title: 'Reunião',
+            title: 'REUNIÃO',
             width: '80px',
             align: 'center' as const,
             render: (item) =>
@@ -578,7 +585,7 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'subTasks',
-            title: 'Itens',
+            title: 'ITENS',
             width: '70px',
             align: 'center' as const,
             render: (item) => (
@@ -591,7 +598,7 @@ const TaskList: React.FC = () => {
         // Colunas de Entrega e Faturamento - apenas para ADMIN e MANAGER
         ...(canViewDeliveryColumns ? [{
             key: 'hasDelivery',
-            title: 'Entrega',
+            title: 'ENTREGA',
             sortable: false,
             filterable: false,
             width: '120px',
@@ -611,7 +618,7 @@ const TaskList: React.FC = () => {
             ),
         }, {
             key: 'hasQuoteInBilling',
-            title: 'Faturamento',
+            title: 'FATURAMENTO',
             sortable: false,
             filterable: false,
             width: '120px',
@@ -633,10 +640,11 @@ const TaskList: React.FC = () => {
 
         {
             key: 'createdByUserName',
-            title: 'Criado por',
+            title: 'CRIADO POR',
             sortable: false,
             filterable: false,
             width: '160px',
+            align: 'center' as const,
             render: (item) => (
                 <div className="max-w-[160px]">
                     <span className="text-sm text-gray-700 block truncate" title={item.createdByUserName || '-'}>
@@ -651,11 +659,11 @@ const TaskList: React.FC = () => {
         // Coluna de valor total - para ADMIN e MANAGER (por último)
         ...(canViewValues ? [{
             key: 'total',
-            title: 'Valor Total',
+            title: 'VALOR TOTAL',
             width: '120px',
-            align: 'right' as const,
+            align: 'center' as const,
             render: (item: Task) => (
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex items-center justify-center gap-1">
                     <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-600">
                         {formatCurrency(calculateTaskTotal(item))}
@@ -665,34 +673,37 @@ const TaskList: React.FC = () => {
         }] : []),
         {
             key: 'createdAt',
-            title: 'Criado em',
+            title: 'CRIADO EM',
             sortable: true,
             filterable: true,
             filterType: 'date',
+            align: 'center' as const,
             render: (item) => formatDate(item.createdAt),
             hideable: true,
         },
         {
             key: 'updatedAt',
-            title: 'Atualizado em',
+            title: 'ATUALIZADO EM',
             sortable: true,
             filterable: true,
             filterType: 'date',
+            align: 'center' as const,
             render: (item) => formatDate(item.updatedAt),
             hideable: true,
         },
         {
             key: 'updatedByUserName',
-            title: 'Alterado por',
+            title: 'ALTERADO POR',
             sortable: false,
             filterable: false,
+            align: 'center' as const,
             render: (item) => item.updatedByUserName || '-',
             hideable: true,
         },
         // Coluna de ações
         {
             key: 'actions',
-            title: 'Ações',
+            title: 'AÇÕES',
             align: 'center' as const,
             width: '150px',
             render: (item: Task) => (
