@@ -423,7 +423,7 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '120px',
+            width: '100px',
             render: (item) => (
                 <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
           {item.code}
