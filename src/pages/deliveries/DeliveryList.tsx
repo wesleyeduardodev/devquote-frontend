@@ -373,7 +373,8 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    const handleExport = () => exportToExcel();
+    const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO');
+    const handleExportOperational = () => exportToExcel('OPERACIONAL');
 
     // Handler para email de entrega
     const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
@@ -538,9 +539,7 @@ const DeliveryList: React.FC = () => {
                         value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
                         onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
                     />
-                </div>
 
-                <div className="flex items-center gap-3">
                     {/* Ações em lote - visível apenas se houver seleções */}
                     {selectedDeliveries.length > 0 && canDelete && (
                         <Button
@@ -552,10 +551,12 @@ const DeliveryList: React.FC = () => {
                             Excluir ({selectedDeliveries.length})
                         </Button>
                     )}
-                    
+                </div>
+
+                <div className="flex items-center gap-3">
                     <Button
                         variant="outline"
-                        onClick={handleExport}
+                        onClick={handleExportDevelopment}
                         disabled={exporting}
                     >
                         {exporting ? (
@@ -566,11 +567,29 @@ const DeliveryList: React.FC = () => {
                         ) : (
                             <>
                                 <Download className="h-4 w-4 mr-2" />
-                                Exportar Excel
+                                Exportar Desenvolvimento
                             </>
                         )}
                     </Button>
-                    
+
+                    <Button
+                        variant="outline"
+                        onClick={handleExportOperational}
+                        disabled={exporting}
+                    >
+                        {exporting ? (
+                            <>
+                                <LoadingSpinner size="sm" />
+                                Exportando...
+                            </>
+                        ) : (
+                            <>
+                                <Download className="h-4 w-4 mr-2" />
+                                Exportar Operacional
+                            </>
+                        )}
+                    </Button>
+
                     {canCreate && (
                         <Button onClick={() => navigate('/deliveries/create')}>
                             <Plus className="h-4 w-4 mr-2" />

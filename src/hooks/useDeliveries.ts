@@ -193,22 +193,23 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         setCurrentPage(0);
     }, []);
 
-    const exportToExcel = useCallback(async () => {
+    const exportToExcel = useCallback(async (flowType: string) => {
         try {
             setExporting(true);
-            const response = await deliveryService.exportToExcelWithResponse(filters.flowType || '');
-            
+            const response = await deliveryService.exportToExcelWithResponse(flowType);
+
             // Extrair nome do arquivo do Content-Disposition ou usar fallback
             const contentDisposition = response.headers['content-disposition'];
-            let filename = `relatorio_entregas_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}_${new Date().toLocaleTimeString('pt-BR').replace(/:/g, '-')}.xlsx`;
-            
+            const flowLabel = flowType === 'DESENVOLVIMENTO' ? 'desenvolvimento' : 'operacional';
+            let filename = `relatorio_entregas_${flowLabel}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}_${new Date().toLocaleTimeString('pt-BR').replace(/:/g, '-')}.xlsx`;
+
             if (contentDisposition) {
                 const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
                 if (filenameMatch && filenameMatch[1]) {
                     filename = filenameMatch[1].replace(/['"]/g, '');
                 }
             }
-            
+
             const url = window.URL.createObjectURL(response.data);
             const link = document.createElement('a');
             link.href = url;
@@ -217,7 +218,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             toast.success('Exportação concluída!');
         } catch (error: any) {
             console.error('Erro ao exportar:', error);
@@ -225,7 +226,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         } finally {
             setExporting(false);
         }
-    }, [filters.flowType]);
+    }, []);
 
     // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
