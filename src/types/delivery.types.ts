@@ -27,6 +27,7 @@ export interface Delivery extends BaseEntity {
     taskId: number;
     taskName?: string; // Para exibição
     taskCode?: string; // Para exibição
+    flowType?: string; // Tipo de fluxo da tarefa
     status: DeliveryStatus; // Status calculado automaticamente
     totalItems?: number;
     pendingCount?: number;
@@ -187,6 +188,7 @@ export interface AvailableTask {
     id: number;
     title: string;
     code: string;
+    flowType?: string;
     amount?: number;
     requester?: {
         name: string;

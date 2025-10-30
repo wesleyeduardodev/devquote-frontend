@@ -75,6 +75,7 @@ const DeliveryEdit: React.FC = () => {
                     id: taskData.id,
                     title: taskData.title,
                     code: taskData.code,
+                    flowType: taskData.flowType,
                     amount: taskData.amount,
                     requester: {
                         id: taskData.requesterId,
@@ -333,6 +334,17 @@ const DeliveryEdit: React.FC = () => {
                                     <div className="text-sm text-gray-600 mt-1">
                                         {selectedTask.title}
                                     </div>
+                                    {selectedTask.flowType && (
+                                        <div className="mt-2">
+                                            <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                                                selectedTask.flowType === 'OPERACIONAL'
+                                                    ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                            }`}>
+                                                {selectedTask.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="text-sm text-gray-500 mt-1">
                                         Solicitante: {selectedTask.requester?.name}
                                     </div>

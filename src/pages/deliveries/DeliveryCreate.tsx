@@ -221,6 +221,17 @@ const DeliveryCreate: React.FC = () => {
                                                 <h3 className="font-medium text-gray-900">{selectedTask.title}</h3>
                                             </div>
                                             <p className="text-sm text-gray-600 mb-1">{selectedTask.code}</p>
+                                            {selectedTask.flowType && (
+                                                <div className="mb-2">
+                                                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                                                        selectedTask.flowType === 'OPERACIONAL'
+                                                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                                            : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                                    }`}>
+                                                        {selectedTask.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                                                    </span>
+                                                </div>
+                                            )}
                                             {selectedTask.requester && (
                                                 <p className="text-sm text-gray-500">
                                                     Solicitante: {selectedTask.requester.name}
