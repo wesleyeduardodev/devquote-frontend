@@ -578,8 +578,8 @@ const TaskList: React.FC = () => {
         },
         {
             key: 'subTasks',
-            title: 'Subtarefas',
-            width: '120px',
+            title: 'Itens',
+            width: '70px',
             align: 'center' as const,
             render: (item) => (
                 <div className="flex items-center justify-center gap-1">
