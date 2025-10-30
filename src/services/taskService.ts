@@ -17,7 +17,7 @@ interface FilterParams {
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
-    flowTypes?: string[];
+    flowType?: string;
 }
 
 interface PaginatedParams {

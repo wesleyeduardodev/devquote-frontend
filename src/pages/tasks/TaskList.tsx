@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Task } from '@/types/task.types';
 import {
@@ -28,6 +28,7 @@ import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
+import { FlowTypeFilter, FlowTypeFilterValue } from '@/components/filters/FlowTypeFilter';
 import toast from 'react-hot-toast';
 
 interface SubTask {
@@ -77,6 +78,7 @@ const TaskList: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
     const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+    const [flowType, setFlowType] = useState<FlowTypeFilterValue>('TODOS');
 
     const {
         tasks,
@@ -96,6 +98,19 @@ const TaskList: React.FC = () => {
         sendFinancialEmail,
         sendTaskEmail,
     } = useTasks();
+
+    // Atualizar filtro quando flowType mudar
+    useEffect(() => {
+        if (flowType === 'TODOS') {
+            // Remove o filtro flowType
+            if (filters.flowType) {
+                setFilter('flowType', '');
+            }
+        } else {
+            // Define o filtro flowType
+            setFilter('flowType', flowType);
+        }
+    }, [flowType]);
 
     const handleEdit = (id: number) => {
         navigate(`/tasks/${id}/edit`);
@@ -403,12 +418,6 @@ const TaskList: React.FC = () => {
             key: 'flowType',
             title: 'Fluxo',
             sortable: true,
-            filterable: true,
-            filterType: 'checkbox',
-            filterOptions: [
-                { value: 'DESENVOLVIMENTO', label: '💻 Desenvolvimento' },
-                { value: 'OPERACIONAL', label: '⚙️ Operacional' }
-            ],
             width: '140px',
             align: 'center' as const,
             render: (item) => (
@@ -942,11 +951,11 @@ const TaskList: React.FC = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Tarefas
-                    </h1>
-                </div>
+                <FlowTypeFilter
+                    value={flowType}
+                    onChange={setFlowType}
+                    className="flex-shrink-0"
+                />
                 <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                         variant="outline"
