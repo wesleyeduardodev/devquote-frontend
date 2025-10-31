@@ -965,13 +965,13 @@ const BillingManagement: React.FC = () => {
                                             )}
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarefas</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pagamento</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tarefas</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Pagamento</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
                                     <th className="px-3 py-3 w-20 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Anexos</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -1002,7 +1002,7 @@ const BillingManagement: React.FC = () => {
                                                 </td>
 
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center justify-center gap-3">
                                                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                                             <Calendar className="w-5 h-5 text-blue-600" />
                                                         </div>
@@ -1013,12 +1013,14 @@ const BillingManagement: React.FC = () => {
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-4">
-                                                    <StatusBadge status={billing.status} />
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="flex items-center justify-center">
+                                                        <StatusBadge status={billing.status} />
+                                                    </div>
                                                 </td>
 
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         <span className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                                             <Hash className="w-3 h-3 mr-1" />
                                                             {billing.taskCount || 0}
@@ -1029,11 +1031,11 @@ const BillingManagement: React.FC = () => {
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-4 text-gray-900">
+                                                <td className="px-6 py-4 text-center text-gray-900">
                                                     {formatDate(billing.paymentDate)}
                                                 </td>
 
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-4 text-center">
                                                     {totalsLoading && !(billing.id in totals) ? (
                                                         <span className="inline-flex items-center gap-2 text-gray-400">
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -1059,8 +1061,8 @@ const BillingManagement: React.FC = () => {
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         {isAdmin ? (
                                                             <>
                                                                 <button
