@@ -649,6 +649,13 @@ const BillingManagement: React.FC = () => {
                     {isAdmin ? (
                         <>
                             <button
+                                onClick={() => handleViewTasks(billing)}
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                                title="Visualizar tarefas vinculadas"
+                            >
+                                <Eye className="w-5 h-5" />
+                            </button>
+                            <button
                                 onClick={() => handleLinkTasks(billing)}
                                 className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
                                 title="Vincular tarefas a este período"
@@ -695,7 +702,7 @@ const BillingManagement: React.FC = () => {
                                 className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg p-2 transition-colors"
                                 title="Visualizar tarefas vinculadas"
                             >
-                                <Search className="w-5 h-5" />
+                                <Eye className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => handleAttachments(billing)}
@@ -1062,6 +1069,14 @@ const BillingManagement: React.FC = () => {
                                                         {isAdmin ? (
                                                             <>
                                                                 <button
+                                                                    onClick={() => handleViewTasks(billing)}
+                                                                    className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                                                                    title="Visualizar tarefas vinculadas"
+                                                                >
+                                                                    <Eye className="w-4 h-4" />
+                                                                    Ver
+                                                                </button>
+                                                                <button
                                                                     onClick={() => handleLinkTasks(billing)}
                                                                     className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                                                                     title="Vincular tarefas a este período"
@@ -1092,8 +1107,8 @@ const BillingManagement: React.FC = () => {
                                                                 className="inline-flex items-center gap-1.5 px-2 py-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                                                                 title="Visualizar tarefas vinculadas"
                                                             >
-                                                                <Search className="w-4 h-4" />
-                                                                Ver Tarefas
+                                                                <Eye className="w-4 h-4" />
+                                                                Ver
                                                             </button>
                                                         )}
                                                         
