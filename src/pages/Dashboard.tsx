@@ -16,7 +16,12 @@ import {
   BarChart3,
   FileText,
   Plus,
-  Loader2
+  Loader2,
+  Phone,
+  Mail,
+  Linkedin,
+  Instagram,
+  Facebook
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
@@ -332,6 +337,88 @@ const Dashboard = () => {
         </Card>
 
       </div>
+
+      {/* Footer Profissional */}
+      <footer className="bg-white border-t border-gray-200 mt-16">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex flex-col items-center space-y-4">
+            {/* Nome do Desenvolvedor */}
+            <div className="text-center">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Desenvolvido por Wesley Eduardo
+              </h3>
+              <p className="text-gray-600 text-sm mt-1">Desenvolvedor Full Stack</p>
+            </div>
+
+            {/* Linha Divisória */}
+            <div className="w-24 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+
+            {/* Contatos */}
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
+              {/* Telefone */}
+              <a
+                href="tel:+5598981650805"
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors group"
+              >
+                <Phone className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span>+55 98 98165-0805</span>
+              </a>
+
+              {/* Email */}
+              <a
+                href="mailto:wesleyeduardo.dev@gmail.com"
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors group"
+              >
+                <Mail className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span>wesleyeduardo.dev@gmail.com</span>
+              </a>
+            </div>
+
+            {/* Redes Sociais */}
+            <div className="flex gap-4">
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/in/wesley-eduardo-8a1066169/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-full transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-blue-500/30"
+                title="LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/wesleyeduardo.dev?igsh=ano4MTVqN2F6ZWh0&utm_source=qr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 bg-pink-50 text-pink-600 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white rounded-full transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-pink-500/30"
+                title="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+
+              {/* Facebook */}
+              <a
+                href="https://www.facebook.com/wesleyeduardo.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 bg-blue-50 text-blue-700 hover:bg-blue-700 hover:text-white rounded-full transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-blue-700/30"
+                title="Facebook"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+            </div>
+
+            {/* Copyright */}
+            <div className="text-center pt-4 border-t border-gray-200 w-full">
+              <p className="text-gray-500 text-xs">
+                © {new Date().getFullYear()} DevQuote. Todos os direitos reservados.
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
