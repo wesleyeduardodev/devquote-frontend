@@ -20,6 +20,7 @@ import {
     Hash,
     Mail,
     File,
+    Edit,
 } from 'lucide-react';
 
 // Hooks e serviços existentes
@@ -128,6 +129,7 @@ const BillingManagement: React.FC = () => {
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [statusToUpdate, setStatusToUpdate] = useState<BillingMonth | null>(null);
     const [newStatus, setNewStatus] = useState<StatusValue>('PENDENTE');
+    const [newPaymentDate, setNewPaymentDate] = useState<string>('');
     const [updatingStatus, setUpdatingStatus] = useState(false);
 
     // Email billing
@@ -436,26 +438,32 @@ const BillingManagement: React.FC = () => {
     const handleUpdateStatus = useCallback((billing: BillingMonth) => {
         setStatusToUpdate(billing);
         setNewStatus(billing.status as StatusValue);
+        setNewPaymentDate(billing.paymentDate || '');
         setShowStatusModal(true);
     }, []);
 
     const handleConfirmStatusUpdate = useCallback(async () => {
         if (!statusToUpdate) return;
-        
+
         setUpdatingStatus(true);
         try {
-            await billingPeriodService.updateStatus(statusToUpdate.id, newStatus);
+            await billingPeriodService.update(statusToUpdate.id, {
+                month: statusToUpdate.month,
+                year: statusToUpdate.year,
+                status: newStatus,
+                paymentDate: newPaymentDate || undefined
+            });
             await fetchBillingMonths();
-            toast.success('Status atualizado com sucesso!');
+            toast.success('Período atualizado com sucesso!');
             setShowStatusModal(false);
             setStatusToUpdate(null);
         } catch (error: any) {
-            console.error('Erro ao atualizar status:', error);
-            toast.error(error?.response?.data?.message ?? 'Erro ao atualizar status');
+            console.error('Erro ao atualizar período:', error);
+            toast.error(error?.response?.data?.message ?? 'Erro ao atualizar período');
         } finally {
             setUpdatingStatus(false);
         }
-    }, [statusToUpdate, newStatus, fetchBillingMonths]);
+    }, [statusToUpdate, newStatus, newPaymentDate, fetchBillingMonths]);
 
     const clearAllFilters = useCallback(() => {
         setFlowType('');
@@ -611,15 +619,6 @@ const BillingManagement: React.FC = () => {
                             </div>
                             <div className="mt-1 flex items-center gap-2">
                                 <StatusBadge status={billing.status} />
-                                {isAdmin && (
-                                    <button
-                                        onClick={() => handleUpdateStatus(billing)}
-                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
-                                        title="Alterar status"
-                                    >
-                                        Alterar
-                                    </button>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -670,13 +669,6 @@ const BillingManagement: React.FC = () => {
                                 <X className="w-5 h-5" />
                             </button>
                             <button
-                                onClick={() => handleDeleteBilling(billing)}
-                                className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
-                                title="Excluir"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                            <button
                                 onClick={() => handleBillingEmail(billing)}
                                 className={`rounded-lg p-2 transition-colors ${
                                     billing.billingEmailSent
@@ -686,6 +678,20 @@ const BillingManagement: React.FC = () => {
                                 title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
                             >
                                 <Mail className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => handleUpdateStatus(billing)}
+                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-colors"
+                                title="Editar período"
+                            >
+                                <Edit className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => handleDeleteBilling(billing)}
+                                className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-colors"
+                                title="Excluir"
+                            >
+                                <Trash2 className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => handleAttachments(billing)}
@@ -1008,18 +1014,7 @@ const BillingManagement: React.FC = () => {
                                                 </td>
 
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <StatusBadge status={billing.status} />
-                                                        {isAdmin && (
-                                                            <button
-                                                                onClick={() => handleUpdateStatus(billing)}
-                                                                className="text-blue-600 hover:text-blue-800 text-sm underline"
-                                                                title="Alterar status"
-                                                            >
-                                                                Alterar
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                    <StatusBadge status={billing.status} />
                                                 </td>
 
                                                 <td className="px-6 py-4">
@@ -1093,6 +1088,25 @@ const BillingManagement: React.FC = () => {
                                                                     Desvincular
                                                                 </button>
                                                                 <button
+                                                                    onClick={() => handleBillingEmail(billing)}
+                                                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                                                                        billing.billingEmailSent
+                                                                            ? 'text-green-600 bg-green-50 hover:bg-green-100'
+                                                                            : 'text-orange-600 bg-orange-50 hover:bg-orange-100'
+                                                                    }`}
+                                                                    title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
+                                                                >
+                                                                    <Mail className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleUpdateStatus(billing)}
+                                                                    className="inline-flex items-center gap-1.5 px-2 py-1.5 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                                                    title="Editar período"
+                                                                >
+                                                                    <Edit className="w-4 h-4" />
+                                                                    Editar
+                                                                </button>
+                                                                <button
                                                                     onClick={() => handleDeleteBilling(billing)}
                                                                     disabled={loadingList}
                                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
@@ -1109,21 +1123,6 @@ const BillingManagement: React.FC = () => {
                                                             >
                                                                 <Eye className="w-4 h-4" />
                                                                 Ver
-                                                            </button>
-                                                        )}
-                                                        
-                                                        {/* Botão de Email - apenas para ADMIN */}
-                                                        {isAdmin && (
-                                                            <button
-                                                                onClick={() => handleBillingEmail(billing)}
-                                                                className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
-                                                                    billing.billingEmailSent
-                                                                        ? 'text-green-600 bg-green-50 hover:bg-green-100'
-                                                                        : 'text-orange-600 bg-orange-50 hover:bg-orange-100'
-                                                                }`}
-                                                                title={billing.billingEmailSent ? "Email já enviado - Reenviar?" : "Enviar email de faturamento"}
-                                                            >
-                                                                <Mail className="w-4 h-4" />
                                                             </button>
                                                         )}
                                                     </div>
@@ -1218,7 +1217,7 @@ const BillingManagement: React.FC = () => {
 
                                 <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
                                     <p><strong>Nota:</strong> Novos períodos são sempre criados com status <strong>Pendente</strong>.</p>
-                                    <p>Você pode alterar o status após a criação clicando em "Alterar" na coluna Status.</p>
+                                    <p>Você pode editar o status e a data de pagamento após a criação clicando no botão "Editar" na coluna de Ações.</p>
                                 </div>
                             </div>
 
@@ -1365,13 +1364,13 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modal de alteração de status */}
+                {/* Modal de edição de período */}
                 {showStatusModal && statusToUpdate && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
                             <div className="p-6 border-b border-gray-100">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-gray-900">Alterar Status</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900">Editar Período</h3>
                                     <button
                                         onClick={() => {
                                             setShowStatusModal(false);
@@ -1394,7 +1393,7 @@ const BillingManagement: React.FC = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Novo Status
+                                        Status
                                     </label>
                                     <select
                                         value={newStatus}
@@ -1407,6 +1406,18 @@ const BillingManagement: React.FC = () => {
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Data de Pagamento
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={newPaymentDate}
+                                        onChange={(e) => setNewPaymentDate(e.target.value)}
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
                                 </div>
 
                                 <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -1433,18 +1444,18 @@ const BillingManagement: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleConfirmStatusUpdate}
-                                    disabled={updatingStatus || newStatus === statusToUpdate.status}
+                                    disabled={updatingStatus}
                                     className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {updatingStatus ? (
                                         <>
                                             <Loader2 className="w-4 h-4 animate-spin" />
-                                            Atualizando...
+                                            Salvando...
                                         </>
                                     ) : (
                                         <>
                                             <CheckCircle className="w-4 h-4" />
-                                            Alterar Status
+                                            Salvar Alterações
                                         </>
                                     )}
                                 </button>
