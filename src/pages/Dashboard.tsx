@@ -16,8 +16,7 @@ import {
   BarChart3,
   FileText,
   Plus,
-  Loader2,
-  Database
+  Loader2
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +35,6 @@ const Dashboard = () => {
   // Estados de loading para exportações
   const [exportingTasks, setExportingTasks] = useState(false);
   const [exportingDeliveries, setExportingDeliveries] = useState(false);
-  const [exportingGeneral, setExportingGeneral] = useState(false);
   const [exportingBilling, setExportingBilling] = useState(false);
 
   // Função para fazer download de blob
@@ -82,32 +80,6 @@ const Dashboard = () => {
       setExportingDeliveries(false);
     }
   };
-
-  // Função para exportar relatório geral
-  const handleExportGeneral = async () => {
-    try {
-      setExportingGeneral(true);
-
-      // Escolhe o relatório baseado no perfil do usuário
-      const blob = hasProfile('ADMIN') || hasProfile('MANAGER')
-        ? await taskService.exportGeneralReport()
-        : await taskService.exportGeneralReportForUser();
-
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      const filename = hasProfile('ADMIN') || hasProfile('MANAGER')
-        ? `relatorio_geral_completo_${timestamp}.xlsx`
-        : `relatorio_geral_user_${timestamp}.xlsx`;
-
-      downloadBlob(blob, filename);
-      toast.success('Relatório geral exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar relatório geral:', error);
-      toast.error('Erro ao exportar relatório geral');
-    } finally {
-      setExportingGeneral(false);
-    }
-  };
-
 
   // Função para exportar faturamento
   const handleExportBilling = async () => {
@@ -255,25 +227,7 @@ const Dashboard = () => {
 
         {/* Seção de Relatórios - Primeira posição */}
         <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className={`grid gap-4 ${hasProfile('ADMIN') || hasProfile('MANAGER') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-3'}`}>
-            {/* Relatório Geral - Disponível para todos os perfis */}
-            <div
-              onClick={handleExportGeneral}
-              className="flex flex-col items-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 cursor-pointer border-2 border-indigo-200 hover:border-indigo-300 shadow-md hover:shadow-lg"
-            >
-              {exportingGeneral ? (
-                <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
-              ) : (
-                <Database className="w-8 h-8 text-indigo-600 mb-2" />
-              )}
-              <span className="text-sm font-bold text-indigo-800 text-center">
-                {exportingGeneral ? 'Gerando...' : 'Relatório Geral'}
-              </span>
-              <span className="text-xs text-indigo-600 mt-1 text-center">
-                {hasProfile('ADMIN') || hasProfile('MANAGER') ? 'Visão Completa' : 'Visão User'}
-              </span>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {/* Exportar Tarefas */}
             <div
               onClick={handleExportTasks}
@@ -288,7 +242,6 @@ const Dashboard = () => {
                 {exportingTasks ? 'Exportando...' : 'Relatório Tarefas'}
               </span>
             </div>
-
 
             {/* Exportar Entregas */}
             <div
@@ -306,29 +259,27 @@ const Dashboard = () => {
             </div>
 
             {/* Exportar Faturamento */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <div
-                onClick={handleExportBilling}
-                className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
-              >
-                {exportingBilling ? (
-                  <Loader2 className="w-8 h-8 text-yellow-600 mb-2 animate-spin" />
-                ) : (
-                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-                )}
-                <span className="text-sm font-medium text-yellow-800 text-center">
-                  {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
-                </span>
-              </div>
-            ) : null}
+            <div
+              onClick={handleExportBilling}
+              className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
+            >
+              {exportingBilling ? (
+                <Loader2 className="w-8 h-8 text-yellow-600 mb-2 animate-spin" />
+              ) : (
+                <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
+              )}
+              <span className="text-sm font-medium text-yellow-800 text-center">
+                {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
+              </span>
+            </div>
           </div>
         </Card>
 
         {/* Seção de Atalhos - Segunda posição */}
         <Card title="🚀 Atalhos Rápidos" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-green-500">
-          <div className={`grid gap-4 ${
-            hasProfile('ADMIN') ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6' : 
-            hasProfile('MANAGER') ? 'grid-cols-2 md:grid-cols-4 lg:grid-cols-4' : 
+          <div className={`grid gap-6 max-w-5xl mx-auto ${
+            hasProfile('ADMIN') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5' :
+            hasProfile('MANAGER') ? 'grid-cols-1 md:grid-cols-3 lg:grid-cols-3' :
             'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
           }`}>
             {/* Ver Tarefas */}
