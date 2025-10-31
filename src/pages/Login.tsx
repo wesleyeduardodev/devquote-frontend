@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, Lock, User, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, LogIn, Phone, Mail, Linkedin, Github, Instagram, Facebook } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 type FormValues = { username: string; password: string; };
@@ -114,9 +114,79 @@ export default function Login() {
                     </form>
                 </div>
 
-                <div className="text-center space-y-2">
+                <div className="text-center space-y-4">
                     <p className="text-sm text-gray-600 font-medium">💼 Solução Empresarial para Desenvolvedores</p>
-                    <p className="text-xs text-gray-500">Gerencie projetos, orçamentos e entregas com eficiência</p>
+
+                    {/* Nome do Desenvolvedor */}
+                    <div className="space-y-1">
+                        <h3 className="text-base font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            Desenvolvido por Wesley Eduardo
+                        </h3>
+                        <p className="text-xs text-gray-600">Desenvolvedor Full Stack</p>
+                    </div>
+
+                    {/* Contatos */}
+                    <div className="flex flex-wrap justify-center gap-4 text-xs">
+                        <a
+                            href="tel:+5598981650805"
+                            className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>+55 98 98165-0805</span>
+                        </a>
+                        <a
+                            href="mailto:wesleyeduardo.dev@gmail.com"
+                            className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors"
+                        >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>wesleyeduardo.dev@gmail.com</span>
+                        </a>
+                    </div>
+
+                    {/* Redes Sociais */}
+                    <div className="flex justify-center gap-3">
+                        <a
+                            href="https://www.linkedin.com/in/wesley-eduardo-8a1066169/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/60 backdrop-blur-sm text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all duration-300 transform hover:scale-110 shadow-md"
+                            title="LinkedIn"
+                        >
+                            <Linkedin className="w-4 h-4" />
+                        </a>
+                        <a
+                            href="https://github.com/wesleyeduardodev"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/60 backdrop-blur-sm text-gray-700 hover:bg-gray-800 hover:text-white rounded-lg transition-all duration-300 transform hover:scale-110 shadow-md"
+                            title="GitHub"
+                        >
+                            <Github className="w-4 h-4" />
+                        </a>
+                        <a
+                            href="https://www.instagram.com/wesleyeduardo.dev?igsh=ano4MTVqN2F6ZWh0&utm_source=qr"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/60 backdrop-blur-sm text-pink-600 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white rounded-lg transition-all duration-300 transform hover:scale-110 shadow-md"
+                            title="Instagram"
+                        >
+                            <Instagram className="w-4 h-4" />
+                        </a>
+                        <a
+                            href="https://www.facebook.com/wesleyeduardo.dev"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-white/60 backdrop-blur-sm text-blue-700 hover:bg-blue-700 hover:text-white rounded-lg transition-all duration-300 transform hover:scale-110 shadow-md"
+                            title="Facebook"
+                        >
+                            <Facebook className="w-4 h-4" />
+                        </a>
+                    </div>
+
+                    {/* Copyright */}
+                    <div className="text-xs text-gray-500 pt-2">
+                        © 2025 DevQuote. Todos os direitos reservados.
+                    </div>
                 </div>
             </div>
         </div>
