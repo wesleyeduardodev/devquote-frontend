@@ -210,6 +210,44 @@ const DeliveryList: React.FC = () => {
             }
         },
         {
+            key: 'task.taskType',
+            title: 'TIPO',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '150px',
+            align: 'center' as const,
+            render: (delivery: DeliveryGroupResponse) => {
+                // Buscar taskType da delivery
+                const taskType = delivery.deliveries?.[0]?.taskType;
+
+                // Traduzir tipo de tarefa para português
+                const getTaskTypeLabel = (type: string | undefined) => {
+                    if (!type) return '-';
+                    switch (type) {
+                        // Tipos operacionais
+                        case 'BACKUP': return '💾 Backup';
+                        case 'DEPLOY': return '🚀 Deploy';
+                        case 'LOGS': return '📋 Logs';
+                        case 'NEW_SERVER': return '🖥️ Novo Servidor';
+                        case 'MONITORING': return '📊 Monitoramento';
+                        case 'SUPPORT': return '🔧 Suporte';
+                        // Tipos de desenvolvimento
+                        case 'BUG': return '🐛 Bug';
+                        case 'ENHANCEMENT': return '✨ Melhoria';
+                        case 'NEW_FEATURE': return '⭐ Nova Funcionalidade';
+                        default: return type;
+                    }
+                };
+
+                return (
+                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-700">
+                        {getTaskTypeLabel(taskType)}
+                    </span>
+                );
+            }
+        },
+        {
             key: 'task.title',
             title: 'TÍTULO DA TAREFA',
             sortable: true,
