@@ -20,6 +20,7 @@ import {
   Phone,
   Mail,
   Linkedin,
+  Github,
   Instagram,
   Facebook
 } from 'lucide-react';
@@ -385,6 +386,17 @@ const Dashboard = () => {
                 title="LinkedIn"
               >
                 <Linkedin className="w-5 h-5" />
+              </a>
+
+              {/* GitHub */}
+              <a
+                href="https://github.com/wesleyeduardodev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 bg-gray-100 text-gray-700 hover:bg-gray-800 hover:text-white rounded-full transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-gray-500/30"
+                title="GitHub"
+              >
+                <Github className="w-5 h-5" />
               </a>
 
               {/* Instagram */}
