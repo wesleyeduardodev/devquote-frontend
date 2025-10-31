@@ -19,6 +19,7 @@ import {
   Loader2,
   Hash,
 } from 'lucide-react';
+import { formatInputDate } from '../../utils/formatters';
 
 // Novos hooks e serviços
 import { useBillingPeriods } from '../../hooks/useBillingPeriods';
@@ -592,7 +593,7 @@ const BillingPeriodManagement: React.FC = () => {
                     <td className="p-3">
                       {period.paymentDate ? (
                         <span className="text-gray-900">
-                          {new Date(period.paymentDate).toLocaleDateString('pt-BR')}
+                          {formatInputDate(period.paymentDate)}
                         </span>
                       ) : (
                         <span className="text-gray-500">Não definida</span>

@@ -185,7 +185,16 @@ const BillingManagement: React.FC = () => {
 
     const formatDate = useCallback((date?: string | null) => {
         if (!date) return '-';
-        return new Date(date).toLocaleDateString('pt-BR');
+
+        // Parse manual para evitar problemas de timezone
+        const parts = date.split('-');
+        if (parts.length !== 3) return '-';
+
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+
+        return `${day}/${month}/${year}`;
     }, []);
 
     const getMonthLabel = useCallback((month: number) => {

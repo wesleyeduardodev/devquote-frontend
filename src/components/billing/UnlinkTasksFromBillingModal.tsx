@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { X, Unlink, Search, Loader2 } from 'lucide-react';
+import { X, Unlink, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import billingPeriodService from '@/services/billingPeriodService';
 import DataTable from '@/components/ui/DataTable';
@@ -50,7 +50,6 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [searchTerm, setSearchTerm] = useState('');
     const [sortField, setSortField] = useState<string>('task.id');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [filters, setFilters] = useState<Record<string, string>>({});
@@ -127,7 +126,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         setCurrentPage(0);
     }, [pageSize]);
 
-    // Filtrar tarefas localmente com base na busca e filtros por coluna
+    // Filtrar tarefas localmente com base nos filtros por coluna
     useEffect(() => {
         if (!linkedTasks) {
             setFilteredTasks([]);
@@ -136,23 +135,12 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
 
         const filtered = linkedTasks.filter(link => {
             const task = link?.task;
-            
-            // Filtro de busca geral
-            if (searchTerm) {
-                const matchesSearch = (
-                    task?.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    task?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    task?.requesterName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    task?.id?.toString().includes(searchTerm)
-                );
-                if (!matchesSearch) return false;
-            }
-            
+
             // Filtros por coluna
             for (const [key, value] of Object.entries(filters)) {
                 if (value && value.trim()) {
                     let fieldValue = '';
-                    
+
                     switch (key) {
                         case 'task.id':
                             fieldValue = task?.id?.toString() || '';
@@ -169,24 +157,23 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                         default:
                             fieldValue = '';
                     }
-                    
+
                     if (!fieldValue.toLowerCase().includes(value.toLowerCase())) {
                         return false;
                     }
                 }
             }
-            
+
             return true;
         });
 
         setFilteredTasks(filtered);
-    }, [linkedTasks, searchTerm, filters]);
+    }, [linkedTasks, filters]);
 
     // Carregar dados quando o modal abrir
     useEffect(() => {
         if (isOpen && billingPeriod) {
             setSelectedTasks([]);
-            setSearchTerm('');
             setFilters({});
             setCurrentPage(0);
             loadLinkedTasks();
@@ -319,20 +306,6 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                         >
                             <X className="w-6 h-6" />
                         </button>
-                    </div>
-                </div>
-
-                {/* Search Bar */}
-                <div className="px-6 py-4 border-b border-gray-100">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por código, título ou solicitante..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        />
                     </div>
                 </div>
 

@@ -64,6 +64,24 @@ export const formatDate = (date: Date | string | null | undefined, format: strin
     }
 };
 
+/**
+ * Formata uma data de input (formato YYYY-MM-DD) para dd/MM/yyyy
+ * Trata a data como local, evitando problemas de timezone
+ */
+export const formatInputDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return '-';
+
+    // Parse manual para evitar problemas de timezone
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return '-';
+
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+
+    return `${day}/${month}/${year}`;
+};
+
 export const formatDateTime = (date: Date | string | null | undefined): string => {
     return formatDate(date, 'dd/MM/yyyy HH:mm');
 };
