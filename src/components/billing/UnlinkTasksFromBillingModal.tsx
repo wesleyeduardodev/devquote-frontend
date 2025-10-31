@@ -79,8 +79,8 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
 
         setLoading(true);
         try {
-            // Só passa flowType se não for "TODOS"
-            const filterFlowType = flowType && flowType !== 'TODOS' ? flowType : undefined;
+            // Só passa flowType se não for vazio ou "TODOS"
+            const filterFlowType = flowType && flowType !== 'TODOS' && flowType !== '' ? flowType : undefined;
             const response = await billingPeriodService.findTaskLinksPaginated(billingPeriod.id, {
                 page: currentPage,
                 size: pageSize,

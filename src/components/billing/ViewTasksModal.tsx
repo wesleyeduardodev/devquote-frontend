@@ -77,8 +77,8 @@ const ViewTasksModal: React.FC<Props> = ({
 
         setLoading(true);
         try {
-            // Só passa flowType se não for "TODOS"
-            const filterFlowType = flowType && flowType !== 'TODOS' ? flowType : undefined;
+            // Só passa flowType se não for vazio ou "TODOS"
+            const filterFlowType = flowType && flowType !== 'TODOS' && flowType !== '' ? flowType : undefined;
             const response = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id, filterFlowType);
             // Ordenar por ID da tarefa em ordem decrescente
             const sortedResponse = response.sort((a, b) => (b?.task?.id || 0) - (a?.task?.id || 0));
