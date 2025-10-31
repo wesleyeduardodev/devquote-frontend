@@ -475,7 +475,7 @@ const DataTable = <T extends Record<string, any>>({
                             <th
                                 key={column.key}
                                 className={`px-3 py-3 sm:px-6 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
-                                style={{width: column.width}}
+                                style={column.width ? {width: column.width, minWidth: column.width, maxWidth: column.width} : {}}
                             >
                                 <div>
                                     {column.headerRender ? (
@@ -521,6 +521,7 @@ const DataTable = <T extends Record<string, any>>({
                                     <td
                                         key={column.key}
                                         className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-gray-900 ${getAlignClass(column.align)}`}
+                                        style={column.width ? {width: column.width, minWidth: column.width, maxWidth: column.width} : {}}
                                     >
                                         <div className="max-w-xs sm:max-w-none truncate">
                                             {renderCell(item, column)}

@@ -15,6 +15,7 @@ interface Task {
     status: string;
     amount: number;
     requesterName: string;
+    flowType: string;
     createdAt: string;
 }
 
@@ -184,6 +185,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             header: 'ID',
             sortable: true,
             filterable: true,
+            width: '60px',
+            align: 'center',
             render: (task: Task) => (
                 <span className="font-mono text-xs text-gray-500">#{task.id}</span>
             )
@@ -193,8 +196,26 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             header: 'Código',
             sortable: true,
             filterable: true,
+            width: '100px',
+            align: 'left',
             render: (task: Task) => (
-                <span className="font-mono text-sm">{task.code}</span>
+                <span className="font-mono text-xs">{task.code}</span>
+            )
+        },
+        {
+            key: 'flowType',
+            header: 'Fluxo',
+            sortable: true,
+            filterable: true,
+            width: '144px',
+            render: (task: Task) => (
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    task.flowType === 'DESENVOLVIMENTO'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                }`}>
+                    {task.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional'}
+                </span>
             )
         },
         {
@@ -219,15 +240,6 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                 <span className="font-semibold text-green-600">
                     R$ {task.amount?.toFixed(2) || '0,00'}
                 </span>
-            )
-        },
-        {
-            key: 'requesterName',
-            header: 'Solicitante',
-            sortable: true,
-            filterable: true,
-            render: (task: Task) => (
-                <span className="text-gray-600">{task.requesterName || '-'}</span>
             )
         }
     ];
@@ -398,22 +410,24 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                             />
                                         </div>
                                         <div>
+                                            <label className="block text-xs text-gray-600 mb-1">Fluxo</label>
+                                            <select
+                                                value={filters['flowType'] || ''}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, flowType: e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            >
+                                                <option value="">Todos</option>
+                                                <option value="DESENVOLVIMENTO">Desenvolvimento</option>
+                                                <option value="OPERACIONAL">Operacional</option>
+                                            </select>
+                                        </div>
+                                        <div>
                                             <label className="block text-xs text-gray-600 mb-1">Título</label>
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por título..."
                                                 value={filters['title'] || ''}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, title: e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-600 mb-1">Solicitante</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Filtrar por solicitante..."
-                                                value={filters['requesterName'] || ''}
-                                                onChange={(e) => setFilters(prev => ({ ...prev, requesterName: e.target.value }))}
                                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
@@ -464,15 +478,21 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
 
                                             {/* Informações da tarefa */}
                                             <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-600">Fluxo:</span>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                        task.flowType === 'DESENVOLVIMENTO'
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : 'bg-purple-100 text-purple-800'
+                                                    }`}>
+                                                        {task.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional'}
+                                                    </span>
+                                                </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-600">Valor:</span>
                                                     <span className="font-semibold text-green-600">
                                                         R$ {task.amount?.toFixed(2) || '0,00'}
                                                     </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-600">Solicitante:</span>
-                                                    <span className="text-gray-900">{task.requesterName || '-'}</span>
                                                 </div>
                                                 {task.description && (
                                                     <div className="mt-2 pt-2 border-t border-gray-100">
