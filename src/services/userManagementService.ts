@@ -145,5 +145,9 @@ export const userManagementService = {
     getAllPermissions: async (): Promise<any> => {
         const response = await api.get('/admin/users/permissions');
         return response.data;
+    },
+
+    resetPassword: async (id: number): Promise<void> => {
+        await api.post(`/admin/users/${id}/reset-password`);
     }
 };

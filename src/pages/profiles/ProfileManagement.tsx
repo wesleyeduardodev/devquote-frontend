@@ -13,7 +13,8 @@ import {
   Mail,
   Settings,
   Filter,
-  Search
+  Search,
+  Key
 } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,6 +75,9 @@ const ProfileManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<UserProfile | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [userToResetPassword, setUserToResetPassword] = useState<UserProfile | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
 
   // Form state for creating user
@@ -227,7 +231,7 @@ const ProfileManagement = () => {
 
   const handleConfirmDeleteUser = async () => {
     if (!itemToDelete) return;
-    
+
     setIsDeletingSingle(true);
     try {
       await deleteUser(itemToDelete.id);
@@ -238,6 +242,28 @@ const ProfileManagement = () => {
       setIsDeletingSingle(false);
       setShowDeleteModal(false);
       setItemToDelete(null);
+    }
+  };
+
+  const handleResetPassword = (userItem: UserProfile) => {
+    setUserToResetPassword(userItem);
+    setShowResetPasswordModal(true);
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!userToResetPassword) return;
+
+    setIsResettingPassword(true);
+    try {
+      const { userManagementService } = await import('@/services/userManagementService');
+      await userManagementService.resetPassword(userToResetPassword.id);
+      toast.success(`Senha do usuário "${userToResetPassword.username}" resetada para: usuario123`);
+    } catch (error: any) {
+      toast.error('Erro ao resetar senha do usuário');
+    } finally {
+      setIsResettingPassword(false);
+      setShowResetPasswordModal(false);
+      setUserToResetPassword(null);
     }
   };
 
@@ -1160,16 +1186,32 @@ const ProfileManagement = () => {
               </select>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowCreateUserModal(false)}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleSaveUser}>
-                {isEditing ? 'Salvar' : 'Criar'}
-              </Button>
+            <div className="flex justify-between items-center space-x-2 pt-4">
+              {isEditing && selectedUser && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateUserModal(false);
+                    handleResetPassword(selectedUser);
+                  }}
+                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300"
+                >
+                  <Key className="w-4 h-4 mr-2" />
+                  Resetar Senha
+                </Button>
+              )}
+
+              <div className="flex space-x-2 ml-auto">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateUserModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveUser}>
+                  {isEditing ? 'Salvar' : 'Criar'}
+                </Button>
+              </div>
             </div>
           </div>
         </Modal>
@@ -1195,11 +1237,55 @@ const ProfileManagement = () => {
         onConfirm={handleConfirmDeleteUser}
         itemName={itemToDelete?.username}
         isDeleting={isDeletingSingle}
-        description={itemToDelete && user?.id === itemToDelete.id 
-          ? "Você não pode excluir sua própria conta." 
+        description={itemToDelete && user?.id === itemToDelete.id
+          ? "Você não pode excluir sua própria conta."
           : undefined}
         variant={itemToDelete && user?.id === itemToDelete.id ? "warning" : "danger"}
       />
+
+      {/* Modal de confirmação de reset de senha */}
+      <Modal
+        isOpen={showResetPasswordModal}
+        onClose={() => {
+          setShowResetPasswordModal(false);
+          setUserToResetPassword(null);
+        }}
+        title="Resetar Senha do Usuário"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full">
+              <Key className="w-8 h-8 text-orange-600" />
+            </div>
+          </div>
+          <p className="text-center text-gray-700">
+            Tem certeza que deseja resetar a senha do usuário{' '}
+            <span className="font-semibold">{userToResetPassword?.username}</span>?
+          </p>
+          <p className="text-center text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+            A nova senha será: <span className="font-mono font-bold text-orange-600">usuario123</span>
+          </p>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowResetPasswordModal(false);
+                setUserToResetPassword(null);
+              }}
+              disabled={isResettingPassword}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmResetPassword}
+              disabled={isResettingPassword}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {isResettingPassword ? 'Resetando...' : 'Confirmar Reset'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
