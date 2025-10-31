@@ -27,6 +27,7 @@ export interface Delivery extends BaseEntity {
     taskId: number;
     taskName?: string; // Para exibição
     taskCode?: string; // Para exibição
+    taskType?: string; // Tipo da tarefa
     flowType?: string; // Tipo de fluxo da tarefa
     status: DeliveryStatus; // Status calculado automaticamente
     totalItems?: number;
@@ -104,6 +105,7 @@ export interface DeliveryGroupResponse {
     taskId: number;
     taskName: string;
     taskCode: string;
+    taskType?: string;
     taskValue?: number;
     deliveryId?: number; // ID da entrega principal (1:1 com task)
     deliveryStatus: DeliveryStatus;

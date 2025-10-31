@@ -38,6 +38,9 @@ interface Delivery {
     taskId?: number;
     taskName?: string;
     taskCode?: string;
+    taskType?: string;
+    // Dados da Entrega
+    flowType?: string;
     // Dados do Projeto
     projectId?: number;
     projectName?: string;
@@ -149,6 +152,36 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
         }
     };
 
+    const getFlowTypeLabel = (flowType?: string) => {
+        if (!flowType) return '-';
+        switch (flowType) {
+            case 'DESENVOLVIMENTO':
+                return 'Desenvolvimento';
+            case 'OPERACIONAL':
+                return 'Operacional';
+            default:
+                return flowType;
+        }
+    };
+
+    const getTaskTypeLabel = (taskType?: string) => {
+        if (!taskType) return '-';
+        switch (taskType) {
+            // Tipos operacionais
+            case 'BACKUP': return 'Backup';
+            case 'DEPLOY': return 'Deploy';
+            case 'LOGS': return 'Logs';
+            case 'NEW_SERVER': return 'Novo Servidor';
+            case 'MONITORING': return 'Monitoramento';
+            case 'SUPPORT': return 'Suporte';
+            // Tipos de desenvolvimento
+            case 'BUG': return 'Bug';
+            case 'ENHANCEMENT': return 'Melhoria';
+            case 'NEW_FEATURE': return 'Nova Funcionalidade';
+            default: return taskType;
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
@@ -218,6 +251,14 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                             <span className="text-sm text-blue-800 ml-2">{delivery.taskName}</span>
                                         </div>
                                     )}
+                                    <div>
+                                        <span className="text-sm font-medium text-blue-900">Fluxo:</span>
+                                        <span className="text-sm text-blue-800 ml-2">{getFlowTypeLabel(delivery.flowType)}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-medium text-blue-900">Tipo:</span>
+                                        <span className="text-sm text-blue-800 ml-2">{getTaskTypeLabel(delivery.taskType)}</span>
+                                    </div>
                                 </div>
                             </div>
                         )}

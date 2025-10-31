@@ -95,6 +95,29 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
         return labels[status] || status;
     };
 
+    const getFlowTypeLabel = (flowType?: string) => {
+        if (!flowType) return '-';
+        return flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional';
+    };
+
+    const getTaskTypeLabel = (taskType?: string) => {
+        if (!taskType) return '-';
+        const types: Record<string, string> = {
+            // Tipos operacionais
+            'BACKUP': 'Backup',
+            'DEPLOY': 'Deploy',
+            'LOGS': 'Logs',
+            'NEW_SERVER': 'Novo Servidor',
+            'MONITORING': 'Monitoramento',
+            'SUPPORT': 'Suporte',
+            // Tipos de desenvolvimento
+            'BUG': 'Bug',
+            'ENHANCEMENT': 'Melhoria',
+            'NEW_FEATURE': 'Nova Funcionalidade'
+        };
+        return types[taskType] || taskType;
+    };
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -132,6 +155,24 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                 {/* Content */}
                 <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
                     <div className="p-6 space-y-6">
+                        {/* Informações da Tarefa */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="text-sm font-medium text-blue-900">Fluxo:</span>
+                                    <span className="text-sm text-blue-800 ml-2">
+                                        {getFlowTypeLabel(deliveryGroup.deliveries?.[0]?.flowType)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-sm font-medium text-blue-900">Tipo de Tarefa:</span>
+                                    <span className="text-sm text-blue-800 ml-2">
+                                        {getTaskTypeLabel(deliveryGroup.deliveries?.[0]?.taskType)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Itens de Entrega */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
