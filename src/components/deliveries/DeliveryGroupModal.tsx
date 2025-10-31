@@ -21,6 +21,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { DeliveryGroupResponse, DeliveryItem } from '../../types/delivery.types';
+import { DeliveryOperationalItem } from '../../types/deliveryOperational';
 import { DeliveryAttachmentList } from './DeliveryAttachmentList';
 
 interface DeliveryGroupModalProps {
@@ -175,14 +176,22 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
 
                         {/* Itens de Entrega */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                <Package className="w-5 h-5 text-blue-600" />
-                                Itens de Entrega ({deliveryGroup.deliveries?.[0]?.items?.length || 0})
-                            </h3>
-                        
-                        {deliveryGroup.deliveries?.[0]?.items && deliveryGroup.deliveries[0].items.length > 0 ? (
+                            {(() => {
+                                const delivery = deliveryGroup.deliveries?.[0];
+                                const isOperacional = delivery?.flowType === 'OPERACIONAL';
+                                const items = isOperacional ? delivery?.operationalItems : delivery?.items;
+                                const itemCount = items?.length || 0;
+
+                                return (
+                                    <>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                            <Package className="w-5 h-5 text-blue-600" />
+                                            Itens de Entrega ({itemCount})
+                                        </h3>
+
+                        {items && items.length > 0 ? (
                             <div className="space-y-3">
-                                {deliveryGroup.deliveries[0].items.map((item) => {
+                                {items.map((item: any) => {
                                     const isExpanded = expandedItems.has(item.id);
                                     
                                     return (
@@ -203,7 +212,9 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                             <FolderOpen className="w-5 h-5 text-blue-600" />
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-medium text-gray-900">{item.projectName}</h4>
+                                                            <h4 className="font-medium text-gray-900">
+                                                                {isOperacional ? item.title : item.projectName}
+                                                            </h4>
                                                             <p className="text-sm text-gray-500">Item #{item.id}</p>
                                                         </div>
                                                     </div>
@@ -217,6 +228,62 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                             {isExpanded && (
                                                 <div className="bg-gray-50 p-4 border-t border-gray-200">
                                                     <div className="space-y-4">
+                                                        {isOperacional ? (
+                                                            <>
+                                                                {/* Descrição do Item Operacional */}
+                                                                {item.description && (
+                                                                    <div>
+                                                                        <h5 className="text-sm font-semibold text-gray-900 mb-3">Descrição</h5>
+                                                                        <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                                                            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                                                                {item.description}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Datas */}
+                                                                <div>
+                                                                    <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                                                        <Calendar className="w-4 h-4 text-blue-600" />
+                                                                        Cronograma
+                                                                    </h5>
+                                                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                                                        <div>
+                                                                            <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                                <Play className="w-3 h-3" />
+                                                                                Início:
+                                                                            </span>
+                                                                            <span className="text-gray-900 font-medium">
+                                                                                {item.startedAt ? formatDate(item.startedAt) : 'Não informado'}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div>
+                                                                            <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                                <Flag className="w-3 h-3" />
+                                                                                Finalização:
+                                                                            </span>
+                                                                            <span className="text-gray-900 font-medium">
+                                                                                {item.finishedAt ? formatDate(item.finishedAt) : 'Não informado'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Anexos Operacionais */}
+                                                                {item.attachments && item.attachments.length > 0 && (
+                                                                    <div>
+                                                                        <h5 className="text-sm font-semibold text-gray-900 mb-3">Anexos ({item.attachments.length})</h5>
+                                                                        <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                                                            <p className="text-xs text-gray-600 mb-2">
+                                                                                Este item possui {item.attachments.length} anexo(s).
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            <>
                                                         {/* Informações de Desenvolvimento */}
                                                         <div>
                                                             <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -373,6 +440,8 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                                 className="border-t pt-4"
                                                             />
                                                         </div>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -393,6 +462,9 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                 </p>
                             </div>
                         )}
+                                    </>
+                                );
+                            })()}
                         </div>
 
                         {/* Observações Gerais da Entrega */}

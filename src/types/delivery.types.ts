@@ -39,7 +39,8 @@ export interface Delivery extends BaseEntity {
     rejectedCount?: number;
     productionCount?: number;
     notes?: string; // Observações gerais da entrega
-    items?: DeliveryItem[]; // Lista de itens
+    items?: DeliveryItem[]; // Lista de itens (desenvolvimento)
+    operationalItems?: any[]; // Lista de itens operacionais
 }
 
 // Contadores de status para a entrega
