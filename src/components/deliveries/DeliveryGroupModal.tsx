@@ -23,6 +23,7 @@ import {
 import { DeliveryGroupResponse, DeliveryItem } from '../../types/delivery.types';
 import { DeliveryOperationalItem } from '../../types/deliveryOperational';
 import { DeliveryAttachmentList } from './DeliveryAttachmentList';
+import { DeliveryOperationalAttachmentList } from './DeliveryOperationalAttachmentList';
 
 interface DeliveryGroupModalProps {
     deliveryGroup: DeliveryGroupResponse | null;
@@ -271,16 +272,14 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                                 </div>
 
                                                                 {/* Anexos Operacionais */}
-                                                                {item.attachments && item.attachments.length > 0 && (
-                                                                    <div>
-                                                                        <h5 className="text-sm font-semibold text-gray-900 mb-3">Anexos ({item.attachments.length})</h5>
-                                                                        <div className="bg-white border border-gray-200 rounded-lg p-3">
-                                                                            <p className="text-xs text-gray-600 mb-2">
-                                                                                Este item possui {item.attachments.length} anexo(s).
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
+                                                                <div>
+                                                                    <DeliveryOperationalAttachmentList
+                                                                        operationalItemId={item.id}
+                                                                        readOnly={true}
+                                                                        forceExpanded={false}
+                                                                        className="border-t pt-4"
+                                                                    />
+                                                                </div>
                                                             </>
                                                         ) : (
                                                             <>
