@@ -82,8 +82,3 @@ export interface BulkTaskLinkRequest {
   billingPeriodId: number;
   taskIds: number[];
 }
-
-// Compatibilidade com tipos antigos (será removido gradualmente)
-export interface BillingMonth extends BillingPeriod {}
-export interface BillingMonthCreate extends BillingPeriodRequest {}
-export interface BillingMonthUpdate extends BillingPeriodUpdate {}

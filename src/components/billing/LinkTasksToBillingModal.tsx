@@ -37,13 +37,15 @@ interface Props {
     onClose: () => void;
     billingPeriod: BillingPeriod | null;
     onTasksLinked: () => void;
+    flowType?: string;
 }
 
 const LinkTasksToBillingModal: React.FC<Props> = ({
     isOpen,
     onClose,
     billingPeriod,
-    onTasksLinked
+    onTasksLinked,
+    flowType
 }) => {
     // Estados da tabela
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -69,11 +71,16 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         
         setLoading(true);
         try {
+            const allFilters = { ...filters };
+            if (flowType) {
+                allFilters.flowType = flowType;
+            }
+
             const response = await taskService.getUnlinkedPaginated({
                 page: currentPage,
                 size: pageSize,
                 sort: sorting,
-                filters: filters
+                filters: allFilters
             });
 
             setTasks(response.content || []);
@@ -90,7 +97,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         } finally {
             setLoading(false);
         }
-    }, [billingPeriod?.id, currentPage, pageSize, sorting, filters]);
+    }, [billingPeriod?.id, currentPage, pageSize, sorting, filters, flowType]);
 
     // Vincular tarefas selecionadas
     const handleLinkTasks = useCallback(async () => {

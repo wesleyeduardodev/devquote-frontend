@@ -20,6 +20,26 @@ const billingPeriodService = {
     return res.data;
   },
 
+  findAllWithFilters: async (params: {
+    year?: number;
+    month?: number;
+    status?: string;
+    flowType?: string;
+  }): Promise<BillingPeriod[]> => {
+    const queryParams = new URLSearchParams();
+    if (params.year) queryParams.append('year', params.year.toString());
+    if (params.month) queryParams.append('month', params.month.toString());
+    if (params.status) queryParams.append('status', params.status);
+    if (params.flowType && params.flowType !== 'TODOS') queryParams.append('flowType', params.flowType);
+
+    const url = queryParams.toString()
+      ? `/billing-periods?${queryParams.toString()}`
+      : '/billing-periods';
+
+    const res = await api.get(url);
+    return res.data;
+  },
+
   findAllWithTotals: async (): Promise<BillingPeriod[]> => {
     const res = await api.get('/billing-periods/with-totals');
     return res.data;
@@ -107,8 +127,15 @@ const billingPeriodService = {
     return true;
   },
 
-  findTaskLinksByBillingPeriod: async (billingPeriodId: number): Promise<BillingPeriodTask[]> => {
-    const res = await api.get(`/billing-period-tasks/billing-period/${billingPeriodId}`);
+  findTaskLinksByBillingPeriod: async (billingPeriodId: number, flowType?: string): Promise<BillingPeriodTask[]> => {
+    const params = new URLSearchParams();
+    if (flowType && flowType !== 'TODOS') {
+      params.append('flowType', flowType);
+    }
+    const url = params.toString()
+      ? `/billing-period-tasks/billing-period/${billingPeriodId}?${params.toString()}`
+      : `/billing-period-tasks/billing-period/${billingPeriodId}`;
+    const res = await api.get(url);
     return res.data;
   },
 
@@ -126,57 +153,12 @@ const billingPeriodService = {
   },
 
   bulkUnlinkTasks: async (billingPeriodId: number, taskIds: number[]): Promise<void> => {
-    await api.delete(`/billing-period-tasks/billing-period/${billingPeriodId}/bulk-unlink`, { 
-      data: taskIds 
+    await api.delete(`/billing-period-tasks/billing-period/${billingPeriodId}/bulk-unlink`, {
+      data: taskIds
     });
   },
 
-  // ========== MÉTODOS DE COMPATIBILIDADE (DEPRECATED) ==========
-  // Manter temporariamente para compatibilidade com código existente
-
-  /** @deprecated Use findAll() instead */
-  findAllBillingMonths: async (): Promise<BillingPeriod[]> => {
-    console.warn('findAllBillingMonths is deprecated. Use findAll() instead.');
-    return billingPeriodService.findAll();
-  },
-
-  /** @deprecated Use create() instead */
-  createBillingMonth: async (data: BillingPeriodRequest): Promise<BillingPeriod> => {
-    console.warn('createBillingMonth is deprecated. Use create() instead.');
-    return billingPeriodService.create(data);
-  },
-
-  /** @deprecated Use update() instead */
-  updateBillingMonth: async (id: number, data: BillingPeriodUpdate): Promise<BillingPeriod> => {
-    console.warn('updateBillingMonth is deprecated. Use update() instead.');
-    return billingPeriodService.update(id, data);
-  },
-
-  /** @deprecated Use delete() instead */
-  deleteBillingMonth: async (id: number): Promise<boolean> => {
-    console.warn('deleteBillingMonth is deprecated. Use delete() instead.');
-    return billingPeriodService.delete(id);
-  },
-
-  /** @deprecated Quote operations are no longer available. Use Task operations instead. */
-  linkQuoteToBilling: async (billingPeriodId: number, quoteId: number): Promise<never> => {
-    throw new Error('Quote operations are no longer available. Use linkTaskToBilling instead.');
-  },
-
-  /** @deprecated Quote operations are no longer available. Use Task operations instead. */
-  unlinkQuoteFromBilling: async (linkId: number): Promise<never> => {
-    throw new Error('Quote operations are no longer available. Use unlinkTaskFromBilling instead.');
-  },
-
-  /** @deprecated Quote operations are no longer available. Use Task operations instead. */
-  bulkLinkQuotes: async (requests: any[]): Promise<never> => {
-    throw new Error('Quote operations are no longer available. Use bulkLinkTasks instead.');
-  },
-
-  /** @deprecated Quote operations are no longer available. Use Task operations instead. */
-  bulkUnlinkQuotes: async (billingPeriodId: number, quoteIds: number[]): Promise<never> => {
-    throw new Error('Quote operations are no longer available. Use bulkUnlinkTasks instead.');
-  },
+  // ========== EMAIL ==========
 
   // Send billing email
   sendBillingEmail: async (id: number, additionalEmails?: string[]): Promise<void> => {

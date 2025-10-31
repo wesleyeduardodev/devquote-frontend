@@ -35,6 +35,7 @@ interface BillingPeriod {
 }
 
 interface Props {
+    flowType?: string;
     isOpen: boolean;
     onClose: () => void;
     billingPeriod: BillingPeriod | null;

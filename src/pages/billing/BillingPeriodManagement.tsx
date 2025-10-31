@@ -24,13 +24,14 @@ import {
 import { useBillingPeriods } from '../../hooks/useBillingPeriods';
 import { useAuth } from '../../hooks/useAuth';
 import billingPeriodService from '../../services/billingPeriodService';
-import useTasks from '../../hooks/useTasks'; // Para gerenciar tarefas em vez de quotes
+import { useTasks } from '../../hooks/useTasks'; // Para gerenciar tarefas em vez de quotes
 
 // Componentes
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BillingPeriodForm from '../../components/forms/BillingPeriodForm';
 import Modal from '../../components/ui/Modal';
+import { FlowTypeFilter, FlowTypeFilterValue } from '../../components/filters/FlowTypeFilter';
 
 // Tipos
 import { 
@@ -46,6 +47,7 @@ interface TaskLinkManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   billingPeriod: BillingPeriod | null;
+  flowType: FlowTypeFilterValue;
   onSuccess?: () => void;
 }
 
@@ -53,6 +55,7 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
   isOpen,
   onClose,
   billingPeriod,
+  flowType,
   onSuccess
 }) => {
   const [loading, setLoading] = useState(false);
@@ -64,14 +67,14 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
     if (isOpen && billingPeriod) {
       loadLinkedTasks();
     }
-  }, [isOpen, billingPeriod]);
+  }, [isOpen, billingPeriod, flowType]);
 
   const loadLinkedTasks = async () => {
     if (!billingPeriod) return;
-    
+
     setLoading(true);
     try {
-      const links = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id);
+      const links = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id, flowType);
       setLinkedTasks(links);
     } catch (error: any) {
       toast.error('Erro ao carregar tarefas vinculadas');
@@ -122,9 +125,11 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
     }
   };
 
-  const availableTasks = tasks.filter(task => 
-    !linkedTasks.some(link => link.taskId === task.id)
-  );
+  const availableTasks = tasks.filter(task => {
+    const notLinked = !linkedTasks.some(link => link.taskId === task.id);
+    const matchesFlowType = flowType === 'TODOS' || task.flowType === flowType;
+    return notLinked && matchesFlowType;
+  });
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Gerenciar Tarefas do Período">
@@ -215,6 +220,7 @@ const BillingPeriodManagement: React.FC = () => {
     billingPeriods,
     loading,
     error,
+    fetchBillingPeriods,
     createBillingPeriod,
     updateBillingPeriod,
     deleteBillingPeriod,
@@ -230,12 +236,19 @@ const BillingPeriodManagement: React.FC = () => {
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedPeriodForTasks, setSelectedPeriodForTasks] = useState<BillingPeriod | null>(null);
-  const [statistics, setStatistics] = useState<any>({});
-  const [searchTerm, setSearchTerm] = useState('');
+  const [statistics, setStatistics] = useState<{ byStatus?: { [key: string]: number } }>({});
+  const [yearFilter, setYearFilter] = useState<number | undefined>();
+  const [monthFilter, setMonthFilter] = useState<number | undefined>();
   const [statusFilter, setStatusFilter] = useState<StatusValue | ''>('');
+  const [flowType, setFlowType] = useState<FlowTypeFilterValue>('TODOS');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<BillingPeriod | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+
+  // Carregar períodos com filtros
+  useEffect(() => {
+    fetchBillingPeriods(yearFilter, monthFilter, statusFilter || undefined, flowType);
+  }, [yearFilter, monthFilter, statusFilter, flowType, fetchBillingPeriods]);
 
   // Carregar estatísticas
   useEffect(() => {
@@ -249,19 +262,6 @@ const BillingPeriodManagement: React.FC = () => {
     };
     loadStats();
   }, [billingPeriods]);
-
-  // Filtros e busca
-  const filteredPeriods = useMemo(() => {
-    return billingPeriods.filter(period => {
-      const matchesSearch = searchTerm === '' || 
-        `${period.month}/${period.year}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        period.status.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === '' || period.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [billingPeriods, searchTerm, statusFilter]);
 
   // Handlers
   const handleCreate = async (data: BillingPeriodRequest) => {
@@ -411,9 +411,9 @@ const BillingPeriodManagement: React.FC = () => {
       </div>
 
       {/* Estatísticas */}
-      {Object.keys(statistics).length > 0 && (
+      {statistics.byStatus && Object.keys(statistics.byStatus).length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Object.entries(statistics).map(([status, count]: [string, any]) => (
+          {Object.entries(statistics.byStatus).map(([status, count]: [string, number]) => (
             <div key={status} className="bg-white p-4 rounded-lg border">
               <div className="flex items-center justify-between">
                 <div>
@@ -427,33 +427,62 @@ const BillingPeriodManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Filtros e Busca */}
+      {/* Filtros */}
       <div className="bg-white p-4 rounded-lg border space-y-4">
         <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Buscar por mês/ano ou status..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
+          <select
+            value={yearFilter || ''}
+            onChange={(e) => setYearFilter(e.target.value ? Number(e.target.value) : undefined)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Todos os anos</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+          </select>
+
+          <select
+            value={monthFilter || ''}
+            onChange={(e) => setMonthFilter(e.target.value ? Number(e.target.value) : undefined)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Todos os meses</option>
+            <option value="1">Janeiro</option>
+            <option value="2">Fevereiro</option>
+            <option value="3">Março</option>
+            <option value="4">Abril</option>
+            <option value="5">Maio</option>
+            <option value="6">Junho</option>
+            <option value="7">Julho</option>
+            <option value="8">Agosto</option>
+            <option value="9">Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+          </select>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as StatusValue | '')}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">Todos os Status</option>
+            <option value="">Todos os status</option>
             <option value="PENDENTE">Pendente</option>
             <option value="FATURADO">Faturado</option>
             <option value="PAGO">Pago</option>
             <option value="ATRASADO">Atrasado</option>
             <option value="CANCELADO">Cancelado</option>
+          </select>
+
+          <select
+            value={flowType}
+            onChange={(e) => setFlowType(e.target.value as FlowTypeFilterValue)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="TODOS">Todos os fluxos</option>
+            <option value="DESENVOLVIMENTO">Desenvolvimento</option>
+            <option value="OPERACIONAL">Operacional</option>
           </select>
 
           <button
@@ -498,12 +527,12 @@ const BillingPeriodManagement: React.FC = () => {
             <Loader2 className="animate-spin mr-2" size={24} />
             Carregando períodos...
           </div>
-        ) : filteredPeriods.length === 0 ? (
+        ) : billingPeriods.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum período encontrado</h3>
             <p className="text-gray-600">
-              {searchTerm || statusFilter ? 'Tente ajustar os filtros de busca.' : 'Crie seu primeiro período de faturamento.'}
+              {yearFilter || monthFilter || statusFilter || flowType !== 'TODOS' ? 'Tente ajustar os filtros.' : 'Crie seu primeiro período de faturamento.'}
             </p>
           </div>
         ) : (
@@ -514,10 +543,10 @@ const BillingPeriodManagement: React.FC = () => {
                   <th className="w-12 p-3">
                     <input
                       type="checkbox"
-                      checked={selectedPeriods.length === filteredPeriods.length && filteredPeriods.length > 0}
+                      checked={selectedPeriods.length === billingPeriods.length && billingPeriods.length > 0}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedPeriods(filteredPeriods.map(p => p.id));
+                          setSelectedPeriods(billingPeriods.map(p => p.id));
                         } else {
                           setSelectedPeriods([]);
                         }
@@ -533,7 +562,7 @@ const BillingPeriodManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredPeriods.map((period) => (
+                {billingPeriods.map((period) => (
                   <tr key={period.id} className="hover:bg-gray-50">
                     <td className="p-3">
                       <input
@@ -652,8 +681,9 @@ const BillingPeriodManagement: React.FC = () => {
           setSelectedPeriodForTasks(null);
         }}
         billingPeriod={selectedPeriodForTasks}
+        flowType={flowType}
         onSuccess={() => {
-          // Recarregar dados se necessário
+          fetchBillingPeriods(yearFilter, monthFilter, statusFilter || undefined, flowType);
         }}
       />
 

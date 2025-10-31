@@ -13,7 +13,6 @@ import {
     Clock,
     AlertCircle,
     XCircle,
-    Search,
     Download,
     Eye,
     TrendingUp,
@@ -144,10 +143,10 @@ const BillingManagement: React.FC = () => {
     const [billingForAttachment, setBillingForAttachment] = useState<BillingMonth | null>(null);
 
     // Filtros gerais (desktop + mobile)
-    const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [yearFilter, setYearFilter] = useState('');
     const [monthFilter, setMonthFilter] = useState('');
+    const [flowType, setFlowType] = useState('');
 
 
     // Form
@@ -195,7 +194,12 @@ const BillingManagement: React.FC = () => {
     const fetchBillingMonths = useCallback(async () => {
         setLoadingList(true);
         try {
-            const data = await billingPeriodService.findAllWithTotals() as (BillingMonth & { totalAmount?: number; taskCount?: number })[] | undefined;
+            const data = await billingPeriodService.findAllWithFilters({
+                year: yearFilter ? parseInt(yearFilter) : undefined,
+                month: monthFilter ? parseInt(monthFilter) : undefined,
+                status: statusFilter || undefined,
+                flowType: flowType || undefined
+            }) as (BillingMonth & { totalAmount?: number; taskCount?: number })[] | undefined;
             const processedData = (data ?? []).map(item => {
                 const { totalAmount, taskCount, ...billing } = item;
                 return { ...billing, taskCount } as BillingMonth;
@@ -213,7 +217,7 @@ const BillingManagement: React.FC = () => {
         } finally {
             setLoadingList(false);
         }
-    }, []);
+    }, [yearFilter, monthFilter, statusFilter, flowType]);
 
     // Removed loadTotals - now handled in fetchBillingMonths with server-calculated totals
 
@@ -224,23 +228,14 @@ const BillingManagement: React.FC = () => {
     // Removed loadTotals useEffect - totals now calculated server-side
 
     const filteredBillingMonths = useMemo(() => {
-        return billingMonths.filter(billing => {
-            const monthName = getMonthLabel(billing.month);
-            const matchesSearch = searchTerm === '' ||
-                monthName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                billing.year.toString().includes(searchTerm);
-            const matchesStatus = statusFilter === '' || billing.status === statusFilter;
-            const matchesYear = yearFilter === '' || billing.year.toString() === yearFilter;
-            const matchesMonth = monthFilter === '' || billing.month.toString() === monthFilter;
-
-            return matchesSearch && matchesStatus && matchesYear && matchesMonth;
-        }).sort((a, b) => {
+        // Backend já filtra, só precisa ordenar
+        return [...billingMonths].sort((a, b) => {
             // Garantir ordenação: ano DESC, mês DESC, id DESC
             if (a.year !== b.year) return b.year - a.year;
             if (a.month !== b.month) return b.month - a.month;
             return b.id - a.id;
         });
-    }, [billingMonths, searchTerm, statusFilter, yearFilter, monthFilter, getMonthLabel]);
+    }, [billingMonths]);
 
     const stats = useMemo(() => {
         const filteredData = filteredBillingMonths;
@@ -463,7 +458,7 @@ const BillingManagement: React.FC = () => {
     }, [statusToUpdate, newStatus, fetchBillingMonths]);
 
     const clearAllFilters = useCallback(() => {
-        setSearchTerm('');
+        setFlowType('');
         setStatusFilter('');
         setYearFilter('');
         setMonthFilter('');
@@ -796,7 +791,7 @@ const BillingManagement: React.FC = () => {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-medium text-gray-900">Filtros</h3>
-                            {(searchTerm || statusFilter || yearFilter || monthFilter) && (
+                            {(flowType || statusFilter || yearFilter || monthFilter) && (
                                 <button
                                     onClick={clearAllFilters}
                                     className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -808,17 +803,16 @@ const BillingManagement: React.FC = () => {
 
                         <div className="grid grid-cols-4 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar por mês ou ano..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    />
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Fluxo</label>
+                                <select
+                                    value={flowType}
+                                    onChange={(e) => setFlowType(e.target.value)}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">Todos os fluxos</option>
+                                    <option value="DESENVOLVIMENTO">Desenvolvimento</option>
+                                    <option value="OPERACIONAL">Operacional</option>
+                                </select>
                             </div>
 
                             <div>
@@ -894,21 +888,10 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Busca simples + seleção (Mobile) */}
+                {/* Seleção (Mobile) */}
                 <div className="lg:hidden space-y-3">
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por mês ou ano..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3 mt-3">
+                        <div className="flex items-center justify-between gap-3">
                             <button
                                 onClick={toggleAll}
                                 className="inline-flex items-center gap-2 px-3 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
@@ -1266,6 +1249,7 @@ const BillingManagement: React.FC = () => {
                     }}
                     billingPeriod={selectedBilling}
                     onTasksLinked={fetchBillingMonths}
+                    flowType={flowType || undefined}
                 />
 
                 {/* Modal de Desvincular Tarefas */}
@@ -1277,6 +1261,7 @@ const BillingManagement: React.FC = () => {
                     }}
                     billingPeriod={selectedBilling}
                     onTasksUnlinked={fetchBillingMonths}
+                    flowType={flowType || undefined}
                 />
 
                 {/* Modal de Visualizar Tarefas */}
@@ -1287,6 +1272,7 @@ const BillingManagement: React.FC = () => {
                         setSelectedBilling(null);
                     }}
                     billingPeriod={selectedBilling}
+                    flowType={flowType || undefined}
                 />
 
                 {/* Modal de exclusão individual */}
