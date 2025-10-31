@@ -162,9 +162,10 @@ const billingPeriodService = {
   // ========== EMAIL ==========
 
   // Send billing email
-  sendBillingEmail: async (id: number, additionalEmails?: string[]): Promise<void> => {
+  sendBillingEmail: async (id: number, additionalEmails?: string[], flowType?: string): Promise<void> => {
     await api.post(`/billing-periods/${id}/send-billing-email`, {
-      additionalEmails: additionalEmails || []
+      additionalEmails: additionalEmails || [],
+      flowType: flowType
     });
   }
 };

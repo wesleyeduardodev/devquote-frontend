@@ -357,7 +357,7 @@ const BillingManagement: React.FC = () => {
 
         setSendingEmail(true);
         try {
-            await billingPeriodService.sendBillingEmail(billingForEmail.id, additionalEmails);
+            await billingPeriodService.sendBillingEmail(billingForEmail.id, additionalEmails, flowType || undefined);
             await fetchBillingMonths();
             setShowEmailModal(false);
             setBillingForEmail(null);
@@ -371,7 +371,7 @@ const BillingManagement: React.FC = () => {
         } finally {
             setSendingEmail(false);
         }
-    }, [billingForEmail, additionalEmails, fetchBillingMonths]);
+    }, [billingForEmail, additionalEmails, flowType, fetchBillingMonths]);
 
     // Handler para abrir modal de anexos
     const handleAttachments = useCallback((billing: BillingMonth) => {
