@@ -92,6 +92,7 @@ const billingPeriodService = {
     month?: number;
     year?: number;
     status?: string;
+    flowType?: string;
   }): Promise<Blob> => {
     const response = await api.get('/billing-periods/export/excel', {
       params,

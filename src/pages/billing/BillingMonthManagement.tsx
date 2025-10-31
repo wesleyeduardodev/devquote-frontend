@@ -385,7 +385,8 @@ const BillingManagement: React.FC = () => {
             const params = {
                 month: monthFilter ? parseInt(monthFilter) : undefined,
                 year: yearFilter ? parseInt(yearFilter) : undefined,
-                status: statusFilter || undefined
+                status: statusFilter || undefined,
+                flowType: flowType || undefined
             };
 
             const blob = await billingPeriodService.exportToExcel(params);
@@ -415,7 +416,7 @@ const BillingManagement: React.FC = () => {
         } finally {
             setExportLoading(false);
         }
-    }, [monthFilter, yearFilter, statusFilter]);
+    }, [monthFilter, yearFilter, statusFilter, flowType]);
 
     const handleDeleteBilling = useCallback((billing: BillingMonth) => {
         setItemToDelete(billing);
