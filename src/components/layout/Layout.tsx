@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Menu, X, Settings, User, LogOut } from 'lucide-react';
+import Footer from './Footer';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -284,6 +285,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <main className="px-4 sm:px-6 lg:px-8 py-6">
                 {children}
             </main>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };
