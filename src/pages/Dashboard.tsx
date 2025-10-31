@@ -40,7 +40,8 @@ const Dashboard = () => {
 
   // Estados de loading para exportações
   const [exportingTasks, setExportingTasks] = useState(false);
-  const [exportingDeliveries, setExportingDeliveries] = useState(false);
+  const [exportingDeliveriesDev, setExportingDeliveriesDev] = useState(false);
+  const [exportingDeliveriesOp, setExportingDeliveriesOp] = useState(false);
   const [exportingBilling, setExportingBilling] = useState(false);
 
   // Função para fazer download de blob
@@ -71,19 +72,35 @@ const Dashboard = () => {
     }
   };
 
-  // Função para exportar entregas
-  const handleExportDeliveries = async () => {
+  // Função para exportar entregas - Desenvolvimento
+  const handleExportDeliveriesDev = async () => {
     try {
-      setExportingDeliveries(true);
-      const blob = await deliveryService.exportToExcel();
+      setExportingDeliveriesDev(true);
+      const blob = await deliveryService.exportToExcel('DESENVOLVIMENTO');
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_entregas_${timestamp}.xlsx`);
-      toast.success('Relatório de entregas exportado com sucesso!');
+      downloadBlob(blob, `relatorio_entregas_desenvolvimento_${timestamp}.xlsx`);
+      toast.success('Relatório de entregas (Desenvolvimento) exportado com sucesso!');
     } catch (error: any) {
-      console.error('Erro ao exportar entregas:', error);
+      console.error('Erro ao exportar entregas desenvolvimento:', error);
       toast.error('Erro ao exportar relatório de entregas');
     } finally {
-      setExportingDeliveries(false);
+      setExportingDeliveriesDev(false);
+    }
+  };
+
+  // Função para exportar entregas - Operacional
+  const handleExportDeliveriesOp = async () => {
+    try {
+      setExportingDeliveriesOp(true);
+      const blob = await deliveryService.exportToExcel('OPERACIONAL');
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+      downloadBlob(blob, `relatorio_entregas_operacional_${timestamp}.xlsx`);
+      toast.success('Relatório de entregas (Operacional) exportado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao exportar entregas operacional:', error);
+      toast.error('Erro ao exportar relatório de entregas');
+    } finally {
+      setExportingDeliveriesOp(false);
     }
   };
 
@@ -233,7 +250,7 @@ const Dashboard = () => {
 
         {/* Seção de Relatórios - Primeira posição */}
         <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {/* Exportar Tarefas */}
             <div
               onClick={handleExportTasks}
@@ -249,18 +266,33 @@ const Dashboard = () => {
               </span>
             </div>
 
-            {/* Exportar Entregas */}
+            {/* Exportar Entregas Desenvolvimento */}
             <div
-              onClick={handleExportDeliveries}
+              onClick={handleExportDeliveriesDev}
               className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
             >
-              {exportingDeliveries ? (
+              {exportingDeliveriesDev ? (
                 <Loader2 className="w-8 h-8 text-purple-600 mb-2 animate-spin" />
               ) : (
                 <Truck className="w-8 h-8 text-purple-600 mb-2" />
               )}
               <span className="text-sm font-medium text-purple-800 text-center">
-                {exportingDeliveries ? 'Exportando...' : 'Relatório Entregas'}
+                {exportingDeliveriesDev ? 'Exportando...' : 'Entrega Desenvolvimento'}
+              </span>
+            </div>
+
+            {/* Exportar Entregas Operacional */}
+            <div
+              onClick={handleExportDeliveriesOp}
+              className="flex flex-col items-center p-6 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
+            >
+              {exportingDeliveriesOp ? (
+                <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
+              ) : (
+                <Truck className="w-8 h-8 text-indigo-600 mb-2" />
+              )}
+              <span className="text-sm font-medium text-indigo-800 text-center">
+                {exportingDeliveriesOp ? 'Exportando...' : 'Entrega Operacional'}
               </span>
             </div>
 
