@@ -75,6 +75,7 @@ export interface BillingPeriodTaskPaginatedParams {
   size?: number;
   sortBy?: string;
   sortDirection?: string;
+  flowType?: string;
 }
 
 // Tipos para operações em lote

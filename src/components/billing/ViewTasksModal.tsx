@@ -45,7 +45,8 @@ interface Props {
 const ViewTasksModal: React.FC<Props> = ({
     isOpen,
     onClose,
-    billingPeriod
+    billingPeriod,
+    flowType
 }) => {
     // Estados da tabela
     const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
@@ -76,7 +77,9 @@ const ViewTasksModal: React.FC<Props> = ({
 
         setLoading(true);
         try {
-            const response = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id);
+            // Só passa flowType se não for "TODOS"
+            const filterFlowType = flowType && flowType !== 'TODOS' ? flowType : undefined;
+            const response = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id, filterFlowType);
             // Ordenar por ID da tarefa em ordem decrescente
             const sortedResponse = response.sort((a, b) => (b?.task?.id || 0) - (a?.task?.id || 0));
             setLinkedTasks(sortedResponse);
@@ -86,7 +89,7 @@ const ViewTasksModal: React.FC<Props> = ({
         } finally {
             setLoading(false);
         }
-    }, [billingPeriod?.id]);
+    }, [billingPeriod?.id, flowType]);
 
     useEffect(() => {
         if (isOpen && billingPeriod) {

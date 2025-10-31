@@ -73,7 +73,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         setLoading(true);
         try {
             const allFilters = { ...filters };
-            if (flowType) {
+            if (flowType && flowType !== 'TODOS') {
                 allFilters.flowType = flowType;
             }
 

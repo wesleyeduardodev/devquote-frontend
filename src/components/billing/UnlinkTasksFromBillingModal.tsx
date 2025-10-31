@@ -36,13 +36,15 @@ interface Props {
     onClose: () => void;
     billingPeriod: BillingPeriod | null;
     onTasksUnlinked: () => void;
+    flowType?: string;
 }
 
 const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     isOpen,
     onClose,
     billingPeriod,
-    onTasksUnlinked
+    onTasksUnlinked,
+    flowType
 }) => {
     // Estados da tabela
     const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
@@ -74,16 +76,19 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     // Carregar tarefas vinculadas com paginação
     const loadLinkedTasks = useCallback(async () => {
         if (!billingPeriod?.id) return;
-        
+
         setLoading(true);
         try {
+            // Só passa flowType se não for "TODOS"
+            const filterFlowType = flowType && flowType !== 'TODOS' ? flowType : undefined;
             const response = await billingPeriodService.findTaskLinksPaginated(billingPeriod.id, {
                 page: currentPage,
                 size: pageSize,
                 sortBy: sortField === 'task.id' ? 'task.id' : sortField,
-                sortDirection: sortDirection
+                sortDirection: sortDirection,
+                flowType: filterFlowType
             });
-            
+
             setLinkedTasks(response.content || []);
             setPagination({
                 currentPage: response.number || 0,
@@ -99,7 +104,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         } finally {
             setLoading(false);
         }
-    }, [billingPeriod?.id, currentPage, pageSize, sortField, sortDirection]);
+    }, [billingPeriod?.id, currentPage, pageSize, sortField, sortDirection, flowType]);
 
     // Desvincular tarefas selecionadas
     const handleUnlinkTasks = useCallback(async () => {
