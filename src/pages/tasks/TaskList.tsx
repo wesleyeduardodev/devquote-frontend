@@ -471,11 +471,11 @@ const TaskList: React.FC = () => {
             filterable: true,
             filterType: 'text',
             width: '240px',
-            align: 'center' as const,
+            align: 'left' as const,
             render: (item) => (
                 <div className="max-w-[240px]">
                     <p
-                        className="font-medium text-gray-900 cursor-help line-clamp-2 break-words"
+                        className="font-medium text-gray-900 cursor-help line-clamp-2 break-words text-left"
                         title={item.title}
                         style={{
                             display: '-webkit-box',
@@ -722,7 +722,7 @@ const TaskList: React.FC = () => {
                     >
                         <Eye className="w-4 h-4" />
                     </Button>
-                    
+
                     {/* 2. Email Financeiro - apenas ADMIN */}
                     {isAdmin && (
                         <Button
@@ -730,12 +730,12 @@ const TaskList: React.FC = () => {
                             variant="ghost"
                             onClick={() => handleFinancialEmail(item)}
                             title={item.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
-                            className={`${item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                            className={item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}
                         >
                             <DollarSign className="w-4 h-4" />
                         </Button>
                     )}
-                    
+
                     {/* 3. Email da Tarefa - apenas ADMIN */}
                     {isAdmin && (
                         <Button
@@ -743,7 +743,7 @@ const TaskList: React.FC = () => {
                             variant="ghost"
                             onClick={() => handleTaskEmail(item)}
                             title={item.taskEmailSent ? "Email de tarefa já enviado - Reenviar?" : "Enviar email de tarefa"}
-                            className={`${item.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                            className={item.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}
                         >
                             <Mail className="w-4 h-4" />
                         </Button>
@@ -751,7 +751,12 @@ const TaskList: React.FC = () => {
 
                     {/* 4. Editar - apenas quem pode modificar */}
                     {canModifyTask(item) && (
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(item.id)}
+                            title="Editar"
+                        >
                             <Edit className="w-4 h-4" />
                         </Button>
                     )}

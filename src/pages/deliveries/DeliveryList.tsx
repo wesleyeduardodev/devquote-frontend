@@ -144,7 +144,7 @@ const DeliveryList: React.FC = () => {
             render: (delivery) => {
                 const deliveryId = delivery.deliveries?.[0]?.id;
                 if (!deliveryId) return null;
-                
+
                 return (
                     <div className="flex items-center justify-center">
                         <input
@@ -156,7 +156,7 @@ const DeliveryList: React.FC = () => {
                     </div>
                 );
             },
-            width: '50px',
+            width: '40px',
             align: 'center'
         },
         {
@@ -165,12 +165,13 @@ const DeliveryList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'number',
+            align: 'center' as const,
             render: (delivery) => (
                 <span className="font-medium text-gray-900">
                     #{delivery.taskId || 'N/A'}
                 </span>
             ),
-            width: '80px'
+            width: '70px'
         },
         {
             key: 'task.code',
@@ -183,7 +184,7 @@ const DeliveryList: React.FC = () => {
                     {delivery.taskCode || 'N/A'}
                 </span>
             ),
-            width: '120px'
+            width: '90px'
         },
         {
             key: 'flowType',
@@ -191,7 +192,7 @@ const DeliveryList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '150px',
+            width: '130px',
             align: 'center' as const,
             render: (delivery: DeliveryGroupResponse) => {
                 // Buscar flowType da delivery (que vem da task)
@@ -215,7 +216,7 @@ const DeliveryList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '150px',
+            width: '135px',
             align: 'center' as const,
             render: (delivery: DeliveryGroupResponse) => {
                 // Buscar taskType da delivery
@@ -252,14 +253,15 @@ const DeliveryList: React.FC = () => {
             title: 'TÍTULO DA TAREFA',
             sortable: true,
             filterable: true,
+            align: 'left' as const,
             render: (delivery) => (
-                <div className="max-w-sm">
-                    <div className="font-medium text-gray-900 truncate" title={delivery.taskName || 'N/A'}>
+                <div className="max-w-[240px]">
+                    <div className="font-medium text-gray-900 truncate text-left" title={delivery.taskName || 'N/A'}>
                         {delivery.taskName || 'N/A'}
                     </div>
                 </div>
             ),
-            width: '300px'
+            width: '240px'
         },
         {
             key: 'deliveryStatus',
@@ -277,6 +279,7 @@ const DeliveryList: React.FC = () => {
                 { value: 'Rejeitado', label: 'Rejeitado' },
                 { value: 'Produção', label: 'Produção' }
             ],
+            align: 'center' as const,
             render: (delivery) => {
                 const status = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING';
                 const statusColor = getStatusColor(status);
@@ -286,7 +289,7 @@ const DeliveryList: React.FC = () => {
                     </span>
                 );
             },
-            width: '140px'
+            width: '120px'
         },
         {
             key: 'totalItems',
@@ -297,16 +300,16 @@ const DeliveryList: React.FC = () => {
                     {delivery.totalItems || 0}
                 </div>
             ),
-            width: '100px',
+            width: '90px',
             align: 'center'
         },
         {
             key: 'actions',
-            title: 'Ações',
+            title: 'AÇÕES',
             sortable: false,
             filterable: false,
             render: (delivery) => (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-center gap-1">
                     <Button
                         variant="ghost"
                         size="sm"
@@ -323,12 +326,12 @@ const DeliveryList: React.FC = () => {
                             size="sm"
                             onClick={() => handleDeliveryEmail(delivery)}
                             title={delivery.deliveries?.[0]?.deliveryEmailSent ? "Email de entrega já enviado - Reenviar?" : "Enviar email de entrega"}
-                            className={`${delivery.deliveries?.[0]?.deliveryEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
+                            className={delivery.deliveries?.[0]?.deliveryEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}
                         >
                             <Mail className="h-4 w-4" />
                         </Button>
                     )}
-                    
+
                     {canEdit && (
                         <Button
                             variant="ghost"
@@ -339,7 +342,7 @@ const DeliveryList: React.FC = () => {
                             <Edit className="h-4 w-4" />
                         </Button>
                     )}
-                    
+
                     {canDelete && (
                         <Button
                             variant="ghost"
@@ -353,7 +356,7 @@ const DeliveryList: React.FC = () => {
                     )}
                 </div>
             ),
-            width: '120px',
+            width: '180px',
             align: 'center'
         }
     ];
