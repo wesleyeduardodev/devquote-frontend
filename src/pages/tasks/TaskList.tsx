@@ -370,7 +370,7 @@ const TaskList: React.FC = () => {
         ...(canCreateTasks ? [{
             key: 'select',
             title: '',
-            width: '50px',
+            width: '40px',
             align: 'center' as const,
             headerRender: () => (
                 <div className="flex items-center justify-center">
@@ -409,7 +409,7 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'number',
-            width: '100px',
+            width: '80px',
             align: 'center' as const,
             render: (item) => (
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
@@ -423,7 +423,7 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '100px',
+            width: '90px',
             align: 'center' as const,
             render: (item) => (
                 <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
@@ -437,7 +437,7 @@ const TaskList: React.FC = () => {
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '140px',
+            width: '130px',
             align: 'center' as const,
             render: (item) => (
                 <span className={`px-3 py-1 text-xs font-medium rounded-full ${
@@ -450,15 +450,30 @@ const TaskList: React.FC = () => {
             ),
         },
         {
+            key: 'taskType',
+            title: 'TIPO',
+            sortable: true,
+            filterable: true,
+            filterType: 'text',
+            width: '135px',
+            align: 'center' as const,
+            render: (item) => (
+                <span className="text-sm text-gray-700">
+                    {getTaskTypeLabel(item.taskType)}
+                </span>
+            ),
+            hideable: true,
+        },
+        {
             key: 'title',
             title: 'TÍTULO',
             sortable: true,
             filterable: true,
             filterType: 'text',
-            width: '280px',
+            width: '240px',
             align: 'center' as const,
             render: (item) => (
-                <div className="max-w-[280px]">
+                <div className="max-w-[240px]">
                     <p
                         className="font-medium text-gray-900 cursor-help line-clamp-2 break-words"
                         title={item.title}
@@ -494,21 +509,6 @@ const TaskList: React.FC = () => {
             ),
         },
         {
-            key: 'taskType',
-            title: 'TIPO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '150px',
-            align: 'center' as const,
-            render: (item) => (
-                <span className="text-sm text-gray-700">
-                    {getTaskTypeLabel(item.taskType)}
-                </span>
-            ),
-            hideable: true,
-        },
-        {
             key: 'systemModule',
             title: 'MÓDULO',
             sortable: true,
@@ -538,6 +538,8 @@ const TaskList: React.FC = () => {
                     </span>
                 </div>
             ),
+            hideable: true,
+            hidden: true,
         },
         {
             key: 'link',
@@ -594,6 +596,8 @@ const TaskList: React.FC = () => {
                     <span className="text-sm text-gray-600">{item.subTasks?.length || 0}</span>
                 </div>
             ),
+            hideable: true,
+            hidden: true,
         },
         // Colunas de Entrega e Faturamento - apenas para ADMIN e MANAGER
         ...(canViewDeliveryColumns ? [{
@@ -601,7 +605,7 @@ const TaskList: React.FC = () => {
             title: 'ENTREGA',
             sortable: false,
             filterable: false,
-            width: '120px',
+            width: '105px',
             align: 'center' as const,
             render: (item: Task) => (
                 <div className="flex items-center justify-center">
@@ -621,7 +625,7 @@ const TaskList: React.FC = () => {
             title: 'FATURAMENTO',
             sortable: false,
             filterable: false,
-            width: '120px',
+            width: '125px',
             align: 'center' as const,
             render: (item: Task) => (
                 <div className="flex items-center justify-center">
@@ -660,7 +664,7 @@ const TaskList: React.FC = () => {
         ...(canViewValues ? [{
             key: 'total',
             title: 'VALOR TOTAL',
-            width: '120px',
+            width: '110px',
             align: 'center' as const,
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
@@ -705,7 +709,7 @@ const TaskList: React.FC = () => {
             key: 'actions',
             title: 'AÇÕES',
             align: 'center' as const,
-            width: '150px',
+            width: '180px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
                     {/* 1. Visualizar */}
@@ -1113,7 +1117,7 @@ const TaskList: React.FC = () => {
                                 onClearFilters={clearFilters}
                                 emptyMessage="Nenhuma tarefa encontrada"
                                 showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'taskType', 'systemModule', 'link', 'meetingLink', 'priority', 'createdByUserName']}
+                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'systemModule', 'link', 'meetingLink', 'priority', 'createdByUserName', 'requesterName', 'subTasks']}
                             />
                         </Card>
                     </div>

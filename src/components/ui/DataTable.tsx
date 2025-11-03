@@ -474,7 +474,7 @@ const DataTable = <T extends Record<string, any>>({
                         {visibleColumns.map((column) => (
                             <th
                                 key={column.key}
-                                className={`px-3 py-3 sm:px-6 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
+                                className={`px-2 py-3 sm:px-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
                                 style={column.width ? {width: column.width, minWidth: column.width, maxWidth: column.width} : {}}
                             >
                                 <div>
@@ -520,7 +520,7 @@ const DataTable = <T extends Record<string, any>>({
                                 {visibleColumns.map((column) => (
                                     <td
                                         key={column.key}
-                                        className={`px-3 py-4 sm:px-6 whitespace-nowrap text-sm text-gray-900 ${getAlignClass(column.align)}`}
+                                        className={`px-2 py-3 sm:px-3 whitespace-nowrap text-sm text-gray-900 ${getAlignClass(column.align)}`}
                                         style={column.width ? {width: column.width, minWidth: column.width, maxWidth: column.width} : {}}
                                     >
                                         <div className="max-w-xs sm:max-w-none truncate">
