@@ -883,6 +883,78 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Filtros Mobile */}
+                <div className="lg:hidden bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-base font-medium text-gray-900">Filtros</h3>
+                            {(flowType || statusFilter || yearFilter || monthFilter) && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                >
+                                    Limpar
+                                </button>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Fluxo</label>
+                            <select
+                                value={flowType}
+                                onChange={(e) => setFlowType(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Todos os fluxos</option>
+                                <option value="DESENVOLVIMENTO">Desenvolvimento</option>
+                                <option value="OPERACIONAL">Operacional</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Ano</label>
+                            <select
+                                value={yearFilter}
+                                onChange={(e) => setYearFilter(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Todos os anos</option>
+                                {years.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Mês</label>
+                            <select
+                                value={monthFilter}
+                                onChange={(e) => setMonthFilter(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Todos os meses</option>
+                                {monthOptions.map(month => (
+                                    <option key={month.value} value={month.value}>{month.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Todos os status</option>
+                                {statusOptions.map(status => (
+                                    <option key={status.value} value={status.value}>{status.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Ações Desktop quando há seleção */}
                 {selectionState.hasSelection && (
                     <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-4">
