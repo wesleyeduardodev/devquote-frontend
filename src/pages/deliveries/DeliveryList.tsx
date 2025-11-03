@@ -586,9 +586,10 @@ const DeliveryList: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            {/* Header - Responsivo: Vertical no mobile, Horizontal no desktop */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                {/* Filtro e Ações em lote */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                     <FlowTypeFilter
                         value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
                         onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
@@ -599,7 +600,7 @@ const DeliveryList: React.FC = () => {
                         <Button
                             variant="outline"
                             onClick={() => setShowBulkDeleteModal(true)}
-                            className="text-red-600 border-red-200 hover:bg-red-50"
+                            className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
                         >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Excluir ({selectedDeliveries.length})
@@ -607,11 +608,13 @@ const DeliveryList: React.FC = () => {
                     )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Botões de Ação */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                     <Button
                         variant="outline"
                         onClick={handleExportDevelopment}
                         disabled={exporting}
+                        className="w-full sm:w-auto"
                     >
                         {exporting ? (
                             <>
@@ -630,6 +633,7 @@ const DeliveryList: React.FC = () => {
                         variant="outline"
                         onClick={handleExportOperational}
                         disabled={exporting}
+                        className="w-full sm:w-auto"
                     >
                         {exporting ? (
                             <>
@@ -645,7 +649,7 @@ const DeliveryList: React.FC = () => {
                     </Button>
 
                     {canCreate && (
-                        <Button onClick={() => navigate('/deliveries/create')}>
+                        <Button onClick={() => navigate('/deliveries/create')} className="w-full sm:w-auto">
                             <Plus className="h-4 w-4 mr-2" />
                             Nova Entrega
                         </Button>

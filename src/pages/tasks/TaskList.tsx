@@ -959,19 +959,23 @@ const TaskList: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <FlowTypeFilter
-                    value={flowType}
-                    onChange={setFlowType}
-                    className="flex-shrink-0"
-                />
-                <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                {/* Filtro */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                    <FlowTypeFilter
+                        value={flowType}
+                        onChange={setFlowType}
+                    />
+                </div>
+
+                {/* Botões de Ação */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                     <Button
                         variant="outline"
                         onClick={exportToExcel}
                         loading={exporting}
                         disabled={exporting}
-                        className="flex items-center justify-center"
+                        className="flex items-center justify-center w-full sm:w-auto"
                     >
                         <Download className="w-4 h-4 mr-2" />
                         {exporting ? 'Exportando...' : 'Exportar Excel'}
@@ -980,7 +984,7 @@ const TaskList: React.FC = () => {
                         <Button
                             variant="primary"
                             onClick={() => navigate('/tasks/create')}
-                            className="flex items-center justify-center"
+                            className="flex items-center justify-center w-full sm:w-auto"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Nova Tarefa

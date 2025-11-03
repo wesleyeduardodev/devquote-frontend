@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, DollarSign } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import DeleteConfirmationModal from '../ui/DeleteConfirmationModal';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
+import { subTaskService } from '@/services/subTaskService';
+import toast from 'react-hot-toast';
 
 interface SubTask {
     id?: number;
@@ -23,7 +26,12 @@ const SubTaskForm: React.FC = () => {
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
     const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
-    
+
+    // Estados para o modal de confirmação
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [subTaskToDelete, setSubTaskToDelete] = useState<{ index: number; subTask: SubTask } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const {
         control,
         register,
@@ -71,16 +79,44 @@ const SubTaskForm: React.FC = () => {
         }, 0);
     };
 
-    const softRemoveSubTask = (index: number): void => {
-        const field = watchSubTasks?.[index];
-        if (field?.id) {
-            // se já existe no backend, marca como excluído
-            setValue(`subTasks.${index}.excluded`, true);
-        } else {
-            // se é novo, remove do array
-            const filtered = [...watchSubTasks];
-            filtered.splice(index, 1);
-            setValue('subTasks', filtered);
+    const handleDeleteSubTask = (index: number): void => {
+        const subTask = watchSubTasks?.[index];
+        setSubTaskToDelete({ index, subTask });
+        setShowDeleteModal(true);
+    };
+
+    const confirmDeleteSubTask = async (): Promise<void> => {
+        if (subTaskToDelete === null) return;
+
+        const { index, subTask } = subTaskToDelete;
+
+        try {
+            setIsDeleting(true);
+
+            if (subTask?.id) {
+                // Se já existe no backend, chama a API para excluir imediatamente
+                await subTaskService.deleteSubTask(subTask.id);
+                toast.success('Subtarefa excluída com sucesso');
+
+                // Remove do array local após exclusão bem-sucedida
+                const filtered = [...watchSubTasks];
+                filtered.splice(index, 1);
+                setValue('subTasks', filtered);
+            } else {
+                // Se é nova (sem ID), apenas remove do array
+                const filtered = [...watchSubTasks];
+                filtered.splice(index, 1);
+                setValue('subTasks', filtered);
+            }
+
+            // Fecha o modal e limpa o estado
+            setShowDeleteModal(false);
+            setSubTaskToDelete(null);
+        } catch (error: any) {
+            console.error('Erro ao excluir subtarefa:', error);
+            toast.error(error?.response?.data?.message || 'Erro ao excluir subtarefa');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -227,17 +263,19 @@ const SubTaskForm: React.FC = () => {
                                             </span>
                                         )}
 
-                                        {/* Botão Excluir */}
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="danger"
-                                            onClick={() => softRemoveSubTask(index)}
-                                            className="p-1.5 sm:p-2"
-                                            title="Excluir subtarefa"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        {/* Botão Excluir - só aparece se a subtarefa já foi criada (possui id) */}
+                                        {subTask?.id && (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="danger"
+                                                onClick={() => handleDeleteSubTask(index)}
+                                                className="p-1.5 sm:p-2"
+                                                title="Excluir subtarefa"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -262,6 +300,19 @@ const SubTaskForm: React.FC = () => {
                     </div>
                 </Card>
             )}
+
+            {/* Modal de confirmação de exclusão */}
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setSubTaskToDelete(null);
+                }}
+                onConfirm={confirmDeleteSubTask}
+                itemName={subTaskToDelete?.subTask?.title}
+                description="Esta ação não pode ser desfeita."
+                isDeleting={isDeleting}
+            />
         </div>
     );
 };
