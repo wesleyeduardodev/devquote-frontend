@@ -1188,7 +1188,7 @@ const ProfileManagement = () => {
               </select>
             </div>
 
-            <div className="flex justify-between items-center space-x-2 pt-4">
+            <div className="space-y-3 pt-4">
               {isEditing && selectedUser && (
                 <Button
                   variant="outline"
@@ -1196,21 +1196,22 @@ const ProfileManagement = () => {
                     setShowCreateUserModal(false);
                     handleResetPassword(selectedUser);
                   }}
-                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300"
+                  className="w-full text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300"
                 >
                   <Key className="w-4 h-4 mr-2" />
                   Resetar
                 </Button>
               )}
 
-              <div className="flex space-x-2 ml-auto">
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setShowCreateUserModal(false)}
+                  className="flex-1"
                 >
                   Cancelar
                 </Button>
-                <Button onClick={handleSaveUser}>
+                <Button onClick={handleSaveUser} className="flex-1">
                   {isEditing ? 'Salvar' : 'Criar'}
                 </Button>
               </div>
