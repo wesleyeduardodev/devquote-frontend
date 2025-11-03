@@ -473,9 +473,9 @@ const TaskList: React.FC = () => {
             width: '240px',
             align: 'left' as const,
             render: (item) => (
-                <div className="max-w-[240px]">
+                <div className="w-full">
                     <p
-                        className="font-medium text-gray-900 cursor-help line-clamp-2 break-words text-left"
+                        className="font-medium text-gray-900 cursor-help text-left text-sm"
                         title={item.title}
                         style={{
                             display: '-webkit-box',
@@ -484,7 +484,8 @@ const TaskList: React.FC = () => {
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             wordBreak: 'break-word',
-                            lineHeight: '1.4'
+                            lineHeight: '1.3',
+                            maxWidth: '100%'
                         }}
                     >
                         {item.title}

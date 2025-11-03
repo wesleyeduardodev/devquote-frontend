@@ -255,8 +255,21 @@ const DeliveryList: React.FC = () => {
             filterable: true,
             align: 'left' as const,
             render: (delivery) => (
-                <div className="max-w-[240px]">
-                    <div className="font-medium text-gray-900 truncate text-left" title={delivery.taskName || 'N/A'}>
+                <div className="w-full">
+                    <div
+                        className="font-medium text-gray-900 text-left text-sm"
+                        title={delivery.taskName || 'N/A'}
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            wordBreak: 'break-word',
+                            lineHeight: '1.3',
+                            maxWidth: '100%'
+                        }}
+                    >
                         {delivery.taskName || 'N/A'}
                     </div>
                 </div>
