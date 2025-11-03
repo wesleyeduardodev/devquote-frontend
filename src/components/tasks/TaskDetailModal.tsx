@@ -187,7 +187,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
@@ -211,7 +211,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                 <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
                     {/* Solicitante Section */}
                     {task.requesterName && (
-                        <div className="border-b border-gray-100 px-6 py-4">
+                        <div className="border-b border-gray-100 px-3 sm:px-6 py-3 sm:py-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                     <User className="w-5 h-5 text-blue-600" />
@@ -225,14 +225,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                     )}
 
                     {/* Task Details Section */}
-                    <div className="px-6 py-6 space-y-6">
+                    <div className="px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
                         {/* Task Name and Description */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <Target className="w-5 h-5 text-blue-600" />
                                 Informações da Tarefa
                             </h3>
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                            <div className="bg-gray-50 rounded-lg p-2.5 sm:p-4 space-y-3 sm:space-y-4">
                                 {/* Código e Status */}
                                 <div className="flex flex-wrap gap-4 mb-4">
                                     {task.code && (
@@ -283,31 +283,31 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
-                                        <p className="text-sm text-gray-500">Nome da Tarefa</p>
+                                        <p className="text-xs sm:text-sm text-gray-500">Nome da Tarefa</p>
                                         {canViewValues && (
-                                            <div className="flex items-center gap-2">
-                                                <DollarSign className="w-4 h-4 text-green-600" />
-                                                <span className="text-lg font-bold text-green-600">
+                                            <div className="flex items-center gap-1">
+                                                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                                <span className="text-sm sm:text-lg font-bold text-green-600">
                                                     {formatCurrency(calculateTaskTotal())}
                                                 </span>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="bg-gray-50 rounded-lg p-4">
+                                    <div className="bg-white rounded-lg p-2.5 sm:p-4 border border-gray-200">
                                         <div className="max-h-20 overflow-y-auto">
-                                            <p className="text-base font-medium text-gray-900 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.name}</p>
+                                            <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.name}</p>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 {task.description && (
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Descrição</p>
+                                        <p className="text-xs sm:text-sm text-gray-500 mb-1">Descrição</p>
                                         <div
-                                            className="bg-gray-50 rounded-lg p-4 min-h-[100px] max-h-[40vh]"
+                                            className="bg-white rounded-lg p-2.5 sm:p-4 min-h-[100px] max-h-[40vh] border border-gray-200"
                                             style={resizableStyle}
                                         >
-                                            <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
+                                            <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
                                         </div>
                                     </div>
                                 )}
@@ -498,75 +498,80 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="bg-gray-50 rounded-lg p-2 sm:p-4">
                                     <div
-                                        className="space-y-3 max-h-[50vh] overflow-y-auto"
+                                        className="space-y-2 sm:space-y-3 max-h-[50vh] overflow-y-auto"
                                         style={scrollbarStyle}
                                     >
                                         {task.subtasks.map((subtask) => (
-                                            <div 
-                                                key={subtask.id}
-                                                className={`p-4 bg-white rounded-lg border ${
-                                                    subtask.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
-                                                }`}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    <div className="flex-shrink-0 mt-0.5">
-                                                        {subtask.completed ? (
-                                                            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                                                                <CheckCircle2 className="w-3 h-3 text-white" />
-                                                            </div>
-                                                        ) : (
-                                                            <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-start justify-between mb-1">
-                                                            <div className="flex-1">
-                                                                {subtask.title && (
-                                                                    <div
-                                                                        className="bg-gray-50 rounded p-2 mb-2 min-h-[60px] max-h-[15vh]"
-                                                                        style={resizableStyle}
-                                                                    >
-                                                                        <p className={`text-sm font-medium whitespace-pre-wrap break-words ${
-                                                                            subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
-                                                                        }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                                                            {subtask.title}
-                                                                        </p>
-                                                                    </div>
-                                                                )}
-                                                                {subtask.description && (
-                                                                    <div
-                                                                        className="bg-gray-50 rounded p-2 min-h-[80px] max-h-[20vh]"
-                                                                        style={resizableStyle}
-                                                                    >
-                                                                        <p className={`text-sm whitespace-pre-wrap break-words ${
-                                                                            subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
-                                                                        }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                                                            {subtask.description}
-                                                                        </p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            {canViewValues && subtask.amount !== undefined && (
-                                                                <div className="ml-3 flex items-center gap-1">
-                                                                    <DollarSign className="w-3 h-3 text-green-600" />
-                                                                    <span className="text-sm font-semibold text-green-600">
-                                                                        {formatCurrency(subtask.amount)}
-                                                                    </span>
+                                            <div key={subtask.id}>
+                                                {/* Card da Subtarefa */}
+                                                <div
+                                                    className={`p-2.5 sm:p-4 bg-white rounded-lg border ${
+                                                        subtask.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start gap-2 sm:gap-3">
+                                                        {/* Checkbox */}
+                                                        <div className="flex-shrink-0 mt-0.5">
+                                                            {subtask.completed ? (
+                                                                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                                                    <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                                                                 </div>
+                                                            ) : (
+                                                                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-gray-300 rounded-full" />
                                                             )}
                                                         </div>
-                                                        
-                                                        <div className="flex items-center gap-3 mt-2">
+
+                                                        {/* Conteúdo - Título e Descrição */}
+                                                        <div className="flex-1 min-w-0">
+                                                            {/* Título */}
+                                                            {subtask.title && (
+                                                                <div
+                                                                    className="bg-gray-50 rounded p-2 mb-2 min-h-[50px] sm:min-h-[60px] max-h-[15vh]"
+                                                                    style={resizableStyle}
+                                                                >
+                                                                    <p className={`text-xs sm:text-sm font-medium whitespace-pre-wrap break-words ${
+                                                                        subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                                                                    }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                                                        {subtask.title}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Descrição */}
+                                                            {subtask.description && (
+                                                                <div
+                                                                    className="bg-gray-50 rounded p-2 min-h-[70px] sm:min-h-[80px] max-h-[20vh]"
+                                                                    style={resizableStyle}
+                                                                >
+                                                                    <p className={`text-xs sm:text-sm whitespace-pre-wrap break-words ${
+                                                                        subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
+                                                                    }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                                                                        {subtask.description}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Data de Criação */}
                                                             {subtask.createdAt && (
-                                                                <p className="text-xs text-gray-400">
+                                                                <p className="text-xs text-gray-400 mt-2">
                                                                     Criada em {formatDate(subtask.createdAt)}
                                                                 </p>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {/* Valor ABAIXO do card (só para ADMIN) */}
+                                                {canViewValues && subtask.amount !== undefined && (
+                                                    <div className="flex items-center justify-end gap-1 mt-1 px-2 sm:px-0">
+                                                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                                        <span className="text-sm sm:text-base font-bold text-green-600">
+                                                            {formatCurrency(subtask.amount)}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
