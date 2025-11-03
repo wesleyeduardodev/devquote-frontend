@@ -764,12 +764,11 @@ const ProfileManagement = () => {
   // User Card Component for Mobile
   const UserCard: React.FC<{ user: UserProfile }> = ({ user: userItem }) => (
     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-      {/* Header do Card */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-3 flex-1">
-          {/* Checkbox - apenas para ADMIN */}
-          {isAdmin && (
-            <div className="flex-shrink-0 pt-1">
+      <div className="space-y-3">
+        {/* Header com ID e Status */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isAdmin && (
               <input
                 type="checkbox"
                 checked={selectedItems.includes(userItem.id)}
@@ -780,87 +779,90 @@ const ProfileManagement = () => {
                 disabled={user?.id === userItem.id}
                 title={user?.id === userItem.id ? "Você não pode selecionar sua própria conta" : ""}
               />
-            </div>
-          )}
-
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                #{userItem.id}
-              </span>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                userItem.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {userItem.enabled ? (
-                  <>
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Ativo
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="w-3 h-3 mr-1" />
-                    Inativo
-                  </>
-                )}
-              </span>
-            </div>
-            <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-1">
-              {userItem.username}
-            </h3>
-            {userItem.name && (
-              <p className="text-sm text-gray-600 mb-2">{userItem.name}</p>
             )}
-            <div className="flex items-center gap-2 mb-2">
-              <Mail className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-600">{userItem.email}</span>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {userItem.profiles && userItem.profiles.length > 0 ? (
-                userItem.profiles.map((profile) => (
-                  <span
-                    key={profile.id}
-                    className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-                  >
-                    {profile.name}
-                  </span>
-                ))
-              ) : userItem.roles?.map((role) => (
-                <span
-                  key={role}
-                  className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-                >
-                  {role === 'ADMIN' ? 'Administrador' : role === 'MANAGER' ? 'Gerente' : 'Usuário'}
-                </span>
-              )) || (
-                <span className="text-xs text-gray-500">Sem perfil</span>
-              )}
-            </div>
+            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+              #{userItem.id}
+            </span>
           </div>
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            userItem.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}>
+            {userItem.enabled ? (
+              <>
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Ativo
+              </>
+            ) : (
+              <>
+                <XCircle className="w-3 h-3 mr-1" />
+                Inativo
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* Nome e Informações */}
+        <div>
+          <h3 className="font-semibold text-gray-900 text-base mb-1">
+            {userItem.username}
+          </h3>
+          {userItem.name && (
+            <p className="text-sm text-gray-600">{userItem.name}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="flex items-center gap-2">
+          <Mail className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-600">{userItem.email}</span>
+        </div>
+
+        {/* Perfis */}
+        <div className="flex flex-wrap gap-1">
+          {userItem.profiles && userItem.profiles.length > 0 ? (
+            userItem.profiles.map((profile) => (
+              <span
+                key={profile.id}
+                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+              >
+                {profile.name}
+              </span>
+            ))
+          ) : userItem.roles?.map((role) => (
+            <span
+              key={role}
+              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+            >
+              {role === 'ADMIN' ? 'Administrador' : role === 'MANAGER' ? 'Gerente' : 'Usuário'}
+            </span>
+          )) || (
+            <span className="text-xs text-gray-500">Sem perfil</span>
+          )}
         </div>
 
         {/* Ações - apenas para ADMIN */}
         {isAdmin && (
-          <div className="flex gap-1 ml-2">
+          <div className="flex gap-2 pt-2 border-t border-gray-100">
             <Button
               size="sm"
               variant="ghost"
               onClick={() => handleEditUser(userItem)}
-              title="Editar"
-              className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+              className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-4 h-4 mr-2" />
+              Editar
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={() => handleDeleteUser(userItem)}
-              title={user?.id === userItem.id ? "Você não pode excluir sua própria conta" : "Excluir"}
-              className={user?.id === userItem.id
+              className={`flex-1 ${user?.id === userItem.id
                 ? "text-gray-400 cursor-not-allowed"
-                : "text-gray-600 hover:text-red-600 hover:bg-red-50"}
+                : "text-red-600 hover:text-red-700 hover:bg-red-50"}`}
               disabled={user?.id === userItem.id}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir
             </Button>
           </div>
         )}
@@ -933,7 +935,7 @@ const ProfileManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100 col-span-2 lg:col-span-1">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600" />
@@ -1197,7 +1199,7 @@ const ProfileManagement = () => {
                   className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300"
                 >
                   <Key className="w-4 h-4 mr-2" />
-                  Resetar Senha
+                  Resetar
                 </Button>
               )}
 
