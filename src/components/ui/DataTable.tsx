@@ -477,19 +477,19 @@ const DataTable = <T extends Record<string, any>>({
                                 className={`px-2 py-3 sm:px-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${getAlignClass(column.align)}`}
                                 style={column.width ? {width: column.width, minWidth: column.width, maxWidth: column.width} : {}}
                             >
-                                <div>
+                                <div className={`flex flex-col ${column.align === 'center' ? 'items-center' : column.align === 'right' ? 'items-end' : 'items-start'}`}>
                                     {column.headerRender ? (
                                         column.headerRender()
                                     ) : column.sortable ? (
                                         <button
                                             onClick={() => handleSort(column.key)}
-                                            className="group flex items-center hover:text-gray-700 focus:outline-none"
+                                            className={`group flex items-center hover:text-gray-700 focus:outline-none ${column.align === 'center' ? 'justify-center' : column.align === 'right' ? 'justify-end' : 'justify-start'}`}
                                         >
                                             {column.title}
                                             {renderSortIcon(column.key)}
                                         </button>
                                     ) : (
-                                        <div>{column.title}</div>
+                                        <div className={column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : 'text-left'}>{column.title}</div>
                                     )}
                                     {renderFilterInput(column)}
                                 </div>
