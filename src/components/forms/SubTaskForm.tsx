@@ -94,14 +94,18 @@ const SubTaskForm: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            {/* Mobile: Layout vertical / Desktop: Layout horizontal */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                {/* Título com contador */}
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    Subtarefas 
+                    Subtarefas
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
                         {watchSubTasks?.filter(st => !st?.excluded).length || 0}
                     </span>
                 </h3>
-                <div className="flex items-center space-x-4">
+
+                {/* Total + Botão Adicionar */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4">
                     {canViewValues && (
                         <div className="text-sm text-gray-600">
                             <span className="font-medium">Total: </span>
@@ -114,7 +118,7 @@ const SubTaskForm: React.FC = () => {
                         type="button"
                         size="sm"
                         onClick={addSubTask}
-                        className="flex items-center"
+                        className="flex items-center justify-center w-full sm:w-auto"
                         onMouseDown={(e) => e.preventDefault()} // Previne foco/scroll
                     >
                         <Plus className="w-4 h-4 mr-1" />
@@ -129,48 +133,37 @@ const SubTaskForm: React.FC = () => {
                     if (subTask?.excluded) return null;
 
                     return (
-                        <Card key={field.id} className="relative">
-                            <div className="absolute top-4 right-4">
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => softRemoveSubTask(index)}
-                                    className="p-2"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
-                            </div>
-
-                            <div className="space-y-4 pr-16">
+                        <Card key={field.id}>
+                            {/* Conteúdo - sem padding direito extra agora */}
+                            <div className="space-y-3 sm:space-y-4">
                                 {/* Título - textarea com 2 linhas */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                                         Título <span className="text-red-500">*</span>
                                     </label>
                                     <textarea
                                         {...register(`subTasks.${index}.title`)}
                                         rows={2}
-                                        placeholder="Digite o título da subtarefa&#10;Máximo 200 caracteres"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                        placeholder="Digite o título da subtarefa"
+                                        className="w-full px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical text-sm sm:text-base"
                                         maxLength={200}
                                     />
                                     {errors.subTasks?.[index]?.title && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.subTasks[index].title.message}</p>
+                                        <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.subTasks[index].title.message}</p>
                                     )}
                                 </div>
 
                                 {/* Descrição - textarea em linha completa */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Descrição</label>
                                     <textarea
                                         {...register(`subTasks.${index}.description`)}
-                                        rows={6}
-                                        placeholder="Descreva a subtarefa em detalhes (opcional)&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                        rows={5}
+                                        placeholder="Descreva a subtarefa em detalhes (opcional)"
+                                        className="w-full px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical text-sm sm:text-base"
                                     />
                                     {errors.subTasks?.[index]?.description && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.subTasks[index].description.message}</p>
+                                        <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.subTasks[index].description.message}</p>
                                     )}
                                 </div>
 
@@ -209,25 +202,43 @@ const SubTaskForm: React.FC = () => {
                                 {...register(`subTasks.${index}.excluded`)}
                             />
 
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <div className="flex items-center justify-between">
+                            {/* Footer - Badge + Valor + Botão Excluir */}
+                            <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-gray-200">
+                                <div className="flex items-center justify-between gap-2">
+                                    {/* Lado esquerdo: Badge ID/Status */}
                                     <div className="flex items-center gap-2">
-                                        {/* Mostrar ID do banco quando existe (edição), ou número sequencial (criação) */}
                                         {subTask?.id ? (
-                                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
                                                 Subtarefa #{subTask.id}
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white">
                                                 Nova Subtarefa
                                             </span>
                                         )}
                                     </div>
-                                    {canViewValues && watchSubTasks?.[index]?.amount && (
-                                        <span className="text-lg font-bold text-green-600">
-                                            {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
-                                        </span>
-                                    )}
+
+                                    {/* Lado direito: Valor (se ADMIN) + Botão Excluir */}
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        {/* Valor total */}
+                                        {canViewValues && watchSubTasks?.[index]?.amount && (
+                                            <span className="text-sm sm:text-base font-bold text-green-600">
+                                                {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
+                                            </span>
+                                        )}
+
+                                        {/* Botão Excluir */}
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="danger"
+                                            onClick={() => softRemoveSubTask(index)}
+                                            className="p-1.5 sm:p-2"
+                                            title="Excluir subtarefa"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </Card>
@@ -240,9 +251,10 @@ const SubTaskForm: React.FC = () => {
                     <div className="text-gray-500">
                         <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                         <p className="mb-4">Nenhuma subtarefa adicionada</p>
-                        <Button 
+                        <Button
                             onClick={addSubTask}
                             onMouseDown={(e) => e.preventDefault()}
+                            className="w-full sm:w-auto"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Adicionar Primeira Subtarefa
