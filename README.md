@@ -1,187 +1,225 @@
 # DevQuote Frontend
 
-Interface moderna para gestão de tarefas e entregas para desenvolvedores freelancers.
+## 🎯 Propósito
+Aplicação web React/TypeScript para gestão completa de tarefas, entregas e faturamento de projetos de desenvolvimento. Interface moderna e responsiva com sistema avançado de permissões granulares.
 
----
+## 🛠️ Stack Tecnológica
+- **React 18.2.0** + **TypeScript 5.5.4**
+- **Vite 5.0** (build tool rápida)
+- **TailwindCSS 3.4.17** (design system utility-first)
+- **React Router 6.30.1** (SPA routing)
+- **React Hook Form 7.62** + **Yup 1.7** (formulários e validação)
+- **Axios 1.11** (cliente HTTP com interceptors)
+- **Lucide React 0.294** (ícones modernos)
+- **React Hot Toast 2.5** (notificações)
 
-## 🚀 Stack
-
-### Core
-- React 18 + TypeScript 5.5
-- Vite 5 (Build tool)
-- React Router DOM 6
-
-### UI/UX
-- Tailwind CSS 3
-- Lucide React (ícones)
-- React Hot Toast (notificações)
-
-### Formulários
-- React Hook Form 7
-- Yup (validação)
-
-### HTTP
-- Axios 1.11
-- JWT com refresh token automático
-
----
-
-## 📦 Arquitetura
-
+## 📁 Estrutura do Projeto
 ```
 src/
-├── components/           # Componentes reutilizáveis
-│   ├── auth/            # Guards (Field, Resource, Screen)
-│   ├── forms/           # Formulários compartilhados
-│   ├── layout/          # Header, Sidebar, Layout
-│   └── ui/              # Button, Card, DataTable, Modal, etc
-├── hooks/               # Custom React Hooks
-├── pages/               # Rotas da aplicação
-├── services/            # Camada de API (Axios)
-├── types/               # TypeScript types/interfaces
-└── utils/               # Funções utilitárias
+├── components/          # Componentes reutilizáveis
+│   ├── auth/            # Guards: ScreenGuard, ResourceGuard, FieldGuard
+│   ├── billing/         # Modais e componentes de faturamento
+│   ├── deliveries/      # Componentes de entregas (create, modals, forms)
+│   ├── forms/           # Formulários: Task, Project, Requester, Delivery, etc
+│   ├── layout/          # Layout, Header, Sidebar, Footer
+│   ├── tasks/           # TaskDetailModal
+│   ├── ui/              # Componentes base: Button, Input, Modal, DataTable, etc
+│   └── ProtectedRoute.tsx
+├── hooks/               # Custom hooks (useAuth, useApi, useTasks, etc)
+├── pages/               # 25 páginas organizadas por módulo
+│   ├── billing/         # BillingPeriodManagement, BillingMonthManagement
+│   ├── deliveries/      # DeliveryList, DeliveryCreate, DeliveryEdit, etc
+│   ├── projects/        # ProjectList, Create, Edit
+│   ├── requesters/      # RequesterList, Create, Edit
+│   ├── tasks/           # TaskList, Create, Edit
+│   ├── profiles/        # ProfileManagement, modals de permissões
+│   ├── notifications/   # NotificationList, NotificationModal
+│   ├── Dashboard.tsx
+│   ├── Login.tsx
+│   └── UserSettings.tsx
+├── services/            # API services (20 services para cada endpoint)
+├── types/               # Tipos TypeScript (auth, task, delivery, billing, etc)
+├── utils/               # constants, errorHandler, validationSchemas, routeConfig
+└── App.tsx + main.tsx
 ```
 
----
+## 🔑 Funcionalidades Principais
 
-## 🔧 Quick Start
+### Sistema de Autenticação Multi-Camadas
+- **Login JWT** com auto-refresh e controle de expiração
+- **4 níveis de permissão**:
+  1. **Profile** (ADMIN > MANAGER > USER)
+  2. **Screen** (acesso a páginas)
+  3. **Resource** (operações: CREATE, READ, UPDATE, DELETE, BULK)
+  4. **Field** (controle granular: READ, EDIT, HIDDEN)
+- **Guards customizados**:
+  - `ProtectedRoute` - proteção de rotas
+  - `ScreenGuard` - proteção de telas
+  - `ResourceGuard` - proteção de operações
+  - `FieldGuard` - proteção de campos em formulários
 
-### Requisitos
-- Node.js 18+
-- npm 9+
+### Dashboard
+- Estatísticas em tempo real (tarefas, entregas, faturamento)
+- Cards de resumo com métricas
+- Exportação de relatórios (Excel) para todos os módulos
+- Acesso rápido às funcionalidades
 
-### Desenvolvimento Local
+### Gestão de Tarefas
+- CRUD completo com validação Yup
+- **SubTasks** dinâmicas com valores individuais
+- Fluxos: **DESENVOLVIMENTO** e **OPERACIONAL**
+- Tipos: BUG, ENHANCEMENT, NEW_FEATURE, BACKUP, DEPLOY, etc
+- Prioridades: LOW, MEDIUM, HIGH, URGENT
+- Anexos de arquivos (upload/download via S3)
+- Filtros avançados (flowType, status, prioridade, solicitante)
+- Paginação dinâmica
+- Exportação Excel
+- Indicadores: hasDelivery, hasQuoteInBilling, emailsSent
 
-```bash
-# Instalar dependências
-npm install
+### Sistema de Entregas
+- **Arquitetura nova**: Delivery → DeliveryItem[] + DeliveryOperationalItem[]
+- Status calculado automaticamente baseado nos itens
+- **Itens de Desenvolvimento**:
+  - Associação Tarefa → Projeto
+  - Branch (develop, feature, hotfix), sourceBranch, PR
+  - Status individual, datas, anexos
+- **Itens Operacionais**: fluxo simplificado para tarefas não-técnicas
+- Status: PENDING → DEVELOPMENT → DELIVERED → HOMOLOGATION → APPROVED/REJECTED → PRODUCTION
+- Upload de anexos locais e remotos
+- Mudança de status em lote
+- Modal de seleção de projetos
+- Exportação Excel (separado por flowType)
 
-# Executar (porta 5173)
-npm run dev
+### Gestão de Faturamento
+- **BillingMonth**: mês/ano, data pagamento, status, totalizadores
+- **BillingPeriod**: vinculação/desvinculação de tarefas em lote
+- Cálculo automático de valores totais
+- Filtros: ano, mês, status, flowType
+- Modal de visualização de tarefas vinculadas
+- Anexos de período (notas fiscais, comprovantes)
+- Exportação Excel
+- Status: PENDING, SENT, PAID, CANCELLED
 
-# Build produção
-npm run build
+### CRUD Básicos
+- **Solicitantes** (ADMIN): nome, email, telefone, status
+- **Projetos** (ADMIN): nome, repositório, status
+- **Perfis** (ADMIN): configuração de permissões multi-nível
+- **Notificações** (ADMIN): templates e configurações de envio
 
-# Preview build
-npm run preview
+### Configurações de Usuário
+- Atualização de perfil pessoal
+- Troca de senha
+- Preferências
 
-# Type check
-npm run typecheck
+## 🎨 UI/UX
 
-# Lint
-npm run lint
-```
+### Design System Customizado (TailwindCSS)
+- **Paleta extendida**: primary (blue 50-950), gray, success, warning, error
+- **Animações**: fade-in, slide-up/down, pulse-slow
+- **Fontes**: Inter (sans), Fira Code (mono)
+- **Breakpoints**: xs, sm, md, lg, xl, 2xl
 
----
+### Componentes Base
+- Button (primary, secondary, danger, ghost)
+- Input, Select, TextArea
+- Card, Modal, LoadingSpinner
+- **DataTable**: ordenação, paginação, seleção múltipla, ações em lote, filtros
+- **FileUpload**: drag&drop, preview, validação tipo/tamanho, progress
+- **AttachmentList**: preview, download, delete
+- StatusChangeModal, DeleteConfirmationModal, BulkDeleteModal
 
-## 📚 Documentação API
-
-Após iniciar, acesse:
-- **Frontend:** `http://localhost:5173`
-- **Backend API:** `http://localhost:8080/api`
-- **Swagger:** `http://localhost:8080/swagger-ui/index.html`
-
----
+### Experiência do Usuário
+- **Toast notifications** com feedback visual (sucesso, erro, info)
+- **Loading states** em todas as ações
+- **Validação em tempo real** com mensagens inline
+- **Menu responsivo** (desktop horizontal, mobile sidebar)
+- **Debounce** em buscas
+- **Paginação incremental**
+- **Acessibilidade**: labels, ARIA, keyboard navigation, contraste
 
 ## 🔒 Segurança
+- **Token JWT** injetado automaticamente nos headers
+- **Auto-logout** em 401 (token expirado)
+- **Proteção de rotas** por perfil e tela
+- **Guards em componentes** (operações e campos)
+- **Nginx headers** de segurança: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
 
-### Autenticação
-- JWT Bearer Token
-- Refresh Token automático
-- Logout com limpeza de estado
-
-### Autorização
-- **ProtectedRoute** - Proteção de rotas
-- **ResourceGuard** - Controle de recursos
-- **FieldGuard** - Controle de campos
-- **ScreenGuard** - Controle de telas
-
-### Exemplo de Guards
-
-```tsx
-// Proteger rota
-<ProtectedRoute>
-  <Dashboard />
-</ProtectedRoute>
-
-// Controlar acesso a recurso
-<ResourceGuard resource="TASKS" operation="CREATE">
-  <Button>Criar Tarefa</Button>
-</ResourceGuard>
-
-// Controlar visibilidade de campo
-<FieldGuard resource="BILLING" field="value" operation="UPDATE">
-  <Input name="value" />
-</FieldGuard>
+## ⚙️ Configuração
+Variáveis de ambiente (`.env.example`):
+```bash
+VITE_API_URL=http://localhost:8080/api
+VITE_APP_NAME=DevQuote
+VITE_APP_ENV=development
 ```
 
----
+Vite config:
+- Port: 3000
+- Path alias: `@/` → `./src`
+- Auto-open browser
+- Sourcemap habilitado
 
-## 📊 Funcionalidades
+## 🚀 Build e Deploy
 
-### Módulos
-- Dashboard com métricas
-- Gestão de projetos
-- Tarefas e subtarefas
-- Sistema de entregas
-- Faturamento mensal
-- Gerenciamento de solicitantes
-- Perfis e permissões (RBAC)
-
-### Recursos Técnicos
-- Paginação com debounce
-- Busca e filtros
-- Ordenação de colunas
-- Loading states
-- Error handling global
-- Toast notifications
-- Validação de formulários
-- Responsividade mobile-first
-
----
-
-## 🐳 Docker
-
+### Scripts NPM
 ```bash
-# Build
-docker build -t devquote-frontend .
+npm run dev        # Servidor desenvolvimento (porta 3000)
+npm run build      # Build produção (output: dist/)
+npm run preview    # Preview do build
+npm run lint       # ESLint
+npm run typecheck  # TypeScript validation
+```
 
-# Run
+### Docker Multi-Stage
+**Stage 1 (Build)**: Node 18 Alpine → `npm ci` → `npm run build`
+**Stage 2 (Serve)**: Nginx Alpine → copia dist/ → gzip compression → cache strategy
+
+### CI/CD (GitHub Actions)
+- **Trigger**: push main/master, PRs, workflow manual
+- **Pipeline**: checkout → install → lint → build → docker build & push
+- **Registry**: Docker Hub (`wesleyeduardodev/devquote-frontend`)
+- **Tags**: latest, {version}, sha-{commit}
+
+### Nginx
+- SPA routing com `try_files`
+- Gzip compression ativado
+- Cache: assets 1 ano, index.html no-cache
+- Health check
+
+## 📊 Status Atual
+
+### ✅ Completo e Funcional (95%)
+- Autenticação e sistema de permissões multi-camadas (100%)
+- CRUD de Solicitantes, Projetos, Tarefas, Entregas, Faturamento (100%)
+- Dashboard com estatísticas e exportações (100%)
+- Gestão de perfis e usuários (95%)
+- UI/UX profissional e responsivo (100%)
+- Sistema de entregas com nova arquitetura (100%)
+- Formulários complexos com validação (100%)
+- Upload/download de anexos (100%)
+- CI/CD automatizado (100%)
+
+### ⚠️ TODOs Pendentes (Baixa Prioridade)
+1. **useUserManagement.ts**: implementar assignRoleToUser, removeRoleFromUser, updateUserProfile
+2. **DeliveryCreateNew.tsx**: arquivo duplicado (possível teste), avaliar remoção
+3. Melhorias opcionais:
+   - Dark mode
+   - Internacionalização (i18n)
+   - Testes unitários/E2E
+   - Storybook para componentes
+
+## 💡 Contexto de Uso
+Interface web que consome a API REST do devquote-backend. Permite gerenciar todo o ciclo de vida de demandas: criação de tarefas → vinculação a entregas → acompanhamento de status → fechamento mensal para faturamento. Sistema multi-tenant com controle granular de acessos por perfil.
+
+## 🔗 Integração com Backend
+- Base URL configurável via `VITE_API_URL`
+- Interceptors Axios para auth e error handling
+- Formato padronizado de erros do backend
+- Paginação padrão: `?page=0&size=10&sort=id,desc`
+- Filtros query params: `?status=ACTIVE&flowType=DESENVOLVIMENTO`
+
+## 📦 Deploy
+```bash
+docker build -t devquote-frontend .
 docker run -p 80:80 devquote-frontend
 ```
-
----
-
-## 🎨 Design System
-
-### Identidade Visual
-- **Logo:** Raio (⚡) com gradiente azul-roxo
-- **Cores Principais:**
-  - Azul: `#3b82f6` (blue-600)
-  - Roxo: `#8b5cf6` (purple-600)
-  - Verde: `#10b981` (emerald-500)
-- **Gradientes:** `from-blue-600 to-purple-700`
-
-### Responsividade
-- **Breakpoints:** `sm:` (640px+), `md:` (768px+), `lg:` (1024px+)
-- **Modais Mobile:** Bottom sheet
-- **Modais Desktop:** Centralizado
-- **Design:** Mobile-first
-
----
-
-## 🤝 Contribuindo
-
-### Padrão de Commits
-- `feat:` Nova funcionalidade
-- `fix:` Correção de bug
-- `docs:` Documentação
-- `style:` Formatação
-- `refactor:` Refatoração
-- `test:` Testes
-
----
-
-## 📄 Licença
-
-Projeto privado e proprietário. Todos os direitos reservados.
+Ou usar imagem do Docker Hub: `wesleyeduardodev/devquote-frontend:latest`
