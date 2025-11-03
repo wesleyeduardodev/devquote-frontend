@@ -77,33 +77,6 @@ const RequesterCreate: React.FC = () => {
                         />
                     </div>
                 </Card>
-
-                {/* Informações Adicionais - Visível apenas no mobile */}
-                <div className="lg:hidden">
-                    <Card className="p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Dicas</h4>
-                        <div className="space-y-3 text-sm text-gray-600">
-                            <div className="flex items-start gap-3">
-                                <User className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Nome:</strong> Informe o nome completo do solicitante
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Email:</strong> Obrigatório - usado para notificações e comunicações
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Phone className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Telefone:</strong> Campo opcional para contato adicional
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
             </div>
         </div>
     );

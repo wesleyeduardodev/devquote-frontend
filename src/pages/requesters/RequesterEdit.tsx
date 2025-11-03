@@ -290,31 +290,6 @@ const RequesterEdit: React.FC = () => {
                             </div>
                         </div>
                     </Card>
-
-                    {/* Dicas */}
-                    <Card className="p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Dicas de Edição</h4>
-                        <div className="space-y-3 text-sm text-gray-600">
-                            <div className="flex items-start gap-3">
-                                <User className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Nome:</strong> Mantenha o nome completo e atualizado
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Mail className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Email:</strong> Verifique se o email está correto para receber notificações
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Phone className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Telefone:</strong> Atualize para manter contato alternativo
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
                 </div>
 
                 {/* Informações Adicionais - Desktop */}

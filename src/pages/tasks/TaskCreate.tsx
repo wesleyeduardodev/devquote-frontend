@@ -323,33 +323,6 @@ const TaskCreate = () => {
                             />
                         </div>
                     </Card>
-
-                    {/* Informações Adicionais - Visível apenas no mobile */}
-                    <div className="lg:hidden">
-                        <Card className="p-4">
-                            <h4 className="font-medium text-gray-900 mb-3">Dicas para Nova Tarefa</h4>
-                            <div className="space-y-3 text-sm text-gray-600">
-                                <div className="flex items-start gap-3">
-                                    <User className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                        <strong>Solicitante:</strong> Selecione quem está solicitando a tarefa
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <Plus className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                        <strong>Subtarefas:</strong> Adicione quantas subtarefas precisar com valores individuais
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <Mail className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                        <strong>Anexos:</strong> Você pode adicionar arquivos que serão anexados junto com a criação da tarefa
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
                 </div>
 
                 {/* Modal de Seleção de Requester */}

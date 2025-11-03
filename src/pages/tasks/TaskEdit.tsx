@@ -429,25 +429,6 @@ const TaskEdit = () => {
                             </div>
                         </div>
                     </Card>
-
-                    {/* Dicas */}
-                    <Card className="p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Dicas de Edição</h4>
-                        <div className="space-y-3 text-sm text-gray-600">
-                            <div className="flex items-start gap-3">
-                                <User className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Solicitante:</strong> Verifique se o solicitante está correto
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Edit3 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Subtarefas:</strong> Atualize valores e descrições conforme necessário
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
                 </div>
 
                 {/* Informações Adicionais - Desktop */}

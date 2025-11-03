@@ -90,33 +90,6 @@ const ProjectCreate: React.FC = () => {
                         />
                     </div>
                 </Card>
-
-                {/* Informações Adicionais - Visível apenas no mobile */}
-                <div className="lg:hidden">
-                    <Card className="p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Dicas para Novo Projeto</h4>
-                        <div className="space-y-3 text-sm text-gray-600">
-                            <div className="flex items-start gap-3">
-                                <FolderOpen className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Nome:</strong> Escolha um nome descritivo e único para o projeto
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Github className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Repositório:</strong> URL opcional para vincular ao código-fonte
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <Code className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Exemplos:</strong> GitHub, GitLab, Bitbucket ou outros serviços
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
             </div>
         </div>
     );
