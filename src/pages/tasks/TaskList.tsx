@@ -794,47 +794,78 @@ const TaskList: React.FC = () => {
                     </div>
                 )}
 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
+                    {/* Linha 1: ID + Código */}
                     <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-            #{task.id}
-          </span>
-                        <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-            {task.code}
-          </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority || 'MEDIUM')}`}>
-            {getPriorityLabel(task.priority || 'MEDIUM')}
-          </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                            #{task.id}
+                        </span>
+                        <span className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                            {task.code}
+                        </span>
                     </div>
+
+                    {/* Linha 2: Fluxo + Tipo (mesma ordem do desktop) */}
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            task.flowType === 'OPERACIONAL'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-blue-100 text-blue-800'
+                        }`}>
+                            {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                        </span>
+                        {task.taskType && (
+                            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded truncate max-w-[150px]" title={getTaskTypeLabel(task.taskType)}>
+                                {getTaskTypeLabel(task.taskType)}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Linha 3: Título */}
                     <div className="mb-2">
-                        <h3 
-                            className="font-semibold text-gray-900 text-lg leading-tight cursor-help line-clamp-2 break-words" 
-                            title={task.title}
+                        <h3
+                            className="font-semibold text-gray-900 text-base leading-snug break-words"
                             style={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                wordBreak: 'break-word',
-                                lineHeight: '1.4'
+                                overflowWrap: 'anywhere',
+                                wordBreak: 'break-word'
                             }}
                         >
                             {task.title}
                         </h3>
                     </div>
-                    {task.taskType && (
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
-                                {getTaskTypeLabel(task.taskType)}
-                            </span>
-                        </div>
-                    )}
                 </div>
             </div>
 
             {/* Informações da Task */}
             <div className="space-y-2">
+                {/* Entrega e Faturamento - apenas para ADMIN e MANAGER */}
+                {canViewDeliveryColumns && (
+                    <div className="flex items-center gap-3 text-xs flex-wrap">
+                        <div className="flex items-center gap-1">
+                            {task.hasDelivery ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ✓ Vinculado
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    ✗ Pendente
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {task.hasQuoteInBilling ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    ✓ Faturado
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    ⏳ Aguardando
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Ações + Solicitante - na mesma linha para economizar espaço */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm flex-1">
@@ -903,77 +934,18 @@ const TaskList: React.FC = () => {
                                 </Button>
                             )}
                         </div>
-                        
-                        {/* Solicitante */}
-                        {task.requesterName && (
-                            <>
-                                <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                <span className="text-gray-700 truncate">{task.requesterName}</span>
-                            </>
-                        )}
                     </div>
                 </div>
 
-                {task.systemModule && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-400 flex-shrink-0">📁</span>
-                        <span className="text-gray-600">{task.systemModule}</span>
+                {/* Valor Total - apenas para ADMIN e MANAGER */}
+                {canViewValues && (
+                    <div className="flex items-center gap-1 text-sm">
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-green-600">
+                            {formatCurrency(calculateTaskTotal(task))}
+                        </span>
                     </div>
                 )}
-
-                {task.serverOrigin && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-400 flex-shrink-0">🖥️</span>
-                        <span className="text-gray-600">{task.serverOrigin}</span>
-                    </div>
-                )}
-
-                <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                        <CheckSquare className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span className="text-gray-600">{task.subTasks?.length || 0} subtarefa(s)</span>
-                    </div>
-
-                    {canViewValues && (
-                        <div className="flex items-center gap-1">
-                            <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="text-sm font-medium text-green-600">
-                                {formatCurrency(calculateTaskTotal(task))}
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Links */}
-                <div className="flex items-center gap-4 text-sm">
-                    {task.link && (
-                        <div className="flex items-center gap-2">
-                            <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                            <a
-                                href={task.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 hover:underline truncate"
-                            >
-                                Ver link da tarefa
-                            </a>
-                        </div>
-                    )}
-
-                    {task.meetingLink && (
-                        <div className="flex items-center gap-2">
-                            <Video className="w-4 h-4 text-green-500 flex-shrink-0" />
-                            <a
-                                href={task.meetingLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-green-600 hover:text-green-800 hover:underline truncate"
-                            >
-                                Entrar na reunião
-                            </a>
-                        </div>
-                    )}
-                </div>
             </div>
         </div>
     );

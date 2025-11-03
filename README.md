@@ -137,6 +137,100 @@ src/
 - **Paginação incremental**
 - **Acessibilidade**: labels, ARIA, keyboard navigation, contraste
 
+## 📱 Diretrizes de Responsividade
+
+### ⚠️ IMPORTANTE: Desktop-Mobile Sync
+
+**REGRA OBRIGATÓRIA**: Sempre que modificar a versão **Desktop**, ajuste a versão **Mobile** para manter alinhamento e responsividade!
+
+### Arquitetura Dual (Desktop vs Mobile)
+
+Este projeto usa **duas implementações separadas** para Desktop e Mobile:
+
+#### 🖥️ **Desktop** (telas ≥ 1024px)
+```tsx
+<div className="hidden lg:block">
+    <DataTable ... />  {/* Tabela com colunas fixas em pixels */}
+</div>
+```
+- Usa componente **`DataTable`** com larguras fixas em pixels
+- Layout de tabela tradicional
+- Visível apenas em `lg` (large) e acima
+
+#### 📱 **Mobile/Tablet** (telas < 1024px)
+```tsx
+<div className="lg:hidden">
+    <TaskCard ... />  {/* Cards responsivos */}
+</div>
+```
+- Usa **cards customizados** (componentes específicos como `TaskCard`)
+- Layout vertical e responsivo
+- Visível apenas abaixo de `lg`
+
+### ✅ Checklist ao Modificar Desktop
+
+Ao fazer alterações na versão desktop, **SEMPRE** ajuste a versão mobile:
+
+- [ ] **Colunas adicionadas** → Adicionar informações equivalentes no card mobile
+- [ ] **Colunas removidas** → Remover informações equivalentes do card mobile
+- [ ] **Ordem alterada** → Ajustar ordem visual no card mobile
+- [ ] **Filtros novos** → Adicionar filtros mobile (geralmente em `<Card>` com busca)
+- [ ] **Ações adicionadas** → Adicionar botões de ação no card mobile
+- [ ] **Textos longos** → Desktop: truncar com largura fixa; Mobile: permitir quebra de linha
+- [ ] **Validações** → Aplicar mesmas validações em ambas as versões
+- [ ] **Permissões** → Manter mesma lógica de `canViewValues`, `canViewDeliveryColumns`, etc
+
+### 📋 Exemplo Prático: TaskList
+
+**Desktop** (`TaskList.tsx` - DataTable):
+```tsx
+columns: [
+  { key: 'id', width: '80px', ... },
+  { key: 'code', width: '90px', ... },
+  { key: 'flowType', width: '130px', ... },
+  { key: 'taskType', width: '135px', ... },
+  { key: 'title', width: '240px', ... },
+  ...
+]
+```
+
+**Mobile** (`TaskList.tsx` - TaskCard):
+```tsx
+<TaskCard>
+  {/* Linha 1: ID + Código */}
+  {/* Linha 2: Fluxo + Tipo */}
+  {/* Linha 3: Título (completo, quebra em múltiplas linhas) */}
+  {/* Linha 4: Entrega + Faturamento (badges) */}
+  {/* Linha 5: Ações (botões compactos) */}
+  {/* Linha 6: Valor Total */}
+</TaskCard>
+```
+
+### 🎯 Regras de Responsividade
+
+1. **Desktop** = informação compacta (truncate, larguras fixas)
+2. **Mobile** = informação completa quando possível (quebra de linha, cards expansíveis)
+3. **Consistência**: mesma ordem de informações em ambas as versões
+4. **Permissões**: aplicar mesma lógica de acesso (ADMIN, MANAGER, USER)
+5. **Testes**: sempre testar em ambos os tamanhos de tela
+
+### 🛠️ Ferramentas de Desenvolvimento
+
+Para testar responsividade:
+```bash
+# Desktop (chrome dev tools)
+# Mobile: 375x667 (iPhone SE)
+# Tablet: 768x1024 (iPad)
+# Desktop: 1920x1080
+```
+
+**Breakpoints Tailwind:**
+- `sm`: 640px
+- `md`: 768px
+- `lg`: 1024px ← **Ponto de divisão Desktop/Mobile**
+- `xl`: 1280px
+- `2xl`: 1536px
+
 ## 🔒 Segurança
 - **Token JWT** injetado automaticamente nos headers
 - **Auto-logout** em 401 (token expirado)
