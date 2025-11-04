@@ -18,11 +18,9 @@ const ProjectEdit: React.FC = () => {
     const [project, setProject] = useState<any>(null);
     const [fetching, setFetching] = useState<boolean>(true);
 
-    // Verifica se o usuário é ADMIN (apenas ADMIN pode editar projetos)
     const isAdmin = hasProfile('ADMIN');
     const authLoading = !user;
 
-    // Verificação de acesso - apenas ADMIN pode editar projetos
     useEffect(() => {
         if (!authLoading && user && !isAdmin) {
             toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
@@ -37,7 +35,6 @@ const ProjectEdit: React.FC = () => {
                 return;
             }
 
-            // Só carrega se for admin
             if (!authLoading && !isAdmin) {
                 return;
             }
@@ -59,7 +56,6 @@ const ProjectEdit: React.FC = () => {
         }
     }, [id, navigate, authLoading, isAdmin]);
 
-    // Se não é admin, não renderiza nada (vai redirecionar)
     if (!authLoading && user && !isAdmin) {
         return null;
     }

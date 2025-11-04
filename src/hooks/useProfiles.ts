@@ -67,7 +67,6 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
   ]);
   const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
 
-  // Refs para controlar o debounce
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchProfiles = useCallback(async (params?: UseProfilesParams): Promise<void> => {
@@ -114,7 +113,7 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
   const createProfile = useCallback(async (data: CreateProfileRequest): Promise<Profile> => {
     try {
       const newProfile = await profileService.create(data);
-      await fetchProfiles(); // Refresh list
+      await fetchProfiles();
       toast.success('Perfil criado com sucesso!');
       return newProfile;
     } catch (err: any) {
@@ -126,7 +125,7 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
   const updateProfile = useCallback(async (id: number, data: UpdateProfileRequest): Promise<Profile> => {
     try {
       const updatedProfile = await profileService.update(id, data);
-      await fetchProfiles(); // Refresh list
+      await fetchProfiles();
       toast.success('Perfil atualizado com sucesso!');
       return updatedProfile;
     } catch (err: any) {
@@ -138,7 +137,7 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
   const deleteProfile = useCallback(async (id: number): Promise<void> => {
     try {
       await profileService.delete(id);
-      await fetchProfiles(); // Refresh list
+      await fetchProfiles();
       toast.success('Perfil excluído com sucesso!');
     } catch (err: any) {
       console.error('Error deleting profile:', err);
@@ -149,7 +148,7 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
   const deleteBulkProfiles = useCallback(async (ids: number[]): Promise<void> => {
     try {
       await profileService.deleteBulk(ids);
-      await fetchProfiles(); // Refresh list
+      await fetchProfiles();
       toast.success(`${ids.length} perfil(is) excluído(s) com sucesso!`);
     } catch (err: any) {
       console.error('Error deleting profiles:', err);
@@ -173,16 +172,14 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
 
   const setPageSize = useCallback((size: number) => {
     setCurrentPageSize(size);
-    setCurrentPage(0); // Reset to first page when changing page size
+    setCurrentPage(0);
   }, []);
 
   const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
     setSortingState(prevSorting => {
-      // Remove existing sort for this field and add new one at the beginning
       const filteredSorting = prevSorting.filter(s => s.field !== field);
-      return [{ field, direction }, ...filteredSorting];
-    });
-    setCurrentPage(0); // Reset to first page when sorting changes
+      return [{ field, direction }, ...filteredSorting];    });
+    setCurrentPage(0);
   }, []);
 
   const setFilter = useCallback((field: string, value: string) => {
@@ -190,7 +187,7 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
       ...prev,
       [field]: value || undefined
     }));
-    setCurrentPage(0); // Reset to first page when filter changes
+    setCurrentPage(0);
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -198,19 +195,16 @@ export const useProfiles = (paginated: boolean = false, initialParams?: UseProfi
     setCurrentPage(0);
   }, []);
 
-  // Effect to fetch data when parameters change (with debounce for filters)
   useEffect(() => {
-    // Clear previous timer
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new timer for debounce (1 second)
     debounceTimerRef.current = setTimeout(() => {
       fetchProfiles();
     }, 1000);
 
-    // Cleanup on unmount or when dependencies change
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);

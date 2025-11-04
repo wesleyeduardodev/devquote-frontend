@@ -48,10 +48,10 @@ const RequesterForm: React.FC<RequesterFormProps> = ({
         try {
             await onSubmit(data);
             if (!initialData) {
-                reset(); // Reset form only for create mode
+                reset();
             }
         } catch (error) {
-            // Error is handled by the parent component
+
         }
     };
 

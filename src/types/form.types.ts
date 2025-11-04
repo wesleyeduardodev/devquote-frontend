@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Tipos base para formulários
 export interface BaseFormProps<T = any> {
     onSubmit: (data: T) => void | Promise<void>;
     onCancel?: () => void;
@@ -9,7 +8,6 @@ export interface BaseFormProps<T = any> {
     initialData?: Partial<T>;
 }
 
-// Tipos para campos de formulário
 export interface FormFieldProps {
     name: string;
     label?: string;
@@ -20,7 +18,6 @@ export interface FormFieldProps {
     helperText?: string;
 }
 
-// Input de texto
 export interface TextInputProps extends FormFieldProps {
     type?: 'text' | 'email' | 'password' | 'tel' | 'url';
     maxLength?: number;
@@ -29,7 +26,6 @@ export interface TextInputProps extends FormFieldProps {
     autoComplete?: string;
 }
 
-// Input numérico
 export interface NumberInputProps extends FormFieldProps {
     min?: number;
     max?: number;
@@ -37,7 +33,6 @@ export interface NumberInputProps extends FormFieldProps {
     precision?: number;
 }
 
-// Textarea
 export interface TextareaProps extends FormFieldProps {
     rows?: number;
     cols?: number;
@@ -45,7 +40,6 @@ export interface TextareaProps extends FormFieldProps {
     resize?: 'none' | 'both' | 'horizontal' | 'vertical';
 }
 
-// Select
 export interface SelectProps extends FormFieldProps {
     options: SelectOption[];
     multiple?: boolean;
@@ -61,13 +55,11 @@ export interface SelectOption {
     group?: string;
 }
 
-// Checkbox
 export interface CheckboxProps extends FormFieldProps {
     checked?: boolean;
     indeterminate?: boolean;
 }
 
-// Radio
 export interface RadioProps extends FormFieldProps {
     options: RadioOption[];
     direction?: 'horizontal' | 'vertical';
@@ -79,7 +71,6 @@ export interface RadioOption {
     disabled?: boolean;
 }
 
-// Date picker
 export interface DatePickerProps extends FormFieldProps {
     format?: string;
     minDate?: Date | string;
@@ -88,17 +79,15 @@ export interface DatePickerProps extends FormFieldProps {
     timeFormat?: string;
 }
 
-// File upload
 export interface FileUploadProps extends FormFieldProps {
     accept?: string;
     multiple?: boolean;
-    maxSize?: number; // em bytes
+    maxSize?: number;
     maxFiles?: number;
     preview?: boolean;
     dragDrop?: boolean;
 }
 
-// Form validation
 export interface ValidationRule {
     required?: boolean | string;
     min?: number | string;
@@ -115,7 +104,6 @@ export interface FieldValidation {
     [fieldName: string]: ValidationRule;
 }
 
-// Form state
 export interface FormErrors {
     [fieldName: string]: string;
 }
@@ -133,7 +121,6 @@ export interface FormState<T = any> {
     isDirty: boolean;
 }
 
-// Form actions
 export type FormAction<T = any> =
     | { type: 'SET_VALUE'; field: keyof T; value: any }
     | { type: 'SET_ERROR'; field: keyof T; error: string }
@@ -142,7 +129,6 @@ export type FormAction<T = any> =
     | { type: 'RESET'; initialValues?: Partial<T> }
     | { type: 'VALIDATE' };
 
-// Hook form types
 export interface UseFormOptions<T = any> {
     initialValues?: Partial<T>;
     validation?: FieldValidation;

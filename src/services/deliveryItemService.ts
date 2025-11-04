@@ -20,7 +20,6 @@ interface PaginatedParams {
 }
 
 export const deliveryItemService = {
-    // CRUD básico para DeliveryItems
     getAll: async (): Promise<DeliveryItem[]> => {
         const response = await api.get('/delivery-items');
         return response.data;
@@ -36,12 +35,10 @@ export const deliveryItemService = {
             size: size.toString(),
         });
 
-        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
 
-        // Adiciona parâmetros de filtro
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
@@ -82,7 +79,6 @@ export const deliveryItemService = {
         await api.delete('/delivery-items/bulk', { data: ids });
     },
 
-    // Métodos específicos por relacionamento
     getByDeliveryId: async (deliveryId: number): Promise<DeliveryItem[]> => {
         const response = await api.get(`/delivery-items/by-delivery/${deliveryId}`);
         return response.data;
@@ -108,7 +104,6 @@ export const deliveryItemService = {
         return response.data;
     },
 
-    // Operações em lote
     createMultipleItems: async (deliveryId: number, items: CreateDeliveryItemData[]): Promise<DeliveryItem[]> => {
         const response = await api.post(`/delivery-items/delivery/${deliveryId}/bulk`, items);
         return response.data;
@@ -120,7 +115,6 @@ export const deliveryItemService = {
         return response.data;
     },
 
-    // Contadores
     countByDeliveryId: async (deliveryId: number): Promise<number> => {
         const response = await api.get(`/delivery-items/count/by-delivery/${deliveryId}`);
         return response.data;
@@ -131,7 +125,6 @@ export const deliveryItemService = {
         return response.data;
     },
 
-    // Export
     exportToExcel: async (): Promise<Blob> => {
         const response = await api.get('/delivery-items/export/excel', {
             responseType: 'blob'

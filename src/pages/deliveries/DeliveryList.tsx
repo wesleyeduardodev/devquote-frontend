@@ -26,7 +26,6 @@ const DeliveryList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile } = useAuth();
 
-    // Usar o hook useDeliveries
     const {
         deliveryGroups,
         pagination,
@@ -44,32 +43,27 @@ const DeliveryList: React.FC = () => {
         deleteBulk
     } = useDeliveries();
 
-    // Verificações de perfil
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
     const canCreate = isAdmin;
     const canEdit = isAdmin;
     const canDelete = isAdmin;
 
-    // Estados para estatísticas e modals
     const [statistics, setStatistics] = useState<DeliveryStatusCount | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<DeliveryGroupResponse | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState<DeliveryGroupResponse | null>(null);
-    
-    // Estados para seleção múltipla
+
     const [selectedDeliveries, setSelectedDeliveries] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
-    // Estados para email modal
     const [showDeliveryEmailModal, setShowDeliveryEmailModal] = useState(false);
     const [groupForEmail, setGroupForEmail] = useState<DeliveryGroupResponse | null>(null);
     const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
     const [currentEmailInput, setCurrentEmailInput] = useState('');
 
-    // Carregar estatísticas (função independente)
     const fetchStatistics = async () => {
         try {
             const stats = await deliveryService.getGlobalStatistics();
@@ -79,12 +73,10 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    // Carregar estatísticas uma vez
     React.useEffect(() => {
         fetchStatistics();
     }, []);
 
-    // Handlers para seleção múltipla
     const handleSelectDelivery = (deliveryId: number) => {
         setSelectedDeliveries(prev => {
             if (prev.includes(deliveryId)) {
@@ -124,9 +116,7 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    // Definir colunas da tabela
     const columns: Column<DeliveryGroupResponse>[] = [
-        // Coluna de seleção
         {
             key: 'select',
             title: (
@@ -195,7 +185,7 @@ const DeliveryList: React.FC = () => {
             width: '130px',
             align: 'center' as const,
             render: (delivery: DeliveryGroupResponse) => {
-                // Buscar flowType da delivery (que vem da task)
+
                 const flowType = delivery.deliveries?.[0]?.flowType;
                 return flowType ? (
                     <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
@@ -219,21 +209,20 @@ const DeliveryList: React.FC = () => {
             width: '135px',
             align: 'center' as const,
             render: (delivery: DeliveryGroupResponse) => {
-                // Buscar taskType da delivery
+
                 const taskType = delivery.deliveries?.[0]?.taskType;
 
-                // Traduzir tipo de tarefa para português
                 const getTaskTypeLabel = (type: string | undefined) => {
                     if (!type) return '-';
                     switch (type) {
-                        // Tipos operacionais
+
                         case 'BACKUP': return '💾 Backup';
                         case 'DEPLOY': return '🚀 Deploy';
                         case 'LOGS': return '📋 Logs';
                         case 'NEW_SERVER': return '🖥️ Novo Servidor';
                         case 'MONITORING': return '📊 Monitoramento';
                         case 'SUPPORT': return '🔧 Suporte';
-                        // Tipos de desenvolvimento
+
                         case 'BUG': return '🐛 Bug';
                         case 'ENHANCEMENT': return '✨ Melhoria';
                         case 'NEW_FEATURE': return '⭐ Nova Funcionalidade';
@@ -374,7 +363,6 @@ const DeliveryList: React.FC = () => {
         }
     ];
 
-    // Handlers
     const handleView = async (group: DeliveryGroupResponse) => {
         try {
             const groupDetails = await deliveryService.getGroupDetailsByTaskId(group.taskId);
@@ -387,7 +375,7 @@ const DeliveryList: React.FC = () => {
     };
 
     const handleEdit = (group: DeliveryGroupResponse) => {
-        // Pegar o ID da primeira entrega (relação 1:1 com task)
+
         const deliveryId = group.deliveries?.[0]?.id;
         
         if (deliveryId) {
@@ -406,13 +394,13 @@ const DeliveryList: React.FC = () => {
         if (!groupToDelete) return;
 
         try {
-            // Pegar o ID da primeira entrega (relação 1:1 com task)
+
             const deliveryId = groupToDelete.deliveries?.[0]?.id;
             
             if (deliveryId) {
                 await deliveryService.delete(deliveryId);
                 toast.success('Entrega excluída com sucesso!');
-                // Recarregar a lista de entregas e estatísticas
+
                 await fetchDeliveryGroups();
                 fetchStatistics();
             } else {
@@ -430,7 +418,6 @@ const DeliveryList: React.FC = () => {
     const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO');
     const handleExportOperational = () => exportToExcel('OPERACIONAL');
 
-    // Handler para email de entrega
     const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
         setGroupForEmail(group);
         setAdditionalEmails([]);
@@ -446,7 +433,6 @@ const DeliveryList: React.FC = () => {
             if (deliveryId) {
                 await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails);
                 toast.success('Email de entrega enviado com sucesso!');
-                // Recarregar a listagem para atualizar o status do email
                 await fetchDeliveryGroups();
             } else {
                 toast.error('ID da entrega não encontrado');
@@ -484,8 +470,6 @@ const DeliveryList: React.FC = () => {
         setSorting(field, direction);
     };
 
-    // Formatadores
-
     const getStatusColor = (status: DeliveryStatus) => {
         const colors = {
             PENDING: 'text-yellow-700 bg-yellow-50 border border-yellow-100',
@@ -512,7 +496,6 @@ const DeliveryList: React.FC = () => {
         return labels[status] || status;
     };
 
-    // Função para renderizar os cards de estatísticas
     const renderStatisticsCards = () => {
         if (!statistics) return null;
 

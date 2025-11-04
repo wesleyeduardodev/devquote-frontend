@@ -13,7 +13,7 @@ import {
 } from '@/types';
 
 const billingPeriodService = {
-  // ========== OPERAÇÕES DE BILLING PERIOD ==========
+
 
   findAll: async (): Promise<BillingPeriod[]> => {
     const res = await api.get('/billing-periods');
@@ -101,7 +101,6 @@ const billingPeriodService = {
     return response.data;
   },
 
-  // ========== OPERAÇÕES DE BILLING PERIOD TASK ==========
 
   findAllTaskLinks: async (): Promise<BillingPeriodTask[]> => {
     const res = await api.get('/billing-period-tasks');
@@ -159,9 +158,7 @@ const billingPeriodService = {
     });
   },
 
-  // ========== EMAIL ==========
 
-  // Send billing email
   sendBillingEmail: async (id: number, additionalEmails?: string[], flowType?: string): Promise<void> => {
     await api.post(`/billing-periods/${id}/send-billing-email`, {
       additionalEmails: additionalEmails || [],

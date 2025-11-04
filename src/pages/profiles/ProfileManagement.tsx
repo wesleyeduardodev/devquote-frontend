@@ -34,13 +34,9 @@ const ProfileManagement = () => {
   const { hasProfile, isLoading: authLoading, user } = useAuth();
   const navigate = useNavigate();
 
-  // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
   const isAdmin = hasProfile('ADMIN');
-  const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
 
-  // Removido hook de perfis - agora apenas gerencia usuários
 
-  // User management hooks
   const {
     users,
     loading: usersLoading,
@@ -60,13 +56,9 @@ const ProfileManagement = () => {
     refetch: refetchUsers
   } = useUserManagement();
 
-  // State management
-  // Removido activeTab - agora apenas gerencia usuários
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -80,7 +72,6 @@ const ProfileManagement = () => {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
 
-  // Form state for creating user
   const [userForm, setUserForm] = useState<CreateUserDto>({
     username: '',
     email: '',
@@ -89,7 +80,6 @@ const ProfileManagement = () => {
     profileCodes: []
   });
 
-  // Check permissions - permite ADMIN, MANAGER e USER
   useEffect(() => {
     if (!authLoading && user && !hasProfile('ADMIN') && !hasProfile('MANAGER') && !hasProfile('USER')) {
       toast.error('Acesso negado. Você não tem permissão para acessar esta página.');
@@ -97,7 +87,6 @@ const ProfileManagement = () => {
     }
   }, [hasProfile, navigate, authLoading, user]);
 
-  // Format date
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -108,7 +97,6 @@ const ProfileManagement = () => {
     });
   };
 
-  // Selection handlers
   const toggleItem = (id: number) => {
     setSelectedItems((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -148,7 +136,6 @@ const ProfileManagement = () => {
     };
   }, [users, selectedItems]);
 
-  // Profile handlers
   const handleCreateProfile = () => {
     setSelectedProfile(null);
     setIsEditing(false);
@@ -197,7 +184,6 @@ const ProfileManagement = () => {
     setShowUserModal(true);
   };
 
-  // User handlers
   const handleCreateUser = () => {
     setUserForm({
       username: '',
@@ -218,7 +204,7 @@ const ProfileManagement = () => {
       email: user.email,
       password: '',
       name: user.name || '',
-      profileCodes: user.roles || [] // Usa os códigos dos perfis diretamente
+      profileCodes: user.roles || []
     });
     setIsEditing(true);
     setShowCreateUserModal(true);
@@ -278,14 +264,12 @@ const ProfileManagement = () => {
           profileCodes: userForm.profileCodes
         };
 
-        // Verifica se está alterando o username do próprio usuário logado
         const isChangingOwnUsername = user?.id === selectedUser.id &&
                                       selectedUser.username !== userForm.username;
 
         await updateUser(selectedUser.id, updateData);
         toast.success('Usuário atualizado com sucesso');
 
-        // Se alterou o próprio username, faz logout
         if (isChangingOwnUsername) {
           toast.info('Username alterado. Redirecionando para login...');
           setTimeout(() => {
@@ -305,7 +289,6 @@ const ProfileManagement = () => {
     }
   };
 
-  // Bulk delete handler
   const handleBulkDelete = async () => {
     setIsDeleting(true);
     try {
@@ -321,7 +304,6 @@ const ProfileManagement = () => {
     }
   };
 
-  // User columns - versão completa para ADMIN
   const adminUserColumns: Column<UserProfile>[] = [
     {
       key: 'select',
@@ -477,7 +459,6 @@ const ProfileManagement = () => {
     },
   ];
 
-  // User columns - versão somente leitura para MANAGER e USER
   const readOnlyUserColumns: Column<UserProfile>[] = [
     {
       key: 'id',
@@ -556,10 +537,8 @@ const ProfileManagement = () => {
     },
   ];
 
-  // Escolhe as colunas baseado no perfil do usuário
   const userColumns = isAdmin ? adminUserColumns : readOnlyUserColumns;
 
-  // Profile columns
   const profileColumns: Column<Profile>[] = [
     {
       key: 'select',
@@ -729,7 +708,6 @@ const ProfileManagement = () => {
   const loading = usersLoading || authLoading;
   const error = usersError;
 
-  // Show loading while checking permissions
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -741,7 +719,6 @@ const ProfileManagement = () => {
     );
   }
 
-  // Check permissions after auth is loaded
   if (!authLoading && !hasProfile('ADMIN')) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -754,18 +731,16 @@ const ProfileManagement = () => {
     );
   }
 
-  // Filtered users for mobile search
   const filteredUsers = users.filter((user: UserProfile) =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // User Card Component for Mobile
   const UserCard: React.FC<{ user: UserProfile }> = ({ user: userItem }) => (
     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
       <div className="space-y-3">
-        {/* Header com ID e Status */}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isAdmin && (
@@ -801,7 +776,6 @@ const ProfileManagement = () => {
           </span>
         </div>
 
-        {/* Nome e Informações */}
         <div>
           <h3 className="font-semibold text-gray-900 text-base mb-1">
             {userItem.username}
@@ -811,13 +785,11 @@ const ProfileManagement = () => {
           )}
         </div>
 
-        {/* Email */}
         <div className="flex items-center gap-2">
           <Mail className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-600">{userItem.email}</span>
         </div>
 
-        {/* Perfis */}
         <div className="flex flex-wrap gap-1">
           {userItem.profiles && userItem.profiles.length > 0 ? (
             userItem.profiles.map((profile) => (
@@ -840,7 +812,6 @@ const ProfileManagement = () => {
           )}
         </div>
 
-        {/* Ações - apenas para ADMIN */}
         {isAdmin && (
           <div className="flex gap-2 pt-2 border-t border-gray-100">
             <Button
@@ -891,7 +862,6 @@ const ProfileManagement = () => {
         )}
       </div>
 
-      {/* Estatísticas - Responsivas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
           <div className="flex items-center">
@@ -950,7 +920,6 @@ const ProfileManagement = () => {
         </div>
       </div>
 
-      {/* Filtros Mobile - Busca + seleção e bulk delete */}
       <div className="lg:hidden space-y-4">
         <Card className="p-4">
           <div className="space-y-3">
@@ -1000,7 +969,6 @@ const ProfileManagement = () => {
       </div>
 
 
-      {/* Desktop - Barra de ações quando há seleção */}
       <div className="hidden lg:block">
         {isAdmin && selectionState.hasSelection && (
           <Card className="p-4">
@@ -1032,7 +1000,6 @@ const ProfileManagement = () => {
         )}
       </div>
 
-      {/* Content */}
       {loading ? (
         <Card className="p-8">
           <div className="flex items-center justify-center">
@@ -1050,7 +1017,7 @@ const ProfileManagement = () => {
         </Card>
       ) : (
         <>
-          {/* Desktop - Tabela */}
+
           <div className="hidden lg:block">
             <Card className="p-0">
               <DataTable
@@ -1072,7 +1039,6 @@ const ProfileManagement = () => {
             </Card>
           </div>
 
-          {/* Mobile/Tablet - Cards com busca simples */}
           <div className="lg:hidden">
             {filteredUsers.length === 0 ? (
               <Card className="p-8 text-center">
@@ -1090,7 +1056,6 @@ const ProfileManagement = () => {
               </div>
             )}
 
-            {/* Paginação Simplificada para Mobile */}
             {usersPagination && usersPagination.totalPages > 1 && (
               <Card className="p-4">
                 <div className="flex items-center justify-between">
@@ -1122,9 +1087,6 @@ const ProfileManagement = () => {
         </>
       )}
 
-      {/* Modals */}
-
-      {/* Create/Edit User Modal */}
       {showCreateUserModal && (
         <Modal
           isOpen={showCreateUserModal}
@@ -1220,7 +1182,6 @@ const ProfileManagement = () => {
         </Modal>
       )}
 
-      {/* Bulk delete modal */}
       <BulkDeleteModal
         isOpen={showBulkDeleteModal}
         onClose={() => setShowBulkDeleteModal(false)}
@@ -1230,7 +1191,6 @@ const ProfileManagement = () => {
         entityName="usuário"
       />
 
-      {/* Modal de confirmação de exclusão */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => {
@@ -1246,7 +1206,6 @@ const ProfileManagement = () => {
         variant={itemToDelete && user?.id === itemToDelete.id ? "warning" : "danger"}
       />
 
-      {/* Modal de confirmação de reset de senha */}
       <Modal
         isOpen={showResetPasswordModal}
         onClose={() => {

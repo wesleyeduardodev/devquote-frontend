@@ -27,7 +27,7 @@ interface PaginatedDeliveryGroups {
 }
 
 export const deliveryGroupService = {
-    // Método original (mantido para compatibilidade)
+
     async getGroupedDeliveries(params: URLSearchParams): Promise<PaginatedDeliveryGroups> {
         const response = await api.get(`/deliveries/grouped?${params.toString()}`);
         return response.data;
@@ -38,7 +38,6 @@ export const deliveryGroupService = {
         return response.data;
     },
 
-    // Novos métodos otimizados
     async getGroupedDeliveriesOptimized(params: URLSearchParams): Promise<PaginatedDeliveryGroups> {
         const response = await api.get(`/deliveries/grouped/optimized?${params.toString()}`);
         return response.data;

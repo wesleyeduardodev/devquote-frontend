@@ -21,7 +21,6 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 const DeliveryCreate: React.FC = () => {
     const navigate = useNavigate();
 
-    // Estados principais
     const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
     const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
     const [notes, setNotes] = useState<string>('');
@@ -29,14 +28,11 @@ const DeliveryCreate: React.FC = () => {
     const [createdDeliveryId, setCreatedDeliveryId] = useState<number | null>(null);
     const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
 
-    // Estados dos modais
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
 
-    // Dados dos formulários de itens
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
 
-    // Handlers dos seletores
     const handleTaskSelect = (task: AvailableTask) => {
         setSelectedTask(task);
         setShowTaskModal(false);
@@ -51,7 +47,6 @@ const DeliveryCreate: React.FC = () => {
         }
     };
 
-    // Criar entrega
     const handleCreateDelivery = async () => {
         if (!selectedTask) {
             toast.error('Selecione uma tarefa primeiro');
@@ -71,23 +66,20 @@ const DeliveryCreate: React.FC = () => {
                 }))
             };
 
-            // Criar entrega
             const createdDelivery = await deliveryService.create(deliveryData);
                 
             setCreatedDeliveryId(createdDelivery.id);
 
-            // Buscar itens criados se houver projetos
             if (selectedProjects.length > 0) {
                 const items = await deliveryItemService.getByDeliveryId(createdDelivery.id);
                 setDeliveryItems(items);
 
-                // Inicializar dados dos formulários
                 const initialFormData = new Map<number, DeliveryItemFormData>();
                 items.forEach(item => {
                     const project = selectedProjects.find(p => p.id === item.projectId);
                     if (project) {
                         initialFormData.set(project.id, {
-                            id: item.id, // ← IMPORTANTE: Adicionando o ID do item
+                            id: item.id,
                             deliveryId: item.deliveryId,
                             projectId: project.id,
                             projectName: project.name,
@@ -105,10 +97,8 @@ const DeliveryCreate: React.FC = () => {
                 setItemsFormData(initialFormData);
             }
 
-            // Feedback de sucesso
             toast.success('Entrega criada com sucesso!');
 
-            // Se for OPERACIONAL, redirecionar para tela de edição onde itens operacionais serão adicionados
             if (selectedTask.flowType === 'OPERACIONAL') {
                 toast.success('Agora você pode adicionar os itens operacionais!');
                 navigate(`/deliveries/${createdDelivery.id}/edit`);
@@ -123,7 +113,6 @@ const DeliveryCreate: React.FC = () => {
         }
     };
 
-    // Salvar dados de um item
     const handleSaveItemData = async (projectId: number, data: DeliveryItemFormData) => {
         const item = deliveryItems.find(item => item.projectId === projectId);
         if (!item) return;
@@ -142,11 +131,10 @@ const DeliveryCreate: React.FC = () => {
                 notes: data.notes
             });
 
-            // Atualizar dados locais
             const newFormData = new Map(itemsFormData);
             newFormData.set(projectId, {
                 ...data,
-                id: item.id, // Garantir que o ID esteja presente
+                id: item.id,
                 deliveryId: item.deliveryId
             });
             setItemsFormData(newFormData);
@@ -159,19 +147,16 @@ const DeliveryCreate: React.FC = () => {
         }
     };
 
-    // Remover item
     const handleRemoveItem = async (projectId: number) => {
         const item = deliveryItems.find(item => item.projectId === projectId);
         if (!item) return;
 
         try {
             await deliveryItemService.delete(item.id);
-            
-            // Remover do estado local
+
             setDeliveryItems(prev => prev.filter(i => i.id !== item.id));
             setSelectedProjects(prev => prev.filter(p => p.id !== projectId));
-            
-            // Remover do mapa de dados do formulário
+
             setItemsFormData(prev => {
                 const newMap = new Map(prev);
                 newMap.delete(projectId);
@@ -185,7 +170,6 @@ const DeliveryCreate: React.FC = () => {
         }
     };
 
-    // Finalizar e voltar para lista
     const handleFinish = () => {
         toast.success('Entrega configurada com sucesso!');
         navigate('/deliveries');
@@ -194,7 +178,6 @@ const DeliveryCreate: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
                 <div className="flex items-center space-x-4">
                     <Button
                         variant="ghost"
@@ -210,10 +193,8 @@ const DeliveryCreate: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Card Principal */}
                 <Card className="overflow-hidden">
                     <div className="px-4 py-5 sm:px-6">
-                        {/* Seleção de Tarefa */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Tarefa <span className="text-red-500">*</span>
@@ -267,7 +248,6 @@ const DeliveryCreate: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Seleção de Projetos - Somente para fluxo DESENVOLVIMENTO */}
                         {selectedTask?.flowType !== 'OPERACIONAL' && (
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -307,7 +287,6 @@ const DeliveryCreate: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Observações Gerais */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Observações Gerais da Entrega
@@ -321,7 +300,6 @@ const DeliveryCreate: React.FC = () => {
                             />
                         </div>
 
-                        {/* Botão Criar Entrega */}
                         {!createdDeliveryId && (
                             <div className="pt-4 border-t border-gray-200">
                                 <Button
@@ -346,7 +324,6 @@ const DeliveryCreate: React.FC = () => {
                     </div>
                 </Card>
 
-                {/* Itens de Entrega */}
                 {createdDeliveryId && selectedProjects.length > 0 && (
                     <Card className="p-6">
                         <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -381,7 +358,6 @@ const DeliveryCreate: React.FC = () => {
                     </Card>
                 )}
 
-                {/* Entrega criada sem projetos */}
                 {createdDeliveryId && selectedProjects.length === 0 && (
                     <Card className="p-6 text-center">
                         <div className="space-y-4">
@@ -398,7 +374,6 @@ const DeliveryCreate: React.FC = () => {
                     </Card>
                 )}
 
-                {/* Ações finais */}
                 {createdDeliveryId && (
                     <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6">
                         <Button
@@ -418,7 +393,6 @@ const DeliveryCreate: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modals */}
                 <TaskSelectionModal
                     isOpen={showTaskModal}
                     onClose={() => setShowTaskModal(false)}

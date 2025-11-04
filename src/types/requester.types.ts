@@ -1,6 +1,5 @@
 import { BaseEntity } from './api.types';
 
-// Interface principal para Requester
 export interface Requester extends BaseEntity {
     id: string | number;
     name: string;
@@ -14,10 +13,8 @@ export interface Requester extends BaseEntity {
     notes?: string;
 }
 
-// Status do solicitante
 export type RequesterStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING_APPROVAL';
 
-// Endereço do solicitante
 export interface RequesterAddress {
     street?: string;
     number?: string;
@@ -29,7 +26,6 @@ export interface RequesterAddress {
     country?: string;
 }
 
-// Tipo para criação de solicitante
 export interface CreateRequesterData {
     name: string;
     email: string;
@@ -42,12 +38,10 @@ export interface CreateRequesterData {
     notes?: string;
 }
 
-// Tipo para atualização de solicitante
 export interface UpdateRequesterData extends Partial<CreateRequesterData> {
-    id?: never; // Impede atualização do ID
+    id?: never;
 }
 
-// Requester com dados relacionados
 export interface RequesterWithRelations extends Requester {
     tasks?: {
         id: number;
@@ -62,7 +56,6 @@ export interface RequesterWithRelations extends Requester {
     }[];
 }
 
-// Filtros para listagem de solicitantes
 export interface RequesterFilters {
     status?: RequesterStatus[];
     company?: string;
@@ -72,7 +65,6 @@ export interface RequesterFilters {
     search?: string;
 }
 
-// Estatísticas de solicitantes
 export interface RequesterStats {
     total: number;
     byStatus: Record<RequesterStatus, number>;
@@ -82,7 +74,6 @@ export interface RequesterStats {
     byDepartment: Record<string, number>;
 }
 
-// Form data para componentes de formulário
 export interface RequesterFormData {
     name: string;
     email: string;
@@ -92,7 +83,6 @@ export interface RequesterFormData {
     position?: string;
     status: RequesterStatus;
     notes?: string;
-    // Address fields flattened
     street?: string;
     number?: string;
     complement?: string;
@@ -103,7 +93,6 @@ export interface RequesterFormData {
     country?: string;
 }
 
-// Contato do solicitante
 export interface RequesterContact {
     type: 'email' | 'phone' | 'whatsapp' | 'telegram' | 'other';
     value: string;
@@ -111,7 +100,6 @@ export interface RequesterContact {
     isPrimary?: boolean;
 }
 
-// Histórico de interações
 export interface RequesterInteraction {
     id: number;
     requesterId: string | number;
@@ -122,7 +110,6 @@ export interface RequesterInteraction {
     createdBy: string;
 }
 
-// Preferências do solicitante
 export interface RequesterPreferences {
     preferredContactMethod: 'email' | 'phone' | 'whatsapp';
     timezone?: string;

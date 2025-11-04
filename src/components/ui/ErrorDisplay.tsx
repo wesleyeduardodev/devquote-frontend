@@ -21,20 +21,18 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     className = '',
     variant = 'default'
 }) => {
-    // Determina o tipo de erro
+
     const isNetworkError = !error?.response || error?.code === 'NETWORK_ERROR';
     const isServerError = error?.response?.status >= 500;
     const isNotFound = error?.response?.status === 404;
     const isUnauthorized = error?.response?.status === 401;
     const isForbidden = error?.response?.status === 403;
 
-    // Seleciona ícone baseado no tipo de erro
     const getIcon = () => {
         if (isNetworkError) return <WifiOff className="w-8 h-8 text-gray-400" />;
         return <AlertCircle className="w-8 h-8 text-red-500" />;
     };
 
-    // Determina título padrão
     const getDefaultTitle = () => {
         if (isNetworkError) return 'Erro de Conexão';
         if (isServerError) return 'Erro do Servidor';
@@ -44,7 +42,6 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         return 'Erro';
     };
 
-    // Determina mensagem padrão
     const getDefaultMessage = () => {
         if (isNetworkError) return 'Verifique sua conexão com a internet e tente novamente.';
         if (isServerError) return 'Erro interno do servidor. Tente novamente em alguns minutos.';
@@ -90,7 +87,6 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         );
     }
 
-    // variant === 'default'
     return (
         <div className={`${baseClasses} p-8`}>
             {getIcon()}
@@ -108,7 +104,6 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
                 </Button>
             )}
 
-            {/* Debug info em desenvolvimento */}
             {process.env.NODE_ENV === 'development' && error && (
                 <details className="mt-6 text-left">
                     <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">

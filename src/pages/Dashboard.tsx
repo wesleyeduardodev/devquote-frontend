@@ -32,13 +32,11 @@ const Dashboard = () => {
   const { stats, loading, error } = useDashboard();
   const { user, hasProfile } = useAuth();
 
-  // Estados de loading para exportações
   const [exportingTasks, setExportingTasks] = useState(false);
   const [exportingDeliveriesDev, setExportingDeliveriesDev] = useState(false);
   const [exportingDeliveriesOp, setExportingDeliveriesOp] = useState(false);
   const [exportingBilling, setExportingBilling] = useState(false);
 
-  // Função para fazer download de blob
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -50,7 +48,6 @@ const Dashboard = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  // Função para exportar tarefas
   const handleExportTasks = async () => {
     try {
       setExportingTasks(true);
@@ -66,7 +63,6 @@ const Dashboard = () => {
     }
   };
 
-  // Função para exportar entregas - Desenvolvimento
   const handleExportDeliveriesDev = async () => {
     try {
       setExportingDeliveriesDev(true);
@@ -82,7 +78,6 @@ const Dashboard = () => {
     }
   };
 
-  // Função para exportar entregas - Operacional
   const handleExportDeliveriesOp = async () => {
     try {
       setExportingDeliveriesOp(true);
@@ -98,7 +93,6 @@ const Dashboard = () => {
     }
   };
 
-  // Função para exportar faturamento
   const handleExportBilling = async () => {
     try {
       setExportingBilling(true);

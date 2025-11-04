@@ -43,7 +43,6 @@ export const taskService = {
             size: size.toString(),
         });
 
-        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
@@ -76,7 +75,6 @@ export const taskService = {
             size: size.toString(),
         });
 
-        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
@@ -112,12 +110,10 @@ export const taskService = {
     createWithSubTasksAndFiles: async (data: any, files: File[]): Promise<any> => {
         const formData = new FormData();
 
-        // Adiciona o JSON da tarefa como uma parte do FormData
         formData.append('task', new Blob([JSON.stringify(data)], {
             type: 'application/json'
         }));
 
-        // Adiciona cada arquivo
         files.forEach(file => {
             formData.append('files', file);
         });

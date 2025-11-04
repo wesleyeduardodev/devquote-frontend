@@ -84,7 +84,6 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     ]);
     const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
 
-    // Refs para controlar o debounce
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const fetchRequesters = useCallback(async (params?: UseRequestersParams): Promise<void> => {
@@ -125,7 +124,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     const createRequester = useCallback(async (requesterData: RequesterCreate): Promise<Requester> => {
         try {
             const newRequester = await requesterService.create(requesterData);
-            await fetchRequesters(); // Recarrega a lista após criação
+            await fetchRequesters();
             toast.success('Solicitante criado com sucesso!');
             return newRequester;
         } catch (err: any) {
@@ -137,7 +136,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     const updateRequester = useCallback(async (id: number, requesterData: RequesterUpdate): Promise<Requester> => {
         try {
             const updatedRequester = await requesterService.update(id, requesterData);
-            await fetchRequesters(); // Recarrega a lista após atualização
+            await fetchRequesters();
             toast.success('Solicitante atualizado com sucesso!');
             return updatedRequester;
         } catch (err: any) {
@@ -149,7 +148,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     const deleteRequester = useCallback(async (id: number): Promise<void> => {
         try {
             await requesterService.delete(id);
-            await fetchRequesters(); // Recarrega a lista após exclusão
+            await fetchRequesters();
             toast.success('Solicitante excluído com sucesso!');
         } catch (err: any) {
             console.error('Erro ao excluir solicitante:', err);
@@ -160,7 +159,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
     const deleteBulkRequesters = useCallback(async (ids: number[]): Promise<void> => {
         try {
             await requesterService.deleteBulk(ids);
-            await fetchRequesters(); // Recarrega a lista após exclusão
+            await fetchRequesters();
             toast.success(`${ids.length} solicitante${ids.length === 1 ? '' : 's'} excluído${ids.length === 1 ? '' : 's'} com sucesso!`);
         } catch (err: any) {
             console.error('Erro ao excluir solicitantes:', err);
@@ -174,16 +173,14 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
 
     const setPageSize = useCallback((size: number) => {
         setCurrentPageSize(size);
-        setCurrentPage(0); // Reset to first page when changing page size
+        setCurrentPage(0);
     }, []);
 
     const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
         setSortingState(prevSorting => {
-            // Remove existing sort for this field and add new one at the beginning
             const filteredSorting = prevSorting.filter(s => s.field !== field);
-            return [{field, direction}, ...filteredSorting];
-        });
-        setCurrentPage(0); // Reset to first page when sorting changes
+            return [{field, direction}, ...filteredSorting];        });
+        setCurrentPage(0);
     }, []);
 
     const setFilter = useCallback((field: string, value: string) => {
@@ -191,7 +188,7 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
             ...prev,
             [field]: value || undefined
         }));
-        setCurrentPage(0); // Reset to first page when filter changes
+        setCurrentPage(0);
     }, []);
 
     const clearFilters = useCallback(() => {
@@ -199,19 +196,14 @@ export const useRequesters = (initialParams?: UseRequestersParams): UseRequester
         setCurrentPage(0);
     }, []);
 
-    // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
-        // Clear previous timer
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
-
-        // Set new timer for debounce (1 second)
         debounceTimerRef.current = setTimeout(() => {
             fetchRequesters();
         }, 1000);
 
-        // Cleanup on unmount or when dependencies change
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);

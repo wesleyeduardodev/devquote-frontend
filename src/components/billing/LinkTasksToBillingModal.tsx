@@ -48,7 +48,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
     onTasksLinked,
     flowType
 }) => {
-    // Estados da tabela
+
     const [tasks, setTasks] = useState<Task[]>([]);
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState(false);
@@ -56,8 +56,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
     const [pageSize, setPageSize] = useState(5);
     const [sorting, setSorting] = useState([{ field: 'id', direction: 'desc' as const }]);
     const [filters, setFilters] = useState<Record<string, string>>({});
-    
-    // Estados da operação
+
     const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
     const [linking, setLinking] = useState(false);
 
@@ -66,7 +65,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
-    // Carregar tarefas disponíveis (sem vínculo)
+
     const loadAvailableTasks = useCallback(async () => {
         if (!billingPeriod?.id) return;
         
@@ -100,7 +99,6 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         }
     }, [billingPeriod?.id, currentPage, pageSize, sorting, filters, flowType]);
 
-    // Vincular tarefas selecionadas
     const handleLinkTasks = useCallback(async () => {
         if (!billingPeriod?.id || selectedTasks.length === 0) return;
 
@@ -115,7 +113,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             toast.success(`${selectedTasks.length} tarefa(s) vinculada(s) com sucesso!`);
             
             setSelectedTasks([]);
-            onTasksLinked(); // Callback para recarregar dados do pai
+            onTasksLinked();
             onClose();
         } catch (error: any) {
             console.error('Erro ao vincular tarefas:', error);
@@ -129,7 +127,6 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         }
     }, [billingPeriod?.id, selectedTasks, onTasksLinked, onClose]);
 
-    // Carregar dados quando o modal abrir
     useEffect(() => {
         if (isOpen && billingPeriod) {
             setSelectedTasks([]);
@@ -137,12 +134,10 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         }
     }, [isOpen, billingPeriod, loadAvailableTasks]);
 
-    // Reset página quando pageSize mudar
     useEffect(() => {
         setCurrentPage(0);
     }, [pageSize]);
 
-    // Colunas da tabela
     const columns = [
         {
             key: 'selection',

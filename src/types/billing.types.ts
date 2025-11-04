@@ -1,4 +1,4 @@
-// Tipos para o sistema de faturamento (BillingPeriod)
+
 
 export interface BillingPeriod {
   id: number;
@@ -26,7 +26,6 @@ export interface BillingPeriodUpdate extends Partial<BillingPeriodRequest> {
   id?: number;
 }
 
-// Tipos para a associação de tarefas ao período de faturamento
 export interface BillingPeriodTask {
   id: number;
   billingPeriodId: number;
@@ -42,7 +41,6 @@ export interface BillingPeriodTaskRequest {
 
 export interface BillingPeriodTaskResponse extends BillingPeriodTask {}
 
-// Tipos para estatísticas e relatórios
 export interface BillingPeriodStatistics {
   [status: string]: number;
 }
@@ -59,7 +57,6 @@ export interface BillingStatistics {
   };
 }
 
-// Tipos para paginação
 export interface BillingPeriodPaginatedParams {
   page?: number;
   size?: number;
@@ -78,7 +75,6 @@ export interface BillingPeriodTaskPaginatedParams {
   flowType?: string;
 }
 
-// Tipos para operações em lote
 export interface BulkTaskLinkRequest {
   billingPeriodId: number;
   taskIds: number[];

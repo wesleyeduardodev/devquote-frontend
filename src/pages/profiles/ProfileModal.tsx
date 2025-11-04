@@ -93,7 +93,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
         await onSave(createData);
       }
     } catch (error) {
-      // Error handling is done in parent component
     } finally {
       setLoading(false);
     }

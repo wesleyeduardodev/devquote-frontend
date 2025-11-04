@@ -46,12 +46,10 @@ export const notificationConfigService = {
             size: size.toString(),
         });
 
-        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
 
-        // Adiciona parâmetros de filtro
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {

@@ -29,7 +29,7 @@ interface DeliveryFormProps {
     loading?: boolean;
     selectedTask?: any;
     selectedProject?: any;
-    showProjectSelector?: boolean; // Controla se deve mostrar o seletor de projeto
+    showProjectSelector?: boolean;
 }
 
 const schema = yup.object({
@@ -78,11 +78,11 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
             startedAt: initialData?.startedAt ?
                 (() => {
                     try {
-                        // Se já está no formato yyyy-MM-dd, usar direto
+
                         if (typeof initialData.startedAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(initialData.startedAt)) {
                             return initialData.startedAt;
                         }
-                        // Converter de ISO string para yyyy-MM-dd
+
                         const date = new Date(initialData.startedAt);
                         return date.toISOString().split('T')[0];
                     } catch (error) {
@@ -93,11 +93,11 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
             finishedAt: initialData?.finishedAt ?
                 (() => {
                     try {
-                        // Se já está no formato yyyy-MM-dd, usar direto
+
                         if (typeof initialData.finishedAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(initialData.finishedAt)) {
                             return initialData.finishedAt;
                         }
-                        // Converter de ISO string para yyyy-MM-dd
+
                         const date = new Date(initialData.finishedAt);
                         return date.toISOString().split('T')[0];
                     } catch (error) {
@@ -108,48 +108,42 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
         },
     });
 
-    // Watch para contar caracteres
     const notesValue = watch('notes') || '';
     const sourceBranchValue = watch('sourceBranch') || '';
 
     const handleFormSubmit = async (data: DeliveryData): Promise<void> => {
         try {
-            // Validar se task e project existem
+
             if (!selectedTask?.id && !initialData?.taskId) {
                 throw new Error('Tarefa é obrigatória');
             }
 
-            // Para edição: usar currentProject, para criação: usar selectedProject
             const projectId = currentProject?.id || selectedProject?.id || initialData?.projectId;
             if (!projectId) {
                 throw new Error('Projeto é obrigatório');
             }
 
-            // Função auxiliar para converter data para yyyy-MM-dd
             const convertDateToLocalDate = (dateValue?: string): string | null => {
                 if (!dateValue || (dateValue.trim() === '')) {
                     return null;
                 }
 
                 try {
-                    // Se for datetime-local (2024-12-25T10:30), pegar só a parte da data
+
                     const dateOnly = dateValue.includes('T')
                         ? dateValue.split('T')[0]
                         : dateValue;
 
-                    // Verificar se está no formato yyyy-MM-dd
                     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
                     if (dateRegex.test(dateOnly)) {
-                        return dateOnly; // Já está no formato correto
+                        return dateOnly;
                     }
 
-                    // Tentar converter para Date e depois extrair yyyy-MM-dd
                     const date = new Date(dateValue);
                     if (isNaN(date.getTime())) {
                         return null;
                     }
 
-                    // Converter para yyyy-MM-dd (formato LocalDate)
                     return date.toISOString().split('T')[0];
                 } catch (error) {
                     console.error('Erro ao converter data:', error);
@@ -157,24 +151,23 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                 }
             };
 
-            // Incluir os IDs dos itens selecionados
             const formattedData = {
                 ...data,
                 taskId: selectedTask?.id || initialData?.taskId,
-                projectId: projectId, // Usar o projectId já validado acima
+                projectId: projectId,
                 startedAt: convertDateToLocalDate(data.startedAt),
                 finishedAt: convertDateToLocalDate(data.finishedAt),
-                // Garantir que campos vazios sejam enviados como null
+
                 notes: data.notes?.trim() || null,
                 sourceBranch: data.sourceBranch?.trim() || null,
             };
 
             await onSubmit(formattedData);
             if (!initialData?.id) {
-                reset(); // Reset form only for create mode
+                reset();
             }
         } catch (error) {
-            // Error is handled by the parent component
+
             throw error;
         }
     };
@@ -192,7 +185,7 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
             <div className="space-y-6">
-                {/* Seletor de Projeto - só aparece quando showProjectSelector for true e não há projeto selecionado */}
+
                 {showProjectSelector && !selectedProject && (
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

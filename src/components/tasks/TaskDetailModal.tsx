@@ -83,13 +83,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
     if (!isOpen || !task) return null;
 
-    // Estilo customizado para scrollbar
     const scrollbarStyle: React.CSSProperties = {
         scrollbarWidth: 'thin' as const,
         scrollbarColor: '#9ca3af #e5e7eb',
     };
 
-    // Estilo para campos redimensionáveis
     const resizableStyle: React.CSSProperties = {
         scrollbarWidth: 'thin' as const,
         scrollbarColor: '#9ca3af #e5e7eb',
@@ -106,7 +104,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
             setTimeout(() => setCopiedField(null), 2000);
         } catch (err) {
             console.error('Erro ao copiar:', err);
-            // Fallback para navegadores mais antigos
             const textArea = document.createElement('textarea');
             textArea.value = content;
             document.body.appendChild(textArea);
@@ -133,7 +130,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
     const formatCurrency = (value: number) =>
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-    // Calcula o total das subtarefas se não estiver disponível
     const calculateTaskTotal = () => {
         if (task.totalAmount !== undefined) {
             return task.totalAmount;

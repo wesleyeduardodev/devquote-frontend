@@ -21,20 +21,17 @@ import {
 } from 'lucide-react';
 import { formatInputDate } from '../../utils/formatters';
 
-// Novos hooks e serviços
 import { useBillingPeriods } from '../../hooks/useBillingPeriods';
 import { useAuth } from '../../hooks/useAuth';
 import billingPeriodService from '../../services/billingPeriodService';
-import { useTasks } from '../../hooks/useTasks'; // Para gerenciar tarefas em vez de quotes
+import { useTasks } from '../../hooks/useTasks';
 
-// Componentes
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BillingPeriodForm from '../../components/forms/BillingPeriodForm';
 import Modal from '../../components/ui/Modal';
 import { FlowTypeFilter, FlowTypeFilterValue } from '../../components/filters/FlowTypeFilter';
 
-// Tipos
 import { 
   BillingPeriod, 
   BillingPeriodRequest, 
@@ -230,7 +227,6 @@ const BillingPeriodManagement: React.FC = () => {
     exportToExcel
   } = useBillingPeriods();
 
-  // Estados do componente
   const [showForm, setShowForm] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<BillingPeriod | null>(null);
   const [selectedPeriods, setSelectedPeriods] = useState<number[]>([]);
@@ -246,25 +242,21 @@ const BillingPeriodManagement: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<BillingPeriod | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
-  // Carregar períodos com filtros
   useEffect(() => {
     fetchBillingPeriods(yearFilter, monthFilter, statusFilter || undefined, flowType);
   }, [yearFilter, monthFilter, statusFilter, flowType, fetchBillingPeriods]);
 
-  // Carregar estatísticas
   useEffect(() => {
     const loadStats = async () => {
       try {
         const stats = await getStatistics();
         setStatistics(stats);
       } catch (error) {
-        // Ignorar erro de estatísticas
       }
     };
     loadStats();
   }, [billingPeriods]);
 
-  // Handlers
   const handleCreate = async (data: BillingPeriodRequest) => {
     try {
       await createBillingPeriod(data);
@@ -348,7 +340,6 @@ const BillingPeriodManagement: React.FC = () => {
     setShowTaskModal(true);
   };
 
-  // Status helpers
   const getStatusIcon = (status: StatusValue) => {
     switch (status) {
       case 'PAGO': return <CheckCircle className="text-green-600" size={16} />;
@@ -688,7 +679,6 @@ const BillingPeriodManagement: React.FC = () => {
         }}
       />
 
-      {/* Modal de confirmação de exclusão */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => {

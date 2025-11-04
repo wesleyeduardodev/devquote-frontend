@@ -35,9 +35,9 @@ export interface UserProfile {
   lastName?: string;
   name?: string;
   enabled: boolean;
-  active?: boolean; // Para compatibilidade
+  active?: boolean;
   profiles: Profile[];
-  roles: string[]; // Para mapear os códigos dos perfis
+  roles: string[];
   createdAt: string;
   updatedAt: string;
 }

@@ -12,11 +12,6 @@ export const formatPaginationText = (currentPage: number, totalPages: number): s
     return `Página ${displayPage} de ${totalPages}`;
 };
 
-export const formatMobilePaginationText = (currentPage: number, totalPages: number): string => {
-    const displayPage = getDisplayPageNumber(currentPage, totalPages);
-    return `${displayPage}/${totalPages}`;
-};
-
 export const formatRecordCountText = (
     currentPage: number, 
     pageSize: number, 

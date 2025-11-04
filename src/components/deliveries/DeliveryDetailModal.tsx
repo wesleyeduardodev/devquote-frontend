@@ -30,18 +30,18 @@ interface Delivery {
     branch?: string;
     sourceBranch?: string;
     pullRequest?: string;
-    notes?: string; // Observações do item de entrega
-    deliveryNotes?: string; // Observações gerais da entrega
+    notes?: string;
+    deliveryNotes?: string;
     startedAt?: string;
     finishedAt?: string;
-    // Dados da Tarefa
+
     taskId?: number;
     taskName?: string;
     taskCode?: string;
     taskType?: string;
-    // Dados da Entrega
+
     flowType?: string;
-    // Dados do Projeto
+
     projectId?: number;
     projectName?: string;
     projectRepository?: string;
@@ -70,7 +70,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
             setTimeout(() => setCopiedField(null), 2000);
         } catch (err) {
             console.error('Erro ao copiar:', err);
-            // Fallback para navegadores mais antigos
+
             const textArea = document.createElement('textarea');
             textArea.value = content;
             document.body.appendChild(textArea);
@@ -167,14 +167,14 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
     const getTaskTypeLabel = (taskType?: string) => {
         if (!taskType) return '-';
         switch (taskType) {
-            // Tipos operacionais
+
             case 'BACKUP': return 'Backup';
             case 'DEPLOY': return 'Deploy';
             case 'LOGS': return 'Logs';
             case 'NEW_SERVER': return 'Novo Servidor';
             case 'MONITORING': return 'Monitoramento';
             case 'SUPPORT': return 'Suporte';
-            // Tipos de desenvolvimento
+
             case 'BUG': return 'Bug';
             case 'ENHANCEMENT': return 'Melhoria';
             case 'NEW_FEATURE': return 'Nova Funcionalidade';

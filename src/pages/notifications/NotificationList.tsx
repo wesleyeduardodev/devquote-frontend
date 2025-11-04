@@ -40,10 +40,8 @@ const NotificationList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user, isLoading: authLoading } = useAuth();
 
-    // Verifica se o usuário tem permissão (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
 
-    // Verificação de acesso - apenas ADMIN pode acessar notificações
     useEffect(() => {
         if (!authLoading && user && !isAdmin) {
             toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
@@ -51,7 +49,6 @@ const NotificationList: React.FC = () => {
         }
     }, [hasProfile, navigate, authLoading, user, isAdmin]);
 
-    // Se não é admin e já carregou auth, redireciona
     if (!authLoading && !isAdmin) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -87,7 +84,7 @@ const NotificationList: React.FC = () => {
         clearFilters,
         deleteNotificationConfig,
         deleteBulkNotificationConfigs,
-        fetchNotificationConfigs, // ← Adicionar função de fetch manual
+        fetchNotificationConfigs,
     } = useNotificationConfigs();
 
     const handleEdit = (notification: NotificationConfig) => {
@@ -127,7 +124,6 @@ const NotificationList: React.FC = () => {
         });
     };
 
-    // Tradução dos tipos
     const getConfigTypeLabel = (type: NotificationConfigType) => {
         const labels = {
             NOTIFICACAO_DADOS_TAREFA: 'Dados da Tarefa',
@@ -156,7 +152,6 @@ const NotificationList: React.FC = () => {
         return labels[type] || type;
     };
 
-    // ===== Seleção múltipla =====
     const handleSelectItem = (id: number) => {
         setSelectedItems(prev =>
             prev.includes(id)
@@ -188,7 +183,6 @@ const NotificationList: React.FC = () => {
         }
     };
 
-    // ===== DataTable columns =====
     const columns: Column<NotificationConfig>[] = useMemo(() => [
         {
             key: 'select',
@@ -335,7 +329,6 @@ const NotificationList: React.FC = () => {
         }
     ], [notificationConfigs, selectedItems, isAdmin]);
 
-    // ===== Filtros =====
     const filteredData = useMemo(() => {
         if (!searchTerm.trim()) return notificationConfigs;
 
@@ -351,7 +344,6 @@ const NotificationList: React.FC = () => {
         setShowNotificationModal(false);
         setEditingNotification(null);
 
-        // Força um refresh da listagem após fechar o modal
         await fetchNotificationConfigs();
     };
 

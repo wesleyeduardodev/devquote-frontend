@@ -14,11 +14,9 @@ const ProjectCreate: React.FC = () => {
     const { hasProfile, user } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
 
-    // Verifica se o usuário é ADMIN (apenas ADMIN pode criar projetos)
     const isAdmin = hasProfile('ADMIN');
     const authLoading = !user;
 
-    // Verificação de acesso - apenas ADMIN pode criar projetos
     useEffect(() => {
         if (!authLoading && user && !isAdmin) {
             toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
@@ -26,7 +24,6 @@ const ProjectCreate: React.FC = () => {
         }
     }, [hasProfile, navigate, authLoading, user, isAdmin]);
 
-    // Se não é admin, não renderiza nada (vai redirecionar)
     if (!authLoading && user && !isAdmin) {
         return null;
     }

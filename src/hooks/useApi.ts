@@ -118,15 +118,11 @@ export const useApi = <T = any>(
     };
 };
 
-/**
- * Hook específico para operações CRUD
- */
 export const useCrud = <T extends CrudItem>(service: CrudService<T>): CrudResponse<T> => {
     const [items, setItems] = useState<T[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Listar todos
     const fetchAll = useCallback(async (): Promise<T[]> => {
         try {
             setLoading(true);
@@ -145,7 +141,6 @@ export const useCrud = <T extends CrudItem>(service: CrudService<T>): CrudRespon
         }
     }, [service]);
 
-    // Criar item
     const create = useCallback(async (itemData: Partial<T>): Promise<T> => {
         try {
             const newItem = await service.create(itemData);
@@ -158,7 +153,6 @@ export const useCrud = <T extends CrudItem>(service: CrudService<T>): CrudRespon
         }
     }, [service]);
 
-    // Atualizar item
     const update = useCallback(async (id: string | number, itemData: Partial<T>): Promise<T> => {
         try {
             const updatedItem = await service.update(id, itemData);
@@ -171,7 +165,6 @@ export const useCrud = <T extends CrudItem>(service: CrudService<T>): CrudRespon
         }
     }, [service]);
 
-    // Deletar item
     const remove = useCallback(async (id: string | number): Promise<void> => {
         try {
             await service.delete(id);

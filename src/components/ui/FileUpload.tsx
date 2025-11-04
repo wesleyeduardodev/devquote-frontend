@@ -9,7 +9,7 @@ interface FileUploadProps {
     onUploadSuccess?: (attachments: TaskAttachmentResponse[]) => void;
     onUploadError?: (error: string) => void;
     maxFiles?: number;
-    maxFileSize?: number; // in MB
+    maxFileSize?: number;
     disabled?: boolean;
     className?: string;
 }
@@ -28,7 +28,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     onUploadSuccess,
     onUploadError,
     maxFiles = 10,
-    maxFileSize = 10, // 10MB default
+    maxFileSize = 10,
     disabled = false,
     className = ''
 }) => {
@@ -38,45 +38,44 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const allowedTypes = [
-        // Documentos
+
         'application/pdf',
-        'application/msword',  // Word .doc
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // Word .docx
-        'application/vnd.ms-excel',  // Excel .xls
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // Excel .xlsx
-        'application/vnd.ms-powerpoint',  // PowerPoint .ppt
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',  // PowerPoint .pptx
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'text/plain',
         'text/csv',
-        'application/json',  // JSON
-        'text/json',  // JSON alternativo
-        // Imagens
+        'application/json',
+        'text/json',
+
         'image/jpeg',
         'image/png',
         'image/gif',
         'image/webp',
-        // Vídeos
+
         'video/mp4',
         'video/avi',
         'video/quicktime',
         'video/x-msvideo',
-        // Arquivos compactados
+
         'application/zip',
         'application/x-rar-compressed',
         'application/x-7z-compressed',
-        // Tipo genérico
+
         'application/octet-stream'
     ];
 
     const validateFile = (file: File): string | null => {
-        // Verificar por extensão primeiro
+
         const fileName = file.name.toLowerCase();
         const fileExtension = fileName.split('.').pop();
         const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
         
         console.log('🚨 FileUpload.tsx validating:', { fileName: file.name, fileType: file.type, fileExtension });
-        
-        // Se a extensão é permitida, aceitar
+
         if (fileExtension && allowedExtensions.includes(fileExtension)) {
             console.log('✅ FileUpload - Arquivo aceito pela extensão:', fileExtension);
         } else if (allowedTypes.includes(file.type)) {
@@ -113,8 +112,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
         const validFiles: FileWithPreview[] = [];
         
         for (const file of newFiles) {
-            // Check if file already exists
-            if (files.some(f => f.file.name === file.name && f.file.size === file.size)) {
                 toast.error(`Arquivo "${file.name}" já foi adicionado`);
                 continue;
             }
@@ -169,7 +166,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         if (e.target.files) {
             const selectedFiles = Array.from(e.target.files);
             addFiles(selectedFiles);
-            // Clear input value to allow selecting same files again
+
             e.target.value = '';
         }
     };
@@ -189,7 +186,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         setUploading(true);
 
         try {
-            // Mark files as uploading
+
             setFiles(prev => prev.map(f => 
                 !f.error && !f.uploaded ? { ...f, uploading: true } : f
             ));
@@ -197,7 +194,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
             const filesToUpload = validFiles.map(f => f.file);
             const uploadedAttachments = await taskAttachmentService.uploadFiles(taskId, filesToUpload);
 
-            // Mark files as uploaded
             setFiles(prev => prev.map(f => {
                 if (!f.error && !f.uploaded) {
                     const attachment = uploadedAttachments.find(a => 
@@ -217,7 +213,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
             toast.error(errorMessage);
             onUploadError?.(errorMessage);
 
-            // Reset uploading state
             setFiles(prev => prev.map(f => ({ ...f, uploading: false })));
         } finally {
             setUploading(false);
@@ -230,7 +225,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     return (
         <div className={`space-y-4 ${className}`}>
-            {/* Drop Zone */}
             <div
                 className={`
                     relative border-2 border-dashed rounded-lg p-8 text-center transition-colors

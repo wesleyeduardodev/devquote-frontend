@@ -22,11 +22,9 @@ const ProjectList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user } = useAuth();
 
-    // Verifica se o usuário é ADMIN (apenas ADMIN pode acessar projetos)
     const isAdmin = hasProfile('ADMIN');
     const authLoading = !user;
 
-    // Verificação de acesso - apenas ADMIN pode acessar projetos
     useEffect(() => {
         if (!authLoading && user && !isAdmin) {
             toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
@@ -34,7 +32,6 @@ const ProjectList: React.FC = () => {
         }
     }, [hasProfile, navigate, authLoading, user, isAdmin]);
 
-    // Se não é admin, não renderiza nada (vai redirecionar)
     if (!authLoading && user && !isAdmin) {
         return null;
     }
@@ -98,7 +95,6 @@ const ProjectList: React.FC = () => {
         });
     };
 
-    // Funções de seleção múltipla
     const toggleItem = (id: number) => {
         setSelectedItems(prev =>
             prev.includes(id)
@@ -122,7 +118,6 @@ const ProjectList: React.FC = () => {
         setSelectedItems([]);
     };
 
-    // Estados derivados
     const selectionState = useMemo(() => {
         const currentPageIds = projects.map(project => project.id);
         const selectedFromCurrentPage = selectedItems.filter(id => currentPageIds.includes(id));
@@ -149,14 +144,13 @@ const ProjectList: React.FC = () => {
         }
     };
 
-    // Filtrar projects baseado na busca (apenas para mobile)
     const filteredProjects = projects.filter(project =>
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.repositoryUrl?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const columns: Column<Project>[] = [
-        // Checkbox de seleção - apenas para ADMIN
+
         ...(isAdmin ? [{
             key: 'select',
             title: '',
@@ -190,7 +184,7 @@ const ProjectList: React.FC = () => {
                 </div>
             )
         }] : []),
-        // Colunas que todos podem ver
+
         {
             key: 'id',
             title: 'ID',
@@ -261,7 +255,7 @@ const ProjectList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true
         },
-        // Coluna de ações - apenas para ADMIN
+
         ...(isAdmin ? [{
             key: 'actions',
             title: 'Ações',
@@ -291,7 +285,6 @@ const ProjectList: React.FC = () => {
         }] : [])
     ];
 
-    // Componente Card para visualização mobile
     const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}
@@ -478,7 +471,7 @@ const ProjectList: React.FC = () => {
 
                         <Card className="p-0">
                             <DataTable
-                                data={projects} // Usar dados originais sem filtro de busca
+                                data={projects}
                                 columns={columns}
                                 loading={loading}
                                 pagination={pagination}

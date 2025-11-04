@@ -23,7 +23,7 @@ interface DeliveryCreateProps {
 }
 
 export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryCreateProps) {
-    // Estado do fluxo de criação
+
     const [creationState, setCreationState] = useState<DeliveryCreationState>({
         step: 1,
         isLoading: false,
@@ -33,17 +33,15 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
         items: []
     });
 
-    // Estados dos modais
+
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
 
-    // Dados dos formulários de itens
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
 
-    // Resetar estado ao abrir/fechar modal
     React.useEffect(() => {
         if (isOpen) {
-            // Começar sempre do passo 1
+
             setCreationState({
                 step: 1,
                 isLoading: false,
@@ -53,11 +51,11 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                 items: []
             });
             setItemsFormData(new Map());
-            setShowTaskModal(true); // Abrir modal de tarefa automaticamente
+            setShowTaskModal(true);
         }
     }, [isOpen]);
 
-    // Handlers dos modais
+
     const handleTaskSelect = (task: AvailableTask) => {
         setCreationState(prev => ({
             ...prev,
@@ -65,7 +63,7 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
             step: 2
         }));
         setShowTaskModal(false);
-        setShowProjectModal(true); // Abrir modal de projeto automaticamente
+        setShowProjectModal(true);
     };
 
     const handleProjectsSelect = async (projects: AvailableProject[]) => {
@@ -78,7 +76,7 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
         setShowProjectModal(false);
 
         try {
-            // Criar a entrega no backend
+
             if (!creationState.selectedTask) {
                 throw new Error('Nenhuma tarefa selecionada');
             }
@@ -93,8 +91,7 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
             };
 
             const createdDelivery = await deliveryService.create(deliveryData);
-            
-            // Buscar itens criados
+
             const items = await deliveryItemService.getByDeliveryId(createdDelivery.id);
 
             setCreationState(prev => ({
@@ -105,7 +102,6 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                 isLoading: false
             }));
 
-            // Inicializar dados dos formulários
             const initialFormData = new Map<number, DeliveryItemFormData>();
             items.forEach(item => {
                 const project = projects.find(p => p.id === item.projectId);
@@ -134,13 +130,12 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
             setCreationState(prev => ({
                 ...prev,
                 isLoading: false,
-                step: 2 // Voltar para seleção de projetos
+                step: 2
             }));
             setShowProjectModal(true);
         }
     };
 
-    // Salvar dados de um item
     const handleSaveItemData = async (projectId: number, data: DeliveryItemFormData) => {
         const item = creationState.items.find(item => item.projectId === projectId);
         if (!item) return;
@@ -157,7 +152,6 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                 notes: data.notes
             });
 
-            // Atualizar dados locais
             const newFormData = new Map(itemsFormData);
             newFormData.set(projectId, data);
             setItemsFormData(newFormData);
@@ -170,14 +164,12 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
         }
     };
 
-    // Finalizar criação
     const handleFinishCreation = () => {
         toast.success('Entrega criada com sucesso!');
         onSuccess();
         onClose();
     };
 
-    // Voltar ao passo anterior
     const handlePreviousStep = () => {
         if (creationState.step === 2) {
             setCreationState(prev => ({ ...prev, step: 1 }));
@@ -186,10 +178,8 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
             setCreationState(prev => ({ ...prev, step: 2 }));
             setShowProjectModal(true);
         }
-        // Passo 4 não pode voltar (entrega já foi criada)
     };
 
-    // Indicador de progresso
     const ProgressIndicator = () => {
         const steps = [
             { number: 1, label: 'Tarefa', icon: Package, completed: creationState.step > 1 },
@@ -236,13 +226,13 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
 
     return (
         <>
-            {/* Backdrop */}
+
             <div className="fixed inset-0 bg-black bg-opacity-50 z-40" />
             
-            {/* Modal Principal */}
+
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-                    {/* Header */}
+
                     <div className="px-6 py-4 border-b border-gray-200">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold text-gray-900">
@@ -259,7 +249,7 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                         <ProgressIndicator />
                     </div>
 
-                    {/* Content */}
+
                     <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 160px)' }}>
                         {creationState.step === 3 && creationState.isLoading && (
                             <div className="flex flex-col items-center justify-center py-12">
@@ -303,7 +293,6 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                         )}
                     </div>
 
-                    {/* Footer */}
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                         <div className="text-sm text-gray-600">
                             {creationState.step === 4 && (
@@ -337,13 +326,12 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                 </div>
             </div>
 
-            {/* Modals de seleção */}
             <TaskSelectionModal
                 isOpen={showTaskModal}
                 onClose={() => {
                     setShowTaskModal(false);
                     if (creationState.step === 1) {
-                        onClose(); // Fechar modal principal se cancelar na primeira etapa
+                        onClose();
                     }
                 }}
                 onTaskSelect={handleTaskSelect}
@@ -353,7 +341,6 @@ export default function DeliveryCreate({ isOpen, onClose, onSuccess }: DeliveryC
                 isOpen={showProjectModal}
                 onClose={() => {
                     setShowProjectModal(false);
-                    // Não fechar o modal principal, apenas voltar ao passo anterior
                 }}
                 onProjectsSelect={handleProjectsSelect}
                 selectedTaskTitle={creationState.selectedTask?.title}

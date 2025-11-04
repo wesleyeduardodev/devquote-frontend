@@ -34,10 +34,8 @@ const RequesterList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user, isLoading: authLoading } = useAuth();
 
-    // Verifica se o usuário tem permissão (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
 
-    // Verificação de acesso - apenas ADMIN pode acessar solicitantes
     useEffect(() => {
         if (!authLoading && user && !isAdmin) {
             toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
@@ -45,7 +43,6 @@ const RequesterList: React.FC = () => {
         }
     }, [hasProfile, navigate, authLoading, user, isAdmin]);
 
-    // Se não é admin e já carregou auth, redireciona
     if (!authLoading && !isAdmin) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -78,7 +75,7 @@ const RequesterList: React.FC = () => {
         setFilter,
         clearFilters,
         deleteRequester,
-        deleteBulkRequesters, // <-- deve existir no hook, igual ao de Projects
+        deleteBulkRequesters,
     } = useRequesters();
 
     const handleEdit = (id: number) => {
@@ -117,7 +114,6 @@ const RequesterList: React.FC = () => {
         });
     };
 
-    // ===== Seleção múltipla (igual ProjectList) =====
     const toggleItem = (id: number) => {
         setSelectedItems((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -170,7 +166,6 @@ const RequesterList: React.FC = () => {
         }
     };
 
-    // ===== Busca simples (mobile) =====
     const filteredRequesters = requesters.filter(
         (r) =>
             r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,9 +173,8 @@ const RequesterList: React.FC = () => {
             r.phone?.includes(searchTerm)
     );
 
-    // ===== Colunas da tabela (inclui coluna de seleção) =====
     const columns: Column<Requester>[] = [
-        // Checkbox de seleção - apenas para ADMIN
+
         ...(isAdmin ? [{
             key: 'select',
             title: '',
@@ -212,7 +206,7 @@ const RequesterList: React.FC = () => {
                 </div>
             ),
         }] : []),
-        // Colunas que todos podem ver
+
         {
             key: 'id',
             title: 'ID',
@@ -286,7 +280,7 @@ const RequesterList: React.FC = () => {
             render: (item) => formatDate(item.updatedAt),
             hideable: true,
         },
-        // Coluna de ações - apenas para ADMIN
+
         ...(isAdmin ? [{
             key: 'actions',
             title: 'Ações',
@@ -311,7 +305,6 @@ const RequesterList: React.FC = () => {
         }] : []),
     ];
 
-    // ===== Card (mobile) com checkbox de seleção =====
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             {/* Header do Card */}

@@ -31,7 +31,6 @@ const TaskCreate = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [requesterError, setRequesterError] = useState<string | null>(null);
 
-    // Hook para gerenciar requesters paginados
     const {
         requesters,
         pagination,
@@ -53,32 +52,28 @@ const TaskCreate = () => {
     const handleRequesterSelect = (requester: Requester) => {
         setSelectedRequester(requester);
         setShowRequesterModal(false);
-        setRequesterError(null); // Limpa o erro quando um requester é selecionado
+        setRequesterError(null);
     };
 
     const handleSubmit = async (data: any, pendingFiles?: File[]) => {
         try {
             setLoading(true);
 
-            // Processar subtarefas: MANAGER/USER sempre enviam valor 0
             const processedSubTasks = data.subTasks ? data.subTasks.map((subTask: any) => ({
                 ...subTask,
-                amount: isAdmin ? (subTask.amount || '0') : '0' // Força 0 para MANAGER/USER
+                amount: isAdmin ? (subTask.amount || '0') : '0'
             })) : [];
 
-            // Adiciona o requester selecionado aos dados
             const taskData = {
                 ...data,
                 subTasks: processedSubTasks,
                 requesterId: selectedRequester?.id || data.requesterId
             };
 
-            // Criar a tarefa COM arquivos (se houver) - usando o método atualizado
             await createTaskWithSubTasks(taskData, pendingFiles);
 
             navigate('/tasks');
         } catch (error) {
-            // Error handled by the hook
             console.error('Erro ao criar tarefa:', error);
         } finally {
             setLoading(false);
@@ -101,13 +96,11 @@ const TaskCreate = () => {
         });
     };
 
-    // Filtrar requesters para o modal mobile
     const filteredRequesters = requesters.filter(requester =>
         requester.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         requester.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Colunas para o DataTable do modal de requesters
     const requesterColumns: Column<Requester>[] = [
         {
             key: 'id',
@@ -191,7 +184,6 @@ const TaskCreate = () => {
         }
     ];
 
-    // Componente Card para requesters no mobile
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
@@ -300,13 +292,12 @@ const TaskCreate = () => {
                                 )}
                             </div>
 
-                            {/* TaskForm com requester pré-selecionado */}
                             <TaskForm
                                 onSubmit={(data: any, pendingFiles?: File[]) => {
-                                    // Validar requester antes de chamar handleSubmit
+
                                     if (!selectedRequester) {
                                         setRequesterError('Por favor, selecione um solicitante');
-                                        // Fazer scroll para o topo onde está o erro
+
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
                                         return Promise.reject(new Error('Requester not selected'));
                                     }

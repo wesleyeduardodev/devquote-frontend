@@ -1,6 +1,5 @@
 import { BaseEntity } from './api.types';
 
-// Interface principal para Project
 export interface Project extends BaseEntity {
     id: number;
     name: string;
@@ -13,10 +12,8 @@ export interface Project extends BaseEntity {
     clientId?: number;
 }
 
-// Status do projeto
 export type ProjectStatus = 'PLANNING' | 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELLED';
 
-// Tipo para criação de projeto
 export interface CreateProjectData {
     name: string;
     description?: string;
@@ -28,12 +25,10 @@ export interface CreateProjectData {
     clientId?: number;
 }
 
-// Tipo para atualização de projeto
 export interface UpdateProjectData extends Partial<CreateProjectData> {
-    id?: never; // Impede atualização do ID
+    id?: never;
 }
 
-// Project com dados relacionados
 export interface ProjectWithRelations extends Project {
     client?: {
         id: number;
@@ -52,7 +47,6 @@ export interface ProjectWithRelations extends Project {
     }[];
 }
 
-// Filtros para listagem de projetos
 export interface ProjectFilters {
     status?: ProjectStatus[];
     technologies?: string[];
@@ -62,7 +56,6 @@ export interface ProjectFilters {
     search?: string;
 }
 
-// Estatísticas de projetos
 export interface ProjectStats {
     total: number;
     byStatus: Record<ProjectStatus, number>;
@@ -72,7 +65,6 @@ export interface ProjectStats {
     totalValue?: number;
 }
 
-// Form data para componentes de formulário
 export interface ProjectFormData {
     name: string;
     description?: string;
@@ -84,7 +76,6 @@ export interface ProjectFormData {
     clientId?: string | number;
 }
 
-// Configurações do repositório
 export interface RepositoryConfig {
     url: string;
     branch: string;
@@ -93,7 +84,6 @@ export interface RepositoryConfig {
     webhookUrl?: string;
 }
 
-// Métricas do projeto
 export interface ProjectMetrics {
     totalTasks: number;
     completedTasks: number;

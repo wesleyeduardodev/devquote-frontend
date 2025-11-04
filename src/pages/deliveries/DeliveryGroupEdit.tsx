@@ -104,11 +104,11 @@ const DeliveryGroupEdit: React.FC = () => {
             setSaving(true);
             
             if (editingDelivery) {
-                // Atualizar entrega existente
+
                 await updateDelivery(editingDelivery.id, deliveryData);
                 toast.success('Entrega atualizada com sucesso!');
             } else {
-                // Criar nova entrega
+
                 const newDeliveryData = {
                     ...deliveryData,
                     taskId: parseInt(taskId!)
@@ -117,7 +117,6 @@ const DeliveryGroupEdit: React.FC = () => {
                 toast.success('Nova entrega criada com sucesso!');
             }
 
-            // Recarregar dados do grupo
             const updatedGroup = await getGroupDetails(parseInt(taskId!));
             if (updatedGroup) {
                 setDeliveryGroup(updatedGroup);
@@ -149,8 +148,7 @@ const DeliveryGroupEdit: React.FC = () => {
         try {
             setDeleting(true);
             await deleteDelivery(deliveryToDelete.id);
-            
-            // Recarregar dados do grupo
+
             const updatedGroup = await getGroupDetails(parseInt(taskId!));
             if (updatedGroup) {
                 setDeliveryGroup(updatedGroup);
@@ -256,9 +254,7 @@ const DeliveryGroupEdit: React.FC = () => {
                 </Button>
             </div>
 
-            {/* Estatísticas por Status - Cards Detalhados */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                {/* Pendente */}
                 <div className="bg-white rounded-lg shadow p-4 border border-yellow-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -273,7 +269,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Desenvolvimento */}
                 <div className="bg-white rounded-lg shadow p-4 border border-blue-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -288,7 +283,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Entregue */}
                 <div className="bg-white rounded-lg shadow p-4 border border-green-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -303,7 +297,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Homologação */}
                 <div className="bg-white rounded-lg shadow p-4 border border-purple-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -318,7 +311,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Aprovado */}
                 <div className="bg-white rounded-lg shadow p-4 border border-emerald-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -333,7 +325,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Rejeitado */}
                 <div className="bg-white rounded-lg shadow p-4 border border-red-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -348,7 +339,6 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Produção */}
                 <div className="bg-white rounded-lg shadow p-4 border border-teal-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
@@ -365,7 +355,6 @@ const DeliveryGroupEdit: React.FC = () => {
             </div>
 
 
-            {/* Lista de Entregas */}
             <Card className="p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Truck className="w-5 h-5 text-blue-600" />

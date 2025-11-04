@@ -27,51 +27,48 @@ export function LocalFileUpload({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const validateFile = (file: File): boolean => {
-    // Tamanho máximo: 10MB
+
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       return false;
     }
 
-    // Verificar por extensão para casos especiais onde o tipo MIME não é detectado
     const fileName = file.name.toLowerCase();
     const fileExtension = fileName.split('.').pop();
     const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
-    
-    // Se a extensão é permitida, aceitar
+
     if (fileExtension && allowedExtensions.includes(fileExtension)) {
       return true;
     }
 
-    // Tipos permitidos por MIME type
     const allowedTypes = [
-      // Documentos
+
       'application/pdf',
-      'application/msword',  // Word .doc
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // Word .docx
-      'application/vnd.ms-excel',  // Excel .xls
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // Excel .xlsx
-      'application/vnd.ms-powerpoint',  // PowerPoint .ppt
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',  // PowerPoint .pptx
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'text/plain',
       'text/csv',
-      'application/json',  // JSON
-      'text/json',  // JSON alternativo
-      // Imagens
+      'application/json',
+      'text/json',
+
       'image/jpeg',
       'image/png',
       'image/gif',
       'image/webp',
-      // Vídeos
+
       'video/mp4',
       'video/avi',
       'video/quicktime',
       'video/x-msvideo',
-      // Arquivos compactados
+
       'application/zip',
       'application/x-rar-compressed',
       'application/x-7z-compressed',
-      // Tipo genérico
+
       'application/octet-stream'
     ];
 
@@ -88,7 +85,6 @@ export function LocalFileUpload({
         return;
       }
 
-      // Verificar se já existe
       const exists = files.some(f => f.name === file.name && f.size === file.size);
       if (exists) {
         return;

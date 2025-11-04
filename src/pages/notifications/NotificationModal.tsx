@@ -82,19 +82,16 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
         const newErrors: Record<string, string> = {};
 
 
-        // Validar formato de email se preenchido
         if (formData.primaryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)) {
             newErrors.primaryEmail = 'Formato de e-mail inválido';
         }
 
-        // Validar emails em cópia
         formData.copyEmails.forEach((email, index) => {
             if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
                 newErrors[`copyEmail_${index}`] = 'Formato de e-mail inválido';
             }
         });
 
-        // Telefones obrigatórios para SMS/WhatsApp apenas quando não usar solicitante
         if ((formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && !formData.useRequesterContact) {
             if (!formData.primaryPhone?.trim()) {
                 newErrors.primaryPhone = 'Telefone principal é obrigatório quando não usar solicitante';
@@ -165,7 +162,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
             ...prev,
             copyEmails: prev.copyEmails.map((email, i) => i === index ? value : email)
         }));
-        // Limpar erro específico deste campo
+
         const errorKey = `copyEmail_${index}`;
         if (errors[errorKey]) {
             setErrors(prev => ({ ...prev, [errorKey]: '' }));
@@ -235,7 +232,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                             value={formData.configType}
                             onChange={(e) => handleInputChange('configType', e.target.value as NotificationConfigType)}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            disabled={isEditing} // Não permite alterar o tipo ao editar
+                            disabled={isEditing}
                         >
                             {configTypeOptions.map(option => (
                                 <option key={option.value} value={option.value}>
@@ -256,7 +253,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                                     key={option.value}
                                     type="button"
                                     onClick={() => handleInputChange('notificationType', option.value)}
-                                    disabled={isEditing} // Não permite alterar o tipo ao editar
+                                    disabled={isEditing}
                                     className={`p-3 border rounded-lg flex items-center gap-2 transition-colors ${
                                         formData.notificationType === option.value
                                             ? 'border-primary-500 bg-primary-50 text-primary-700'

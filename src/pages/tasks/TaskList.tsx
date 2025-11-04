@@ -47,20 +47,18 @@ const TaskList: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile, user } = useAuth();
 
-    // Verifica se o usuário tem permissões
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
     const isUser = hasProfile('USER');
-    const canCreateTasks = isAdmin || isManager || isUser; // Todos podem criar tarefas
-    const canViewValues = isAdmin || isManager; // ADMIN e MANAGER podem ver valores
-    const canViewDeliveryColumns = isAdmin || isManager; // Apenas ADMIN e MANAGER podem ver colunas de entrega
+    const canCreateTasks = isAdmin || isManager || isUser;
+    const canViewValues = isAdmin || isManager;
+    const canViewDeliveryColumns = isAdmin || isManager;
     const currentUserId = user?.id;
 
-    // Função para verificar se pode editar/excluir uma tarefa
     const canModifyTask = (task: Task) => {
-        if (isAdmin) return true; // ADMIN pode modificar qualquer tarefa
+        if (isAdmin) return true;
         if (!currentUserId) return false;
-        return task.createdByUserId === currentUserId; // MANAGER/USER podem modificar apenas suas próprias tarefas
+        return task.createdByUserId === currentUserId;
     };
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -93,21 +91,18 @@ const TaskList: React.FC = () => {
         setFilter,
         clearFilters,
         deleteTaskWithSubTasks,
-        deleteBulkTasks, // <-- deve existir no hook; ajuste o nome se necessário
+        deleteBulkTasks,
         exportToExcel,
         sendFinancialEmail,
         sendTaskEmail,
     } = useTasks();
 
-    // Atualizar filtro quando flowType mudar
     useEffect(() => {
         if (flowType === 'TODOS') {
-            // Remove o filtro flowType
             if (filters.flowType) {
                 setFilter('flowType', '');
             }
         } else {
-            // Define o filtro flowType
             setFilter('flowType', flowType);
         }
     }, [flowType]);
@@ -117,7 +112,6 @@ const TaskList: React.FC = () => {
     };
 
     const handleView = (task: Task) => {
-        // Mapear a estrutura da task para o formato esperado pelo modal
         const taskForModal = {
             id: task.id,
             name: task.title,
@@ -132,7 +126,7 @@ const TaskList: React.FC = () => {
             actualHours: undefined,
             requesterName: task.requesterName,
             projectName: undefined,
-            projects: undefined, // Pode ser preenchido se houver dados de projetos
+            projects: undefined,
             link: task.link,
             meetingLink: task.meetingLink,
             subtasks: task.subTasks?.map(subtask => ({
@@ -186,7 +180,6 @@ const TaskList: React.FC = () => {
         try {
             await sendFinancialEmail(taskForEmail.id, additionalEmails);
         } catch (error) {
-            // Error already handled by the hook
         } finally {
             setShowFinancialEmailModal(false);
             setTaskForEmail(null);
@@ -226,7 +219,6 @@ const TaskList: React.FC = () => {
         try {
             await sendTaskEmail(taskForTaskEmail.id, additionalEmails);
         } catch (error) {
-            // Error already handled by the hook
         } finally {
             setShowTaskEmailModal(false);
             setTaskForTaskEmail(null);
@@ -298,21 +290,19 @@ const TaskList: React.FC = () => {
 
     const calculateTaskTotal = (task?: Task) => {
         if (!task) return 0;
-        // Usar o campo amount da tarefa principal
         return parseFloat(task.amount?.toString() || '0') || 0;
     };
 
-    // ===== Seleção múltipla (todos podem ver, só ADMIN pode selecionar todas) =====
     const toggleItem = (id: number) => {
         const task = tasks.find(t => t.id === id);
-        if (!task || !canModifyTask(task)) return; // Só permite selecionar se puder modificar
+        if (!task || !canModifyTask(task)) return;
 
         setSelectedItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
     const toggleAll = () => {
         const currentPageIds = tasks
-            .filter(task => canModifyTask(task)) // Só incluir tarefas modificáveis do usuário atual
+            .filter(task => canModifyTask(task))
             .map((t) => t.id);
         const allSelected = currentPageIds.every((id) => selectedItems.includes(id));
 
@@ -356,7 +346,6 @@ const TaskList: React.FC = () => {
     };
 
 
-    // ===== Busca simples (mobile) =====
     const filteredTasks = tasks.filter(
         (task) =>
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -364,9 +353,9 @@ const TaskList: React.FC = () => {
             task.requesterName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // ===== Colunas (inclui checkbox de seleção) =====
+
     const columns: Column<Task>[] = [
-        // Checkbox de seleção - para usuários que podem criar tarefas
+
         ...(canCreateTasks ? [{
             key: 'select',
             title: '',
@@ -402,7 +391,7 @@ const TaskList: React.FC = () => {
                 </div>
             ),
         }] : []),
-        // Colunas que todos podem ver
+
         {
             key: 'id',
             title: 'ID',
@@ -600,7 +589,7 @@ const TaskList: React.FC = () => {
             hideable: true,
             hidden: true,
         },
-        // Colunas de Entrega e Faturamento - apenas para ADMIN e MANAGER
+
         ...(canViewDeliveryColumns ? [{
             key: 'hasDelivery',
             title: 'ENTREGA',
@@ -661,7 +650,6 @@ const TaskList: React.FC = () => {
             hidden: true,
         },
 
-        // Coluna de valor total - para ADMIN e MANAGER (por último)
         ...(canViewValues ? [{
             key: 'total',
             title: 'VALOR TOTAL',
@@ -705,7 +693,7 @@ const TaskList: React.FC = () => {
             render: (item) => item.updatedByUserName || '-',
             hideable: true,
         },
-        // Coluna de ações
+
         {
             key: 'actions',
             title: 'AÇÕES',
@@ -713,7 +701,7 @@ const TaskList: React.FC = () => {
             width: '180px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
-                    {/* 1. Visualizar */}
+                    {}
                     <Button
                         size="sm"
                         variant="ghost"
@@ -779,12 +767,11 @@ const TaskList: React.FC = () => {
         },
     ];
 
-    // ===== Card (mobile) com checkbox + ações =====
     const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            {/* Header do Card */}
+
             <div className="flex items-start gap-3 mb-3">
-                {/* Checkbox - para usuários que podem criar tarefas */}
+
                 {canCreateTasks && (
                     <div className="flex-shrink-0 pt-1">
                         <input
@@ -1083,10 +1070,10 @@ const TaskList: React.FC = () => {
                             </Card>
                         )}
 
-                        {/* Desktop - Tabela */}
+                        {}
                         <Card className="p-0">
                             <DataTable
-                                data={tasks} // dados originais (filtros e ordenações do DataTable)
+                                data={tasks}
                                 columns={columns}
                                 loading={loading}
                                 pagination={pagination}
@@ -1104,7 +1091,7 @@ const TaskList: React.FC = () => {
                         </Card>
                     </div>
 
-                    {/* Mobile/Tablet - Cards com busca simples */}
+                    {}
                     <div className="lg:hidden">
                         {filteredTasks.length === 0 ? (
                             <Card className="p-8 text-center">
@@ -1122,11 +1109,11 @@ const TaskList: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Paginação Melhorada (mobile) */}
+                        {}
                         {pagination && pagination.totalPages > 1 && (
                             <Card className="p-4">
                                 <div className="space-y-3">
-                                    {/* Informação de registros */}
+                                    {}
                                     <div className="text-center text-sm text-gray-600">
                                         {formatMobileRecordCountText(
                                             pagination.currentPage,
@@ -1134,11 +1121,9 @@ const TaskList: React.FC = () => {
                                             pagination.totalElements
                                         )}
                                     </div>
-                                    
-                                    {/* Controles de navegação */}
+
                                     <div className="flex items-center justify-between">
                                         <div className="flex gap-1">
-                                            {/* Primeira página */}
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
@@ -1166,7 +1151,6 @@ const TaskList: React.FC = () => {
                                         </span>
 
                                         <div className="flex gap-1">
-                                            {/* Próxima página */}
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
@@ -1176,7 +1160,6 @@ const TaskList: React.FC = () => {
                                             >
                                                 Próxima
                                             </Button>
-                                            {/* Última página */}
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
@@ -1196,7 +1179,6 @@ const TaskList: React.FC = () => {
                 </>
             )}
 
-            {/* Modal de exclusão em massa */}
             <BulkDeleteModal
                 isOpen={showBulkDeleteModal}
                 onClose={() => setShowBulkDeleteModal(false)}
@@ -1206,7 +1188,6 @@ const TaskList: React.FC = () => {
                 entityName="tarefa"
             />
 
-            {/* Modal de detalhes da tarefa */}
             <TaskDetailModal
                 task={selectedTask}
                 isOpen={showDetailModal}
@@ -1217,7 +1198,6 @@ const TaskList: React.FC = () => {
                 canViewValues={canViewValues}
             />
 
-            {/* Modal de confirmação de email financeiro */}
             {showFinancialEmailModal && taskForEmail && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
@@ -1233,7 +1213,6 @@ const TaskList: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Content */}
                         <div className="p-6">
                             {taskForEmail.financialEmailSent ? (
                                 <div className="text-center">
@@ -1269,13 +1248,11 @@ const TaskList: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Seção de Emails Adicionais */}
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Emails adicionais em cópia (opcional)
                                 </label>
 
-                                {/* Input para adicionar email */}
                                 <div className="flex gap-2 mb-3">
                                     <input
                                         type="email"
@@ -1299,7 +1276,6 @@ const TaskList: React.FC = () => {
                                     </Button>
                                 </div>
 
-                                {/* Lista de emails adicionados */}
                                 {additionalEmails.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                         {additionalEmails.map((email, index) => (
@@ -1321,7 +1297,6 @@ const TaskList: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Actions */}
                             <div className="flex items-center justify-end space-x-3">
                                 <Button
                                     variant="secondary"
@@ -1346,7 +1321,6 @@ const TaskList: React.FC = () => {
                 </div>
             )}
 
-            {/* Modal de confirmação de email de tarefa */}
             {showTaskEmailModal && taskForTaskEmail && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
@@ -1362,7 +1336,6 @@ const TaskList: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Content */}
                         <div className="p-6">
                             {taskForTaskEmail.taskEmailSent ? (
                                 <div className="text-center">
@@ -1399,13 +1372,11 @@ const TaskList: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Seção de Emails Adicionais */}
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Emails adicionais em cópia (opcional)
                                 </label>
 
-                                {/* Input para adicionar email */}
                                 <div className="flex gap-2 mb-3">
                                     <input
                                         type="email"
@@ -1429,7 +1400,6 @@ const TaskList: React.FC = () => {
                                     </Button>
                                 </div>
 
-                                {/* Lista de emails adicionados */}
                                 {additionalEmails.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                         {additionalEmails.map((email, index) => (
@@ -1451,7 +1421,6 @@ const TaskList: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Actions */}
                             <div className="flex items-center justify-end space-x-3">
                                 <Button
                                     variant="secondary"
@@ -1476,7 +1445,6 @@ const TaskList: React.FC = () => {
                 </div>
             )}
 
-            {/* Modal de confirmação de exclusão individual */}
             <DeleteConfirmationModal
                 isOpen={showDeleteModal}
                 onClose={() => {

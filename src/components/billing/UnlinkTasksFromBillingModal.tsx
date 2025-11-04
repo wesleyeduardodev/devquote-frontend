@@ -46,7 +46,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     onTasksUnlinked,
     flowType
 }) => {
-    // Estados da tabela
+
     const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
     const [filteredTasks, setFilteredTasks] = useState<BillingPeriodTask[]>([]);
     const [loading, setLoading] = useState(false);
@@ -55,16 +55,14 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     const [sortField, setSortField] = useState<string>('task.id');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [filters, setFilters] = useState<Record<string, string>>({});
-    
-    // Estados para paginação
+
     const [pagination, setPagination] = useState<{
         currentPage: number;
         totalPages: number; 
         pageSize: number;
         totalElements: number;
     } | null>(null);
-    
-    // Estados da operação
+
     const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
     const [unlinking, setUnlinking] = useState(false);
 
@@ -73,13 +71,12 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
-    // Carregar tarefas vinculadas com paginação
     const loadLinkedTasks = useCallback(async () => {
         if (!billingPeriod?.id) return;
 
         setLoading(true);
         try {
-            // Só passa flowType se não for vazio ou "TODOS"
+
             const filterFlowType = flowType && flowType !== 'TODOS' && flowType !== '' ? flowType : undefined;
             const response = await billingPeriodService.findTaskLinksPaginated(billingPeriod.id, {
                 page: currentPage,
@@ -106,7 +103,6 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         }
     }, [billingPeriod?.id, currentPage, pageSize, sortField, sortDirection, flowType]);
 
-    // Desvincular tarefas selecionadas
     const handleUnlinkTasks = useCallback(async () => {
         if (!billingPeriod?.id || selectedTasks.length === 0) return;
 
@@ -116,7 +112,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             toast.success(`${selectedTasks.length} tarefa(s) desvinculada(s) com sucesso!`);
             
             setSelectedTasks([]);
-            onTasksUnlinked(); // Callback para recarregar dados do pai
+            onTasksUnlinked();
             onClose();
         } catch (error: any) {
             console.error('Erro ao desvincular tarefas:', error);
@@ -126,12 +122,10 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         }
     }, [billingPeriod?.id, selectedTasks, onTasksUnlinked, onClose]);
 
-    // Reset página quando pageSize mudar
     useEffect(() => {
         setCurrentPage(0);
     }, [pageSize]);
 
-    // Filtrar tarefas localmente com base nos filtros por coluna
     useEffect(() => {
         if (!linkedTasks) {
             setFilteredTasks([]);
@@ -141,7 +135,6 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         const filtered = linkedTasks.filter(link => {
             const task = link?.task;
 
-            // Filtros por coluna
             for (const [key, value] of Object.entries(filters)) {
                 if (value && value.trim()) {
                     let fieldValue = '';
@@ -175,7 +168,6 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         setFilteredTasks(filtered);
     }, [linkedTasks, filters]);
 
-    // Carregar dados quando o modal abrir
     useEffect(() => {
         if (isOpen && billingPeriod) {
             setSelectedTasks([]);
@@ -185,7 +177,6 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         }
     }, [isOpen, billingPeriod, loadLinkedTasks]);
 
-    // Colunas da tabela
     const columns = [
         {
             key: 'selection',
@@ -340,7 +331,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                                                     const newDirection = sortField === column.key && sortDirection === 'asc' ? 'desc' : 'asc';
                                                                     setSortField(column.key);
                                                                     setSortDirection(newDirection);
-                                                                    setCurrentPage(0); // Reset para primeira página
+                                                                    setCurrentPage(0);
                                                                 }}
                                                                 className="text-gray-400 hover:text-gray-600"
                                                             >

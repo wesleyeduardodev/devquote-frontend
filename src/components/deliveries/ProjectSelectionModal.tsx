@@ -27,21 +27,17 @@ export default function ProjectSelectionModal({
     const [isLoading, setIsLoading] = useState(false);
     const [selectedProjects, setSelectedProjects] = useState<Set<number>>(new Set());
 
-    // Ref para controlar o debounce
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Estados para DataTable
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
     const [sortField, setSortField] = useState('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [filters, setFilters] = useState<Record<string, string>>({});
 
-    // Buscar projetos disponíveis com paginação
     const fetchProjects = async () => {
         setIsLoading(true);
         try {
-            // Usar paginação da API corretamente - MESMA LÓGICA DO taskService
             const searchFilters: Record<string, string> = {};
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
@@ -56,7 +52,6 @@ export default function ProjectSelectionModal({
                 filters: searchFilters
             });
 
-            // Converter para o formato esperado e filtrar projetos excluídos
             const availableProjects: AvailableProject[] = (response.content || [])
                 .map(project => ({
                     id: project.id,
@@ -68,7 +63,6 @@ export default function ProjectSelectionModal({
             setProjects(availableProjects);
             setPaginationData(response);
 
-            // Buscar todos os projetos apenas uma vez para seleção
             if (page === 0) {
                 try {
                     const allResponse = await projectService.getAll();
@@ -94,28 +88,23 @@ export default function ProjectSelectionModal({
         }
     };
 
-    // Carregar projetos quando modal abre ou parâmetros mudam (COM DEBOUNCE)
     useEffect(() => {
         if (!isOpen) return;
 
-        // Clear previous timer
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
 
-        // Para page, size e sorting, executa imediatamente
         const isImmediateChange = Object.keys(filters).length === 0;
-        
+
         if (isImmediateChange) {
             fetchProjects();
         } else {
-            // Para filtros, usa debounce de 800ms
             debounceTimerRef.current = setTimeout(() => {
                 fetchProjects();
             }, 800);
         }
 
-        // Cleanup on unmount or when dependencies change
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
@@ -123,14 +112,12 @@ export default function ProjectSelectionModal({
         };
     }, [isOpen, page, size, sortField, sortDirection, filters]);
 
-    // Reset quando modal abre
     useEffect(() => {
         if (isOpen) {
             setSelectedProjects(new Set());
             setPage(0);
             setFilters({});
-            
-            // Limpa qualquer timer pendente
+
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
                 debounceTimerRef.current = null;
@@ -138,7 +125,6 @@ export default function ProjectSelectionModal({
         }
     }, [isOpen]);
 
-    // Fechar com ESC
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
@@ -155,7 +141,6 @@ export default function ProjectSelectionModal({
         };
     }, [isOpen, onClose]);
 
-    // Alternar seleção de projeto
     const toggleProjectSelection = (projectId: number) => {
         const newSelected = new Set(selectedProjects);
         if (newSelected.has(projectId)) {
@@ -166,34 +151,28 @@ export default function ProjectSelectionModal({
         setSelectedProjects(newSelected);
     };
 
-    // Handler de clique na linha
     const handleRowClick = (project: AvailableProject) => {
         toggleProjectSelection(project.id);
     };
 
-    // Selecionar/deselecionar todos da página atual
     const toggleSelectAll = () => {
         const newSelected = new Set(selectedProjects);
-        
-        // Verificar se todos os projetos da página atual estão selecionados
+
         const allCurrentPageSelected = projects.every(project => selectedProjects.has(project.id));
-        
+
         if (allCurrentPageSelected && projects.length > 0) {
-            // Deselecionar todos da página atual
             projects.forEach(project => {
                 newSelected.delete(project.id);
             });
         } else {
-            // Selecionar todos da página atual
             projects.forEach(project => {
                 newSelected.add(project.id);
             });
         }
-        
+
         setSelectedProjects(newSelected);
     };
 
-    // Confirmar seleção
     const handleConfirmSelection = () => {
         const selectedProjectsList = allProjects.filter(project => 
             selectedProjects.has(project.id)
@@ -202,8 +181,6 @@ export default function ProjectSelectionModal({
         onClose();
     };
 
-
-    // Definir colunas da tabela
     const columns: Column<AvailableProject>[] = [
         {
             key: 'selected',
@@ -256,7 +233,6 @@ export default function ProjectSelectionModal({
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
-                {/* Header */}
                 <div className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-white sticky top-0">
                     <div className="flex items-center justify-between">
                         <div>
@@ -281,7 +257,6 @@ export default function ProjectSelectionModal({
                     )}
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto max-h-[calc(90vh-140px)] sm:max-h-[calc(85vh-140px)]">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full">
@@ -308,8 +283,7 @@ export default function ProjectSelectionModal({
                             selectedRows={Array.from(selectedProjects)}
                             loading={isLoading}
                             showColumnToggle={false}
-                            
-                            // Paginação
+
                             pagination={paginationData ? {
                                 currentPage: page,
                                 pageSize: size,
@@ -318,16 +292,14 @@ export default function ProjectSelectionModal({
                             } : null}
                             onPageChange={setPage}
                             onPageSizeChange={setSize}
-                            
-                            // Ordenação
+
                             sorting={[{ field: sortField, direction: sortDirection }]}
                             onSort={(field, direction) => {
                                 setSortField(field);
                                 setSortDirection(direction);
                                 setPage(0);
                             }}
-                            
-                            // Filtros
+
                             filters={filters}
                             onFilter={(field, value) => {
                                 setFilters(prev => ({
@@ -344,7 +316,6 @@ export default function ProjectSelectionModal({
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="px-4 sm:px-6 py-1.5 border-t border-gray-200 bg-white flex items-center justify-between">
                     <div className="text-xs sm:text-sm text-gray-600">
                         {paginationData?.totalElements || 0} projeto{(paginationData?.totalElements || 0) !== 1 ? 's' : ''} disponível{(paginationData?.totalElements || 0) !== 1 ? 'eis' : ''}

@@ -1,4 +1,4 @@
-// Tipos básicos para respostas da API
+
 export interface ApiResponse<T = any> {
     data: T;
     message?: string;
@@ -25,7 +25,6 @@ export interface ApiRequestConfig {
     cache?: boolean;
 }
 
-// Tipos para filtros e ordenação
 export interface ApiFilters {
     [key: string]: any;
 }
@@ -41,16 +40,13 @@ export interface ApiPagination {
     offset?: number;
 }
 
-// Status codes comuns
 export type ApiStatusCode = 200 | 201 | 400 | 401 | 403 | 404 | 422 | 500;
 
-// Tipos para timestamps
 export interface TimestampFields {
     createdAt: string;
     updatedAt: string;
 }
 
-// Base para entidades com ID
 export interface BaseEntity extends TimestampFields {
     id: number | string;
 }

@@ -19,8 +19,7 @@ export const deliveryAttachmentService = {
   uploadFiles: async (deliveryId: number, files: FileList | File[]): Promise<DeliveryAttachmentResponse[]> => {
     const formData = new FormData();
     formData.append('deliveryId', deliveryId.toString());
-    
-    // Convert FileList to Array if needed
+
     const fileArray = Array.from(files);
     fileArray.forEach(file => {
       formData.append('files', file);

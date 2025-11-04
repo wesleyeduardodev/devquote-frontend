@@ -36,12 +36,10 @@ export const projectService = {
             size: size.toString(),
         });
 
-        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
 
-        // Adiciona parâmetros de filtro
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
@@ -61,9 +59,7 @@ export const projectService = {
 
     getByIds: async (ids: number[]): Promise<any[]> => {
         if (ids.length === 0) return [];
-        
-        // Usar a rota de listagem existente para buscar projetos específicos
-        // Fazemos chamadas individuais para cada ID (mais simples que criar nova rota)
+
         const projects = await Promise.all(
             ids.map(id => projectService.getById(id))
         );

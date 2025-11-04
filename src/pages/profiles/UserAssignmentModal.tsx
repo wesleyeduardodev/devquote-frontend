@@ -22,14 +22,12 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
   const [removeLoading, setRemoveLoading] = useState<number | null>(null);
 
   useEffect(() => {
-    // Fetch users with this profile
     fetchProfileUsers();
   }, [profile]);
 
   const fetchProfileUsers = async () => {
     try {
       setLoading(true);
-      // Get all users and filter those with this profile
       const usersWithProfile = users.filter(user => {
         return user.profiles?.some(p => p.id === profile.id);
       });
@@ -57,8 +55,7 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
       };
       
       await api.post('/permissions/users/profiles', request);
-      
-      // Move user from available to assigned
+
       const user = availableUsers.find(u => u.id === userId);
       if (user) {
         setAvailableUsers(prev => prev.filter(u => u.id !== userId));
@@ -82,8 +79,7 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
     try {
       setRemoveLoading(userId);
       await api.delete(`/permissions/users/${userId}/profiles/${profile.id}`);
-      
-      // Move user from assigned to available
+
       const user = assignedUsers.find(u => u.id === userId);
       if (user) {
         setAssignedUsers(prev => prev.filter(u => u.id !== userId));

@@ -42,14 +42,12 @@ export const UserSettings: React.FC = () => {
     }
   }, [user]);
 
-  // Fetch current user data if name is missing or empty
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.name || user?.name.trim() === '') {
         try {
           const currentUser = await AuthService.getCurrentUser();
 
-          // Update form data with the fetched user info
           if (currentUser && currentUser.name) {
             setFormData(prev => ({
               ...prev,
@@ -120,7 +118,6 @@ export const UserSettings: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error for this field when user starts typing
     if (errors[name as keyof UserSettingsForm]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }

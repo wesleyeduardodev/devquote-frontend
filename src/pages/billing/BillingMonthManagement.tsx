@@ -23,12 +23,9 @@ import {
     Edit,
 } from 'lucide-react';
 
-// Hooks e serviços existentes
-// import useQuotes from '../../hooks/useQuotes'; // Removido - não existe mais fluxo de quotes
 import { useAuth } from '../../hooks/useAuth';
 import billingPeriodService from '../../services/billingPeriodService';
 
-// Modal de confirmação (mesmo usado nas outras telas)
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import LinkTasksToBillingModal from '../../components/billing/LinkTasksToBillingModal';
 import UnlinkTasksFromBillingModal from '../../components/billing/UnlinkTasksFromBillingModal';
@@ -90,31 +87,24 @@ const statusOptions = [
 const BillingManagement: React.FC = () => {
     const { hasProfile } = useAuth();
 
-    // Verifica se o usuário tem permissão de escrita (apenas ADMIN)
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
-    const isReadOnly = !isAdmin; // MANAGER e USER têm apenas leitura
+    const isReadOnly = !isAdmin;
 
-    // Lista e carregamento
     const [billingMonths, setBillingMonths] = useState<BillingMonth[]>([]);
     const [loadingList, setLoadingList] = useState(true);
-    
 
-    // Seleção múltipla
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Exclusão individual
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<BillingMonth | null>(null);
     const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
-    // Totais
     const [totals, setTotals] = useState<Record<number, number>>({});
     const [totalsLoading, setTotalsLoading] = useState(false);
 
-    // Modais
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [showUnlinkModal, setShowUnlinkModal] = useState(false);
@@ -122,17 +112,14 @@ const BillingManagement: React.FC = () => {
     const [selectedBilling, setSelectedBilling] = useState<BillingMonth | null>(null);
     const [createLoading, setCreateLoading] = useState(false);
 
-    // Export
     const [exportLoading, setExportLoading] = useState(false);
 
-    // Status update
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [statusToUpdate, setStatusToUpdate] = useState<BillingMonth | null>(null);
     const [newStatus, setNewStatus] = useState<StatusValue>('PENDENTE');
     const [newPaymentDate, setNewPaymentDate] = useState<string>('');
     const [updatingStatus, setUpdatingStatus] = useState(false);
 
-    // Email billing
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [billingForEmail, setBillingForEmail] = useState<BillingMonth | null>(null);
     const [sendingEmail, setSendingEmail] = useState(false);
@@ -140,18 +127,14 @@ const BillingManagement: React.FC = () => {
     const [emailInput, setEmailInput] = useState('');
     const [emailError, setEmailError] = useState('');
 
-    // Estados do modal de anexos
     const [showAttachmentModal, setShowAttachmentModal] = useState(false);
     const [billingForAttachment, setBillingForAttachment] = useState<BillingMonth | null>(null);
 
-    // Filtros gerais (desktop + mobile)
     const [statusFilter, setStatusFilter] = useState('');
     const [yearFilter, setYearFilter] = useState('');
     const [monthFilter, setMonthFilter] = useState('');
     const [flowType, setFlowType] = useState('');
 
-
-    // Form
     const [formData, setFormData] = useState<{
         month: number | '';
         year: number;
@@ -163,8 +146,6 @@ const BillingManagement: React.FC = () => {
     });
 
     const [formErrors, setFormErrors] = useState<Partial<Record<'month' | 'year', string>>>({});
-
-    // Removed useQuotes hook - now using server-calculated totals
 
     const getQuoteAmount = useCallback((q: any): number => {
         const anyQ = q as unknown as {
@@ -186,7 +167,6 @@ const BillingManagement: React.FC = () => {
     const formatDate = useCallback((date?: string | null) => {
         if (!date) return '-';
 
-        // Parse manual para evitar problemas de timezone
         const parts = date.split('-');
         if (parts.length !== 3) return '-';
 
@@ -217,7 +197,6 @@ const BillingManagement: React.FC = () => {
             });
             setBillingMonths(processedData);
 
-            // Extract totals from server response
             const totalsFromServer = Object.fromEntries(
                 (data ?? []).map(item => [item.id, Number(item.totalAmount || 0)])
             );
@@ -230,18 +209,12 @@ const BillingManagement: React.FC = () => {
         }
     }, [yearFilter, monthFilter, statusFilter, flowType]);
 
-    // Removed loadTotals - now handled in fetchBillingMonths with server-calculated totals
-
     useEffect(() => {
         fetchBillingMonths();
     }, [fetchBillingMonths]);
 
-    // Removed loadTotals useEffect - totals now calculated server-side
-
     const filteredBillingMonths = useMemo(() => {
-        // Backend já filtra, só precisa ordenar
         return [...billingMonths].sort((a, b) => {
-            // Garantir ordenação: ano DESC, mês DESC, id DESC
             if (a.year !== b.year) return b.year - a.year;
             if (a.month !== b.month) return b.month - a.month;
             return b.id - a.id;
@@ -259,7 +232,6 @@ const BillingManagement: React.FC = () => {
 
         return { total, paid, pending, billed, overdue, canceled };
     }, [filteredBillingMonths, totals]);
-
 
     const validateCreate = useCallback((): boolean => {
         const e: Partial<Record<'month' | 'year', string>> = {};
@@ -373,7 +345,6 @@ const BillingManagement: React.FC = () => {
         }
     }, [billingForEmail, additionalEmails, flowType, fetchBillingMonths]);
 
-    // Handler para abrir modal de anexos
     const handleAttachments = useCallback((billing: BillingMonth) => {
         setBillingForAttachment(billing);
         setShowAttachmentModal(true);
@@ -391,21 +362,17 @@ const BillingManagement: React.FC = () => {
 
             const blob = await billingPeriodService.exportToExcel(params);
 
-            // Criar URL para download
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
 
-            // Nome do arquivo com timestamp
             const now = new Date();
             const timestamp = now.toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
             link.download = `relatorio_faturamento_${timestamp}.xlsx`;
 
-            // Trigger download
             document.body.appendChild(link);
             link.click();
 
-            // Cleanup
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
@@ -545,7 +512,6 @@ const BillingManagement: React.FC = () => {
 
     const years = [...new Set(billingMonths.map(b => b.year))].sort((a, b) => b - a);
 
-    // ===== Seleção múltipla =====
     const toggleItem = (id: number) => {
         setSelectedItems(prev =>
             prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -595,14 +561,11 @@ const BillingManagement: React.FC = () => {
         }
     }, [selectedItems, fetchBillingMonths]);
 
-    // ----------- COMPONENTES MOBILE (cards) -----------
     const BillingCard: React.FC<{ billing: BillingMonth }> = ({ billing }) => {
         const total = totals[billing.id] || 0;
         return (
             <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                {/* Header */}
                 <div className="flex items-start gap-3 mb-3">
-                    {/* Checkbox - apenas para ADMIN */}
                     {isAdmin && (
                         <div className="pt-1">
                             <input
@@ -634,7 +597,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Infos */}
                 <div className="space-y-2 text-sm mb-3">
                     <div className="flex items-center justify-between">
                         <span className="text-gray-600">Pagamento:</span>
@@ -653,7 +615,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações - Nova linha separada */}
                 <div className="flex items-center justify-center gap-1 pt-3 border-t border-gray-100">
                     {isAdmin ? (
                         <>
@@ -734,12 +695,9 @@ const BillingManagement: React.FC = () => {
         );
     };
 
-    // --------------------------------------------------------------
-
     return (
         <div className="space-y-6">
 
-                {/* Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Faturamento Mensal</h1>
@@ -769,7 +727,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cards de estatísticas por status */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                     <StatCard
                         title="Total Geral"
@@ -809,7 +766,6 @@ const BillingManagement: React.FC = () => {
                     />
                 </div>
 
-                {/* Filtros Desktop */}
                 <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -883,7 +839,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Filtros Mobile */}
                 <div className="lg:hidden bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between mb-2">
@@ -955,7 +910,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ações Desktop quando há seleção */}
                 {selectionState.hasSelection && (
                     <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                         <div className="flex items-center justify-between">
@@ -983,7 +937,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Seleção (Mobile) */}
                 <div className="lg:hidden space-y-3">
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                         <div className="flex items-center justify-between gap-3">
@@ -1016,7 +969,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Desktop: Tabela */}
                 <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-900">Períodos de Faturamento</h2>
@@ -1032,7 +984,6 @@ const BillingManagement: React.FC = () => {
                             <table className="w-full">
                                 <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    {/* Checkbox header */}
                                     <th className="px-4 py-3 w-[48px]">
                                         <div className="flex items-center justify-center">
                                             {isAdmin && (
@@ -1069,7 +1020,6 @@ const BillingManagement: React.FC = () => {
                                         const monthName = getMonthLabel(billing.month);
                                         return (
                                             <tr key={billing.id} className="hover:bg-gray-50 transition-colors">
-                                                {/* Checkbox cell */}
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-center justify-center">
                                                         {isAdmin && (
@@ -1128,7 +1078,6 @@ const BillingManagement: React.FC = () => {
                                                     )}
                                                 </td>
 
-                                                {/* Coluna de Anexos */}
                                                 <td className="px-3 py-4 w-20">
                                                     <div className="flex items-center justify-center">
                                                         {(isAdmin || isManager) && (
@@ -1221,7 +1170,6 @@ const BillingManagement: React.FC = () => {
                     )}
                 </div>
 
-                {/* Mobile/Tablet: Cards */}
                 <div className="lg:hidden">
                     {loadingList ? (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
@@ -1242,7 +1190,6 @@ const BillingManagement: React.FC = () => {
                     )}
                 </div>
 
-                {/* Create Modal */}
                 {showCreateModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -1338,7 +1285,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modal de Vincular Tarefas */}
                 <LinkTasksToBillingModal
                     isOpen={showLinkModal}
                     onClose={() => {
@@ -1350,7 +1296,6 @@ const BillingManagement: React.FC = () => {
                     flowType={flowType || undefined}
                 />
 
-                {/* Modal de Desvincular Tarefas */}
                 <UnlinkTasksFromBillingModal
                     isOpen={showUnlinkModal}
                     onClose={() => {
@@ -1362,7 +1307,6 @@ const BillingManagement: React.FC = () => {
                     flowType={flowType || undefined}
                 />
 
-                {/* Modal de Visualizar Tarefas */}
                 <ViewTasksModal
                     isOpen={showViewModal}
                     onClose={() => {
@@ -1373,7 +1317,6 @@ const BillingManagement: React.FC = () => {
                     flowType={flowType || undefined}
                 />
 
-                {/* Modal de exclusão individual */}
                 {showDeleteModal && itemToDelete && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -1448,7 +1391,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modal de edição de período */}
                 {showStatusModal && statusToUpdate && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -1548,7 +1490,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modal de Email de Faturamento */}
                 {showEmailModal && billingForEmail && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
@@ -1652,7 +1593,6 @@ const BillingManagement: React.FC = () => {
                                         <p className="mt-1 text-sm text-red-600">{emailError}</p>
                                     )}
 
-                                    {/* Lista de emails adicionados */}
                                     {additionalEmails.length > 0 && (
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             {additionalEmails.map((email, index) => (
@@ -1709,7 +1649,6 @@ const BillingManagement: React.FC = () => {
                     </div>
                 )}
 
-                {/* Modal de anexos do período */}
                 {showAttachmentModal && billingForAttachment && (
                     <BillingPeriodAttachmentModal
                         isOpen={showAttachmentModal}
@@ -1723,7 +1662,6 @@ const BillingManagement: React.FC = () => {
                     />
                 )}
 
-                {/* Modal de exclusão em massa */}
                 <BulkDeleteModal
                     isOpen={showBulkDeleteModal}
                     onClose={() => setShowBulkDeleteModal(false)}

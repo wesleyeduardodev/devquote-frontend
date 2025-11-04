@@ -105,14 +105,14 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
     const getTaskTypeLabel = (taskType?: string) => {
         if (!taskType) return '-';
         const types: Record<string, string> = {
-            // Tipos operacionais
+
             'BACKUP': 'Backup',
             'DEPLOY': 'Deploy',
             'LOGS': 'Logs',
             'NEW_SERVER': 'Novo Servidor',
             'MONITORING': 'Monitoramento',
             'SUPPORT': 'Suporte',
-            // Tipos de desenvolvimento
+
             'BUG': 'Bug',
             'ENHANCEMENT': 'Melhoria',
             'NEW_FEATURE': 'Nova Funcionalidade'

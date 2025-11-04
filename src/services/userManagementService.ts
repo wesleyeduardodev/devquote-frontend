@@ -22,10 +22,8 @@ interface PaginatedParams {
     filters?: FilterParams;
 }
 
-// Cache para os perfis para evitar múltiplas chamadas
 let profilesCache: Profile[] | null = null;
 
-// Função para buscar os perfis (com cache)
 const getProfiles = async (): Promise<Profile[]> => {
     if (!profilesCache) {
         try {
@@ -38,11 +36,9 @@ const getProfiles = async (): Promise<Profile[]> => {
     return profilesCache;
 };
 
-// Função para mapear usuário do backend para frontend
 const mapUserFromBackend = async (backendUser: any): Promise<UserProfile> => {
     const profiles = await getProfiles();
-    
-    // Mapeia os códigos dos perfis para objetos Profile completos
+
     const userProfiles = backendUser.roles?.map((roleCode: string) => 
         profiles.find(p => p.code === roleCode)
     ).filter(Boolean) || [];
@@ -51,11 +47,11 @@ const mapUserFromBackend = async (backendUser: any): Promise<UserProfile> => {
         id: backendUser.id,
         username: backendUser.username,
         email: backendUser.email,
-        firstName: '', // Deprecated
-        lastName: '', // Deprecated
+        firstName: '',
+        lastName: '',
         name: backendUser.name || '',
         enabled: backendUser.enabled,
-        active: backendUser.enabled, // Para compatibilidade
+        active: backendUser.enabled,
         profiles: userProfiles,
         roles: backendUser.roles || [],
         createdAt: backendUser.createdAt,
@@ -67,8 +63,7 @@ export const userManagementService = {
     getAll: async (): Promise<UserProfile[]> => {
         const response = await api.get('/admin/users');
         const users = response.data;
-        
-        // Mapeia cada usuário para o formato correto
+
         const mappedUsers = await Promise.all(
             users.map((user: any) => mapUserFromBackend(user))
         );
@@ -86,12 +81,10 @@ export const userManagementService = {
             size: size.toString(),
         });
 
-        // Adiciona parâmetros de ordenação
         sortParams.forEach(sortParam => {
             queryParams.append('sort', sortParam);
         });
 
-        // Adiciona parâmetros de filtro
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
@@ -102,8 +95,7 @@ export const userManagementService = {
 
         const response = await api.get(`/admin/users?${queryParams.toString()}`);
         const data = response.data;
-        
-        // Mapeia os usuários na resposta paginada
+
         const mappedUsers = await Promise.all(
             data.content.map((user: any) => mapUserFromBackend(user))
         );

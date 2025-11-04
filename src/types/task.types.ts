@@ -45,7 +45,6 @@ export interface Task extends BaseEntity {
     taskEmailSent?: boolean;
 }
 
-// Subtarefa
 export interface SubTask extends BaseEntity {
     id: number;
     taskId: number;
@@ -76,7 +75,6 @@ export interface CreateTaskData {
     subTasks?: CreateSubTaskData[];
 }
 
-// Tipo para criação de subtarefa
 export interface CreateSubTaskData {
     title: string;
     description?: string;
@@ -86,18 +84,15 @@ export interface CreateSubTaskData {
     order?: number;
 }
 
-// Tipo para atualização de tarefa
 export interface UpdateTaskData extends Partial<CreateTaskData> {
-    id?: never; // Impede atualização do ID
+    id?: never;
     subTasks?: UpdateSubTaskData[];
 }
 
-// Tipo para atualização de subtarefa
 export interface UpdateSubTaskData extends Partial<CreateSubTaskData> {
-    id?: number; // Permite ID para identificar subtarefa existente
+    id?: number;
 }
 
-// Task com dados relacionados
 export interface TaskWithRelations extends Task {
     requester?: {
         id: number | string;
@@ -127,7 +122,6 @@ export interface TaskFilters {
     search?: string;
 }
 
-// Estatísticas de tarefas
 export interface TaskStats {
     total: number;
     byPriority: Record<TaskPriority, number>;
@@ -158,7 +152,6 @@ export interface TaskFormData {
     subTasks: SubTaskFormData[];
 }
 
-// Form data para subtarefas
 export interface SubTaskFormData {
     id?: number;
     title: string;
@@ -169,7 +162,6 @@ export interface SubTaskFormData {
     order?: number;
 }
 
-// Atividade/Log da tarefa
 export interface TaskActivity {
     id: number;
     taskId: number;
@@ -181,7 +173,6 @@ export interface TaskActivity {
     createdAt: string;
 }
 
-// Comentário da tarefa
 export interface TaskComment {
     id: number;
     taskId: number;
@@ -189,10 +180,9 @@ export interface TaskComment {
     createdBy: string;
     createdAt: string;
     updatedAt?: string;
-    parentId?: number; // Para respostas
+    parentId?: number;
 }
 
-// Anexo da tarefa
 export interface TaskAttachment {
     id: number;
     taskId: number;

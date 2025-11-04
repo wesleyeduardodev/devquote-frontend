@@ -23,7 +23,7 @@ const RequesterCreate: React.FC = () => {
             await createRequester(data);
             navigate('/requesters');
         } catch (error) {
-            // Error handled by the hook and form
+
             console.error('Erro ao criar solicitante:', error);
         } finally {
             setLoading(false);

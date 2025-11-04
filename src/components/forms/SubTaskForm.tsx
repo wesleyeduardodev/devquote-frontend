@@ -25,9 +25,8 @@ interface FormData {
 const SubTaskForm: React.FC = () => {
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
-    const canViewValues = isAdmin; // Apenas ADMIN pode ver valores
+    const canViewValues = isAdmin;
 
-    // Estados para o modal de confirmação
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [subTaskToDelete, setSubTaskToDelete] = useState<{ index: number; subTask: SubTask } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -57,23 +56,21 @@ const SubTaskForm: React.FC = () => {
     };
 
     const addSubTask = (e?: React.MouseEvent): void => {
-        // Prevenir comportamento padrão e propagação
+
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        
-        // Salvar posição atual do scroll
+
         const currentScrollPosition = window.scrollY;
         
         append({
             title: '',
             description: '',
-            amount: canViewValues ? '' : '0', // MANAGER/USER sempre recebem 0
+            amount: canViewValues ? '' : '0',
             excluded: false
         });
-        
-        // Restaurar posição do scroll após adicionar
+
         setTimeout(() => {
             window.scrollTo(0, currentScrollPosition);
         }, 0);
@@ -94,22 +91,20 @@ const SubTaskForm: React.FC = () => {
             setIsDeleting(true);
 
             if (subTask?.id) {
-                // Se já existe no backend, chama a API para excluir imediatamente
+
                 await subTaskService.deleteSubTask(subTask.id);
                 toast.success('Subtarefa excluída com sucesso');
 
-                // Remove do array local após exclusão bem-sucedida
                 const filtered = [...watchSubTasks];
                 filtered.splice(index, 1);
                 setValue('subTasks', filtered);
             } else {
-                // Se é nova (sem ID), apenas remove do array
+
                 const filtered = [...watchSubTasks];
                 filtered.splice(index, 1);
                 setValue('subTasks', filtered);
             }
 
-            // Fecha o modal e limpa o estado
             setShowDeleteModal(false);
             setSubTaskToDelete(null);
         } catch (error: any) {
@@ -130,9 +125,9 @@ const SubTaskForm: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            {/* Mobile: Layout vertical / Desktop: Layout horizontal */}
+
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                {/* Título com contador */}
+
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     Subtarefas
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
@@ -140,7 +135,7 @@ const SubTaskForm: React.FC = () => {
                     </span>
                 </h3>
 
-                {/* Total + Botão Adicionar */}
+
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4">
                     {canViewValues && (
                         <div className="text-sm text-gray-600">
@@ -155,7 +150,7 @@ const SubTaskForm: React.FC = () => {
                         size="sm"
                         onClick={addSubTask}
                         className="flex items-center justify-center w-full sm:w-auto"
-                        onMouseDown={(e) => e.preventDefault()} // Previne foco/scroll
+                        onMouseDown={(e) => e.preventDefault()}
                     >
                         <Plus className="w-4 h-4 mr-1" />
                         Adicionar Subtarefa
@@ -170,9 +165,9 @@ const SubTaskForm: React.FC = () => {
 
                     return (
                         <Card key={field.id}>
-                            {/* Conteúdo - sem padding direito extra agora */}
+
                             <div className="space-y-3 sm:space-y-4">
-                                {/* Título - textarea com 2 linhas */}
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                                         Título <span className="text-red-500">*</span>
@@ -189,7 +184,7 @@ const SubTaskForm: React.FC = () => {
                                     )}
                                 </div>
 
-                                {/* Descrição - textarea em linha completa */}
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Descrição</label>
                                     <textarea
@@ -203,7 +198,7 @@ const SubTaskForm: React.FC = () => {
                                     )}
                                 </div>
 
-                                {/* Valor */}
+
                                 <div className="grid grid-cols-1 gap-4">
                                     {canViewValues ? (
                                         <div className="relative">
@@ -221,7 +216,7 @@ const SubTaskForm: React.FC = () => {
                                             <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
                                         </div>
                                     ) : (
-                                        // Campo oculto para MANAGER/USER com valor 0
+
                                         <input
                                             type="hidden"
                                             {...register(`subTasks.${index}.amount`)}
@@ -232,16 +227,14 @@ const SubTaskForm: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Campo oculto para manter o valor de "excluded" */}
                             <input
                                 type="hidden"
                                 {...register(`subTasks.${index}.excluded`)}
                             />
 
-                            {/* Footer - Badge + Valor + Botão Excluir */}
                             <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-gray-200">
                                 <div className="flex items-center justify-between gap-2">
-                                    {/* Lado esquerdo: Badge ID/Status */}
+
                                     <div className="flex items-center gap-2">
                                         {subTask?.id ? (
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
@@ -254,16 +247,14 @@ const SubTaskForm: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {/* Lado direito: Valor (se ADMIN) + Botão Excluir */}
                                     <div className="flex items-center gap-2 sm:gap-3">
-                                        {/* Valor total */}
+
                                         {canViewValues && watchSubTasks?.[index]?.amount && (
                                             <span className="text-sm sm:text-base font-bold text-green-600">
                                                 {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
                                             </span>
                                         )}
 
-                                        {/* Botão Excluir - só aparece se a subtarefa já foi criada (possui id) */}
                                         {subTask?.id && (
                                             <Button
                                                 type="button"
@@ -301,7 +292,6 @@ const SubTaskForm: React.FC = () => {
                 </Card>
             )}
 
-            {/* Modal de confirmação de exclusão */}
             <DeleteConfirmationModal
                 isOpen={showDeleteModal}
                 onClose={() => {

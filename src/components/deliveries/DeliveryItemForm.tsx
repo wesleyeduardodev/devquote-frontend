@@ -18,7 +18,6 @@ interface DeliveryItemFormProps {
     customActions?: React.ReactNode;
 }
 
-// Schema de validação
 const deliveryItemSchema = yup.object({
     id: yup.number().optional(),
     deliveryId: yup.number().optional(),
@@ -79,12 +78,10 @@ export default function DeliveryItemForm({
 
     const currentStatus = watch('status');
 
-    // Monitora mudanças para controlar estado de não salvo
     useEffect(() => {
         setHasUnsavedChanges(isDirty && !isReadOnly);
     }, [isDirty, isReadOnly]);
 
-    // Carregar dados iniciais quando receber
     useEffect(() => {
         if (initialData) {
             reset({

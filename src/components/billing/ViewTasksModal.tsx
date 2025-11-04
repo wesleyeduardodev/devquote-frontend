@@ -48,7 +48,7 @@ const ViewTasksModal: React.FC<Props> = ({
     billingPeriod,
     flowType
 }) => {
-    // Estados da tabela
+
     const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
     const [filteredTasks, setFilteredTasks] = useState<BillingPeriodTask[]>([]);
     const [loading, setLoading] = useState(false);
@@ -58,8 +58,7 @@ const ViewTasksModal: React.FC<Props> = ({
     const [sortField, setSortField] = useState<string>('task.id');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [filters, setFilters] = useState<Record<string, string>>({});
-    
-    // Estados para paginação
+
     const [pagination, setPagination] = useState<{
         currentPage: number;
         totalPages: number; 
@@ -77,10 +76,10 @@ const ViewTasksModal: React.FC<Props> = ({
 
         setLoading(true);
         try {
-            // Só passa flowType se não for vazio ou "TODOS"
+
             const filterFlowType = flowType && flowType !== 'TODOS' && flowType !== '' ? flowType : undefined;
             const response = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id, filterFlowType);
-            // Ordenar por ID da tarefa em ordem decrescente
+
             const sortedResponse = response.sort((a, b) => (b?.task?.id || 0) - (a?.task?.id || 0));
             setLinkedTasks(sortedResponse);
         } catch (error: any) {
@@ -97,16 +96,13 @@ const ViewTasksModal: React.FC<Props> = ({
         }
     }, [isOpen, billingPeriod, loadLinkedTasks]);
 
-    // Reset página quando pageSize mudar
     useEffect(() => {
         setCurrentPage(0);
     }, [pageSize]);
 
-    // Filtrar e ordenar tarefas
     useEffect(() => {
         let filtered = [...linkedTasks];
 
-        // Aplicar filtros
         Object.entries(filters).forEach(([key, value]) => {
             if (value) {
                 filtered = filtered.filter(link => {
@@ -129,7 +125,6 @@ const ViewTasksModal: React.FC<Props> = ({
             }
         });
 
-        // Ordenar
         filtered.sort((a, b) => {
             const aValue = getNestedValue(a, sortField);
             const bValue = getNestedValue(b, sortField);
@@ -148,7 +143,7 @@ const ViewTasksModal: React.FC<Props> = ({
             }
         });
 
-        // Calcular paginação
+
         const totalElements = filtered.length;
         const totalPages = Math.ceil(totalElements / pageSize);
         
@@ -159,19 +154,17 @@ const ViewTasksModal: React.FC<Props> = ({
             totalElements
         });
         
-        // Aplicar paginação
+
         const startIndex = currentPage * pageSize;
         const endIndex = startIndex + pageSize;
         setFilteredTasks(filtered.slice(startIndex, endIndex));
         
     }, [linkedTasks, filters, sortField, sortDirection, currentPage, pageSize]);
 
-    // Função auxiliar para acessar propriedades aninhadas
     const getNestedValue = (obj: any, path: string): any => {
         return path.split('.').reduce((current, key) => current?.[key], obj);
     };
 
-    // Definir colunas da tabela
     const columns = [
         {
             key: 'task.id',

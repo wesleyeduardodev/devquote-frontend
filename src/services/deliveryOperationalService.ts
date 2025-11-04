@@ -6,7 +6,6 @@ import {
 } from '../types/deliveryOperational';
 
 const deliveryOperationalService = {
-  // ========== CRUD Itens Operacionais ==========
 
   createItem: async (data: DeliveryOperationalItemRequest): Promise<DeliveryOperationalItem> => {
     const response = await api.post('/delivery-operational', data);
@@ -31,8 +30,6 @@ const deliveryOperationalService = {
   deleteItem: async (id: number): Promise<void> => {
     await api.delete(`/delivery-operational/${id}`);
   },
-
-  // ========== Anexos ==========
 
   uploadAttachments: async (itemId: number, files: File[]): Promise<DeliveryOperationalAttachment[]> => {
     const formData = new FormData();

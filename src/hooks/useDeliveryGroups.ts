@@ -60,14 +60,12 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         params.append('page', currentPage.toString());
         params.append('size', pageSize.toString());
 
-        // Adiciona filtros
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
                 params.append(key, value.toString());
             }
         });
 
-        // Adiciona parâmetros de ordenação
         if (sorting.length > 0) {
             sorting.forEach(sort => {
                 params.append('sort', `${sort.field},${sort.direction}`);
@@ -123,21 +121,20 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
     }, []);
 
     const setPage = useCallback((page: number) => {
-        setCurrentPage(page); // API usa 0-based, DataTable também usa 0-based
+        setCurrentPage(page);
     }, []);
 
     const setPageSize = useCallback((size: number) => {
         setCurrentPageSize(size);
-        setCurrentPage(0); // Volta para primeira página
+        setCurrentPage(0);
     }, []);
 
     const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
         setSortingState(prevSorting => {
-            // Remove existing sort para este campo e adiciona o novo no início
             const filteredSorting = prevSorting.filter(s => s.field !== field);
             return [{ field, direction }, ...filteredSorting];
         });
-        setCurrentPage(0); // Reset to first page when sorting changes
+        setCurrentPage(0);
     }, []);
 
     const setFilter = useCallback((key: string, value: string | number | null) => {
@@ -145,7 +142,7 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
             ...prev,
             [key]: value || undefined
         }));
-        setCurrentPage(0); // Volta para primeira página
+        setCurrentPage(0);
     }, []);
 
     const clearFilters = useCallback(() => {
@@ -166,7 +163,6 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
 
     const deleteGroups = useCallback(async (taskIds: number[]): Promise<void> => {
         try {
-            // Excluir todos os grupos sequencialmente
             for (const taskId of taskIds) {
                 await deliveryService.deleteByTaskId(taskId);
             }
@@ -178,19 +174,15 @@ export const useDeliveryGroups = (props: UseDeliveryGroupsProps = {}) => {
         }
     }, [fetchDeliveryGroups]);
 
-    // Effect para buscar dados quando parâmetros mudarem (com debounce para filtros)
     useEffect(() => {
-        // Limpa timer anterior
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
 
-        // Define novo timer de debounce (1s)
         debounceTimerRef.current = setTimeout(() => {
             fetchDeliveryGroups();
         }, 1000);
 
-        // Cleanup
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);

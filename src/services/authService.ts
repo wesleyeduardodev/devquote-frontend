@@ -19,7 +19,7 @@ export class AuthService {
     try {
       await api.post('/auth/logout');
     } catch (error) {
-      // Ignore logout errors - we'll clear local storage anyway
+
       console.warn('Logout API call failed:', error);
     }
   }

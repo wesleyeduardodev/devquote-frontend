@@ -145,7 +145,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             const newConfig = await notificationConfigService.create(data);
-            await fetchNotificationConfigs(); // Recarrega a lista após criação
+            await fetchNotificationConfigs();
             toast.success('Configuração de notificação criada com sucesso!');
             return newConfig;
         } catch (err: any) {
@@ -161,7 +161,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             const updatedConfig = await notificationConfigService.update(id, data);
-            await fetchNotificationConfigs(); // Recarrega a lista após atualização
+            await fetchNotificationConfigs();
             toast.success('Configuração de notificação atualizada com sucesso!');
             return updatedConfig;
         } catch (err: any) {
@@ -177,7 +177,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             await notificationConfigService.delete(id);
-            await fetchNotificationConfigs(); // Recarrega a lista após exclusão
+            await fetchNotificationConfigs();
             toast.success('Configuração de notificação excluída com sucesso!');
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao excluir configuração de notificação';
@@ -192,7 +192,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
         try {
             setLoading(true);
             await notificationConfigService.deleteBulk(ids);
-            await fetchNotificationConfigs(); // Recarrega a lista após exclusão em lote
+            await fetchNotificationConfigs();
             toast.success(`${ids.length} configuração(ões) excluída(s) com sucesso!`);
         } catch (err: any) {
             const errorMessage = err.message || 'Erro ao excluir configurações de notificação';
@@ -209,7 +209,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
 
     const setPageSize = useCallback((size: number) => {
         setCurrentPageSize(size);
-        setCurrentPage(0); // Reset to first page when changing page size
+        setCurrentPage(0);
     }, []);
 
     const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
@@ -226,7 +226,7 @@ export const useNotificationConfigs = (initialParams?: UseNotificationConfigsPar
                 ...prev,
                 [field]: value || undefined
             }));
-            setCurrentPage(0); // Reset to first page when filtering
+            setCurrentPage(0);
         }, 500);
     }, []);
 

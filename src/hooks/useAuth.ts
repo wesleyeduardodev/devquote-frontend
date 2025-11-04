@@ -6,15 +6,15 @@ type AuthContextValue = {
     user: AuthUser | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    // Profile-based checks (escalável para novos perfis)
+
     hasProfile: (profile: string) => boolean;
     hasAnyProfile: (profiles: string[]) => boolean;
     hasAllProfiles: (profiles: string[]) => boolean;
-    // Helpers para perfis existentes (ADMIN, MANAGER, USER)
+
     isAdmin: () => boolean;
     isManager: () => boolean;
     isUser: () => boolean;
-    // Actions
+
     login: (data: AuthLoginRequest) => Promise<AuthUser>;
     logout: () => Promise<void>;
 };
@@ -27,7 +27,7 @@ function readStoredUser(): AuthUser | null {
     if (!raw) return null;
     try {
         const user = JSON.parse(raw) as AuthUser;
-        // Validate token is still valid
+
         if (!AuthService.isValidSession()) {
             AuthService.clearStoredAuth();
             return null;
@@ -58,10 +58,8 @@ export function AuthProvider({children}: { children: ReactNode }) {
         try {
             const response = await AuthService.login(data);
 
-            // Store token first so it's available for subsequent requests
             window.localStorage.setItem('auth.token', response.token);
 
-            // Fetch detailed user info including name and id
             let userName = '';
             let userId: number | undefined = undefined;
             try {
@@ -72,7 +70,6 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 console.warn('Failed to fetch user info:', error);
             }
 
-            // Create user object (apenas com roles - perfis)
             const newUser: AuthUser = {
                 id: userId,
                 username: response.username,
@@ -82,7 +79,6 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 token: response.token
             };
 
-            // Store user data
             window.localStorage.setItem('auth.user', JSON.stringify(newUser));
             setUser(newUser);
 
@@ -108,7 +104,6 @@ export function AuthProvider({children}: { children: ReactNode }) {
         isAuthenticated: !!user?.token && AuthService.isValidSession(),
         isLoading,
 
-        // Profile-based checks (escalável para novos perfis)
         hasProfile: (profile: string) => {
             return user?.roles?.includes(profile) ?? false;
         },
@@ -119,12 +114,10 @@ export function AuthProvider({children}: { children: ReactNode }) {
             return profiles.every(profile => user?.roles?.includes(profile)) ?? false;
         },
 
-        // Helpers para perfis existentes (conveniente mas não obrigatório)
         isAdmin: () => user?.roles?.includes('ADMIN') ?? false,
         isManager: () => user?.roles?.includes('MANAGER') ?? false,
         isUser: () => user?.roles?.includes('USER') ?? false,
 
-        // Actions
         login,
         logout,
     }), [user, isLoading, login, logout]);

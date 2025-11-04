@@ -43,7 +43,7 @@ interface TaskFormProps {
     onSubmit: (data: any, pendingFiles?: File[]) => Promise<void>;
     onCancel?: () => void;
     loading?: boolean;
-    taskId?: number; // Para permitir upload de anexos após criação
+    taskId?: number;
     onFilesUploaded?: (attachments: TaskAttachmentResponse[]) => void;
 }
 
@@ -99,15 +99,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
             systemModule: initialData?.systemModule || '',
             priority: initialData?.priority || 'MEDIUM',
             subTasks:
-                // Ordenar subtarefas por ID se estiver editando
+
                 initialData?.subTasks
                     ? [...initialData.subTasks].sort((a, b) => {
-                        // Se ambos têm ID, ordenar por ID
+
                         if (a.id && b.id) return a.id - b.id;
-                        // Se apenas um tem ID, o que tem ID vem primeiro
+
                         if (a.id) return -1;
                         if (b.id) return 1;
-                        // Se nenhum tem ID, manter ordem original
+
                         return 0;
                     })
                     : [
@@ -169,23 +169,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const [subTaskError, setSubTaskError] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
     const [attachmentRefresh, setAttachmentRefresh] = useState(0);
-    
-    // Estado para arquivos pendentes (para criação de tarefa)
+
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-    
-    // Estado para controlar se a seção de anexos está expandida
+
     const [isAttachmentSectionExpanded, setIsAttachmentSectionExpanded] = useState(false);
 
-    // Validação quando tentar desmarcar a flag com subtarefas existentes
     const handleHasSubTasksChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked;
 
-        // Se está tentando desmarcar e existem subtarefas não excluídas
         if (!isChecked && initialData?.id && watchSubTasks) {
             const activeSubTasks = watchSubTasks.filter((st: any) => !st?.excluded);
             if (activeSubTasks.length > 0) {
                 setSubTaskError('Para desmarcar esta opção, você precisa remover todas as subtarefas primeiro e depois atualizar a tarefa.');
-                // Mantém o checkbox marcado
+
                 setTimeout(() => {
                     methods.setValue('hasSubTasks', true);
                 }, 0);
@@ -199,11 +195,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
     const handleFormSubmit = async (data: TaskData): Promise<void> => {
         try {
-            // Limpa erros anteriores
+
             setSubTaskError(null);
             setFormError(null);
 
-            // Validação customizada para subtarefas
             if (data.hasSubTasks) {
                 if (!data.subTasks || data.subTasks.length === 0) {
                     setFormError('Quando "Esta tarefa possui subtarefas" estiver marcado, você deve adicionar pelo menos uma subtarefa.');
@@ -213,8 +208,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                     }
                     return;
                 }
-                
-                // Validar se cada subtarefa tem título preenchido
+
                 const invalidSubtasks = data.subTasks
                     .map((subTask: any, index: number) => ({
                         index: index + 1,
@@ -248,31 +242,28 @@ const TaskForm: React.FC<TaskFormProps> = ({
             };
 
             await onSubmit(formattedData, pendingFiles.length > 0 ? pendingFiles : undefined);
-            
-            // Só reseta se for uma criação bem-sucedida
+
             if (!initialData?.id) {
                 reset();
-                setPendingFiles([]); // Limpa arquivos pendentes após criação
+                setPendingFiles([]);
             }
         } catch (error: any) {
             console.error('Erro no formulário de tarefa:', error);
-            
-            // Captura erros relacionados às subtarefas
+
             if (error?.message && error.message.includes('Tem Subtarefas')) {
                 setSubTaskError('Não é possível desmarcar "Tem Subtarefas" enquanto existirem subtarefas vinculadas. Remova todas as subtarefas primeiro.');
-                // Volta o checkbox para marcado
+
                 methods.setValue('hasSubTasks', true);
             } else if (error?.message && !error.message.includes('Requester not selected')) {
-                // Mostra outros erros de API (exceto erro de requester que já é tratado no componente pai)
+
                 let errorMessage = 'Erro ao processar solicitação';
-                
-                // Extrair mensagem detalhada do erro
+
                 if (error.response?.data?.detail) {
                     errorMessage = error.response.data.detail;
                 } else if (error.response?.data?.message) {
                     errorMessage = error.response.data.message;
                 } else if (error.response?.data?.errors) {
-                    // Erro de validação com múltiplos campos
+
                     const fieldErrors = error.response.data.errors
                         .map((err: any) => `${err.field}: ${err.message}`)
                         .join(', ');
@@ -282,14 +273,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 }
                 
                 setFormError(errorMessage);
-                
-                // Scroll para o topo para mostrar o erro
+
                 const formElement = document.querySelector('form');
                 if (formElement) {
                     formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             } else {
-                // Re-lança o erro para ser tratado pelo componente pai (caso do requester)
+
                 throw error;
             }
         }
@@ -594,14 +584,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 maxFileSize={10}
                                 disabled={isSubmitting || loading}
                                 taskId={taskId}
-                                showUploadButton={!!taskId} // Mostrar botão apenas na edição
+                                showUploadButton={!!taskId}
                                 onUploadSuccess={(attachments) => {
                                     onFilesUploaded?.(attachments);
                                     setAttachmentRefresh(prev => prev + 1);
                                 }}
                             />
-                            
-                            {/* Lista de arquivos anexados (apenas na edição) */}
+
                             {taskId && taskId > 0 && (
                                 <div className="mt-4">
                                     <AttachmentList 

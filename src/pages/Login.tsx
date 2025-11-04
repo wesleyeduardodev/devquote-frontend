@@ -143,7 +143,6 @@ export default function Login() {
                         </a>
                     </div>
 
-                    {/* Redes Sociais */}
                     <div className="flex justify-center gap-3">
                         <a
                             href="https://www.linkedin.com/in/wesley-eduardo-8a1066169/"
@@ -183,7 +182,6 @@ export default function Login() {
                         </a>
                     </div>
 
-                    {/* Copyright */}
                     <div className="text-xs text-gray-500 pt-2">
                         © 2025 DevQuote. Todos os direitos reservados.
                     </div>

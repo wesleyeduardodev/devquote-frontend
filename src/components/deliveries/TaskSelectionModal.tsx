@@ -20,20 +20,17 @@ export default function TaskSelectionModal({
     const [paginationData, setPaginationData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Ref para controlar o debounce
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Estados para DataTable
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(5);
     const [sorting, setSorting] = useState([{ field: 'createdAt', direction: 'desc' as const }]);
     const [filters, setFilters] = useState<Record<string, string>>({});
 
-    // Buscar tarefas disponíveis com paginação
     const fetchAvailableTasks = async () => {
         setIsLoading(true);
         try {
-            // Agora usando o endpoint com paginação da API - MESMA LÓGICA DO taskService
+
             const searchFilters: Record<string, string> = {};
             Object.entries(filters).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
@@ -59,28 +56,24 @@ export default function TaskSelectionModal({
         }
     };
 
-    // Carregar tarefas quando modal abre ou quando parâmetros mudam (COM DEBOUNCE)
     useEffect(() => {
         if (!isOpen) return;
 
-        // Clear previous timer
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
 
-        // Para page, size e sorting, executa imediatamente
         const isImmediateChange = Object.keys(filters).length === 0;
         
         if (isImmediateChange) {
             fetchAvailableTasks();
         } else {
-            // Para filtros, usa debounce de 800ms
+
             debounceTimerRef.current = setTimeout(() => {
                 fetchAvailableTasks();
             }, 800);
         }
 
-        // Cleanup on unmount or when dependencies change
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
@@ -88,14 +81,12 @@ export default function TaskSelectionModal({
         };
     }, [isOpen, page, size, sorting, filters]);
 
-    // Reset quando modal abre (apenas uma vez)
     useEffect(() => {
         if (isOpen) {
             setPage(0);
             setFilters({});
             setSorting([{ field: 'createdAt', direction: 'desc' }]);
-            
-            // Limpa qualquer timer pendente
+
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
                 debounceTimerRef.current = null;
@@ -103,13 +94,11 @@ export default function TaskSelectionModal({
         }
     }, [isOpen]);
 
-    // Handler de seleção - seleciona e fecha imediatamente
     const handleRowClick = (task: AvailableTask) => {
         onTaskSelect(task);
         onClose();
     };
 
-    // Fechar com ESC
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
@@ -127,7 +116,6 @@ export default function TaskSelectionModal({
     }, [isOpen, onClose]);
 
 
-    // Definir colunas da tabela
     const columns: Column<AvailableTask>[] = [
         {
             key: 'id',
@@ -450,8 +438,7 @@ export default function TaskSelectionModal({
                                     columns={columns}
                                     loading={isLoading}
                                     showColumnToggle={false}
-                                    
-                                    // Paginação
+
                                     pagination={paginationData ? {
                                         currentPage: page,
                                         pageSize: size,
@@ -460,15 +447,13 @@ export default function TaskSelectionModal({
                                     } : null}
                                     onPageChange={setPage}
                                     onPageSizeChange={setSize}
-                                    
-                                    // Ordenação
+
                                     sorting={sorting}
                                     onSort={(field, direction) => {
                                         setSorting([{ field, direction }]);
                                         setPage(0);
                                     }}
-                                    
-                                    // Filtros
+
                                     filters={filters}
                                     onFilter={(field, value) => {
                                         setFilters(prev => ({

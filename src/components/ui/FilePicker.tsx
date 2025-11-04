@@ -9,12 +9,12 @@ interface FilePickerProps {
     files?: File[];
     onFilesChange?: (files: File[]) => void;
     maxFiles?: number;
-    maxFileSize?: number; // in MB
+    maxFileSize?: number;
     disabled?: boolean;
     className?: string;
-    // Para upload direto (edição de tarefas)
+
     taskId?: number;
-    // Para upload direto (edição de entregas)
+
     deliveryId?: number;
     onUploadSuccess?: (attachments: any[]) => void;
     showUploadButton?: boolean;
@@ -30,7 +30,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
     files = [],
     onFilesChange,
     maxFiles = 10,
-    maxFileSize = 10, // 10MB default
+    maxFileSize = 10,
     disabled = false,
     className = '',
     taskId,
@@ -43,55 +43,53 @@ const FilePicker: React.FC<FilePickerProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const allowedTypes = [
-        // Documentos
+
         'application/pdf',
-        'application/msword',  // Word .doc
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  // Word .docx
-        'application/vnd.ms-excel',  // Excel .xls
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  // Excel .xlsx
-        'application/vnd.ms-powerpoint',  // PowerPoint .ppt
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',  // PowerPoint .pptx
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'text/plain',
         'text/csv',
-        'application/json',  // JSON
-        'text/json',  // JSON alternativo
-        // Imagens
+        'application/json',
+        'text/json',
+
         'image/jpeg',
         'image/jpg',
         'image/png',
         'image/gif',
         'image/webp',
-        // Vídeos
+
         'video/mp4',
         'video/webm',
         'video/ogg',
         'video/avi',
         'video/quicktime',
         'video/x-msvideo',
-        // Áudio
+
         'audio/mp3',
         'audio/mpeg',
         'audio/wav',
         'audio/ogg',
-        // Compactados
+
         'application/zip',
         'application/x-rar-compressed',
         'application/x-7z-compressed',
-        // Tipos genéricos que alguns navegadores podem usar
-        'application/octet-stream'  // Tipo genérico para arquivos binários
+
+        'application/octet-stream'
     ];
 
     const validateFile = useCallback((file: File): string | null => {
         const fileName = file.name.toLowerCase();
         const fileExtension = fileName.split('.').pop();
         
-        
-        // Lista de extensões permitidas - FORÇAR JSON e POWERPOINT
+
         const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
-        
-        // VALIDAÇÃO SIMPLES: Se a extensão está na lista, SEMPRE aceitar
+
         if (fileExtension && allowedExtensions.includes(fileExtension)) {
-            // Prosseguir direto para validação de tamanho - NÃO verificar MIME
+
         } else {
             return `Extensão não permitida: .${fileExtension}`;
         }
@@ -117,7 +115,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
         const errors: string[] = [];
 
         newFiles.forEach(file => {
-            // Verificar se o arquivo já existe
+
             const exists = files.some(existingFile => 
                 existingFile.name === file.name && existingFile.size === file.size
             );
@@ -165,7 +163,6 @@ const FilePicker: React.FC<FilePickerProps> = ({
         if (e.target.files) {
             const selectedFiles = Array.from(e.target.files);
             addFiles(selectedFiles);
-            // Clear input value to allow selecting same files again
             e.target.value = '';
         }
     };
@@ -202,16 +199,14 @@ const FilePicker: React.FC<FilePickerProps> = ({
             let attachments;
             
             if (taskId) {
-                // Upload para tarefa
                 attachments = await taskAttachmentService.uploadFiles(taskId, files);
             } else if (deliveryId) {
-                // Upload para entrega
                 attachments = await deliveryAttachmentService.uploadFiles(deliveryId, files);
             }
             
             toast.success(`${files.length} arquivo(s) enviado(s) com sucesso!`);
             onUploadSuccess?.(attachments);
-            onFilesChange?.([]); // Limpar arquivos após upload
+            onFilesChange?.([]);
         } catch (error) {
             console.error('Error uploading files:', error);
             toast.error('Erro ao enviar arquivos');

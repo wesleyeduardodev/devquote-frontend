@@ -21,10 +21,10 @@ export interface Column<T> {
     key: string;
     title: string;
     sortable?: boolean;
-    filterable?: boolean; // Nova propriedade para habilitar filtro
-    filterType?: 'text' | 'number' | 'date'; // Tipo de filtro
+    filterable?: boolean;
+    filterType?: 'text' | 'number' | 'date';
     render?: (item: T) => React.ReactNode;
-    headerRender?: () => React.ReactNode; // Nova propriedade para customizar header
+    headerRender?: () => React.ReactNode;
     width?: string;
     align?: 'left' | 'center' | 'right';
     hideable?: boolean;
@@ -90,22 +90,18 @@ const DataTable = <T extends Record<string, any>>({
     const [showColumnMenu, setShowColumnMenu] = useState(false);
     const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
 
-    // Memoiza os valores para evitar re-renders desnecessários
     const memoizedInitialHiddenColumns = useMemo(() => initialHiddenColumns, [initialHiddenColumns.join(',')]);
     const memoizedFilters = useMemo(() => filters, [JSON.stringify(filters)]);
 
-    // Filtra as colunas visíveis
     const visibleColumns = useMemo(() => 
         columns.filter(column => !hiddenColumns.includes(column.key)),
         [columns, hiddenColumns]
     );
 
-    // Atualiza as colunas ocultas quando o prop inicial muda
     useEffect(() => {
         setHiddenColumns(memoizedInitialHiddenColumns);
     }, [memoizedInitialHiddenColumns]);
 
-    // Atualiza os filtros locais quando os filtros externos mudam
     useEffect(() => {
         setLocalFilters(memoizedFilters);
     }, [memoizedFilters]);

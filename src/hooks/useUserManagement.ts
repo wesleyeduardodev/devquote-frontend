@@ -70,7 +70,6 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
   ]);
   const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
 
-  // Refs para controlar o debounce
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchUsers = useCallback(async (params?: UseUserManagementParams): Promise<void> => {
@@ -111,7 +110,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
   const createUser = useCallback(async (data: CreateUserDto): Promise<UserProfile> => {
     try {
       const newUser = await userManagementService.create(data);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success('Usuário criado com sucesso!');
       return newUser;
     } catch (err: any) {
@@ -123,7 +122,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
   const updateUser = useCallback(async (id: number, data: UpdateUserDto): Promise<UserProfile> => {
     try {
       const updatedUser = await userManagementService.update(id, data);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success('Usuário atualizado com sucesso!');
       return updatedUser;
     } catch (err: any) {
@@ -135,7 +134,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
   const deleteUser = useCallback(async (id: number): Promise<void> => {
     try {
       await userManagementService.delete(id);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success('Usuário excluído com sucesso!');
     } catch (err: any) {
       console.error('Error deleting user:', err);
@@ -146,7 +145,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
   const deleteBulkUsers = useCallback(async (ids: number[]): Promise<void> => {
     try {
       await userManagementService.deleteBulk(ids);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success(`${ids.length} usuário(s) excluído(s) com sucesso!`);
     } catch (err: any) {
       console.error('Error deleting users:', err);
@@ -166,9 +165,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
 
   const assignProfile = useCallback(async (data: AssignProfileRequest): Promise<void> => {
     try {
-      // TODO: Implementar no service
-      // await userManagementService.assignProfile(data);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success('Perfil atribuído com sucesso!');
     } catch (err: any) {
       console.error('Error assigning profile:', err);
@@ -178,9 +175,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
 
   const removeProfile = useCallback(async (userId: number, profileId: number): Promise<void> => {
     try {
-      // TODO: Implementar no service
-      // await userManagementService.removeProfile(userId, profileId);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success('Perfil removido com sucesso!');
     } catch (err: any) {
       console.error('Error removing profile:', err);
@@ -190,9 +185,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
 
   const removeAllProfiles = useCallback(async (userId: number): Promise<void> => {
     try {
-      // TODO: Implementar no service
-      // await userManagementService.removeAllProfiles(userId);
-      await fetchUsers(); // Refresh list
+      await fetchUsers();
       toast.success('Todos os perfis removidos com sucesso!');
     } catch (err: any) {
       console.error('Error removing all profiles:', err);
@@ -206,16 +199,15 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
 
   const setPageSize = useCallback((size: number) => {
     setCurrentPageSize(size);
-    setCurrentPage(0); // Reset to first page when changing page size
+    setCurrentPage(0);
   }, []);
 
   const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
     setSortingState(prevSorting => {
-      // Remove existing sort for this field and add new one at the beginning
       const filteredSorting = prevSorting.filter(s => s.field !== field);
       return [{ field, direction }, ...filteredSorting];
     });
-    setCurrentPage(0); // Reset to first page when sorting changes
+    setCurrentPage(0);
   }, []);
 
   const setFilter = useCallback((field: string, value: string) => {
@@ -223,7 +215,7 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
       ...prev,
       [field]: value || undefined
     }));
-    setCurrentPage(0); // Reset to first page when filter changes
+    setCurrentPage(0);
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -231,19 +223,16 @@ export const useUserManagement = (initialParams?: UseUserManagementParams): UseU
     setCurrentPage(0);
   }, []);
 
-  // Effect to fetch data when parameters change (with debounce for filters)
   useEffect(() => {
-    // Clear previous timer
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new timer for debounce (1 second)
     debounceTimerRef.current = setTimeout(() => {
       fetchUsers();
     }, 1000);
 
-    // Cleanup on unmount or when dependencies change
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);

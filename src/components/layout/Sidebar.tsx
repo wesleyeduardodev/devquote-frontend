@@ -25,7 +25,7 @@ interface NavigationItem {
     path: string;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
-    requiredProfiles: string[]; // Perfis que podem acessar
+    requiredProfiles: string[];
     subItems?: NavigationItem[];
 }
 
@@ -37,7 +37,6 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         return location.pathname === path || location.pathname.startsWith(path + '/');
     };
 
-    // Definir todos os itens de navegação com seus perfis requeridos (escalável)
     const allNavigationItems: NavigationItem[] = [
         {path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, requiredProfiles: ['ADMIN', 'MANAGER', 'USER']},
         {path: '/requesters', label: 'Solicitantes', icon: Users, requiredProfiles: ['ADMIN']},
@@ -50,14 +49,13 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         {path: '/settings', label: 'Configurações', icon: Settings, requiredProfiles: ['ADMIN']}
     ];
 
-    // Filtrar itens baseado no perfil do usuário
     const navigationItems = allNavigationItems.filter(item => {
         return hasAnyProfile(item.requiredProfiles);
     });
 
     return (
         <>
-            {/* Overlay para mobile */}
+
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -65,19 +63,19 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
                 />
             )}
 
-            {/* Sidebar */}
+
             <aside
                 className={clsx(
                     'fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0',
                     isOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
-                {/* Header do Sidebar */}
+
                 <div className="flex items-center justify-between p-4 border-b border-gray-200">
                     <Link to="/dashboard" className="text-xl font-bold text-primary-600">
                         DevQuote
                     </Link>
-                    {/* Botão fechar (apenas mobile) */}
+
                     <button
                         onClick={onClose}
                         className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
@@ -87,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
                     </button>
                 </div>
 
-                {/* Navegação */}
+
                 <nav className="flex-1 overflow-y-auto p-4">
                     <ul className="space-y-2">
                         {navigationItems.map((item) => (
@@ -110,7 +108,6 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
                     </ul>
                 </nav>
 
-                {/* Footer */}
                 <div className="p-4 border-t border-gray-200">
                     <p className="text-xs text-gray-500 text-center">
                         © 2025 DevQuote

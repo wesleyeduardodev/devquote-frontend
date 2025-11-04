@@ -1,6 +1,5 @@
 import toast from 'react-hot-toast';
 
-// Interface para erro da API com informações extras
 export interface ApiError {
     userMessage?: string;
     apiError?: {
@@ -27,16 +26,12 @@ export interface ApiError {
     code?: string;
 }
 
-/**
- * Extrai mensagem de erro amigável para o usuário
- */
 export function getUserErrorMessage(error: any): string {
-    // Se o interceptor já processou o erro
+
     if (error?.userMessage) {
         return error.userMessage;
     }
 
-    // Se é um erro de rede/conexão
     if (!error?.response) {
         if (error?.code === 'NETWORK_ERROR') {
             return 'Erro de conexão. Verifique sua internet.';
@@ -47,18 +42,15 @@ export function getUserErrorMessage(error: any): string {
         return 'Erro de conexão com o servidor.';
     }
 
-    // Se tem dados da API
     const apiData = error.response?.data;
     if (apiData?.detail) {
         return apiData.detail;
     }
 
-    // Se tem erros de validação
     if (apiData?.errors && Array.isArray(apiData.errors) && apiData.errors.length > 0) {
         return apiData.errors.map((err: any) => `${err.field}: ${err.message}`).join(', ');
     }
 
-    // Fallback baseado no status
     const status = error.response?.status;
     switch (status) {
         case 400:
@@ -80,24 +72,18 @@ export function getUserErrorMessage(error: any): string {
     }
 }
 
-/**
- * Mostra toast de erro com mensagem amigável
- */
 export function showErrorToast(error: any, defaultMessage?: string): void {
     const message = getUserErrorMessage(error) || defaultMessage || 'Ocorreu um erro inesperado';
     toast.error(message);
 }
 
-/**
- * Handler genérico para erros em hooks/serviços
- */
+
 export function handleApiError(error: any, context: string = 'operação'): void {
     console.error(`Erro na ${context}:`, error);
     
     const message = getUserErrorMessage(error);
     toast.error(message);
-    
-    // Log adicional para debug em desenvolvimento
+
     if (process.env.NODE_ENV === 'development') {
         console.group(`🔴 Erro na ${context}`);
         console.log('URL:', error?.config?.url);
@@ -109,9 +95,6 @@ export function handleApiError(error: any, context: string = 'operação'): void
     }
 }
 
-/**
- * Verifica se o erro é de uma categoria específica
- */
 export function isErrorOfType(error: any, type: 'network' | 'auth' | 'validation' | 'permission' | 'not-found'): boolean {
     if (!error) return false;
 
@@ -131,17 +114,3 @@ export function isErrorOfType(error: any, type: 'network' | 'auth' | 'validation
     }
 }
 
-/**
- * Extrai informações de debug do erro
- */
-export function getErrorDebugInfo(error: any): Record<string, any> {
-    return {
-        url: error?.config?.url,
-        method: error?.config?.method?.toUpperCase(),
-        status: error?.response?.status,
-        message: getUserErrorMessage(error),
-        traceId: error?.apiError?.traceId || error?.response?.data?.traceId,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-    };
-}

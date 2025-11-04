@@ -110,47 +110,6 @@ export const PROFILE_PERMISSIONS = {
 } as const;
 
 /**
- * Utilitários para verificação de permissões
- */
-export class PermissionUtils {
-  /**
-   * Verifica se um perfil tem acesso a uma tela
-   */
-  static profileHasScreen(profile: keyof typeof PROFILES, screen: string): boolean {
-    return PROFILE_PERMISSIONS[profile]?.screens.includes(screen as any) ?? false;
-  }
-
-  /**
-   * Verifica se um perfil tem acesso a um recurso
-   */
-  static profileHasResource(profile: keyof typeof PROFILES, resource: string): boolean {
-    return PROFILE_PERMISSIONS[profile]?.resources.includes(resource as any) ?? false;
-  }
-
-  /**
-   * Retorna todas as telas permitidas para um perfil
-   */
-  static getScreensForProfile(profile: keyof typeof PROFILES): string[] {
-    return [...(PROFILE_PERMISSIONS[profile]?.screens ?? [])];
-  }
-
-  /**
-   * Retorna todos os recursos permitidos para um perfil
-   */
-  static getResourcesForProfile(profile: keyof typeof PROFILES): string[] {
-    return [...(PROFILE_PERMISSIONS[profile]?.resources ?? [])];
-  }
-
-  /**
-   * Verifica se uma operação é permitida para um recurso
-   * Por padrão, todos os perfis têm todas as operações nos recursos que podem acessar
-   */
-  static hasResourceOperation(resource: string, operation: string): boolean {
-    return Object.values(RESOURCE_OPERATIONS).includes(operation as any);
-  }
-}
-
-/**
  * Configuração de mensagens de erro personalizadas
  */
 export const ACCESS_DENIED_MESSAGES = {
@@ -169,23 +128,3 @@ export const ACCESS_DENIED_MESSAGES = {
     DEFAULT: 'Você não tem permissão para executar esta operação.'
   }
 } as const;
-
-/**
- * Helper para obter mensagem de acesso negado
- */
-export function getAccessDeniedMessage(
-  type: 'SCREEN' | 'RESOURCE',
-  key?: string
-): string {
-  if (type === 'SCREEN' && key) {
-    return ACCESS_DENIED_MESSAGES.SCREEN[key as keyof typeof ACCESS_DENIED_MESSAGES.SCREEN] 
-      || ACCESS_DENIED_MESSAGES.SCREEN.DEFAULT;
-  }
-  
-  if (type === 'RESOURCE' && key) {
-    return ACCESS_DENIED_MESSAGES.RESOURCE[key as keyof typeof ACCESS_DENIED_MESSAGES.RESOURCE]
-      || ACCESS_DENIED_MESSAGES.RESOURCE.DEFAULT;
-  }
-  
-  return 'Acesso negado.';
-}

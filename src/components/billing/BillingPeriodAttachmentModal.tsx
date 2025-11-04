@@ -9,8 +9,8 @@ interface BillingPeriodAttachmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   billingPeriodId: number;
-  billingPeriodTitle: string; // Ex: "Janeiro 2025"
-  isAdmin?: boolean; // Indica se o usuário pode upload/delete
+  billingPeriodTitle: string;
+  isAdmin?: boolean;
 }
 
 const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> = ({
@@ -26,8 +26,7 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  
-  // Estados do modal de confirmação
+
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     attachment: BillingPeriodAttachmentResponse | null;

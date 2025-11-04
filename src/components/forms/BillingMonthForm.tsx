@@ -97,7 +97,6 @@ const BillingMonthForm: React.FC<BillingMonthFormProps> = ({
     const handleInputChange = (field: keyof BillingMonthData, value: string | number): void => {
         setFormData(prev => ({...prev, [field]: value}));
 
-        // Limpar erro do campo quando o usuário começar a digitar
         if (errors[field]) {
             setErrors(prev => ({...prev, [field]: null}));
         }

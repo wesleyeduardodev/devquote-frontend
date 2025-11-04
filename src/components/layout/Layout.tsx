@@ -35,7 +35,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
     };
 
-    // Helper para verificar se a rota está ativa
     const isActiveRoute = (path: string): boolean => {
         return location.pathname === path || location.pathname.startsWith(path + '/');
     };
@@ -45,68 +44,60 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         return user.name || user.username || 'Usuário';
     };
 
-    // Todos os itens de navegação possíveis
     const allNavigationItems: NavigationItem[] = [
-        { path: '/dashboard', label: 'Dashboard', screen: '' }, // Dashboard sempre acessível
-        { path: '/requesters', label: 'Solicitantes', screen: 'requesters' }, // Apenas ADMIN
-        { path: '/projects', label: 'Projetos', screen: 'projects' }, // Apenas ADMIN
+        { path: '/dashboard', label: 'Dashboard', screen: '' },
+        { path: '/requesters', label: 'Solicitantes', screen: 'requesters' },
+        { path: '/projects', label: 'Projetos', screen: 'projects' },
         { path: '/tasks', label: 'Tarefas', screen: 'tasks' },
         { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
         { path: '/billing', label: 'Faturamento', screen: 'billing' },
-        { path: '/profiles', label: 'Perfis', screen: 'users' }, // Apenas ADMIN (gerenciamento de usuários)
-        { path: '/notifications', label: 'Notificações', screen: 'settings' } // Apenas ADMIN (configurações de notificação)
+        { path: '/profiles', label: 'Perfis', screen: 'users' },
+        { path: '/notifications', label: 'Notificações', screen: 'settings' }
     ];
 
-    // Filtra itens baseado nas permissões do usuário (Dashboard sempre incluído)
     const navigationItems = useMemo(() => {
         return allNavigationItems.filter(item => {
-            // Dashboard sempre acessível
+
             if (item.screen === '') return true;
 
-            // Projetos, Perfis e Notificações apenas para ADMIN
             if (item.screen === 'projects' || item.screen === 'users' || item.screen === 'settings') {
                 return hasProfile('ADMIN');
             }
 
-            // Solicitantes apenas para ADMIN
             if (item.screen === 'requesters') {
                 return hasProfile('ADMIN');
             }
 
-            // Tarefas: ADMIN, MANAGER, USER
             if (item.screen === 'tasks') {
                 return hasAnyProfile(['ADMIN', 'MANAGER', 'USER']);
             }
 
-            // Entregas: ADMIN, MANAGER, USER
             if (item.screen === 'deliveries') {
                 return hasAnyProfile(['ADMIN', 'MANAGER', 'USER']);
             }
 
-            // Faturamento: ADMIN, MANAGER
             if (item.screen === 'billing') {
                 return hasAnyProfile(['ADMIN', 'MANAGER']);
             }
 
-            // Padrão: não mostrar
             return false;
         });
     }, [hasProfile, hasAnyProfile]);
 
     const handleNavigate = (path: string) => {
         navigate(path);
-        setIsMobileMenuOpen(false); // Fechar menu mobile após navegação
+        setIsMobileMenuOpen(false);
     };
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header Responsivo */}
+
             <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
                 <div className="px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        {/* Logo e Menu Mobile */}
+
                         <div className="flex items-center space-x-3">
-                            {/* Botão Menu Mobile */}
+
                             <button
                                 onClick={toggleMobileMenu}
                                 className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -115,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 <Menu className="w-5 h-5 text-gray-600" />
                             </button>
 
-                            {/* Logo */}
+
                             <div className="flex items-center space-x-3">
                                 <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
                                     <span className="text-white text-lg">⚡</span>
@@ -126,13 +117,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             </div>
                         </div>
 
-                        {/* User Menu */}
                         <div className="flex items-center space-x-4">
                             <span className="text-gray-700 text-sm hidden sm:inline">
                                 Olá, {getUserDisplayName(user)}
                             </span>
 
-                            {/* User Menu Dropdown */}
                             <div className="relative">
                                 <button
                                     onClick={() => setShowUserMenu(!showUserMenu)}
@@ -144,7 +133,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     </div>
                                 </button>
 
-                                {/* Dropdown Menu */}
                                 {showUserMenu && (
                                     <>
                                         <div
@@ -191,7 +179,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
             </header>
 
-            {/* Navigation Desktop */}
             <nav className="bg-white shadow-sm border-b border-gray-200 hidden lg:block">
                 <div className="px-4 sm:px-6 lg:px-8">
                     <div className="flex space-x-8 h-12 items-center overflow-x-auto">
@@ -212,18 +199,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
             </nav>
 
-            {/* Menu Mobile Overlay */}
             {isMobileMenuOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    {/* Backdrop */}
+
                     <div
                         className="fixed inset-0 bg-black bg-opacity-50"
                         onClick={toggleMobileMenu}
                     />
 
-                    {/* Menu Panel */}
+
                     <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl">
-                        {/* Header do Menu */}
+
                         <div className="flex items-center justify-between p-4 border-b border-gray-200">
                             <div className="flex items-center space-x-2">
                                 <div className="h-8 w-8 bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg flex items-center justify-center shadow-md">
@@ -242,13 +228,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             </button>
                         </div>
 
-                        {/* User Info Mobile */}
                         <div className="p-4 border-b border-gray-200 bg-gray-50">
                             <p className="text-sm text-gray-600">Logado como:</p>
                             <p className="font-medium text-gray-900">{getUserDisplayName(user)}</p>
                         </div>
 
-                        {/* Navigation Items */}
                         <nav className="p-4">
                             <ul className="space-y-2">
                                 {navigationItems.map((item) => (
@@ -267,10 +251,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 ))}
                             </ul>
 
-                            {/* Separator */}
                             <div className="border-t border-gray-200 my-4" />
 
-                            {/* Settings and Logout */}
+
                             <ul className="space-y-2">
                                 <li>
                                     <button
@@ -296,12 +279,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
             )}
 
-            {/* Main Content */}
             <main className="px-4 sm:px-6 lg:px-8 py-6">
                 {children}
             </main>
 
-            {/* Footer */}
             <Footer />
         </div>
     );

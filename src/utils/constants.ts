@@ -1,6 +1,4 @@
-// Status constants
 export const STATUS = {
-    // Delivery Status
     DELIVERY: {
         PENDING: 'PENDING',
         DEVELOPMENT: 'DEVELOPMENT',
@@ -11,7 +9,6 @@ export const STATUS = {
         PRODUCTION: 'PRODUCTION',
     },
 
-    // Project Status
     PROJECT: {
         PLANNING: 'PLANNING',
         IN_PROGRESS: 'IN_PROGRESS',
@@ -20,7 +17,6 @@ export const STATUS = {
         CANCELLED: 'CANCELLED',
     },
 
-    // Requester Status
     REQUESTER: {
         ACTIVE: 'ACTIVE',
         INACTIVE: 'INACTIVE',
@@ -29,7 +25,6 @@ export const STATUS = {
     },
 } as const;
 
-// Priority constants
 export const PRIORITY = {
     LOW: 'LOW',
     MEDIUM: 'MEDIUM',
@@ -37,9 +32,7 @@ export const PRIORITY = {
     URGENT: 'URGENT',
 } as const;
 
-// Status labels for display
 export const STATUS_LABELS = {
-    // Delivery Labels
     PENDING: 'Pendente',
     DEVELOPMENT: 'Desenvolvimento',
     DELIVERED: 'Entregue',
@@ -48,17 +41,14 @@ export const STATUS_LABELS = {
     REJECTED: 'Rejeitado',
     PRODUCTION: 'Produção',
 
-    // Project Labels
     PLANNING: 'Planejamento',
 
-    // Requester Labels
     ACTIVE: 'Ativo',
     INACTIVE: 'Inativo',
     SUSPENDED: 'Suspenso',
     PENDING_APPROVAL: 'Aguardando Aprovação',
 } as const;
 
-// Priority labels
 export const PRIORITY_LABELS = {
     LOW: 'Baixa',
     MEDIUM: 'Média',
@@ -66,7 +56,6 @@ export const PRIORITY_LABELS = {
     URGENT: 'Urgente',
 } as const;
 
-// Color mappings for status badges
 export const STATUS_COLORS = {
     PENDING: 'bg-yellow-100 text-yellow-800',
     DEVELOPMENT: 'bg-blue-100 text-blue-800',
@@ -84,7 +73,6 @@ export const STATUS_COLORS = {
     PENDING_APPROVAL: 'bg-yellow-100 text-yellow-800',
 } as const;
 
-// Priority colors
 export const PRIORITY_COLORS = {
     LOW: 'bg-gray-100 text-gray-800',
     MEDIUM: 'bg-blue-100 text-blue-800',
@@ -92,7 +80,6 @@ export const PRIORITY_COLORS = {
     URGENT: 'bg-red-100 text-red-800',
 } as const;
 
-// API endpoints
 export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: '/auth/login',
@@ -108,7 +95,6 @@ export const API_ENDPOINTS = {
     BILLING_TASKS: '/billing-period-tasks',
 } as const;
 
-// Form validation limits
 export const VALIDATION_LIMITS = {
     NAME_MAX_LENGTH: 200,
     EMAIL_MAX_LENGTH: 200,
@@ -122,7 +108,6 @@ export const VALIDATION_LIMITS = {
     AMOUNT_MIN: 0.01,
 } as const;
 
-// Date formats
 export const DATE_FORMATS = {
     DISPLAY: 'dd/MM/yyyy',
     DISPLAY_WITH_TIME: 'dd/MM/yyyy HH:mm',
@@ -130,21 +115,12 @@ export const DATE_FORMATS = {
     API_WITH_TIME: 'yyyy-MM-ddTHH:mm:ss',
 } as const;
 
-// Pagination defaults
 export const PAGINATION = {
     DEFAULT_PAGE_SIZE: 10,
     PAGE_SIZE_OPTIONS: [10, 25, 50, 100],
     MAX_PAGE_SIZE: 100,
 } as const;
 
-// File upload constants
-export const FILE_UPLOAD = {
-    MAX_SIZE: 10 * 1024 * 1024, // 10MB
-    ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain'],
-    MAX_FILES: 5,
-} as const;
-
-// Local storage keys
 export const STORAGE_KEYS = {
     AUTH_TOKEN: 'auth.token',
     AUTH_USER: 'auth.user',
@@ -153,53 +129,9 @@ export const STORAGE_KEYS = {
     SIDEBAR_COLLAPSED: 'ui.sidebar.collapsed',
 } as const;
 
-// Theme constants
-export const THEME = {
-    LIGHT: 'light',
-    DARK: 'dark',
-    SYSTEM: 'system',
-} as const;
-
-// Language constants
-export const LANGUAGES = {
-    PT_BR: 'pt-BR',
-    EN_US: 'en-US',
-} as const;
-
-// Currency constants
-export const CURRENCY = {
-    BRL: {
-        code: 'BRL',
-        symbol: 'R$',
-        locale: 'pt-BR',
-    },
-    USD: {
-        code: 'USD',
-        symbol: '$',
-        locale: 'en-US',
-    },
-} as const;
-
-// Regex patterns
 export const REGEX_PATTERNS = {
     EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     PHONE: /^(\+?[0-9\-(). ]*)?$/,
     URL: /^https?:\/\/.+/,
     CODE: /^[A-Z0-9-_]+$/i,
-} as const;
-
-// Animation durations (ms)
-export const ANIMATION_DURATION = {
-    FAST: 150,
-    NORMAL: 300,
-    SLOW: 500,
-} as const;
-
-// Breakpoints (px)
-export const BREAKPOINTS = {
-    SM: 640,
-    MD: 768,
-    LG: 1024,
-    XL: 1280,
-    '2XL': 1536,
 } as const;

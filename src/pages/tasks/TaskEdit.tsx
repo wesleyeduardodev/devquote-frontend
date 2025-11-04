@@ -35,7 +35,6 @@ const TaskEdit = () => {
     const [selectedRequester, setSelectedRequester] = useState<Requester | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Hook para gerenciar requesters paginados
     const {
         requesters,
         pagination,
@@ -77,7 +76,6 @@ const TaskEdit = () => {
         }
     }, [id, navigate]);
 
-    // Quando tivermos a task e os requesters carregados, tentamos "casar" o requesterId
     useEffect(() => {
         if (!task || !Array.isArray(requesters) || requesters.length === 0) return;
         const found = requesters.find((r: any) => r.id === (task as any)?.requesterId);
@@ -95,20 +93,17 @@ const TaskEdit = () => {
         if (!id) return;
 
         if (!selectedRequester) {
-            // toast.error('Selecione um solicitante');
             return;
         }
 
         try {
             setLoading(true);
 
-            // Processar subtarefas: MANAGER/USER sempre enviam valor 0
             const processedSubTasks = data.subTasks ? data.subTasks.map((subTask: any) => ({
                 ...subTask,
-                amount: isAdmin ? (subTask.amount || '0') : '0' // Força 0 para MANAGER/USER
+                amount: isAdmin ? (subTask.amount || '0') : '0'
             })) : [];
 
-            // Adiciona o requester selecionado aos dados
             const taskData = {
                 ...data,
                 subTasks: processedSubTasks,
@@ -116,13 +111,9 @@ const TaskEdit = () => {
             };
 
             await updateTaskWithSubTasks(Number(id), taskData);
-            
-            // Na edição, não deveria haver arquivos pendentes (upload é direto)
-            // Mas mantemos compatibilidade
-            
+
             navigate('/tasks');
         } catch (error) {
-            // Error handled by the hook and form
         } finally {
             setLoading(false);
         }
@@ -144,13 +135,11 @@ const TaskEdit = () => {
         });
     };
 
-    // Filtrar requesters para o modal mobile
     const filteredRequesters = requesters.filter(requester =>
         requester.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         requester.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Colunas para o DataTable do modal de requesters
     const requesterColumns: Column<Requester>[] = useMemo(
         () => [
             {
@@ -234,11 +223,10 @@ const TaskEdit = () => {
                 )
             }
         ],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         []
     );
 
-    // Componente Card para requesters no mobile
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
         <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">

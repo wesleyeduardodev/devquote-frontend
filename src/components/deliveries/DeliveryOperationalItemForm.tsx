@@ -24,7 +24,6 @@ interface DeliveryOperationalItemFormProps {
     isReadOnly?: boolean;
 }
 
-// Schema de validação
 const operationalItemSchema = yup.object({
     id: yup.number().optional(),
     deliveryId: yup.number().optional(),
@@ -70,12 +69,10 @@ export default function DeliveryOperationalItemForm({
     const currentStatus = watch('status');
     const currentTitle = watch('title');
 
-    // Monitora mudanças para controlar estado de não salvo
     useEffect(() => {
         setHasUnsavedChanges(isDirty && !isReadOnly);
     }, [isDirty, isReadOnly]);
 
-    // Carregar dados iniciais quando receber
     useEffect(() => {
         if (initialData) {
             reset(initialData);

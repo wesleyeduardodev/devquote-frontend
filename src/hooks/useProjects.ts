@@ -81,7 +81,6 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
     ]);
     const [filters, setFilters] = useState<FilterParams>(initialParams?.filters || {});
 
-    // Refs para controlar o debounce
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const fetchProjects = useCallback(async (params?: UseProjectsParams): Promise<void> => {
@@ -122,7 +121,7 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
     const createProject = useCallback(async (projectData: ProjectCreate): Promise<Project> => {
         try {
             const newProject = await projectService.create(projectData);
-            await fetchProjects(); // Recarrega a lista após criação
+            await fetchProjects();
             toast.success('Projeto criado com sucesso!');
             return newProject;
         } catch (err: any) {
@@ -134,7 +133,7 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
     const updateProject = useCallback(async (id: number, projectData: ProjectUpdate): Promise<Project> => {
         try {
             const updatedProject = await projectService.update(id, projectData);
-            await fetchProjects(); // Recarrega a lista após atualização
+            await fetchProjects();
             toast.success('Projeto atualizado com sucesso!');
             return updatedProject;
         } catch (err: any) {
@@ -146,7 +145,7 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
     const deleteProject = useCallback(async (id: number): Promise<void> => {
         try {
             await projectService.delete(id);
-            await fetchProjects(); // Recarrega a lista após exclusão
+            await fetchProjects();
             toast.success('Projeto excluído com sucesso!');
         } catch (err: any) {
             console.error('Erro ao excluir projeto:', err);
@@ -157,7 +156,7 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
     const deleteBulkProjects = useCallback(async (ids: number[]): Promise<void> => {
         try {
             await projectService.deleteBulk(ids);
-            await fetchProjects(); // Recarrega a lista após exclusão
+            await fetchProjects();
             toast.success(`${ids.length} projeto${ids.length === 1 ? '' : 's'} excluído${ids.length === 1 ? '' : 's'} com sucesso!`);
         } catch (err: any) {
             console.error('Erro ao excluir projetos:', err);
@@ -171,16 +170,16 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
 
     const setPageSize = useCallback((size: number) => {
         setCurrentPageSize(size);
-        setCurrentPage(0); // Reset to first page when changing page size
+        setCurrentPage(0);
     }, []);
 
     const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
         setSortingState(prevSorting => {
-            // Remove existing sort for this field and add new one at the beginning
+
             const filteredSorting = prevSorting.filter(s => s.field !== field);
             return [{field, direction}, ...filteredSorting];
         });
-        setCurrentPage(0); // Reset to first page when sorting changes
+        setCurrentPage(0);
     }, []);
 
     const setFilter = useCallback((field: string, value: string) => {
@@ -188,7 +187,7 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
             ...prev,
             [field]: value || undefined
         }));
-        setCurrentPage(0); // Reset to first page when filter changes
+        setCurrentPage(0);
     }, []);
 
     const clearFilters = useCallback(() => {
@@ -196,19 +195,16 @@ export const useProjects = (initialParams?: UseProjectsParams): UseProjectsRetur
         setCurrentPage(0);
     }, []);
 
-    // Effect to fetch data when parameters change (with debounce for filters)
     useEffect(() => {
-        // Clear previous timer
+
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
 
-        // Set new timer for debounce (1 second)
         debounceTimerRef.current = setTimeout(() => {
             fetchProjects();
         }, 1000);
 
-        // Cleanup on unmount or when dependencies change
         return () => {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);

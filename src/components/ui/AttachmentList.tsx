@@ -136,7 +136,6 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         });
     };
 
-    // Renderização do cabeçalho colapsável
     const renderHeader = () => {
         const attachmentCount = loading ? '...' : attachments.length;
         const statusText = loading ? 'Carregando...' : 
@@ -170,12 +169,10 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         );
     };
 
-    // Se não está expandido E não é forceExpanded, mostra apenas o cabeçalho
     if (!isExpanded && !forceExpanded) {
         return renderHeader();
     }
 
-    // Se está expandido, mostra conteúdo completo
     if (loading) {
         return (
             <div className={`border border-gray-200 rounded-lg ${className}`}>

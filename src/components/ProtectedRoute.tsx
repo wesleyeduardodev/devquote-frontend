@@ -5,10 +5,9 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    // Perfis requeridos (escalável para novos perfis: ADMIN, MANAGER, USER, DEVELOPER, etc)
     requiredProfile?: string;
     requiredProfiles?: string[];
-    requireAllProfiles?: boolean; // true = AND, false = OR (default)
+    requireAllProfiles?: boolean;
     fallback?: React.ReactNode;
 }
 
@@ -37,7 +36,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // Verificar perfil único
     if (requiredProfile && !hasProfile(requiredProfile)) {
         if (fallback) {
             return <>{fallback}</>;
@@ -45,7 +43,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Navigate to="/dashboard" replace />;
     }
 
-    // Verificar múltiplos perfis
     if (requiredProfiles && requiredProfiles.length > 0) {
         const hasAccess = requireAllProfiles
             ? hasAllProfiles(requiredProfiles)

@@ -37,7 +37,6 @@ export function DeliveryAttachmentList({
     attachment: AttachmentType | null;
   }>({ isOpen: false, attachment: null });
 
-  // Determinar qual service usar baseado nos props
   const isDeliveryAttachment = deliveryId !== undefined;
   const targetId = isDeliveryAttachment ? deliveryId : deliveryItemId!;
   

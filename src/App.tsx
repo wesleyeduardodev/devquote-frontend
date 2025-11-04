@@ -62,10 +62,8 @@ const AppRoutes: React.FC = () => {
                 <ProtectedRoute>
                     <Layout>
                         <Routes>
-                            {/* Dashboard - Todos têm acesso */}
                             <Route path="/dashboard" element={<Dashboard/>}/>
-                            
-                            {/* Requesters/Users - Apenas ADMIN */}
+
                             <Route path="/requesters" element={
                                 <ProtectedRoute requiredProfile="ADMIN">
                                     <RequesterList/>
@@ -81,8 +79,7 @@ const AppRoutes: React.FC = () => {
                                     <RequesterEdit/>
                                 </ProtectedRoute>
                             }/>
-                            
-                            {/* Tasks - ADMIN, MANAGER, USER */}
+
                             <Route path="/tasks" element={
                                 <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <TaskList/>
@@ -98,8 +95,7 @@ const AppRoutes: React.FC = () => {
                                     <TaskEdit/>
                                 </ProtectedRoute>
                             }/>
-                            
-                            {/* Projects - Apenas ADMIN */}
+
                             <Route path="/projects" element={
                                 <ProtectedRoute requiredProfile="ADMIN">
                                     <ProjectList/>
@@ -115,8 +111,7 @@ const AppRoutes: React.FC = () => {
                                     <ProjectEdit/>
                                 </ProtectedRoute>
                             }/>
-                            
-                            {/* Deliveries - ADMIN, MANAGER, USER */}
+
                             <Route path="/deliveries" element={
                                 <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <DeliveryList/>
@@ -137,31 +132,27 @@ const AppRoutes: React.FC = () => {
                                     <DeliveryEdit/>
                                 </ProtectedRoute>
                             }/>
-                            
-                            {/* Billing - ADMIN, MANAGER */}
+
                             <Route path="/billing" element={
                                 <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER']}>
                                     <BillingMonthManagement/>
                                 </ProtectedRoute>
                             }/>
 
-                            {/* Profile Management - Apenas ADMIN */}
                             <Route path="/profiles" element={
                                 <ProtectedRoute requiredProfile="ADMIN">
                                     <ProfileManagement/>
                                 </ProtectedRoute>
                             }/>
 
-                            {/* Notification Configurations - Apenas ADMIN */}
                             <Route path="/notifications" element={
                                 <ProtectedRoute requiredProfile="ADMIN">
                                     <NotificationList/>
                                 </ProtectedRoute>
                             }/>
-                            
-                            {/* User Settings - Todos os usuários autenticados */}
+
                             <Route path="/settings" element={<UserSettings/>}/>
-                            
+
                             <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
                             <Route path="*" element={<NotFound/>}/>
                         </Routes>

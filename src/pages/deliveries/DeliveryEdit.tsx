@@ -30,13 +30,11 @@ const DeliveryEdit: React.FC = () => {
     const navigate = useNavigate();
     const { hasProfile } = useAuth();
 
-    // Permissões
     const isAdmin = hasProfile('ADMIN');
     const isManager = hasProfile('MANAGER');
     const canEdit = isAdmin || isManager;
     const canDelete = isAdmin;
 
-    // Estados principais
     const [loading, setLoading] = useState(true);
     const [delivery, setDelivery] = useState<Delivery | null>(null);
     const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
@@ -47,17 +45,14 @@ const DeliveryEdit: React.FC = () => {
     const [originalNotes, setOriginalNotes] = useState<string>('');
     const [savingNotes, setSavingNotes] = useState(false);
 
-    // Estados dos modais
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<DeliveryItem | null>(null);
     const [showDeleteOperationalModal, setShowDeleteOperationalModal] = useState(false);
     const [operationalItemToDelete, setOperationalItemToDelete] = useState<DeliveryOperationalItem | null>(null);
 
-    // Estados dos formulários
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
 
-    // Carregar dados da entrega
     useEffect(() => {
         if (deliveryId) {
             loadDeliveryData();
@@ -67,14 +62,12 @@ const DeliveryEdit: React.FC = () => {
     const loadDeliveryData = async () => {
         setLoading(true);
         try {
-            // 1. Carregar dados básicos da entrega
             const deliveryData = await deliveryService.getById(parseInt(deliveryId));
             setDelivery(deliveryData);
             const initialNotes = deliveryData.notes || '';
             setNotes(initialNotes);
             setOriginalNotes(initialNotes);
 
-            // 2. Carregar dados da tarefa associada
             let taskFlowType: string | undefined;
             if (deliveryData.taskId) {
                 const taskData = await taskService.getById(deliveryData.taskId);
@@ -94,17 +87,15 @@ const DeliveryEdit: React.FC = () => {
                 });
             }
 
-            // 3. Carregar itens da entrega baseado no flowType
             if (taskFlowType === 'OPERACIONAL') {
-                // Carregar itens operacionais
+
                 const opItems = await deliveryOperationalService.getItemsByDelivery(deliveryData.id);
                 setOperationalItems(opItems);
             } else {
-                // Carregar itens de desenvolvimento (comportamento original)
+
                 const items = await deliveryItemService.getByDeliveryId(deliveryData.id);
                 setDeliveryItems(items);
 
-                // 4. Inicializar dados dos formulários dos itens (usando item.id como chave para suportar projetos repetidos)
                 const initialFormData = new Map<number, DeliveryItemFormData>();
                 const projectIds: number[] = [];
 
@@ -127,7 +118,6 @@ const DeliveryEdit: React.FC = () => {
                 }
                 setItemsFormData(initialFormData);
 
-                // 5. Carregar dados dos projetos únicos para exibição
                 if (projectIds.length > 0) {
                     const uniqueProjectIds = Array.from(new Set(projectIds));
                     const projects = await projectService.getByIds(uniqueProjectIds);
@@ -166,7 +156,6 @@ const DeliveryEdit: React.FC = () => {
                 notes: data.notes
             });
 
-            // Atualizar dados locais (usando itemId como chave para suportar projetos repetidos)
             const newFormData = new Map(itemsFormData);
             newFormData.set(itemId, data);
             setItemsFormData(newFormData);
@@ -184,7 +173,6 @@ const DeliveryEdit: React.FC = () => {
         try {
             const newItems: DeliveryItem[] = [];
 
-            // Criar novos itens para cada projeto selecionado (permitindo projetos repetidos)
             for (const project of projects) {
                 const newItem = await deliveryItemService.create({
                     deliveryId: delivery.id,
@@ -194,7 +182,6 @@ const DeliveryEdit: React.FC = () => {
 
                 newItems.push(newItem);
 
-                // Inicializar dados do formulário (usando item.id como chave para suportar projetos repetidos)
                 const newFormData = new Map(itemsFormData);
                 newFormData.set(newItem.id, {
                     id: newItem.id,
@@ -213,10 +200,8 @@ const DeliveryEdit: React.FC = () => {
                 setItemsFormData(newFormData);
             }
 
-            // Atualizar listas locais
             setDeliveryItems([...deliveryItems, ...newItems]);
 
-            // Adicionar projetos únicos ao selectedProjects (se ainda não existirem)
             const existingProjectIds = new Set(selectedProjects.map(p => p.id));
             const newUniqueProjects = projects.filter(p => !existingProjectIds.has(p.id));
             if (newUniqueProjects.length > 0) {
@@ -238,17 +223,14 @@ const DeliveryEdit: React.FC = () => {
         try {
             await deliveryItemService.delete(itemToDelete.id);
 
-            // Remover item da lista
             const updatedItems = deliveryItems.filter(item => item.id !== itemToDelete.id);
             setDeliveryItems(updatedItems);
 
-            // Remover projeto apenas se não houver outros itens usando o mesmo projeto
             const stillHasProject = updatedItems.some(item => item.projectId === itemToDelete.projectId);
             if (!stillHasProject) {
                 setSelectedProjects(selectedProjects.filter(p => p.id !== itemToDelete.projectId));
             }
 
-            // Remover dos dados do formulário (usando item.id como chave)
             const newFormData = new Map(itemsFormData);
             newFormData.delete(itemToDelete.id);
             setItemsFormData(newFormData);
@@ -262,7 +244,6 @@ const DeliveryEdit: React.FC = () => {
         }
     };
 
-    // ========== Funções para Itens Operacionais ==========
 
     const handleAddOperationalItem = async () => {
         if (!delivery) return;
@@ -293,7 +274,6 @@ const DeliveryEdit: React.FC = () => {
                 finishedAt: data.finishedAt
             });
 
-            // Atualizar localmente
             setOperationalItems(operationalItems.map(item => item.id === itemId ? updated : item));
             toast.success('Item operacional salvo com sucesso!');
         } catch (error) {
@@ -322,7 +302,6 @@ const DeliveryEdit: React.FC = () => {
         }
     };
 
-    // Funções auxiliares para formatação
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             PENDING: 'text-yellow-700 bg-yellow-50 border border-yellow-100',
