@@ -23,7 +23,7 @@ interface PaginatedParams {
 
 export const profileService = {
     getAll: async (): Promise<any> => {
-        const response = await api.get('/permissions/profiles');
+        const response = await api.get('/profiles');
         return response.data;
     },
 
@@ -33,7 +33,6 @@ export const profileService = {
         const sortParams = sort.map(s => `${s.field},${s.direction}`);
 
         const queryParams = new URLSearchParams({
-            paginated: 'true',
             page: page.toString(),
             size: size.toString(),
         });
@@ -52,30 +51,30 @@ export const profileService = {
             });
         }
 
-        const response = await api.get(`/permissions/profiles?${queryParams.toString()}`);
+        const response = await api.get(`/profiles/paginated?${queryParams.toString()}`);
         return response.data;
     },
 
     getById: async (id: number): Promise<any> => {
-        const response = await api.get(`/permissions/profiles/${id}`);
+        const response = await api.get(`/profiles/${id}`);
         return response.data;
     },
 
     create: async (data: any): Promise<any> => {
-        const response = await api.post('/permissions/profiles', data);
+        const response = await api.post('/profiles', data);
         return response.data;
     },
 
     update: async (id: number, data: any): Promise<any> => {
-        const response = await api.put(`/permissions/profiles/${id}`, data);
+        const response = await api.put(`/profiles/${id}`, data);
         return response.data;
     },
 
     delete: async (id: number): Promise<void> => {
-        await api.delete(`/permissions/profiles/${id}`);
+        await api.delete(`/profiles/${id}`);
     },
 
     deleteBulk: async (ids: number[]): Promise<void> => {
-        await api.delete('/permissions/profiles/bulk', { data: ids });
+        await api.delete('/profiles/bulk', { data: ids });
     }
 };

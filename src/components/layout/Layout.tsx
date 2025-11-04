@@ -22,7 +22,7 @@ interface NavigationItem {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout, hasScreenAccess, hasProfile } = useAuth();
+    const { user, logout, hasProfile, hasAnyProfile } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
     const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
 
@@ -73,10 +73,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 return hasProfile('ADMIN');
             }
 
-            // Outras telas: usar verificação de screen access normal
-            return hasScreenAccess(item.screen);
+            // Tarefas: ADMIN, MANAGER, USER
+            if (item.screen === 'tasks') {
+                return hasAnyProfile(['ADMIN', 'MANAGER', 'USER']);
+            }
+
+            // Entregas: ADMIN, MANAGER, USER
+            if (item.screen === 'deliveries') {
+                return hasAnyProfile(['ADMIN', 'MANAGER', 'USER']);
+            }
+
+            // Faturamento: ADMIN, MANAGER
+            if (item.screen === 'billing') {
+                return hasAnyProfile(['ADMIN', 'MANAGER']);
+            }
+
+            // Padrão: não mostrar
+            return false;
         });
-    }, [hasScreenAccess, hasProfile]);
+    }, [hasProfile, hasAnyProfile]);
 
     const handleNavigate = (path: string) => {
         navigate(path);

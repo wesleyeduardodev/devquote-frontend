@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {useNavigate, Link} from 'react-router-dom';
 import {Menu, User, LogOut, Shield, Settings} from 'lucide-react';
 import {useAuth} from '@/hooks/useAuth';
-import { useProfilePermissions } from '@/hooks/usePermissions';
 
 interface HeaderProps {
     onToggleSidebar: () => void;
@@ -16,8 +15,7 @@ interface User {
 
 const Header: React.FC<HeaderProps> = ({onToggleSidebar, isSidebarOpen}) => {
     const navigate = useNavigate();
-    const {user, logout, permissions} = useAuth();
-    const profilePermissions = useProfilePermissions();
+    const {user, logout, isAdmin, isManager, isUser} = useAuth();
     const [showUserMenu, setShowUserMenu] = useState(false);
 
     const handleLogout = async (): Promise<void> => {
@@ -36,9 +34,9 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, isSidebarOpen}) => {
     };
 
     const getUserRole = (): string => {
-        if (profilePermissions.isAdmin()) return 'Administrador';
-        if (profilePermissions.isManager()) return 'Gerente';
-        if (profilePermissions.isUser()) return 'Usuário';
+        if (isAdmin()) return 'Administrador';
+        if (isManager()) return 'Gerente';
+        if (isUser()) return 'Usuário';
         return 'Usuário';
     };
 

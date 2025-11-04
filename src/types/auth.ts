@@ -9,8 +9,6 @@ export type AuthLoginResponse = {
   username: string;
   email: string;
   roles: string[];
-  permissions: string[];
-  allowedScreens: string[];
 };
 
 export type AuthUser = {
@@ -20,16 +18,7 @@ export type AuthUser = {
   name?: string;
   firstName?: string;
   roles: string[];
-  permissions: string[];
-  allowedScreens: string[];
   token: string;
-};
-
-export type UserPermissions = {
-  userId: number;
-  profiles: Profile[];
-  resourcePermissions: Record<string, string[]>;
-  fieldPermissions: Record<string, Record<string, FieldPermissionType>>;
 };
 
 export type Profile = {
@@ -42,5 +31,3 @@ export type Profile = {
   createdAt: string;
   updatedAt: string;
 };
-
-export type FieldPermissionType = 'READ' | 'EDIT' | 'HIDDEN';

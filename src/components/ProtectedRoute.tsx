@@ -5,20 +5,21 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requiredScreen?: string;
-    requiredScreens?: string[];
-    requireAllScreens?: boolean;
+    // Perfis requeridos (escalável para novos perfis: ADMIN, MANAGER, USER, DEVELOPER, etc)
+    requiredProfile?: string;
+    requiredProfiles?: string[];
+    requireAllProfiles?: boolean; // true = AND, false = OR (default)
     fallback?: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-    children, 
-    requiredScreen,
-    requiredScreens,
-    requireAllScreens = false,
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+    children,
+    requiredProfile,
+    requiredProfiles,
+    requireAllProfiles = false,
     fallback
 }) => {
-    const { isAuthenticated, isLoading, hasScreenAccess, hasAnyScreenAccess } = useAuth();
+    const { isAuthenticated, isLoading, hasProfile, hasAnyProfile, hasAllProfiles } = useAuth();
     const location = useLocation();
 
     if (isLoading) {
@@ -36,19 +37,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // Verificar permissões de tela se especificadas
-    if (requiredScreen && !hasScreenAccess(requiredScreen)) {
+    // Verificar perfil único
+    if (requiredProfile && !hasProfile(requiredProfile)) {
         if (fallback) {
             return <>{fallback}</>;
         }
         return <Navigate to="/dashboard" replace />;
     }
 
-    if (requiredScreens && requiredScreens.length > 0) {
-        const hasAccess = requireAllScreens 
-            ? requiredScreens.every(screen => hasScreenAccess(screen))
-            : hasAnyScreenAccess(requiredScreens);
-            
+    // Verificar múltiplos perfis
+    if (requiredProfiles && requiredProfiles.length > 0) {
+        const hasAccess = requireAllProfiles
+            ? hasAllProfiles(requiredProfiles)
+            : hasAnyProfile(requiredProfiles);
+
         if (!hasAccess) {
             if (fallback) {
                 return <>{fallback}</>;

@@ -1,5 +1,5 @@
 import api from './api';
-import type { AuthLoginRequest, AuthLoginResponse, UserPermissions } from '@/types/auth';
+import type { AuthLoginRequest, AuthLoginResponse } from '@/types/auth';
 
 interface UpdateProfileRequest {
   username?: string;
@@ -24,31 +24,9 @@ export class AuthService {
     }
   }
 
-  static async getAllowedScreens(): Promise<string[]> {
-    const response = await api.get<string[]>('/auth/screens');
-    return response.data;
-  }
-
-  static async getUserPermissions(): Promise<UserPermissions> {
-    const response = await api.get<UserPermissions>('/auth/permissions');
-    return response.data;
-  }
-
   static async getCurrentUser(): Promise<any> {
     const response = await api.get('/auth/user');
     return response.data;
-  }
-
-  static async refreshUserData(): Promise<{
-    allowedScreens: string[];
-    permissions: UserPermissions;
-  }> {
-    const [allowedScreens, permissions] = await Promise.all([
-      this.getAllowedScreens(),
-      this.getUserPermissions()
-    ]);
-
-    return { allowedScreens, permissions };
   }
 
   static async updateProfile(data: UpdateProfileRequest): Promise<void> {
@@ -59,8 +37,6 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('auth.token');
       window.localStorage.removeItem('auth.user');
-      window.localStorage.removeItem('auth.permissions');
-      window.localStorage.removeItem('auth.screens');
     }
   }
 

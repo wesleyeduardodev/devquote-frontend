@@ -67,94 +67,94 @@ const AppRoutes: React.FC = () => {
                             
                             {/* Requesters/Users - Apenas ADMIN */}
                             <Route path="/requesters" element={
-                                <ProtectedRoute requiredScreen="users">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <RequesterList/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/requesters/create" element={
-                                <ProtectedRoute requiredScreen="users">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <RequesterCreate/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/requesters/:id/edit" element={
-                                <ProtectedRoute requiredScreen="users">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <RequesterEdit/>
                                 </ProtectedRoute>
                             }/>
                             
                             {/* Tasks - ADMIN, MANAGER, USER */}
                             <Route path="/tasks" element={
-                                <ProtectedRoute requiredScreen="tasks">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <TaskList/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/tasks/create" element={
-                                <ProtectedRoute requiredScreen="tasks">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <TaskCreate/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/tasks/:id/edit" element={
-                                <ProtectedRoute requiredScreen="tasks">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <TaskEdit/>
                                 </ProtectedRoute>
                             }/>
                             
                             {/* Projects - Apenas ADMIN */}
                             <Route path="/projects" element={
-                                <ProtectedRoute requiredScreen="projects">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <ProjectList/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/projects/create" element={
-                                <ProtectedRoute requiredScreen="projects">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <ProjectCreate/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/projects/:id/edit" element={
-                                <ProtectedRoute requiredScreen="projects">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <ProjectEdit/>
                                 </ProtectedRoute>
                             }/>
                             
                             {/* Deliveries - ADMIN, MANAGER, USER */}
                             <Route path="/deliveries" element={
-                                <ProtectedRoute requiredScreen="deliveries">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <DeliveryList/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/deliveries/create" element={
-                                <ProtectedRoute requiredScreen="deliveries">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <DeliveryCreate/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/deliveries/group/:taskId/edit" element={
-                                <ProtectedRoute requiredScreen="deliveries">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <DeliveryGroupEdit/>
                                 </ProtectedRoute>
                             }/>
                             <Route path="/deliveries/:deliveryId/edit" element={
-                                <ProtectedRoute requiredScreen="deliveries">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <DeliveryEdit/>
                                 </ProtectedRoute>
                             }/>
                             
                             {/* Billing - ADMIN, MANAGER */}
                             <Route path="/billing" element={
-                                <ProtectedRoute requiredScreen="billing">
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER']}>
                                     <BillingMonthManagement/>
                                 </ProtectedRoute>
                             }/>
-                            
+
                             {/* Profile Management - Apenas ADMIN */}
                             <Route path="/profiles" element={
-                                <ProtectedRoute requiredScreen="settings">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <ProfileManagement/>
                                 </ProtectedRoute>
                             }/>
 
                             {/* Notification Configurations - Apenas ADMIN */}
                             <Route path="/notifications" element={
-                                <ProtectedRoute requiredScreen="settings">
+                                <ProtectedRoute requiredProfile="ADMIN">
                                     <NotificationList/>
                                 </ProtectedRoute>
                             }/>
