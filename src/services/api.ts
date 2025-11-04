@@ -31,7 +31,6 @@ api.interceptors.request.use(
     (error: any) => Promise.reject(error)
 );
 
-// Interface para erro padronizado do backend
 interface ApiErrorResponse {
     type?: string;
     title?: string;
@@ -49,7 +48,6 @@ interface ApiErrorResponse {
     [key: string]: any;
 }
 
-// Função para extrair mensagem de erro amigável
 function getErrorMessage(error: AxiosError): string {
     const response = error.response;
     
@@ -65,17 +63,14 @@ function getErrorMessage(error: AxiosError): string {
 
     const data = response.data as ApiErrorResponse;
 
-    // Se tem uma mensagem detalhada do backend, usa ela
     if (data?.detail) {
         return data.detail;
     }
 
-    // Se tem erro de validação com campos específicos
     if (data?.errors && Array.isArray(data.errors) && data.errors.length > 0) {
         return data.errors.map(err => `${err.field}: ${err.message}`).join(', ');
     }
 
-    // Mensagens padrão por status HTTP
     switch (response.status) {
         case 400:
             return 'Dados inválidos na requisição.';
@@ -107,7 +102,6 @@ api.interceptors.response.use(
     (error: AxiosError) => {
         const status = error?.response?.status;
 
-        // Handle 401 - Unauthorized
         if (status === 401) {
             try {
                 if (typeof window !== 'undefined') {
@@ -123,20 +117,18 @@ api.interceptors.response.use(
                     }
                 }
             } catch {
-                // Silently fail
+
             }
         } else {
-            // Para outros erros, extraia a mensagem amigável
+
             const errorMessage = getErrorMessage(error);
-            
-            // Adiciona informações extras do erro para debug
+
             const enhancedError = {
                 ...error,
                 userMessage: errorMessage,
                 apiError: error.response?.data as ApiErrorResponse,
             };
 
-            // Log do erro para debug (removível em produção)
             console.error('API Error:', {
                 url: error.config?.url,
                 method: error.config?.method?.toUpperCase(),
