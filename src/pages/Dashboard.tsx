@@ -284,20 +284,22 @@ const Dashboard = () => {
               </span>
             </div>
 
-            {/* Exportar Faturamento */}
-            <div
-              onClick={handleExportBilling}
-              className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
-            >
-              {exportingBilling ? (
-                <Loader2 className="w-8 h-8 text-yellow-600 mb-2 animate-spin" />
-              ) : (
-                <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-yellow-800 text-center">
-                {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
-              </span>
-            </div>
+            {/* Exportar Faturamento - Somente ADMIN/MANAGER */}
+            {(hasProfile('ADMIN') || hasProfile('MANAGER')) && (
+              <div
+                onClick={handleExportBilling}
+                className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
+              >
+                {exportingBilling ? (
+                  <Loader2 className="w-8 h-8 text-yellow-600 mb-2 animate-spin" />
+                ) : (
+                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
+                )}
+                <span className="text-sm font-medium text-yellow-800 text-center">
+                  {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
+                </span>
+              </div>
+            )}
           </div>
         </Card>
 
