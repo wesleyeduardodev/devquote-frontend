@@ -116,17 +116,17 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "🎨 Update frontend to ${{ steps.tags.outputs.IMAGE_TAG }} (commit: ${{ github.sha }})"
+            git commit -m "Update frontend to ${{ steps.tags.outputs.IMAGE_TAG }} (commit: ${{ github.sha }})"
             echo "Pushing changes to infra repository..."
             git push
-            echo "✅ Infrastructure repository updated successfully!"
+            echo "Infrastructure repository updated successfully!"
             echo "Argo CD will automatically sync the changes to the cluster."
           fi
 
       - name: Deployment summary
         if: github.event_name != 'pull_request'
         run: |
-          echo "### 🎉 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Component:** Frontend" >> $GITHUB_STEP_SUMMARY
           echo "**Image Tag:** \`${{ steps.tags.outputs.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
@@ -134,8 +134,8 @@ jobs:
           echo "**Commit:** \`${{ steps.tags.outputs.SHORT_SHA }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Docker image pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Infra repo updated with new image tag" >> $GITHUB_STEP_SUMMARY
-          echo "- ⏳ Waiting for Argo CD to sync (auto-sync enabled)" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker image pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
+          echo "- Infra repo updated with new image tag" >> $GITHUB_STEP_SUMMARY
+          echo "- Waiting for Argo CD to sync (auto-sync enabled)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Argo CD:** https://devquote.com.br/argocd" >> $GITHUB_STEP_SUMMARY
