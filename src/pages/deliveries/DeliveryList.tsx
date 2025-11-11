@@ -838,8 +838,8 @@ const DeliveryList: React.FC = () => {
                     columns={columns}
                     loading={loading}
                     pagination={pagination ? {
-                        currentPage: pagination.number || 0,
-                        pageSize: pagination.size || 10,
+                        currentPage: pagination.currentPage || 0,
+                        pageSize: pagination.pageSize || 25,
                         totalElements: pagination.totalElements || 0,
                         totalPages: pagination.totalPages || 0,
                         first: pagination.first || false,

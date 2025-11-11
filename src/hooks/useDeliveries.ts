@@ -53,7 +53,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
     const [error, setError] = useState<string | null>(null);
     const [exporting, setExporting] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
-    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
+    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 25);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
         { field: 'task.id', direction: 'desc' }
     ]);
@@ -128,7 +128,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
             setPagination({
                 currentPage: response.number || 0,
                 totalPages: response.totalPages || 0,
-                pageSize: response.size || 10,
+                pageSize: size,
                 totalElements: response.totalElements || 0,
                 first: response.first || false,
                 last: response.last || false

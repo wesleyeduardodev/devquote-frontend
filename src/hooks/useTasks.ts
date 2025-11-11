@@ -118,7 +118,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
     const [error, setError] = useState<string | null>(null);
     const [exporting, setExporting] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
-    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 10);
+    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 25);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
         {field: 'id', direction: 'desc'}
     ]);
@@ -147,7 +147,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             setPagination({
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
-                pageSize: data.pageSize,
+                pageSize: size,
                 totalElements: data.totalElements,
                 first: data.first,
                 last: data.last
