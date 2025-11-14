@@ -299,6 +299,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
         { value: 'BACKUP', label: '💾 Backup' },
         { value: 'DEPLOY', label: '🚀 Deploy' },
         { value: 'LOGS', label: '📋 Logs' },
+        { value: 'DATABASE_APPLICATION', label: '🐘 Aplicação de Banco' },
         { value: 'NOVO_SERVIDOR', label: '🖥️ Novo Servidor' },
         { value: 'MONITORING', label: '📊 Monitoramento' },
         { value: 'SUPPORT', label: '🛠️ Suporte' },
