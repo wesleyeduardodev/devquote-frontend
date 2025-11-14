@@ -219,7 +219,7 @@ const DeliveryList: React.FC = () => {
                         case 'BACKUP': return '💾 Backup';
                         case 'DEPLOY': return '🚀 Deploy';
                         case 'LOGS': return '📋 Logs';
-                        case 'DATABASE_APPLICATION': return '🐘 Aplicação de Banco';
+                        case 'DATABASE_APPLICATION': return '💿 Aplicação de Banco';
                         case 'NEW_SERVER': return '🖥️ Novo Servidor';
                         case 'MONITORING': return '📊 Monitoramento';
                         case 'SUPPORT': return '🔧 Suporte';

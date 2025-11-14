@@ -282,7 +282,7 @@ const TaskList: React.FC = () => {
             BACKUP: '💾 Backup',
             DEPLOY: '🚀 Deploy',
             LOGS: '📝 Logs',
-            DATABASE_APPLICATION: '🐘 Aplicação de Banco',
+            DATABASE_APPLICATION: '💿 Aplicação de Banco',
             DATABASE: '🗄️ Banco de Dados',
             INFRASTRUCTURE: '🏗️ Infraestrutura',
         };
