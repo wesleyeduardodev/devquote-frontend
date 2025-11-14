@@ -166,9 +166,20 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
     const getTaskTypeLabel = (taskType?: string) => {
         if (!taskType) return 'Não informado';
         switch (taskType) {
+            // Tipos de Desenvolvimento
             case 'BUG': return '🐛 Bug';
             case 'ENHANCEMENT': return '📨 Melhoria';
             case 'NEW_FEATURE': return '✨ Nova Funcionalidade';
+
+            // Tipos Operacionais
+            case 'BACKUP': return '💾 Backup';
+            case 'DEPLOY': return '🚀 Deploy';
+            case 'LOGS': return '📋 Logs';
+            case 'DATABASE_APPLICATION': return '💿 Aplicação de Banco';
+            case 'NOVO_SERVIDOR': return '🖥️ Novo Servidor';
+            case 'MONITORING': return '📊 Monitoramento';
+            case 'SUPPORT': return '🛠️ Suporte';
+
             default: return taskType;
         }
     };
