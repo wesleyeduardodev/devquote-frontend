@@ -326,19 +326,19 @@ export default function DeliveryItemForm({
                             </label>
                             <Input
                                 {...register('startedAt')}
-                                type="date"
+                                type="datetime-local"
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
                         </div>
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Data de Conclusão
                             </label>
                             <Input
                                 {...register('finishedAt')}
-                                type="date"
+                                type="datetime-local"
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />

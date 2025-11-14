@@ -288,7 +288,7 @@ export default function DeliveryOperationalItemForm({
                             </label>
                             <Input
                                 {...register('startedAt')}
-                                type="date"
+                                type="datetime-local"
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
@@ -300,7 +300,7 @@ export default function DeliveryOperationalItemForm({
                             </label>
                             <Input
                                 {...register('finishedAt')}
-                                type="date"
+                                type="datetime-local"
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
