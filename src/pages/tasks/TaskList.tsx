@@ -1228,7 +1228,7 @@ const TaskList: React.FC = () => {
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900">
-                                    💰 Email Financeiro
+                                    💰 Notificação Financeira
                                 </h2>
                                 <p className="text-sm text-gray-600 mt-1">
                                     Tarefa: {taskForEmail.code}
@@ -1243,10 +1243,10 @@ const TaskList: React.FC = () => {
                                         <Mail className="w-8 h-8 text-green-600" />
                                     </div>
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Email já enviado
+                                        Notificação já enviada
                                     </h3>
                                     <p className="text-gray-600 mb-6">
-                                        O email financeiro para esta tarefa já foi enviado anteriormente.
+                                        A notificação financeira para esta tarefa já foi enviada anteriormente.
                                         Deseja enviar novamente?
                                     </p>
                                 </div>
@@ -1256,10 +1256,10 @@ const TaskList: React.FC = () => {
                                         <Mail className="w-8 h-8 text-orange-600" />
                                     </div>
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Enviar email financeiro
+                                        Enviar notificação financeira
                                     </h3>
                                     <p className="text-gray-600 mb-6">
-                                        Deseja enviar um email com os detalhes financeiros desta tarefa para o departamento financeiro?
+                                        Enviar notificação com os detalhes financeiros desta tarefa (email + WhatsApp).
                                     </p>
                                 </div>
                             )}
@@ -1385,7 +1385,7 @@ const TaskList: React.FC = () => {
                                     className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
                                 >
                                     <Mail className="w-4 h-4 mr-2" />
-                                    {taskForEmail.financialEmailSent ? 'Reenviar' : 'Enviar Email'}
+                                    {taskForEmail.financialEmailSent ? 'Reenviar' : 'Enviar Notificação'}
                                 </Button>
                             </div>
                         </div>
