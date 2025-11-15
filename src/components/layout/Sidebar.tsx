@@ -11,6 +11,7 @@ import {
     BarChart3,
     Settings,
     Bell,
+    Sliders,
     X
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -46,6 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
         {path: '/billing', label: 'Faturamento', icon: CreditCard, requiredProfiles: ['ADMIN', 'MANAGER']},
         {path: '/reports', label: 'Relatórios', icon: BarChart3, requiredProfiles: ['ADMIN', 'MANAGER']},
         {path: '/notifications', label: 'Notificações', icon: Bell, requiredProfiles: ['ADMIN']},
+        {path: '/parameters', label: 'Parâmetros', icon: Sliders, requiredProfiles: ['ADMIN']},
         {path: '/settings', label: 'Configurações', icon: Settings, requiredProfiles: ['ADMIN']}
     ];
 

@@ -94,7 +94,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
 
         if ((formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && !formData.useRequesterContact) {
             if (!formData.primaryPhone?.trim()) {
-                newErrors.primaryPhone = 'Telefone principal é obrigatório quando não usar solicitante';
+                newErrors.primaryPhone = 'Destinatário principal é obrigatório';
             }
         }
 
@@ -267,7 +267,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         </div>
                     </div>
 
-                    {/* Checkbox para usar contato do solicitante */}
+                    {/* Checkbox para usar destinatário do solicitante */}
                     <div>
                         <label className="flex items-center space-x-3 cursor-pointer">
                             <input
@@ -279,7 +279,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                             <span className="text-sm font-medium text-gray-700">
                                 {formData.notificationType === NotificationType.EMAIL
                                     ? 'Usar e-mail do solicitante da tarefa'
-                                    : 'Usar telefone do solicitante da tarefa'
+                                    : 'Usar destinatário do solicitante da tarefa'
                                 }
                             </span>
                         </label>
@@ -299,17 +299,20 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         </div>
                     )}
 
-                    {/* Telefone Principal (apenas para SMS/WhatsApp e quando não usar solicitante) */}
+                    {/* Destinatário Principal (apenas para SMS/WhatsApp e quando não usar solicitante) */}
                     {(formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && !formData.useRequesterContact && (
                         <div>
                             <Input
-                                label="Telefone Principal"
-                                type="tel"
+                                label="Destinatário Principal"
+                                type="text"
                                 value={formData.primaryPhone}
                                 onChange={(e) => handleInputChange('primaryPhone', e.target.value)}
                                 error={errors.primaryPhone}
-                                placeholder="(11) 99999-9999"
+                                placeholder="Número ou ID do grupo"
                             />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Número: 5511999999999 ou Grupo: 120363012345678901@g.us
+                            </p>
                         </div>
                     )}
 
@@ -322,11 +325,11 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         </div>
                     )}
 
-                    {/* Telefone Principal (quando usar solicitante - apenas informativo) */}
+                    {/* Destinatário Principal (quando usar solicitante - apenas informativo) */}
                     {(formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && formData.useRequesterContact && (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                             <p className="text-sm text-blue-700">
-                                <strong>Telefone principal:</strong> Será usado o telefone do solicitante vinculado à tarefa
+                                <strong>Destinatário principal:</strong> Será usado o telefone do solicitante vinculado à tarefa
                             </p>
                         </div>
                     )}
@@ -377,21 +380,24 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         </div>
                     )}
 
-                    {/* Telefones em Cópia (para WhatsApp e SMS) */}
+                    {/* Destinatários em Cópia (para WhatsApp e SMS) */}
                     {(formData.notificationType === NotificationType.WHATSAPP || formData.notificationType === NotificationType.SMS) && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Telefones em Cópia
+                                Destinatários em Cópia
                             </label>
+                            <p className="text-xs text-gray-500 mb-2">
+                                Números de telefone ou IDs de grupos
+                            </p>
                             <div className="space-y-2">
                                 {formData.phoneNumbers.map((phone, index) => (
                                     <div key={index} className="flex gap-2">
                                         <div className="flex-1">
                                             <Input
-                                                type="tel"
+                                                type="text"
                                                 value={phone}
                                                 onChange={(e) => updatePhoneField(index, e.target.value)}
-                                                placeholder="(11) 99999-9999"
+                                                placeholder="5511999999999 ou 120363012345678901@g.us"
                                             />
                                         </div>
                                         {formData.phoneNumbers.length > 1 && (
@@ -415,7 +421,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                                     className="mt-2"
                                 >
                                     <Plus className="w-4 h-4 mr-2" />
-                                    Adicionar Telefone
+                                    Adicionar Destinatário
                                 </Button>
                                 {errors.phoneNumbers && (
                                     <div className="flex items-center gap-2 text-red-600 text-sm">

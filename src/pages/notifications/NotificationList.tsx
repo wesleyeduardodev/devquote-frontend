@@ -239,7 +239,7 @@ const NotificationList: React.FC = () => {
         },
         {
             key: 'primaryEmail',
-            title: 'Contato Principal',
+            title: 'Destinatário Principal',
             render: (notification) => {
                 if (notification.notificationType === 'EMAIL') {
                     if (notification.useRequesterContact) {
@@ -254,7 +254,7 @@ const NotificationList: React.FC = () => {
                     if (notification.useRequesterContact) {
                         return (
                             <span className="text-sm text-blue-600 font-medium">
-                                Telefone do solicitante
+                                Destinatário do solicitante
                             </span>
                         );
                     }
@@ -282,7 +282,7 @@ const NotificationList: React.FC = () => {
                     return (
                         <span className="text-sm text-gray-600">
                             {notification.phoneNumbers.length > 0
-                                ? `${notification.phoneNumbers.length} telefone(s)`
+                                ? `${notification.phoneNumbers.length} destinatário(s)`
                                 : '-'
                             }
                         </span>
@@ -453,9 +453,9 @@ const NotificationList: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Contato principal */}
+                                    {/* Destinatário principal */}
                                     <div className="text-sm">
-                                        <span className="text-gray-600 font-medium">Contato: </span>
+                                        <span className="text-gray-600 font-medium">Destinatário: </span>
                                         {notification.notificationType === 'EMAIL' ? (
                                             notification.useRequesterContact ? (
                                                 <span className="text-blue-600 font-medium">Email do solicitante</span>
@@ -464,7 +464,7 @@ const NotificationList: React.FC = () => {
                                             )
                                         ) : (
                                             notification.useRequesterContact ? (
-                                                <span className="text-blue-600 font-medium">Telefone do solicitante</span>
+                                                <span className="text-blue-600 font-medium">Destinatário do solicitante</span>
                                             ) : (
                                                 <span>{notification.primaryPhone || '-'}</span>
                                             )
@@ -479,8 +479,8 @@ const NotificationList: React.FC = () => {
                                                 'Nenhum email em cópia'
                                         ) : (
                                             notification.phoneNumbers.length > 0 ?
-                                                `${notification.phoneNumbers.length} telefone(s) em cópia` :
-                                                'Nenhum telefone em cópia'
+                                                `${notification.phoneNumbers.length} destinatário(s) em cópia` :
+                                                'Nenhum destinatário em cópia'
                                         )}
                                     </div>
 

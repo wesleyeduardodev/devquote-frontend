@@ -22,6 +22,7 @@ import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import ProfileManagement from './pages/profiles/ProfileManagement';
 import NotificationList from './pages/notifications/NotificationList';
+import ParameterList from './pages/parameters/ParameterList';
 import { UserSettings } from './pages/UserSettings';
 import NotFound from './pages/NotFound';
 
@@ -148,6 +149,12 @@ const AppRoutes: React.FC = () => {
                             <Route path="/notifications" element={
                                 <ProtectedRoute requiredProfile="ADMIN">
                                     <NotificationList/>
+                                </ProtectedRoute>
+                            }/>
+
+                            <Route path="/parameters" element={
+                                <ProtectedRoute requiredProfile="ADMIN">
+                                    <ParameterList/>
                                 </ProtectedRoute>
                             }/>
 

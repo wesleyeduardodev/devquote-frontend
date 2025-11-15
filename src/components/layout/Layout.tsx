@@ -52,7 +52,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/deliveries', label: 'Entregas', screen: 'deliveries' },
         { path: '/billing', label: 'Faturamento', screen: 'billing' },
         { path: '/profiles', label: 'Perfis', screen: 'users' },
-        { path: '/notifications', label: 'Notificações', screen: 'settings' }
+        { path: '/notifications', label: 'Notificações', screen: 'settings' },
+        { path: '/parameters', label: 'Parâmetros', screen: 'parameters' }
     ];
 
     const navigationItems = useMemo(() => {
@@ -60,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             if (item.screen === '') return true;
 
-            if (item.screen === 'projects' || item.screen === 'users' || item.screen === 'settings') {
+            if (item.screen === 'projects' || item.screen === 'users' || item.screen === 'settings' || item.screen === 'parameters') {
                 return hasProfile('ADMIN');
             }
 
