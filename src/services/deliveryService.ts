@@ -268,8 +268,11 @@ export const deliveryService = {
         return delivery !== null;
     },
 
-    sendDeliveryEmail: async (id: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[]): Promise<void> => {
-        const payload: any = {};
+    sendDeliveryEmail: async (id: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[], sendEmail?: boolean, sendWhatsApp?: boolean): Promise<void> => {
+        const payload: any = {
+            sendEmail: sendEmail !== undefined ? sendEmail : true,
+            sendWhatsApp: sendWhatsApp !== undefined ? sendWhatsApp : true
+        };
 
         if (additionalEmails && additionalEmails.length > 0) {
             payload.additionalEmails = additionalEmails;

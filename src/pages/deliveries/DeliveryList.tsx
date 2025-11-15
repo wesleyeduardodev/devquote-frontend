@@ -65,6 +65,8 @@ const DeliveryList: React.FC = () => {
     const [currentEmailInput, setCurrentEmailInput] = useState('');
     const [additionalWhatsAppRecipients, setAdditionalWhatsAppRecipients] = useState<string[]>([]);
     const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
+    const [sendEmail, setSendEmail] = useState(true);
+    const [sendWhatsApp, setSendWhatsApp] = useState(true);
 
     const fetchStatistics = async () => {
         try {
@@ -427,16 +429,23 @@ const DeliveryList: React.FC = () => {
         setCurrentEmailInput('');
         setAdditionalWhatsAppRecipients([]);
         setCurrentWhatsAppInput('');
+        setSendEmail(true);
+        setSendWhatsApp(true);
         setShowDeliveryEmailModal(true);
     };
 
     const confirmSendDeliveryEmail = async () => {
         if (!groupForEmail) return;
 
+        if (!sendEmail && !sendWhatsApp) {
+            toast.error('Selecione pelo menos um canal de notificação');
+            return;
+        }
+
         try {
             const deliveryId = groupForEmail.deliveries?.[0]?.id;
             if (deliveryId) {
-                await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails, additionalWhatsAppRecipients);
+                await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails, additionalWhatsAppRecipients, sendEmail, sendWhatsApp);
                 toast.success('Notificação de entrega enviada com sucesso!');
                 await fetchDeliveryGroups();
             } else {
@@ -452,6 +461,8 @@ const DeliveryList: React.FC = () => {
             setCurrentEmailInput('');
             setAdditionalWhatsAppRecipients([]);
             setCurrentWhatsAppInput('');
+            setSendEmail(true);
+            setSendWhatsApp(true);
         }
     };
 
@@ -943,16 +954,39 @@ const DeliveryList: React.FC = () => {
                                             <span className="font-semibold text-blue-800">Enviar notificação de entrega</span>
                                         </div>
                                         <p className="text-blue-700 text-sm">
-                                            Enviar notificação com os detalhes da entrega (email + WhatsApp).
+                                            Enviar notificação com os detalhes da entrega.
                                         </p>
                                     </div>
                                 )}
 
-                                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                                    <h4 className="font-medium text-gray-900 mb-2">{groupForEmail.taskName}</h4>
-                                    <div className="text-sm text-gray-600 space-y-1">
-                                        <p><strong>Código:</strong> {groupForEmail.taskCode}</p>
-                                        <p><strong>Itens:</strong> {groupForEmail.totalItems || 0} item(s)</p>
+                                {/* Seleção de Canais de Notificação */}
+                                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                                        Canais de Notificação
+                                    </label>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={sendEmail}
+                                                onChange={(e) => setSendEmail(e.target.checked)}
+                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700">
+                                                📧 Enviar por Email
+                                            </span>
+                                        </label>
+                                        <label className="flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={sendWhatsApp}
+                                                onChange={(e) => setSendWhatsApp(e.target.checked)}
+                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700">
+                                                💬 Enviar por WhatsApp
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
 
