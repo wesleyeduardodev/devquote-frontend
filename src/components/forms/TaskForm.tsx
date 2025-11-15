@@ -352,33 +352,26 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             Tipo de Fluxo <span className="text-red-500">*</span>
                         </label>
                         <div className="flex gap-6">
-                            <label className={`flex items-center space-x-2 ${initialData?.id ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
+                            <label className="flex items-center space-x-2 cursor-pointer">
                                 <input
                                     {...register('flowType')}
                                     type="radio"
                                     value="DESENVOLVIMENTO"
-                                    disabled={!!initialData?.id}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                 />
                                 <span className="text-sm font-medium text-gray-700">💻 Desenvolvimento</span>
                             </label>
-                            <label className={`flex items-center space-x-2 ${initialData?.id ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
+                            <label className="flex items-center space-x-2 cursor-pointer">
                                 <input
                                     {...register('flowType')}
                                     type="radio"
                                     value="OPERACIONAL"
-                                    disabled={!!initialData?.id}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                 />
                                 <span className="text-sm font-medium text-gray-700">⚙️ Operacional</span>
                             </label>
                         </div>
                         {errors.flowType && <p className="mt-1 text-sm text-red-600">{errors.flowType.message}</p>}
-                        {initialData?.id && (
-                            <p className="mt-2 text-xs text-gray-500">
-                                O tipo de fluxo não pode ser alterado após a criação da tarefa
-                            </p>
-                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
