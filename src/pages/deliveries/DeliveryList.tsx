@@ -63,6 +63,8 @@ const DeliveryList: React.FC = () => {
     const [groupForEmail, setGroupForEmail] = useState<DeliveryGroupResponse | null>(null);
     const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
     const [currentEmailInput, setCurrentEmailInput] = useState('');
+    const [additionalWhatsAppRecipients, setAdditionalWhatsAppRecipients] = useState<string[]>([]);
+    const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
 
     const fetchStatistics = async () => {
         try {
@@ -423,6 +425,8 @@ const DeliveryList: React.FC = () => {
         setGroupForEmail(group);
         setAdditionalEmails([]);
         setCurrentEmailInput('');
+        setAdditionalWhatsAppRecipients([]);
+        setCurrentWhatsAppInput('');
         setShowDeliveryEmailModal(true);
     };
 
@@ -432,20 +436,22 @@ const DeliveryList: React.FC = () => {
         try {
             const deliveryId = groupForEmail.deliveries?.[0]?.id;
             if (deliveryId) {
-                await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails);
-                toast.success('Email de entrega enviado com sucesso!');
+                await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails, additionalWhatsAppRecipients);
+                toast.success('Notificação de entrega enviada com sucesso!');
                 await fetchDeliveryGroups();
             } else {
                 toast.error('ID da entrega não encontrado');
             }
         } catch (error) {
-            console.error('Erro ao enviar email:', error);
-            toast.error('Falha ao enviar email');
+            console.error('Erro ao enviar notificação:', error);
+            toast.error('Falha ao enviar notificação');
         } finally {
             setShowDeliveryEmailModal(false);
             setGroupForEmail(null);
             setAdditionalEmails([]);
             setCurrentEmailInput('');
+            setAdditionalWhatsAppRecipients([]);
+            setCurrentWhatsAppInput('');
         }
     };
 
@@ -465,6 +471,22 @@ const DeliveryList: React.FC = () => {
 
     const removeEmail = (index: number) => {
         setAdditionalEmails(additionalEmails.filter((_, i) => i !== index));
+    };
+
+    const addWhatsAppRecipient = () => {
+        const recipient = currentWhatsAppInput.trim();
+        if (recipient) {
+            if (!additionalWhatsAppRecipients.includes(recipient)) {
+                setAdditionalWhatsAppRecipients([...additionalWhatsAppRecipients, recipient]);
+                setCurrentWhatsAppInput('');
+            } else {
+                toast.error('Este destinatário já foi adicionado');
+            }
+        }
+    };
+
+    const removeWhatsAppRecipient = (index: number) => {
+        setAdditionalWhatsAppRecipients(additionalWhatsAppRecipients.filter((_, i) => i !== index));
     };
 
     const handleSort = (field: string, direction: 'asc' | 'desc') => {
@@ -895,7 +917,7 @@ const DeliveryList: React.FC = () => {
                             {/* Header */}
                             <div className="flex items-center justify-center mb-4">
                                 <div className="bg-blue-100 p-3 rounded-full">
-                                    📧 Email de Entrega
+                                    📧 Notificação de Entrega
                                 </div>
                             </div>
                             
@@ -908,20 +930,20 @@ const DeliveryList: React.FC = () => {
                                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
                                         <div className="flex items-center mb-2">
                                             <span className="text-amber-600 mr-2">⚠️</span>
-                                            <span className="font-semibold text-amber-800">Email já enviado</span>
+                                            <span className="font-semibold text-amber-800">Notificação já enviada</span>
                                         </div>
                                         <p className="text-amber-700 text-sm">
-                                            O email de entrega para esta tarefa já foi enviado anteriormente.
+                                            A notificação de entrega para esta tarefa já foi enviada anteriormente.
                                         </p>
                                     </div>
                                 ) : (
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                                         <div className="flex items-center mb-2">
                                             <span className="text-blue-600 mr-2">📧</span>
-                                            <span className="font-semibold text-blue-800">Enviar email de entrega</span>
+                                            <span className="font-semibold text-blue-800">Enviar notificação de entrega</span>
                                         </div>
                                         <p className="text-blue-700 text-sm">
-                                            Deseja enviar um email com os detalhes da entrega para o solicitante?
+                                            Enviar notificação com os detalhes da entrega (email + WhatsApp).
                                         </p>
                                     </div>
                                 )}
@@ -975,6 +997,56 @@ const DeliveryList: React.FC = () => {
                                                         onClick={() => removeEmail(index)}
                                                         className="hover:text-blue-900 font-bold"
                                                         title="Remover email"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Campo para adicionar destinatários WhatsApp em cópia */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Destinatários WhatsApp em cópia (opcional)
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={currentWhatsAppInput}
+                                            onChange={(e) => setCurrentWhatsAppInput(e.target.value)}
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addWhatsAppRecipient();
+                                                }
+                                            }}
+                                            placeholder="5511999999999 ou 120363012345678901@g.us"
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                                        />
+                                        <Button
+                                            onClick={addWhatsAppRecipient}
+                                            variant="outline"
+                                            type="button"
+                                        >
+                                            Adicionar
+                                        </Button>
+                                    </div>
+
+                                    {/* Lista de destinatários WhatsApp adicionados */}
+                                    {additionalWhatsAppRecipients.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {additionalWhatsAppRecipients.map((recipient, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                                                >
+                                                    {recipient}
+                                                    <button
+                                                        onClick={() => removeWhatsAppRecipient(index)}
+                                                        className="hover:text-green-900 font-bold"
+                                                        title="Remover destinatário"
                                                     >
                                                         ×
                                                     </button>

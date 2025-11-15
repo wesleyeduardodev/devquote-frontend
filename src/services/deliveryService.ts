@@ -268,10 +268,16 @@ export const deliveryService = {
         return delivery !== null;
     },
 
-    sendDeliveryEmail: async (id: number, additionalEmails?: string[]): Promise<void> => {
-        const payload = additionalEmails && additionalEmails.length > 0
-            ? { additionalEmails }
-            : {};
+    sendDeliveryEmail: async (id: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[]): Promise<void> => {
+        const payload: any = {};
+
+        if (additionalEmails && additionalEmails.length > 0) {
+            payload.additionalEmails = additionalEmails;
+        }
+
+        if (additionalWhatsAppRecipients && additionalWhatsAppRecipients.length > 0) {
+            payload.additionalWhatsAppRecipients = additionalWhatsAppRecipients;
+        }
 
         const response = await api.post(`/deliveries/${id}/send-delivery-email`, payload);
         return response.data;
