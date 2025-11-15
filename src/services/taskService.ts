@@ -167,10 +167,12 @@ export const taskService = {
         return response.data;
     },
 
-    sendFinancialEmail: async (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[]): Promise<void> => {
+    sendFinancialEmail: async (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[], sendEmail?: boolean, sendWhatsApp?: boolean): Promise<void> => {
         await api.post(`/tasks/${taskId}/send-financial-email`, {
             additionalEmails: additionalEmails || [],
-            additionalWhatsAppRecipients: additionalWhatsAppRecipients || []
+            additionalWhatsAppRecipients: additionalWhatsAppRecipients || [],
+            sendEmail: sendEmail !== undefined ? sendEmail : true,
+            sendWhatsApp: sendWhatsApp !== undefined ? sendWhatsApp : true
         });
     },
 

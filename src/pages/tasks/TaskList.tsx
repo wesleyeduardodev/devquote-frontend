@@ -73,6 +73,8 @@ const TaskList: React.FC = () => {
     const [currentEmailInput, setCurrentEmailInput] = useState('');
     const [additionalWhatsAppRecipients, setAdditionalWhatsAppRecipients] = useState<string[]>([]);
     const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
+    const [sendEmail, setSendEmail] = useState(true);
+    const [sendWhatsApp, setSendWhatsApp] = useState(true);
     const [showTaskEmailModal, setShowTaskEmailModal] = useState(false);
     const [taskForTaskEmail, setTaskForTaskEmail] = useState<Task | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -155,7 +157,7 @@ const TaskList: React.FC = () => {
 
     const confirmDelete = async () => {
         if (!taskToDelete) return;
-        
+
         setIsDeletingSingle(true);
         try {
             await deleteTaskWithSubTasks(taskToDelete.id);
@@ -175,14 +177,21 @@ const TaskList: React.FC = () => {
         setCurrentEmailInput('');
         setAdditionalWhatsAppRecipients([]);
         setCurrentWhatsAppInput('');
+        setSendEmail(true);
+        setSendWhatsApp(true);
         setShowFinancialEmailModal(true);
     };
 
     const confirmSendFinancialEmail = async () => {
         if (!taskForEmail) return;
 
+        if (!sendEmail && !sendWhatsApp) {
+            toast.error('Selecione pelo menos um canal de notificação');
+            return;
+        }
+
         try {
-            await sendFinancialEmail(taskForEmail.id, additionalEmails, additionalWhatsAppRecipients);
+            await sendFinancialEmail(taskForEmail.id, additionalEmails, additionalWhatsAppRecipients, sendEmail, sendWhatsApp);
         } catch (error) {
         } finally {
             setShowFinancialEmailModal(false);
@@ -191,6 +200,8 @@ const TaskList: React.FC = () => {
             setCurrentEmailInput('');
             setAdditionalWhatsAppRecipients([]);
             setCurrentWhatsAppInput('');
+            setSendEmail(true);
+            setSendWhatsApp(true);
         }
     };
 
@@ -897,7 +908,7 @@ const TaskList: React.FC = () => {
                             >
                                 <Eye className="w-3.5 h-3.5" />
                             </Button>
-                            
+
                             {/* 2. Email Financeiro - apenas ADMIN */}
                             {isAdmin && (
                                 <Button
@@ -910,7 +921,7 @@ const TaskList: React.FC = () => {
                                     <DollarSign className="w-3.5 h-3.5" />
                                 </Button>
                             )}
-                            
+
                             {/* 3. Email da Tarefa - apenas ADMIN */}
                             {isAdmin && (
                                 <Button
@@ -1245,10 +1256,6 @@ const TaskList: React.FC = () => {
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">
                                         Notificação já enviada
                                     </h3>
-                                    <p className="text-gray-600 mb-6">
-                                        A notificação financeira para esta tarefa já foi enviada anteriormente.
-                                        Deseja enviar novamente?
-                                    </p>
                                 </div>
                             ) : (
                                 <div className="text-center">
@@ -1258,16 +1265,36 @@ const TaskList: React.FC = () => {
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">
                                         Enviar notificação financeira
                                     </h3>
-                                    <p className="text-gray-600 mb-6">
-                                        Enviar notificação com os detalhes financeiros desta tarefa (email + WhatsApp).
-                                    </p>
                                 </div>
                             )}
 
-                            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                                <h4 className="font-medium text-gray-900 mb-2">{taskForEmail.title}</h4>
-                                <div className="text-sm text-gray-600">
-                                    <p><strong>Solicitante:</strong> {taskForEmail.requesterName}</p>
+                            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <label className="block text-sm font-medium text-gray-900 mb-3">
+                                    Canais de Notificação
+                                </label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={sendEmail}
+                                            onChange={(e) => setSendEmail(e.target.checked)}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">
+                                            📧 Enviar por Email
+                                        </span>
+                                    </label>
+                                    <label className="flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={sendWhatsApp}
+                                            onChange={(e) => setSendWhatsApp(e.target.checked)}
+                                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                        />
+                                        <span className="ml-2 text-sm text-gray-700">
+                                            💬 Enviar por WhatsApp
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
 
@@ -1525,7 +1552,7 @@ const TaskList: React.FC = () => {
                 }}
                 onConfirm={confirmDelete}
                 itemName={taskToDelete?.title}
-                description={taskToDelete?.subTasks && taskToDelete.subTasks.length > 0 
+                description={taskToDelete?.subTasks && taskToDelete.subTasks.length > 0
                     ? `Esta tarefa possui ${taskToDelete.subTasks.length} subtarefa(s) que também serão excluídas.`
                     : undefined}
                 isDeleting={isDeletingSingle}

@@ -107,7 +107,7 @@ interface UseTasksReturn {
     setFilter: (field: string, value: string) => void;
     clearFilters: () => void;
     exportToExcel: () => Promise<void>;
-    sendFinancialEmail: (taskId: number, additionalEmails?: string[]) => Promise<void>;
+    sendFinancialEmail: (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[], sendEmail?: boolean, sendWhatsApp?: boolean) => Promise<void>;
     sendTaskEmail: (taskId: number, additionalEmails?: string[]) => Promise<void>;
 }
 
@@ -320,9 +320,9 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [filters.flowType]);
 
-    const sendFinancialEmail = useCallback(async (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[]): Promise<void> => {
+    const sendFinancialEmail = useCallback(async (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[], sendEmail?: boolean, sendWhatsApp?: boolean): Promise<void> => {
         try {
-            await taskService.sendFinancialEmail(taskId, additionalEmails, additionalWhatsAppRecipients);
+            await taskService.sendFinancialEmail(taskId, additionalEmails, additionalWhatsAppRecipients, sendEmail, sendWhatsApp);
             await fetchTasks();
             toast.success('Notificação financeira enviada com sucesso!');
         } catch (err: any) {
