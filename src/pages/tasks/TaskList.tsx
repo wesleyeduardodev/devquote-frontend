@@ -71,6 +71,8 @@ const TaskList: React.FC = () => {
     const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
     const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
     const [currentEmailInput, setCurrentEmailInput] = useState('');
+    const [additionalWhatsAppRecipients, setAdditionalWhatsAppRecipients] = useState<string[]>([]);
+    const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
     const [showTaskEmailModal, setShowTaskEmailModal] = useState(false);
     const [taskForTaskEmail, setTaskForTaskEmail] = useState<Task | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -171,6 +173,8 @@ const TaskList: React.FC = () => {
         setTaskForEmail(task);
         setAdditionalEmails([]);
         setCurrentEmailInput('');
+        setAdditionalWhatsAppRecipients([]);
+        setCurrentWhatsAppInput('');
         setShowFinancialEmailModal(true);
     };
 
@@ -178,13 +182,15 @@ const TaskList: React.FC = () => {
         if (!taskForEmail) return;
 
         try {
-            await sendFinancialEmail(taskForEmail.id, additionalEmails);
+            await sendFinancialEmail(taskForEmail.id, additionalEmails, additionalWhatsAppRecipients);
         } catch (error) {
         } finally {
             setShowFinancialEmailModal(false);
             setTaskForEmail(null);
             setAdditionalEmails([]);
             setCurrentEmailInput('');
+            setAdditionalWhatsAppRecipients([]);
+            setCurrentWhatsAppInput('');
         }
     };
 
@@ -204,6 +210,22 @@ const TaskList: React.FC = () => {
 
     const removeEmail = (index: number) => {
         setAdditionalEmails(additionalEmails.filter((_, i) => i !== index));
+    };
+
+    const addWhatsAppRecipient = () => {
+        const recipient = currentWhatsAppInput.trim();
+        if (recipient) {
+            if (!additionalWhatsAppRecipients.includes(recipient)) {
+                setAdditionalWhatsAppRecipients([...additionalWhatsAppRecipients, recipient]);
+                setCurrentWhatsAppInput('');
+            } else {
+                toast.error('Este destinatário já foi adicionado');
+            }
+        }
+    };
+
+    const removeWhatsAppRecipient = (index: number) => {
+        setAdditionalWhatsAppRecipients(additionalWhatsAppRecipients.filter((_, i) => i !== index));
     };
 
     const handleTaskEmail = (task: Task) => {
@@ -1289,6 +1311,55 @@ const TaskList: React.FC = () => {
                                                     onClick={() => removeEmail(index)}
                                                     className="hover:text-blue-900 font-bold"
                                                     title="Remover email"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Destinatários WhatsApp em cópia (opcional)
+                                </label>
+
+                                <div className="flex gap-2 mb-3">
+                                    <input
+                                        type="text"
+                                        value={currentWhatsAppInput}
+                                        onChange={(e) => setCurrentWhatsAppInput(e.target.value)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                addWhatsAppRecipient();
+                                            }
+                                        }}
+                                        placeholder="5511999999999 ou 120363012345678901@g.us"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={addWhatsAppRecipient}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-4"
+                                    >
+                                        Adicionar
+                                    </Button>
+                                </div>
+
+                                {additionalWhatsAppRecipients.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {additionalWhatsAppRecipients.map((recipient, index) => (
+                                            <span
+                                                key={index}
+                                                className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                                            >
+                                                {recipient}
+                                                <button
+                                                    onClick={() => removeWhatsAppRecipient(index)}
+                                                    className="hover:text-green-900 font-bold"
+                                                    title="Remover destinatário"
                                                 >
                                                     ×
                                                 </button>

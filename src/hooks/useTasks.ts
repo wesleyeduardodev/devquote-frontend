@@ -320,14 +320,14 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [filters.flowType]);
 
-    const sendFinancialEmail = useCallback(async (taskId: number, additionalEmails?: string[]): Promise<void> => {
+    const sendFinancialEmail = useCallback(async (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[]): Promise<void> => {
         try {
-            await taskService.sendFinancialEmail(taskId, additionalEmails);
+            await taskService.sendFinancialEmail(taskId, additionalEmails, additionalWhatsAppRecipients);
             await fetchTasks();
-            toast.success('Email financeiro enviado com sucesso!');
+            toast.success('Notificação financeira enviada com sucesso!');
         } catch (err: any) {
-            console.error('Erro ao enviar email financeiro:', err);
-            toast.error(err.message || 'Erro ao enviar email financeiro');
+            console.error('Erro ao enviar notificação financeira:', err);
+            toast.error(err.message || 'Erro ao enviar notificação financeira');
             throw err;
         }
     }, [fetchTasks]);
