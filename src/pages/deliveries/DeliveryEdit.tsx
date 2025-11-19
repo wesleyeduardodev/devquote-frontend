@@ -78,6 +78,7 @@ const DeliveryEdit: React.FC = () => {
                     title: taskData.title,
                     code: taskData.code,
                     flowType: taskData.flowType,
+                    environment: taskData.environment,
                     amount: taskData.amount,
                     requester: {
                         id: taskData.requesterId,

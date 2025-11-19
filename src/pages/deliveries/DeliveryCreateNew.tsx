@@ -58,6 +58,7 @@ const DeliveryCreate: React.FC = () => {
             const deliveryData: CreateDeliveryData = {
                 taskId: selectedTask.id,
                 status: 'PENDING',
+                environment: selectedTask.environment,
                 notes: notes,
                 items: selectedProjects.map(project => ({
                     projectId: project.id,
