@@ -32,6 +32,42 @@ const DeliveryCreate: React.FC = () => {
 
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
 
+    const formatTaskType = (taskType?: string, flowType?: string): string => {
+        if (!taskType) return '-';
+
+        if (flowType === 'DESENVOLVIMENTO') {
+            const devTypes: Record<string, string> = {
+                'BUG': '🐛 Bug',
+                'ENHANCEMENT': '🔧 Melhoria',
+                'NEW_FEATURE': '✨ Nova Funcionalidade'
+            };
+            return devTypes[taskType] || taskType;
+        }
+
+        const opTypes: Record<string, string> = {
+            'BACKUP': '📦 Backup',
+            'DEPLOY': '🚀 Deploy',
+            'LOGS': '📄 Logs',
+            'DATABASE_APPLICATION': '🗄️ Aplicação de Banco',
+            'NEW_SERVER': '💻 Novo Servidor',
+            'MONITORING': '📊 Monitoramento',
+            'SUPPORT': '🛠️ Suporte'
+        };
+        return opTypes[taskType] || taskType;
+    };
+
+    const formatEnvironment = (environment?: string): { label: string; colorClass: string } => {
+        if (!environment) return { label: '-', colorClass: 'bg-gray-100 text-gray-800' };
+
+        const envConfig: Record<string, { label: string; colorClass: string }> = {
+            'PRODUCAO': { label: 'Produção', colorClass: 'bg-blue-100 text-blue-800 border-blue-200' },
+            'DESENVOLVIMENTO': { label: 'Desenvolvimento', colorClass: 'bg-green-100 text-green-800 border-green-200' },
+            'HOMOLOGACAO': { label: 'Homologação', colorClass: 'bg-yellow-100 text-yellow-800 border-yellow-200' }
+        };
+
+        return envConfig[environment] || { label: environment, colorClass: 'bg-gray-100 text-gray-800 border-gray-200' };
+    };
+
     const handleTaskSelect = (task: AvailableTask) => {
         setSelectedTask(task);
         setShowTaskModal(false);
@@ -172,7 +208,7 @@ const DeliveryCreate: React.FC = () => {
                                                 <Package className="h-5 w-5 text-blue-600" />
                                                 <h3 className="font-medium text-gray-900">{selectedTask.title}</h3>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-1">{selectedTask.code}</p>
+                                            <p className="text-sm text-gray-600 mb-2">{selectedTask.code}</p>
                                             {selectedTask.flowType && (
                                                 <div className="mb-2">
                                                     <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
@@ -181,6 +217,20 @@ const DeliveryCreate: React.FC = () => {
                                                             : 'bg-blue-100 text-blue-800 border border-blue-200'
                                                     }`}>
                                                         {selectedTask.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {selectedTask.taskType && (
+                                                <div className="mb-2">
+                                                    <span className="text-sm text-gray-700">
+                                                        <span className="font-medium">Tipo:</span> {formatTaskType(selectedTask.taskType, selectedTask.flowType)}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {selectedTask.environment && (
+                                                <div className="mb-2">
+                                                    <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded border ${formatEnvironment(selectedTask.environment).colorClass}`}>
+                                                        {formatEnvironment(selectedTask.environment).label}
                                                     </span>
                                                 </div>
                                             )}

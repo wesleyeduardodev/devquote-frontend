@@ -53,6 +53,42 @@ const DeliveryEdit: React.FC = () => {
 
     const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
 
+    const formatTaskType = (taskType?: string, flowType?: string): string => {
+        if (!taskType) return '-';
+
+        if (flowType === 'DESENVOLVIMENTO') {
+            const devTypes: Record<string, string> = {
+                'BUG': '🐛 Bug',
+                'ENHANCEMENT': '🔧 Melhoria',
+                'NEW_FEATURE': '✨ Nova Funcionalidade'
+            };
+            return devTypes[taskType] || taskType;
+        }
+
+        const opTypes: Record<string, string> = {
+            'BACKUP': '📦 Backup',
+            'DEPLOY': '🚀 Deploy',
+            'LOGS': '📄 Logs',
+            'DATABASE_APPLICATION': '🗄️ Aplicação de Banco',
+            'NEW_SERVER': '💻 Novo Servidor',
+            'MONITORING': '📊 Monitoramento',
+            'SUPPORT': '🛠️ Suporte'
+        };
+        return opTypes[taskType] || taskType;
+    };
+
+    const formatEnvironment = (environment?: string): { label: string; colorClass: string } => {
+        if (!environment) return { label: '-', colorClass: 'bg-gray-100 text-gray-800' };
+
+        const envConfig: Record<string, { label: string; colorClass: string }> = {
+            'PRODUCAO': { label: 'Produção', colorClass: 'bg-blue-100 text-blue-800 border-blue-200' },
+            'DESENVOLVIMENTO': { label: 'Desenvolvimento', colorClass: 'bg-green-100 text-green-800 border-green-200' },
+            'HOMOLOGACAO': { label: 'Homologação', colorClass: 'bg-yellow-100 text-yellow-800 border-yellow-200' }
+        };
+
+        return envConfig[environment] || { label: environment, colorClass: 'bg-gray-100 text-gray-800 border-gray-200' };
+    };
+
     useEffect(() => {
         if (deliveryId) {
             loadDeliveryData();
@@ -78,6 +114,7 @@ const DeliveryEdit: React.FC = () => {
                     title: taskData.title,
                     code: taskData.code,
                     flowType: taskData.flowType,
+                    taskType: taskData.taskType,
                     environment: taskData.environment,
                     amount: taskData.amount,
                     requester: {
@@ -401,7 +438,21 @@ const DeliveryEdit: React.FC = () => {
                                             </span>
                                         </div>
                                     )}
-                                    <div className="text-sm text-gray-500 mt-1">
+                                    {selectedTask.taskType && (
+                                        <div className="mt-2">
+                                            <span className="text-sm text-gray-700">
+                                                <span className="font-medium">Tipo:</span> {formatTaskType(selectedTask.taskType, selectedTask.flowType)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {selectedTask.environment && (
+                                        <div className="mt-2">
+                                            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded border ${formatEnvironment(selectedTask.environment).colorClass}`}>
+                                                {formatEnvironment(selectedTask.environment).label}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="text-sm text-gray-500 mt-2">
                                         Solicitante: {selectedTask.requester?.name}
                                     </div>
                                 </div>
