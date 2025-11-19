@@ -66,7 +66,8 @@ const Dashboard = () => {
   const handleExportDeliveriesDev = async () => {
     try {
       setExportingDeliveriesDev(true);
-      const blob = await deliveryService.exportToExcel('DESENVOLVIMENTO');
+      const canViewAmounts = hasProfile('ADMIN') || hasProfile('MANAGER');
+      const blob = await deliveryService.exportToExcel('DESENVOLVIMENTO', canViewAmounts);
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
       downloadBlob(blob, `relatorio_entregas_desenvolvimento_${timestamp}.xlsx`);
       toast.success('Relatório de entregas (Desenvolvimento) exportado com sucesso!');
@@ -81,7 +82,8 @@ const Dashboard = () => {
   const handleExportDeliveriesOp = async () => {
     try {
       setExportingDeliveriesOp(true);
-      const blob = await deliveryService.exportToExcel('OPERACIONAL');
+      const canViewAmounts = hasProfile('ADMIN') || hasProfile('MANAGER');
+      const blob = await deliveryService.exportToExcel('OPERACIONAL', canViewAmounts);
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
       downloadBlob(blob, `relatorio_entregas_operacional_${timestamp}.xlsx`);
       toast.success('Relatório de entregas (Operacional) exportado com sucesso!');
