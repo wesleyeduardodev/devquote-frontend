@@ -175,6 +175,7 @@ export interface AvailableTask {
     title: string;
     code: string;
     flowType?: string;
+    taskType?: string;
     environment?: string;
     amount?: number;
     requester?: {

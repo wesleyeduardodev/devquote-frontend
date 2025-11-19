@@ -116,7 +116,55 @@ export default function TaskSelectionModal({
     }, [isOpen, onClose]);
 
 
+    const formatTaskType = (taskType?: string, flowType?: string): string => {
+        if (!taskType) return '-';
+
+        // Tipos de Desenvolvimento
+        if (flowType === 'DESENVOLVIMENTO') {
+            const devTypes: Record<string, string> = {
+                'BUG': '🐛 Bug',
+                'ENHANCEMENT': '🔧 Melhoria',
+                'NEW_FEATURE': '✨ Nova Funcionalidade'
+            };
+            return devTypes[taskType] || taskType;
+        }
+
+        // Tipos Operacionais
+        const opTypes: Record<string, string> = {
+            'BACKUP': '📦 Backup',
+            'DEPLOY': '🚀 Deploy',
+            'LOGS': '📄 Logs',
+            'DATABASE_APPLICATION': '🗄️ Aplicação de Banco',
+            'NEW_SERVER': '💻 Novo Servidor',
+            'MONITORING': '📊 Monitoramento',
+            'SUPPORT': '🛠️ Suporte'
+        };
+        return opTypes[taskType] || taskType;
+    };
+
+    const formatEnvironment = (environment?: string): string => {
+        if (!environment) return '-';
+        const envs: Record<string, string> = {
+            'DESENVOLVIMENTO': 'Desenvolvimento',
+            'HOMOLOGACAO': 'Homologação',
+            'PRODUCAO': 'Produção'
+        };
+        return envs[environment] || environment;
+    };
+
     const columns: Column<AvailableTask>[] = [
+        {
+            key: 'code',
+            title: 'Código',
+            sortable: true,
+            filterable: true,
+            render: (task) => (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    {task.code}
+                </span>
+            ),
+            width: '120px'
+        },
         {
             key: 'id',
             title: 'ID',
@@ -127,7 +175,24 @@ export default function TaskSelectionModal({
                     #{task.id}
                 </span>
             ),
-            width: '100px'
+            width: '80px'
+        },
+        {
+            key: 'title',
+            title: 'Título',
+            sortable: true,
+            filterable: true,
+            render: (task) => (
+                <div className="max-w-xs">
+                    <div
+                        className="font-medium text-gray-900 truncate cursor-help"
+                        title={task.title}
+                    >
+                        {task.title}
+                    </div>
+                </div>
+            ),
+            width: '250px'
         },
         {
             key: 'flowType',
@@ -152,33 +217,36 @@ export default function TaskSelectionModal({
             )
         },
         {
-            key: 'code',
-            title: 'Código',
+            key: 'taskType',
+            title: 'Tipo',
             sortable: true,
             filterable: true,
+            width: '200px',
             render: (task) => (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    {task.code}
+                <span className="text-xs text-gray-700">
+                    {formatTaskType(task.taskType, task.flowType)}
                 </span>
-            ),
-            width: '120px'
+            )
         },
         {
-            key: 'title',
-            title: 'Título',
+            key: 'environment',
+            title: 'Ambiente',
             sortable: true,
             filterable: true,
+            width: '140px',
             render: (task) => (
-                <div className="max-w-xs">
-                    <div
-                        className="font-medium text-gray-900 truncate cursor-help"
-                        title={task.title}
-                    >
-                        {task.title}
-                    </div>
-                </div>
-            ),
-            width: '250px'
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    task.environment === 'PRODUCAO'
+                        ? 'bg-blue-100 text-blue-800'
+                        : task.environment === 'DESENVOLVIMENTO'
+                            ? 'bg-green-100 text-green-800'
+                            : task.environment === 'HOMOLOGACAO'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-600'
+                }`}>
+                    {formatEnvironment(task.environment)}
+                </span>
+            )
         },
         {
             key: 'selected',
@@ -347,15 +415,18 @@ export default function TaskSelectionModal({
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <span className="text-sm font-medium text-gray-600">
-                                                            #{task.id}
-                                                        </span>
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                                             {task.code}
                                                         </span>
+                                                        <span className="text-sm font-medium text-gray-600">
+                                                            #{task.id}
+                                                        </span>
                                                     </div>
-                                                    {task.flowType && (
-                                                        <div className="mb-2">
+                                                    <h3 className="text-sm font-medium text-gray-900 mb-2 leading-5">
+                                                        {task.title}
+                                                    </h3>
+                                                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                        {task.flowType && (
                                                             <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
                                                                 task.flowType === 'OPERACIONAL'
                                                                     ? 'bg-purple-100 text-purple-800 border border-purple-200'
@@ -363,11 +434,26 @@ export default function TaskSelectionModal({
                                                             }`}>
                                                                 {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                                                             </span>
-                                                        </div>
-                                                    )}
-                                                    <h3 className="text-sm font-medium text-gray-900 mb-3 leading-5">
-                                                        {task.title}
-                                                    </h3>
+                                                        )}
+                                                        {task.taskType && (
+                                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                                                {formatTaskType(task.taskType, task.flowType)}
+                                                            </span>
+                                                        )}
+                                                        {task.environment && (
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                                task.environment === 'PRODUCAO'
+                                                                    ? 'bg-blue-100 text-blue-800'
+                                                                    : task.environment === 'DESENVOLVIMENTO'
+                                                                        ? 'bg-green-100 text-green-800'
+                                                                        : task.environment === 'HOMOLOGACAO'
+                                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                                            : 'bg-gray-100 text-gray-600'
+                                                            }`}>
+                                                                {formatEnvironment(task.environment)}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <button
                                                         onClick={() => handleRowClick(task)}
                                                         className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"

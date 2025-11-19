@@ -149,6 +149,8 @@ export const deliveryService = {
             title: task.title,
             code: task.code,
             flowType: task.flowType,
+            taskType: task.taskType,
+            environment: task.environment,
             amount: task.amount,
             requester: {
                 name: task.requesterName
@@ -186,6 +188,8 @@ export const deliveryService = {
             title: task.title,
             code: task.code,
             flowType: task.flowType,
+            taskType: task.taskType,
+            environment: task.environment,
             amount: task.amount,
             requester: {
                 name: task.requesterName
