@@ -335,6 +335,16 @@ const TaskList: React.FC = () => {
         return envAbbr ? `${label} - ${envAbbr}` : label;
     };
 
+    const getEnvironmentLabel = (environment?: string) => {
+        if (!environment) return '';
+        const labels: Record<string, string> = {
+            DESENVOLVIMENTO: '🔧 Desenvolvimento',
+            HOMOLOGACAO: '🧪 Homologação',
+            PRODUCAO: '🚀 Produção',
+        };
+        return labels[environment] || environment;
+    };
+
     const calculateTaskTotal = (task?: Task) => {
         if (!task) return 0;
         return parseFloat(task.amount?.toString() || '0') || 0;
@@ -1250,13 +1260,33 @@ const TaskList: React.FC = () => {
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <div>
+                            <div className="w-full">
                                 <h2 className="text-lg font-semibold text-gray-900">
                                     💰 Notificação Financeira
                                 </h2>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-gray-600 mt-1 mb-3">
                                     Tarefa: {taskForEmail.code}
                                 </p>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {taskForEmail.taskType && (
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs text-gray-500">Tipo:</span>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {getTaskTypeLabel(taskForEmail.taskType, undefined)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {taskForEmail.environment && (
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs text-gray-500">Ambiente:</span>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                {getEnvironmentLabel(taskForEmail.environment)}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
