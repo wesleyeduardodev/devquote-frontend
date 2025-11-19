@@ -121,6 +121,15 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
         return types[taskType] || taskType;
     };
 
+    const getEnvironmentLabel = (environment?: string) => {
+        if (!environment) return '-';
+        const environments: Record<string, string> = {
+            'DESENVOLVIMENTO': 'Desenvolvimento',
+            'HOMOLOGACAO': 'Homologação',
+            'PRODUCAO': 'Produção'
+        };
+        return environments[environment] || environment;
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -160,7 +169,7 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                     <div className="p-6 space-y-6">
                         {/* Informações da Tarefa */}
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <span className="text-sm font-medium text-blue-900">Fluxo:</span>
                                     <span className="text-sm text-blue-800 ml-2">
@@ -171,6 +180,12 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                     <span className="text-sm font-medium text-blue-900">Tipo de Tarefa:</span>
                                     <span className="text-sm text-blue-800 ml-2">
                                         {getTaskTypeLabel(deliveryGroup.deliveries?.[0]?.taskType)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-sm font-medium text-blue-900">Ambiente:</span>
+                                    <span className="text-sm text-blue-800 ml-2">
+                                        {getEnvironmentLabel(deliveryGroup.deliveries?.[0]?.environment)}
                                     </span>
                                 </div>
                             </div>

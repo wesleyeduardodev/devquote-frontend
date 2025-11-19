@@ -39,6 +39,7 @@ interface Delivery {
     taskName?: string;
     taskCode?: string;
     taskType?: string;
+    environment?: string;
 
     flowType?: string;
 
@@ -183,6 +184,16 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
         }
     };
 
+    const getEnvironmentLabel = (environment?: string) => {
+        if (!environment) return '-';
+        switch (environment) {
+            case 'DESENVOLVIMENTO': return '🔧 Desenvolvimento';
+            case 'HOMOLOGACAO': return '🧪 Homologação';
+            case 'PRODUCAO': return '🚀 Produção';
+            default: return environment;
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
@@ -260,6 +271,12 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                         <span className="text-sm font-medium text-blue-900">Tipo:</span>
                                         <span className="text-sm text-blue-800 ml-2">{getTaskTypeLabel(delivery.taskType)}</span>
                                     </div>
+                                    {delivery.environment && (
+                                        <div>
+                                            <span className="text-sm font-medium text-blue-900">Ambiente:</span>
+                                            <span className="text-sm text-blue-800 ml-2">{getEnvironmentLabel(delivery.environment)}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

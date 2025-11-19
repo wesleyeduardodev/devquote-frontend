@@ -215,29 +215,44 @@ const DeliveryList: React.FC = () => {
             render: (delivery: DeliveryGroupResponse) => {
 
                 const taskType = delivery.deliveries?.[0]?.taskType;
+                const environment = delivery.deliveries?.[0]?.environment;
 
-                const getTaskTypeLabel = (type: string | undefined) => {
+                const getEnvironmentAbbreviation = (env: string | undefined) => {
+                    if (!env) return '';
+                    switch (env) {
+                        case 'DESENVOLVIMENTO': return 'DEV';
+                        case 'HOMOLOGACAO': return 'HOM';
+                        case 'PRODUCAO': return 'PROD';
+                        default: return env;
+                    }
+                };
+
+                const getTaskTypeLabel = (type: string | undefined, env: string | undefined) => {
                     if (!type) return '-';
+                    let label = '';
                     switch (type) {
 
-                        case 'BACKUP': return '💾 Backup';
-                        case 'DEPLOY': return '🚀 Deploy';
-                        case 'LOGS': return '📋 Logs';
-                        case 'DATABASE_APPLICATION': return '💿 Aplicação de Banco';
-                        case 'NEW_SERVER': return '🖥️ Novo Servidor';
-                        case 'MONITORING': return '📊 Monitoramento';
-                        case 'SUPPORT': return '🔧 Suporte';
+                        case 'BACKUP': label = '💾 Backup'; break;
+                        case 'DEPLOY': label = '🚀 Deploy'; break;
+                        case 'LOGS': label = '📋 Logs'; break;
+                        case 'DATABASE_APPLICATION': label = '💿 Aplicação de Banco'; break;
+                        case 'NEW_SERVER': label = '🖥️ Novo Servidor'; break;
+                        case 'MONITORING': label = '📊 Monitoramento'; break;
+                        case 'SUPPORT': label = '🔧 Suporte'; break;
 
-                        case 'BUG': return '🐛 Bug';
-                        case 'ENHANCEMENT': return '✨ Melhoria';
-                        case 'NEW_FEATURE': return '⭐ Nova Funcionalidade';
-                        default: return type;
+                        case 'BUG': label = '🐛 Bug'; break;
+                        case 'ENHANCEMENT': label = '✨ Melhoria'; break;
+                        case 'NEW_FEATURE': label = '⭐ Nova Funcionalidade'; break;
+                        default: label = type;
                     }
+
+                    const envAbbr = getEnvironmentAbbreviation(env);
+                    return envAbbr ? `${label} - ${envAbbr}` : label;
                 };
 
                 return (
                     <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-700">
-                        {getTaskTypeLabel(taskType)}
+                        {getTaskTypeLabel(taskType, environment)}
                     </span>
                 );
             }
