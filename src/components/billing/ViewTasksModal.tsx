@@ -251,7 +251,7 @@ const ViewTasksModal: React.FC<Props> = ({
             render: (link: BillingPeriodTask) => (
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                     link?.task?.environment === 'PRODUCAO'
-                        ? 'bg-red-100 text-red-800'
+                        ? 'bg-blue-100 text-blue-800'
                         : link?.task?.environment === 'HOMOLOGACAO'
                             ? 'bg-yellow-100 text-yellow-800'
                             : link?.task?.environment === 'DESENVOLVIMENTO'
@@ -497,7 +497,7 @@ const ViewTasksModal: React.FC<Props> = ({
                                                     <span className="text-gray-600">Ambiente:</span>
                                                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                                         link?.task?.environment === 'PRODUCAO'
-                                                            ? 'bg-red-100 text-red-800'
+                                                            ? 'bg-blue-100 text-blue-800'
                                                             : link?.task?.environment === 'HOMOLOGACAO'
                                                                 ? 'bg-yellow-100 text-yellow-800'
                                                                 : link?.task?.environment === 'DESENVOLVIMENTO'

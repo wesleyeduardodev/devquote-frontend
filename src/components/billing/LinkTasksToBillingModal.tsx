@@ -263,7 +263,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             render: (task: Task) => (
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                     task.environment === 'PRODUCAO'
-                        ? 'bg-red-100 text-red-800'
+                        ? 'bg-blue-100 text-blue-800'
                         : task.environment === 'HOMOLOGACAO'
                             ? 'bg-yellow-100 text-yellow-800'
                             : task.environment === 'DESENVOLVIMENTO'
@@ -561,7 +561,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                     <span className="text-gray-600">Ambiente:</span>
                                                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                                         task.environment === 'PRODUCAO'
-                                                            ? 'bg-red-100 text-red-800'
+                                                            ? 'bg-blue-100 text-blue-800'
                                                             : task.environment === 'HOMOLOGACAO'
                                                                 ? 'bg-yellow-100 text-yellow-800'
                                                                 : task.environment === 'DESENVOLVIMENTO'
