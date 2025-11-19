@@ -2,6 +2,8 @@ import { BaseEntity } from './api.types';
 
 export type FlowType = 'DESENVOLVIMENTO' | 'OPERACIONAL';
 
+export type Environment = 'DESENVOLVIMENTO' | 'HOMOLOGACAO' | 'PRODUCAO';
+
 export type TaskType =
     | 'BUG'
     | 'ENHANCEMENT'
@@ -21,6 +23,7 @@ export interface Task extends BaseEntity {
     title: string;
     description?: string;
     flowType: FlowType;
+    environment?: Environment;
     taskType?: TaskType;
     priority?: TaskPriority;
     requesterId: number | string;
@@ -63,6 +66,7 @@ export interface CreateTaskData {
     title: string;
     description?: string;
     flowType: FlowType;
+    environment?: Environment;
     taskType?: TaskType;
     priority?: TaskPriority;
     requesterId: number | string;
@@ -140,6 +144,7 @@ export interface TaskFormData {
     title: string;
     description?: string;
     flowType: FlowType;
+    environment?: Environment;
     taskType?: TaskType;
     priority: TaskPriority;
     requesterId: string | number;

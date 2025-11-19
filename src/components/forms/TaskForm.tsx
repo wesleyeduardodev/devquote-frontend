@@ -26,6 +26,7 @@ interface TaskData {
     title: string;
     description?: string;
     flowType: string;
+    environment?: string;
     code: string;
     link?: string;
     meetingLink?: string;
@@ -52,6 +53,7 @@ const createSchema = (isEdit: boolean) => yup.object({
     title: yup.string().required('Título é obrigatório').max(200, 'Máximo 200 caracteres'),
     description: yup.string().optional(),
     flowType: yup.string().required('Tipo de fluxo é obrigatório'),
+    environment: yup.string().optional(),
     code: isEdit
         ? yup.string().required('Código é obrigatório').max(50, 'Máximo 50 caracteres')
         : yup.string().when('flowType', {
@@ -89,6 +91,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
             title: initialData?.title || '',
             description: initialData?.description || '',
             flowType: initialData?.flowType || 'DESENVOLVIMENTO',
+            environment: initialData?.environment || '',
             code: initialData?.code || '',
             link: initialData?.link || '',
             meetingLink: initialData?.meetingLink || '',
@@ -145,6 +148,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 title: initialData?.title || '',
                 description: initialData?.description || '',
                 flowType: initialData?.flowType || 'DESENVOLVIMENTO',
+                environment: initialData?.environment || '',
                 code: initialData?.code || '',
                 link: initialData?.link || '',
                 meetingLink: initialData?.meetingLink || '',
@@ -423,6 +427,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             ))}
                         </Select>
 
+                        <Select {...register('environment')} label="Ambiente" error={errors.environment?.message}>
+                            <option value="">Selecione...</option>
+                            <option value="DESENVOLVIMENTO">🔧 Desenvolvimento</option>
+                            <option value="HOMOLOGACAO">🧪 Homologação</option>
+                            <option value="PRODUCAO">🚀 Produção</option>
+                        </Select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             {...register('systemModule')}
                             label="Módulo do Sistema"
@@ -430,15 +443,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
                             error={errors.systemModule?.message}
                             maxLength={100}
                         />
-                    </div>
 
-                    <Input
-                        {...register('serverOrigin')}
-                        label="Servidor de Origem"
-                        placeholder="Ex: Produção, Homologação, Desenvolvimento..."
-                        error={errors.serverOrigin?.message}
-                        maxLength={100}
-                    />
+                        <Input
+                            {...register('serverOrigin')}
+                            label="Servidor de Origem"
+                            placeholder="Ex: Produção, Homologação, Desenvolvimento..."
+                            error={errors.serverOrigin?.message}
+                            maxLength={100}
+                        />
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>

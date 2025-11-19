@@ -296,7 +296,17 @@ const TaskList: React.FC = () => {
         return labels[priority] || priority;
     };
 
-    const getTaskTypeLabel = (taskType?: string) => {
+    const getEnvironmentAbbreviation = (environment?: string) => {
+        if (!environment) return '';
+        const abbreviations: Record<string, string> = {
+            DESENVOLVIMENTO: 'DEV',
+            HOMOLOGACAO: 'HOM',
+            PRODUCAO: 'PROD',
+        };
+        return abbreviations[environment] || environment;
+    };
+
+    const getTaskTypeLabel = (taskType?: string, environment?: string) => {
         if (!taskType) return '-';
         const labels: Record<string, string> = {
             BUG: '🐛 Bug',
@@ -319,7 +329,9 @@ const TaskList: React.FC = () => {
             DATABASE: '🗄️ Banco de Dados',
             INFRASTRUCTURE: '🏗️ Infraestrutura',
         };
-        return labels[taskType] || taskType;
+        const label = labels[taskType] || taskType;
+        const envAbbr = getEnvironmentAbbreviation(environment);
+        return envAbbr ? `${label} - ${envAbbr}` : label;
     };
 
     const calculateTaskTotal = (task?: Task) => {
@@ -482,7 +494,7 @@ const TaskList: React.FC = () => {
             align: 'center' as const,
             render: (item) => (
                 <span className="text-sm text-gray-700">
-                    {getTaskTypeLabel(item.taskType)}
+                    {getTaskTypeLabel(item.taskType, item.environment)}
                 </span>
             ),
             hideable: true,
@@ -842,8 +854,8 @@ const TaskList: React.FC = () => {
                             {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                         </span>
                         {task.taskType && (
-                            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded truncate max-w-[150px]" title={getTaskTypeLabel(task.taskType)}>
-                                {getTaskTypeLabel(task.taskType)}
+                            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded truncate max-w-[150px]" title={getTaskTypeLabel(task.taskType, task.environment)}>
+                                {getTaskTypeLabel(task.taskType, task.environment)}
                             </span>
                         )}
                     </div>
