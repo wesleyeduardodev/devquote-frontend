@@ -185,10 +185,10 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         setCurrentPage(0);
     }, []);
 
-    const exportToExcel = useCallback(async (flowType: string) => {
+    const exportToExcel = useCallback(async (flowType: string, canViewAmounts?: boolean) => {
         try {
             setExporting(true);
-            const response = await deliveryService.exportToExcelWithResponse(flowType);
+            const response = await deliveryService.exportToExcelWithResponse(flowType, canViewAmounts);
 
             const contentDisposition = response.headers['content-disposition'];
             const flowLabel = flowType === 'DESENVOLVIMENTO' ? 'desenvolvimento' : 'operacional';

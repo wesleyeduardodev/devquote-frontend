@@ -452,8 +452,8 @@ const DeliveryList: React.FC = () => {
         }
     };
 
-    const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO');
-    const handleExportOperational = () => exportToExcel('OPERACIONAL');
+    const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO', canViewValues);
+    const handleExportOperational = () => exportToExcel('OPERACIONAL', canViewValues);
 
     const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
         setGroupForEmail(group);

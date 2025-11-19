@@ -234,10 +234,13 @@ export const deliveryService = {
         return response.data;
     },
 
-    exportToExcel: async (flowType?: string): Promise<Blob> => {
+    exportToExcel: async (flowType?: string, canViewAmounts?: boolean): Promise<Blob> => {
         const params: any = {};
         if (flowType && flowType !== 'TODOS') {
             params.flowType = flowType;
+        }
+        if (canViewAmounts !== undefined) {
+            params.canViewAmounts = canViewAmounts;
         }
         const response = await api.get('/deliveries/export/excel', {
             params,
@@ -246,10 +249,13 @@ export const deliveryService = {
         return response.data;
     },
 
-    exportToExcelWithResponse: async (flowType?: string): Promise<{ data: Blob; headers: any }> => {
+    exportToExcelWithResponse: async (flowType?: string, canViewAmounts?: boolean): Promise<{ data: Blob; headers: any }> => {
         const params: any = {};
         if (flowType && flowType !== 'TODOS') {
             params.flowType = flowType;
+        }
+        if (canViewAmounts !== undefined) {
+            params.canViewAmounts = canViewAmounts;
         }
         const response = await api.get('/deliveries/export/excel', {
             params,
