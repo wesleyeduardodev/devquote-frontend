@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -48,6 +48,7 @@ const DeliveryList: React.FC = () => {
     const canCreate = isAdmin;
     const canEdit = isAdmin;
     const canDelete = isAdmin;
+    const canViewValues = isAdmin || isManager;
 
     const [statistics, setStatistics] = useState<DeliveryStatusCount | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -285,6 +286,22 @@ const DeliveryList: React.FC = () => {
             ),
             width: '240px'
         },
+        ...(canViewValues ? [{
+            key: 'task.amount',
+            title: 'VALOR',
+            sortable: true,
+            filterable: false,
+            align: 'center' as const,
+            render: (delivery: DeliveryGroupResponse) => (
+                <div className="flex items-center justify-center gap-1">
+                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-600">
+                        {formatCurrency(delivery.taskValue)}
+                    </span>
+                </div>
+            ),
+            width: '120px'
+        }] : []),
         {
             key: 'deliveryStatus',
             title: 'Status',
@@ -545,6 +562,10 @@ const DeliveryList: React.FC = () => {
         return labels[status] || status;
     };
 
+    const formatCurrency = (value?: number) => {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+    };
+
     const renderStatisticsCards = () => {
         if (!statistics) return null;
 
@@ -734,6 +755,16 @@ const DeliveryList: React.FC = () => {
                                             {delivery.taskName || 'N/A'}
                                         </h3>
                                     </div>
+
+                                    {/* Valor - apenas para ADMIN e MANAGER */}
+                                    {canViewValues && (
+                                        <div className="flex items-center gap-1 text-sm">
+                                            <DollarSign className="w-4 h-4 text-green-600" />
+                                            <span className="font-medium text-green-600">
+                                                {formatCurrency(delivery.taskValue)}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     {/* Ações + Informações - na mesma linha para economizar espaço */}
                                     <div className="flex items-center justify-between">
