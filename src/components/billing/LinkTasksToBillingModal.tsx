@@ -16,6 +16,8 @@ interface Task {
     amount: number;
     requesterName: string;
     flowType: string;
+    taskType?: string;
+    environment?: string;
     createdAt: string;
 }
 
@@ -138,9 +140,36 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
         setCurrentPage(0);
     }, [pageSize]);
 
+    const formatTaskType = (taskType?: string): string => {
+        if (!taskType) return '-';
+        const types: Record<string, string> = {
+            'BUG': 'Bug',
+            'ENHANCEMENT': 'Melhoria',
+            'NEW_FEATURE': 'Nova Funcionalidade',
+            'BACKUP': 'Backup',
+            'DEPLOY': 'Deploy',
+            'LOGS': 'Logs',
+            'NOVO_SERVIDOR': 'Novo Servidor',
+            'MONITORING': 'Monitoramento',
+            'SUPPORT': 'Suporte'
+        };
+        return types[taskType] || taskType;
+    };
+
+    const formatEnvironment = (environment?: string): string => {
+        if (!environment) return '-';
+        const envs: Record<string, string> = {
+            'DESENVOLVIMENTO': 'Desenvolvimento',
+            'HOMOLOGACAO': 'Homologação',
+            'PRODUCAO': 'Produção'
+        };
+        return envs[environment] || environment;
+    };
+
     const columns = [
         {
             key: 'selection',
+            width: '40px',
             header: (
                 <input
                     type="checkbox"
@@ -202,7 +231,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             header: 'Fluxo',
             sortable: true,
             filterable: true,
-            width: '144px',
+            width: '130px',
             render: (task: Task) => (
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     task.flowType === 'DESENVOLVIMENTO'
@@ -214,13 +243,46 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             )
         },
         {
+            key: 'taskType',
+            header: 'Tipo',
+            sortable: true,
+            filterable: true,
+            width: '150px',
+            render: (task: Task) => (
+                <span className="text-xs text-gray-700">
+                    {formatTaskType(task.taskType)}
+                </span>
+            )
+        },
+        {
+            key: 'environment',
+            header: 'Ambiente',
+            sortable: true,
+            filterable: true,
+            width: '130px',
+            render: (task: Task) => (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    task.environment === 'PRODUCAO'
+                        ? 'bg-red-100 text-red-800'
+                        : task.environment === 'HOMOLOGACAO'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : task.environment === 'DESENVOLVIMENTO'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-600'
+                }`}>
+                    {formatEnvironment(task.environment)}
+                </span>
+            )
+        },
+        {
             key: 'title',
             header: 'Título',
             sortable: true,
             filterable: true,
+            width: '300px',
             render: (task: Task) => (
                 <span
-                    className="font-medium block truncate max-w-xs cursor-help"
+                    className="font-medium block truncate cursor-help"
                     title={task.title}
                 >
                     {task.title}
@@ -231,8 +293,9 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             key: 'amount',
             header: 'Valor',
             sortable: true,
+            width: '100px',
             render: (task: Task) => (
-                <span className="font-semibold text-green-600">
+                <span className="font-semibold text-green-600 text-sm">
                     R$ {task.amount?.toFixed(2) || '0,00'}
                 </span>
             )
@@ -243,7 +306,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[75vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[75vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
                     <div className="flex items-center justify-between">
@@ -283,6 +346,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                 <th
                                                     key={column.key}
                                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                                    style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : undefined}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         {typeof column.header === 'string' ? column.header : column.header}
@@ -303,7 +367,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                         <div className="mt-1">
                                                             <input
                                                                 type="text"
-                                                                placeholder="Filtrar..."
+                                                                placeholder={column.key === 'id' ? 'Fi' : 'Filtrar...'}
                                                                 value={filters[column.key] || ''}
                                                                 onChange={(e) => setFilters(prev => ({ ...prev, [column.key]: e.target.value }))}
                                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -325,7 +389,11 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                             tasks.map((task) => (
                                                 <tr key={task.id} className="hover:bg-gray-50">
                                                     {columns.map((column) => (
-                                                        <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        <td
+                                                            key={column.key}
+                                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                            style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : undefined}
+                                                        >
                                                             {column.render(task)}
                                                         </td>
                                                     ))}
@@ -481,6 +549,26 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                             : 'bg-purple-100 text-purple-800'
                                                     }`}>
                                                         {task.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-600">Tipo:</span>
+                                                    <span className="text-gray-800 text-xs font-medium">
+                                                        {formatTaskType(task.taskType)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-600">Ambiente:</span>
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                        task.environment === 'PRODUCAO'
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : task.environment === 'HOMOLOGACAO'
+                                                                ? 'bg-yellow-100 text-yellow-800'
+                                                                : task.environment === 'DESENVOLVIMENTO'
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                        {formatEnvironment(task.environment)}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">

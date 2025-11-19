@@ -11,6 +11,8 @@ interface Task {
     amount: number;
     requesterName: string;
     flowType: string;
+    taskType?: string;
+    environment?: string;
     createdAt: string;
 }
 
@@ -165,14 +167,41 @@ const ViewTasksModal: React.FC<Props> = ({
         return path.split('.').reduce((current, key) => current?.[key], obj);
     };
 
+    const formatTaskType = (taskType?: string): string => {
+        if (!taskType) return '-';
+        const types: Record<string, string> = {
+            'BUG': 'Bug',
+            'ENHANCEMENT': 'Melhoria',
+            'NEW_FEATURE': 'Nova Funcionalidade',
+            'BACKUP': 'Backup',
+            'DEPLOY': 'Deploy',
+            'LOGS': 'Logs',
+            'NOVO_SERVIDOR': 'Novo Servidor',
+            'MONITORING': 'Monitoramento',
+            'SUPPORT': 'Suporte'
+        };
+        return types[taskType] || taskType;
+    };
+
+    const formatEnvironment = (environment?: string): string => {
+        if (!environment) return '-';
+        const envs: Record<string, string> = {
+            'DESENVOLVIMENTO': 'Desenvolvimento',
+            'HOMOLOGACAO': 'Homologação',
+            'PRODUCAO': 'Produção'
+        };
+        return envs[environment] || environment;
+    };
+
     const columns = [
         {
             key: 'task.id',
             header: 'ID',
             sortable: true,
             filterable: true,
+            width: '60px',
             render: (link: BillingPeriodTask) => (
-                <span className="font-mono text-sm text-gray-500">#{link?.task?.id}</span>
+                <span className="font-mono text-xs text-gray-500">#{link?.task?.id}</span>
             )
         },
         {
@@ -180,8 +209,9 @@ const ViewTasksModal: React.FC<Props> = ({
             header: 'Código',
             sortable: true,
             filterable: true,
+            width: '100px',
             render: (link: BillingPeriodTask) => (
-                <span className="font-mono text-sm">{link?.task?.code}</span>
+                <span className="font-mono text-xs">{link?.task?.code}</span>
             )
         },
         {
@@ -189,7 +219,7 @@ const ViewTasksModal: React.FC<Props> = ({
             header: 'Fluxo',
             sortable: true,
             filterable: true,
-            className: 'w-36 min-w-[144px] max-w-[144px]',
+            width: '130px',
             render: (link: BillingPeriodTask) => (
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     link?.task?.flowType === 'DESENVOLVIMENTO'
@@ -201,13 +231,46 @@ const ViewTasksModal: React.FC<Props> = ({
             )
         },
         {
+            key: 'task.taskType',
+            header: 'Tipo',
+            sortable: true,
+            filterable: true,
+            width: '150px',
+            render: (link: BillingPeriodTask) => (
+                <span className="text-xs text-gray-700">
+                    {formatTaskType(link?.task?.taskType)}
+                </span>
+            )
+        },
+        {
+            key: 'task.environment',
+            header: 'Ambiente',
+            sortable: true,
+            filterable: true,
+            width: '130px',
+            render: (link: BillingPeriodTask) => (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    link?.task?.environment === 'PRODUCAO'
+                        ? 'bg-red-100 text-red-800'
+                        : link?.task?.environment === 'HOMOLOGACAO'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : link?.task?.environment === 'DESENVOLVIMENTO'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-600'
+                }`}>
+                    {formatEnvironment(link?.task?.environment)}
+                </span>
+            )
+        },
+        {
             key: 'task.title',
             header: 'Título',
             sortable: true,
             filterable: true,
+            width: '300px',
             render: (link: BillingPeriodTask) => (
                 <span
-                    className="font-medium block truncate max-w-xs"
+                    className="font-medium block truncate cursor-help"
                     title={link?.task?.title}
                 >
                     {link?.task?.title}
@@ -218,8 +281,9 @@ const ViewTasksModal: React.FC<Props> = ({
             key: 'task.amount',
             header: 'Valor',
             sortable: true,
+            width: '100px',
             render: (link: BillingPeriodTask) => (
-                <span className="font-semibold text-green-600">
+                <span className="font-semibold text-green-600 text-sm">
                     R$ {link?.task?.amount?.toFixed(2) || '0,00'}
                 </span>
             )
@@ -230,7 +294,7 @@ const ViewTasksModal: React.FC<Props> = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[75vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[75vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
                     <div className="flex items-center justify-between">
@@ -271,6 +335,7 @@ const ViewTasksModal: React.FC<Props> = ({
                                                 <th
                                                     key={column.key}
                                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                                    style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : undefined}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         {column.header}
@@ -294,7 +359,7 @@ const ViewTasksModal: React.FC<Props> = ({
                                                         <div className="mt-1">
                                                             <input
                                                                 type="text"
-                                                                placeholder="Filtrar..."
+                                                                placeholder={column.key === 'task.id' ? 'Fi' : 'Filtrar...'}
                                                                 value={filters[column.key] || ''}
                                                                 onChange={(e) => setFilters(prev => ({ ...prev, [column.key]: e.target.value }))}
                                                                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -316,7 +381,11 @@ const ViewTasksModal: React.FC<Props> = ({
                                             filteredTasks.map((link, index) => (
                                                 <tr key={link?.task?.id || index} className="hover:bg-gray-50">
                                                     {columns.map((column) => (
-                                                        <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        <td
+                                                            key={column.key}
+                                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                            style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : undefined}
+                                                        >
                                                             {column.render(link)}
                                                         </td>
                                                     ))}
@@ -416,6 +485,26 @@ const ViewTasksModal: React.FC<Props> = ({
                                                             : 'bg-purple-100 text-purple-800'
                                                     }`}>
                                                         {link?.task?.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-600">Tipo:</span>
+                                                    <span className="text-gray-800 text-xs font-medium">
+                                                        {formatTaskType(link?.task?.taskType)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-600">Ambiente:</span>
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                        link?.task?.environment === 'PRODUCAO'
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : link?.task?.environment === 'HOMOLOGACAO'
+                                                                ? 'bg-yellow-100 text-yellow-800'
+                                                                : link?.task?.environment === 'DESENVOLVIMENTO'
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                        {formatEnvironment(link?.task?.environment)}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
