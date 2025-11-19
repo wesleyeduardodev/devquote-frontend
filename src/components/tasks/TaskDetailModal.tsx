@@ -51,6 +51,7 @@ interface Task {
     priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     taskType?: string;
     flowType?: 'DESENVOLVIMENTO' | 'OPERACIONAL';
+    environment?: 'DESENVOLVIMENTO' | 'HOMOLOGACAO' | 'PRODUCAO';
     serverOrigin?: string;
     systemModule?: string;
     estimatedHours?: number;
@@ -184,7 +185,15 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
         }
     };
 
-
+    const getEnvironmentLabel = (environment?: string) => {
+        if (!environment) return null;
+        switch (environment) {
+            case 'DESENVOLVIMENTO': return '🔧 Desenvolvimento';
+            case 'HOMOLOGACAO': return '🧪 Homologação';
+            case 'PRODUCAO': return '🚀 Produção';
+            default: return environment;
+        }
+    };
 
     const completedSubtasks = task.subtasks?.filter(st => st.completed).length || 0;
     const totalSubtasks = task.subtasks?.length || 0;
@@ -283,6 +292,15 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             <span className="text-xs text-gray-500">Tipo:</span>
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 {getTaskTypeLabel(task.taskType)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {task.environment && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">Ambiente:</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                {getEnvironmentLabel(task.environment)}
                                             </span>
                                         </div>
                                     )}
