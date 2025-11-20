@@ -446,7 +446,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                         <Input
                             {...register('serverOrigin')}
-                            label="Servidor de Origem"
+                            label="Servidor"
                             placeholder="Ex: Produção, Homologação, Desenvolvimento..."
                             error={errors.serverOrigin?.message}
                             maxLength={100}

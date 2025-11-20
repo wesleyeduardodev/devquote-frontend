@@ -27,7 +27,7 @@ const deliveryItemSchema = yup.object({
     branch: yup.string().optional(),
     sourceBranch: yup.string().optional(),
     pullRequest: yup.string().url('Deve ser uma URL válida').optional(),
-    startedAt: yup.string().optional(),
+    startedAt: yup.string().required('Data de início é obrigatória'),
     finishedAt: yup.string().optional(),
     notes: yup.string().optional()
 });
@@ -87,7 +87,9 @@ export default function DeliveryItemForm({
             reset({
                 ...initialData,
                 projectId: project.id,
-                projectName: project.name
+                projectName: project.name,
+                startedAt: initialData.startedAt ? initialData.startedAt.substring(0, 16) : '',
+                finishedAt: initialData.finishedAt ? initialData.finishedAt.substring(0, 16) : ''
             });
         }
     }, [initialData, project, reset]);
@@ -322,7 +324,7 @@ export default function DeliveryItemForm({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Data de Início
+                                Data de Início *
                             </label>
                             <Input
                                 {...register('startedAt')}
@@ -330,6 +332,9 @@ export default function DeliveryItemForm({
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
+                            {errors.startedAt && (
+                                <p className="mt-1 text-sm text-red-600">{errors.startedAt.message}</p>
+                            )}
                         </div>
 
                         <div>

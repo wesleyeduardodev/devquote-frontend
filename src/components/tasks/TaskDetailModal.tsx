@@ -351,7 +351,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                         {task.serverOrigin && (
                                             <div>
                                                 <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                                                    🖥️ Servidor de Origem
+                                                    🖥️ Servidor
                                                 </p>
                                                 <p className="text-gray-700 bg-gray-100 px-3 py-2 rounded">{task.serverOrigin}</p>
                                             </div>

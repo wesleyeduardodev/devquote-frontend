@@ -30,7 +30,7 @@ const operationalItemSchema = yup.object({
     title: yup.string().required('Título é obrigatório'),
     description: yup.string().optional(),
     status: yup.string().oneOf(['PENDING', 'DELIVERED']).required('Status é obrigatório'),
-    startedAt: yup.string().optional(),
+    startedAt: yup.string().required('Data de início é obrigatória'),
     finishedAt: yup.string().optional()
 });
 
@@ -75,7 +75,11 @@ export default function DeliveryOperationalItemForm({
 
     useEffect(() => {
         if (initialData) {
-            reset(initialData);
+            reset({
+                ...initialData,
+                startedAt: initialData.startedAt ? initialData.startedAt.substring(0, 16) : '',
+                finishedAt: initialData.finishedAt ? initialData.finishedAt.substring(0, 16) : ''
+            });
         }
     }, [initialData, reset]);
 
@@ -284,7 +288,7 @@ export default function DeliveryOperationalItemForm({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Data de Início
+                                Data de Início *
                             </label>
                             <Input
                                 {...register('startedAt')}
@@ -292,6 +296,9 @@ export default function DeliveryOperationalItemForm({
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
+                            {errors.startedAt && (
+                                <p className="mt-1 text-sm text-red-600">{errors.startedAt.message}</p>
+                            )}
                         </div>
 
                         <div>

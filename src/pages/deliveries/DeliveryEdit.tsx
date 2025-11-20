@@ -89,6 +89,12 @@ const DeliveryEdit: React.FC = () => {
         return envConfig[environment] || { label: environment, colorClass: 'bg-gray-100 text-gray-800 border-gray-200' };
     };
 
+    const formatDateTimeForInput = (dateTime: string | undefined): string => {
+        if (!dateTime) return '';
+        // Remove seconds from datetime string (2025-11-20T11:01:19 -> 2025-11-20T11:01)
+        return dateTime.substring(0, 16);
+    };
+
     useEffect(() => {
         if (deliveryId) {
             loadDeliveryData();
@@ -148,8 +154,8 @@ const DeliveryEdit: React.FC = () => {
                         sourceBranch: item.sourceBranch || '',
                         pullRequest: item.pullRequest || '',
                         script: item.script || '',
-                        startedAt: item.startedAt || '',
-                        finishedAt: item.finishedAt || '',
+                        startedAt: formatDateTimeForInput(item.startedAt),
+                        finishedAt: formatDateTimeForInput(item.finishedAt),
                         notes: item.notes || ''
                     });
                     projectIds.push(item.projectId);
@@ -226,14 +232,14 @@ const DeliveryEdit: React.FC = () => {
                     deliveryId: newItem.deliveryId,
                     projectId: newItem.projectId,
                     projectName: project.name,
-                    status: 'PENDING',
-                    branch: '',
-                    sourceBranch: '',
-                    pullRequest: '',
-                    script: '',
-                    startedAt: '',
-                    finishedAt: '',
-                    notes: ''
+                    status: newItem.status,
+                    branch: newItem.branch || '',
+                    sourceBranch: newItem.sourceBranch || '',
+                    pullRequest: newItem.pullRequest || '',
+                    script: newItem.script || '',
+                    startedAt: formatDateTimeForInput(newItem.startedAt),
+                    finishedAt: formatDateTimeForInput(newItem.finishedAt),
+                    notes: newItem.notes || ''
                 });
                 setItemsFormData(newFormData);
             }
