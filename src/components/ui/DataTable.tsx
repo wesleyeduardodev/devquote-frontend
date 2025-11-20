@@ -307,7 +307,7 @@ const DataTable = <T extends Record<string, any>>({
         );
     };
 
-    const pageSizeOptions = [5, 10, 25, 50, 100];
+    const pageSizeOptions = [5, 10, 25, 50, 100, 250, 500];
 
     const renderPaginationInfo = () => {
         if (!pagination || 

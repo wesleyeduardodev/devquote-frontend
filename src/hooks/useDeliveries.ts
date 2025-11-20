@@ -53,7 +53,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
     const [error, setError] = useState<string | null>(null);
     const [exporting, setExporting] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(initialParams?.page || 0);
-    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 25);
+    const [pageSize, setCurrentPageSize] = useState(initialParams?.size || 100);
     const [sorting, setSortingState] = useState<SortInfo[]>(initialParams?.sort || [
         { field: 'task.id', direction: 'desc' }
     ]);
