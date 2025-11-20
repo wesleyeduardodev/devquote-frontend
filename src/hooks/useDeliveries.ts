@@ -73,6 +73,13 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
 
             const apiFilters: DeliveryFilters = {};
 
+            // Helper function to convert dd/MM/yyyy to yyyy-MM-dd
+            const convertDateFormat = (dateStr: string): string | undefined => {
+                if (!dateStr || dateStr.length !== 10) return undefined;
+                const [day, month, year] = dateStr.split('/');
+                return `${year}-${month}-${day}`;
+            };
+
             Object.entries(currentFilters).forEach(([key, value]) => {
                 if (!value || value.toString().trim() === '') {
                     return;
@@ -83,7 +90,7 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
                         const convertStatusLabelToEnum = (label: string): string | undefined => {
                             const labelToEnum: Record<string, string> = {
                                 'Pendente': 'PENDING',
-                                'Desenvolvimento': 'DEVELOPMENT', 
+                                'Desenvolvimento': 'DEVELOPMENT',
                                 'Entregue': 'DELIVERED',
                                 'Homologação': 'HOMOLOGATION',
                                 'Aprovado': 'APPROVED',
@@ -103,9 +110,24 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
                     case 'task.id':
                         apiFilters.taskId = parseInt(value as string, 10);
                         break;
+                    case 'startDate':
+                        const formattedStartDate = convertDateFormat(value as string);
+                        if (formattedStartDate) {
+                            apiFilters.startDate = formattedStartDate;
+                        }
+                        break;
+                    case 'endDate':
+                        const formattedEndDate = convertDateFormat(value as string);
+                        if (formattedEndDate) {
+                            apiFilters.endDate = formattedEndDate;
+                        }
+                        break;
                     case 'taskId':
                     case 'taskName':
                     case 'taskCode':
+                    case 'flowType':
+                    case 'taskType':
+                    case 'environment':
                     case 'status':
                     case 'createdAt':
                     case 'updatedAt':

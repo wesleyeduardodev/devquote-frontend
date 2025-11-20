@@ -123,6 +123,11 @@ export interface DeliveryFilters {
     taskId?: number;
     taskName?: string;
     taskCode?: string;
+    flowType?: string;
+    taskType?: string;
+    environment?: string;
+    startDate?: string;
+    endDate?: string;
     createdAt?: string;
     updatedAt?: string;
 }

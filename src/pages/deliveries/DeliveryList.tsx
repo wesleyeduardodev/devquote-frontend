@@ -21,6 +21,9 @@ import DeliveryGroupModal from '../../components/deliveries/DeliveryGroupModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import { FlowTypeFilter, FlowTypeFilterValue } from '../../components/filters/FlowTypeFilter';
+import { TaskTypeFilter, TaskTypeFilterValue } from '../../components/filters/TaskTypeFilter';
+import { EnvironmentFilter, EnvironmentFilterValue } from '../../components/filters/EnvironmentFilter';
+import { DateRangeFilter } from '../../components/filters/DateRangeFilter';
 
 const DeliveryList: React.FC = () => {
     const navigate = useNavigate();
@@ -681,11 +684,29 @@ const DeliveryList: React.FC = () => {
         <div className="space-y-6">
             {/* Header - Responsivo: Vertical no mobile, Horizontal no desktop */}
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                {/* Filtro e Ações em lote */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                {/* Filtros */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-wrap">
                     <FlowTypeFilter
                         value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
                         onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
+                    />
+
+                    <TaskTypeFilter
+                        value={(filters.taskType as TaskTypeFilterValue) || 'TODOS'}
+                        onChange={(value) => setFilter('taskType', value === 'TODOS' ? '' : value)}
+                        flowType={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
+                    />
+
+                    <EnvironmentFilter
+                        value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
+                        onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
+                    />
+
+                    <DateRangeFilter
+                        startDate={filters.startDate || ''}
+                        endDate={filters.endDate || ''}
+                        onStartDateChange={(date) => setFilter('startDate', date)}
+                        onEndDateChange={(date) => setFilter('endDate', date)}
                     />
 
                     {/* Ações em lote - visível apenas se houver seleções */}
