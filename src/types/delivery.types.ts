@@ -36,6 +36,9 @@ export interface Delivery extends BaseEntity {
     approvedCount?: number;
     rejectedCount?: number;
     productionCount?: number;
+    startedAt?: string;
+    finishedAt?: string;
+    deliveryEmailSent?: boolean;
     notes?: string;
     items?: DeliveryItem[];
     operationalItems?: any[];

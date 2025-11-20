@@ -191,6 +191,40 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                             </div>
                         </div>
 
+                        {/* Cronograma da Entrega */}
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h3 className="text-sm font-semibold text-green-900 mb-3 flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-green-600" />
+                                Cronograma da Entrega
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="text-sm font-medium text-green-900 flex items-center gap-1">
+                                        <Play className="w-3 h-3" />
+                                        Data Início:
+                                    </span>
+                                    <span className="text-sm text-green-800 block mt-1 font-medium">
+                                        {deliveryGroup.deliveries?.[0]?.startedAt
+                                            ? formatDate(deliveryGroup.deliveries[0].startedAt)
+                                            : 'Não informado'
+                                        }
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-sm font-medium text-green-900 flex items-center gap-1">
+                                        <Flag className="w-3 h-3" />
+                                        Data Fim:
+                                    </span>
+                                    <span className="text-sm text-green-800 block mt-1 font-medium">
+                                        {deliveryGroup.deliveries?.[0]?.finishedAt
+                                            ? formatDate(deliveryGroup.deliveries[0].finishedAt)
+                                            : 'Não informado'
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Itens de Entrega */}
                         <div>
                             {(() => {

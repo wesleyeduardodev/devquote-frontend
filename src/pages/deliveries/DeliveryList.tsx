@@ -60,6 +60,8 @@ const DeliveryList: React.FC = () => {
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['totalItems']);
+
     const [showDeliveryEmailModal, setShowDeliveryEmailModal] = useState(false);
     const [groupForEmail, setGroupForEmail] = useState<DeliveryGroupResponse | null>(null);
     const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
@@ -294,13 +296,13 @@ const DeliveryList: React.FC = () => {
             align: 'center' as const,
             render: (delivery: DeliveryGroupResponse) => (
                 <div className="flex items-center justify-center gap-1">
-                    <DollarSign className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-600">
+                    <DollarSign className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-xs font-medium text-green-600 whitespace-nowrap">
                         {formatCurrency(delivery.taskValue)}
                     </span>
                 </div>
             ),
-            width: '120px'
+            width: '110px'
         }] : []),
         {
             key: 'deliveryStatus',
@@ -323,12 +325,50 @@ const DeliveryList: React.FC = () => {
                 const status = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING';
                 const statusColor = getStatusColor(status);
                 return (
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusColor}`}>
                         {getStatusLabel(status)}
                     </span>
                 );
             },
-            width: '120px'
+            width: '110px'
+        },
+        {
+            key: 'startedAt',
+            title: 'Data Início',
+            sortable: true,
+            render: (delivery) => {
+                const startedAt = delivery.deliveries?.[0]?.startedAt;
+                if (!startedAt) return <div className="text-center text-xs text-gray-700">-</div>;
+
+                const date = new Date(startedAt);
+                const formatted = `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                return (
+                    <div className="text-center text-xs text-gray-700 whitespace-nowrap">
+                        {formatted}
+                    </div>
+                );
+            },
+            width: '130px',
+            align: 'center'
+        },
+        {
+            key: 'finishedAt',
+            title: 'Data Fim',
+            sortable: true,
+            render: (delivery) => {
+                const finishedAt = delivery.deliveries?.[0]?.finishedAt;
+                if (!finishedAt) return <div className="text-center text-xs text-gray-700">-</div>;
+
+                const date = new Date(finishedAt);
+                const formatted = `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                return (
+                    <div className="text-center text-xs text-gray-700 whitespace-nowrap">
+                        {formatted}
+                    </div>
+                );
+            },
+            width: '130px',
+            align: 'center'
         },
         {
             key: 'totalItems',
@@ -395,7 +435,7 @@ const DeliveryList: React.FC = () => {
                     )}
                 </div>
             ),
-            width: '180px',
+            width: '150px',
             align: 'center'
         }
     ];
@@ -827,10 +867,30 @@ const DeliveryList: React.FC = () => {
                                     </div>
 
                                     {/* Informações Adicionais */}
-                                    <div className="flex items-center gap-4 text-sm text-gray-600 pt-2 border-t border-gray-100">
-                                        <div className="flex items-center gap-2">
-                                            <Package className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                            <span>{delivery.totalItems || 0} item(s)</span>
+                                    <div className="flex flex-col gap-2 text-sm text-gray-600 pt-2 border-t border-gray-100">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-medium text-gray-700">Data Início:</span>
+                                            <span>
+                                                {delivery.deliveries?.[0]?.startedAt
+                                                    ? (() => {
+                                                        const date = new Date(delivery.deliveries[0].startedAt);
+                                                        return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                                                    })()
+                                                    : '-'
+                                                }
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-medium text-gray-700">Data Fim:</span>
+                                            <span>
+                                                {delivery.deliveries?.[0]?.finishedAt
+                                                    ? (() => {
+                                                        const date = new Date(delivery.deliveries[0].finishedAt);
+                                                        return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                                                    })()
+                                                    : '-'
+                                                }
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -932,6 +992,8 @@ const DeliveryList: React.FC = () => {
                     filters={filters}
                     onFilter={setFilter}
                     onClearFilters={clearFilters}
+                    hiddenColumns={hiddenColumns}
+                    onColumnVisibilityChange={setHiddenColumns}
                     emptyState={{
                         icon: Package,
                         title: 'Nenhuma entrega criada',
