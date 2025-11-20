@@ -95,6 +95,15 @@ const DeliveryEdit: React.FC = () => {
         return dateTime.substring(0, 16);
     };
 
+    const formatDateTimeForAPI = (dateTime: string | undefined): string | undefined => {
+        if (!dateTime) return undefined;
+        // Add seconds if not present (2025-11-20T11:01 -> 2025-11-20T11:01:00)
+        if (dateTime.length === 16) {
+            return dateTime + ':00';
+        }
+        return dateTime;
+    };
+
     useEffect(() => {
         if (deliveryId) {
             loadDeliveryData();
@@ -195,8 +204,8 @@ const DeliveryEdit: React.FC = () => {
                 sourceBranch: data.sourceBranch,
                 pullRequest: data.pullRequest,
                 script: data.script,
-                startedAt: data.startedAt,
-                finishedAt: data.finishedAt,
+                startedAt: formatDateTimeForAPI(data.startedAt),
+                finishedAt: formatDateTimeForAPI(data.finishedAt),
                 notes: data.notes
             });
 
@@ -314,8 +323,8 @@ const DeliveryEdit: React.FC = () => {
                 title: data.title,
                 description: data.description,
                 status: data.status,
-                startedAt: data.startedAt,
-                finishedAt: data.finishedAt
+                startedAt: formatDateTimeForAPI(data.startedAt),
+                finishedAt: formatDateTimeForAPI(data.finishedAt)
             });
 
             setOperationalItems(operationalItems.map(item => item.id === itemId ? updated : item));
