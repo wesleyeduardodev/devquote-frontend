@@ -29,6 +29,9 @@ import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { FlowTypeFilter, FlowTypeFilterValue } from '@/components/filters/FlowTypeFilter';
+import { TaskTypeFilter, TaskTypeFilterValue } from '@/components/filters/TaskTypeFilter';
+import { EnvironmentFilter, EnvironmentFilterValue } from '@/components/filters/EnvironmentFilter';
+import { DateRangeFilter } from '@/components/filters/DateRangeFilter';
 import toast from 'react-hot-toast';
 
 interface SubTask {
@@ -1004,11 +1007,29 @@ const TaskList: React.FC = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                {/* Filtro */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                {/* Filtros */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-wrap">
                     <FlowTypeFilter
                         value={flowType}
                         onChange={setFlowType}
+                    />
+
+                    <TaskTypeFilter
+                        value={(filters.taskType as TaskTypeFilterValue) || 'TODOS'}
+                        onChange={(value) => setFilter('taskType', value === 'TODOS' ? '' : value)}
+                        flowType={flowType}
+                    />
+
+                    <EnvironmentFilter
+                        value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
+                        onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
+                    />
+
+                    <DateRangeFilter
+                        startDate={filters.startDate || ''}
+                        endDate={filters.endDate || ''}
+                        onStartDateChange={(date) => setFilter('startDate', date)}
+                        onEndDateChange={(date) => setFilter('endDate', date)}
                     />
                 </div>
 

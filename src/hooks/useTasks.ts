@@ -77,6 +77,11 @@ interface FilterParams {
     link?: string;
     meetingLink?: string;
     notes?: string;
+    flowType?: string;
+    taskType?: string;
+    environment?: string;
+    startDate?: string;
+    endDate?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -136,11 +141,27 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             const sort = params?.sort ?? sorting;
             const currentFilters = params?.filters ?? filters;
 
+            const convertDateFormat = (dateStr: string): string | undefined => {
+                if (!dateStr || dateStr.length !== 10) return undefined;
+                const [day, month, year] = dateStr.split('/');
+                return `${year}-${month}-${day}`;
+            };
+
+            const processedFilters = { ...currentFilters };
+            if (currentFilters.startDate) {
+                const converted = convertDateFormat(currentFilters.startDate);
+                if (converted) processedFilters.startDate = converted;
+            }
+            if (currentFilters.endDate) {
+                const converted = convertDateFormat(currentFilters.endDate);
+                if (converted) processedFilters.endDate = converted;
+            }
+
             const data = await taskService.getAllPaginated({
                 page,
                 size,
                 sort,
-                filters: currentFilters
+                filters: processedFilters
             });
 
             setTasks(data.content);

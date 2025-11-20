@@ -18,6 +18,10 @@ interface FilterParams {
     createdAt?: string;
     updatedAt?: string;
     flowType?: string;
+    taskType?: string;
+    environment?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 interface PaginatedParams {
