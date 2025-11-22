@@ -31,7 +31,11 @@ const operationalItemSchema = yup.object({
     description: yup.string().optional(),
     status: yup.string().oneOf(['PENDING', 'DELIVERED']).required('Status é obrigatório'),
     startedAt: yup.string().required('Data de início é obrigatória'),
-    finishedAt: yup.string().optional()
+    finishedAt: yup.string().when('status', {
+        is: 'DELIVERED',
+        then: (schema) => schema.required('Data de conclusão é obrigatória para status "Entregue"'),
+        otherwise: (schema) => schema.optional()
+    })
 });
 
 const statusOptions: { value: 'PENDING' | 'DELIVERED'; label: string; color: string; bg: string }[] = [
@@ -311,6 +315,9 @@ export default function DeliveryOperationalItemForm({
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
+                            {errors.finishedAt && (
+                                <p className="mt-1 text-sm text-red-600">{errors.finishedAt.message}</p>
+                            )}
                         </div>
                     </div>
 

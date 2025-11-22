@@ -28,7 +28,11 @@ const deliveryItemSchema = yup.object({
     sourceBranch: yup.string().optional(),
     pullRequest: yup.string().url('Deve ser uma URL válida').optional(),
     startedAt: yup.string().required('Data de início é obrigatória'),
-    finishedAt: yup.string().optional(),
+    finishedAt: yup.string().when('status', {
+        is: 'DELIVERED',
+        then: (schema) => schema.required('Data de conclusão é obrigatória para status "Entregue"'),
+        otherwise: (schema) => schema.optional()
+    }),
     notes: yup.string().optional()
 });
 
@@ -347,6 +351,9 @@ export default function DeliveryItemForm({
                                 disabled={isReadOnly}
                                 icon={Calendar}
                             />
+                            {errors.finishedAt && (
+                                <p className="mt-1 text-sm text-red-600">{errors.finishedAt.message}</p>
+                            )}
                         </div>
                     </div>
 
