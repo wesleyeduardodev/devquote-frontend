@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,6 +12,7 @@ import {
     DeliveryStatusCount
 } from '../../types/delivery.types';
 import { deliveryService } from '../../services/deliveryService';
+import { reportService } from '../../services/reportService';
 import { formatMobileRecordCountText } from '../../utils/paginationUtils';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import Button from '../../components/ui/Button';
@@ -73,6 +74,8 @@ const DeliveryList: React.FC = () => {
     const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
     const [sendEmail, setSendEmail] = useState(true);
     const [sendWhatsApp, setSendWhatsApp] = useState(true);
+
+    const [generatingReport, setGeneratingReport] = useState(false);
 
     const fetchStatistics = async () => {
         try {
@@ -498,6 +501,56 @@ const DeliveryList: React.FC = () => {
     const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO', canViewValues);
     const handleExportOperational = () => exportToExcel('OPERACIONAL', canViewValues);
 
+    const handleGenerateStatistics = async () => {
+        try {
+            setGeneratingReport(true);
+
+            const parseDate = (dateStr: string | undefined): string | null => {
+                if (!dateStr) return null;
+
+                if (dateStr.includes('T')) {
+                    return dateStr;
+                }
+
+                const [day, month, year] = dateStr.split('/');
+                if (day && month && year) {
+                    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00`;
+                }
+
+                return new Date(dateStr).toISOString();
+            };
+
+            const dataInicio = parseDate(filters.startDate);
+            const dataFim = parseDate(filters.endDate);
+
+            const request = {
+                dataInicio,
+                dataFim,
+                tipoTarefa: filters.taskType || null,
+                ambiente: filters.environment || null
+            };
+
+            const blob = await reportService.generateOperationalPdf(request);
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            link.download = `estatisticas_operacionais_${timestamp}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Relatório gerado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao gerar relatório:', error);
+            toast.error('Erro ao gerar relatório de estatísticas');
+        } finally {
+            setGeneratingReport(false);
+        }
+    };
+
     const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
         setGroupForEmail(group);
         setAdditionalEmails([]);
@@ -758,6 +811,25 @@ const DeliveryList: React.FC = () => {
                             <>
                                 <Download className="h-4 w-4 mr-2" />
                                 Exportar Operacional
+                            </>
+                        )}
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={handleGenerateStatistics}
+                        disabled={generatingReport}
+                        className="w-full sm:w-auto"
+                    >
+                        {generatingReport ? (
+                            <>
+                                <LoadingSpinner size="sm" />
+                                Gerando...
+                            </>
+                        ) : (
+                            <>
+                                <BarChart3 className="h-4 w-4 mr-2" />
+                                Estatísticas Operacionais
                             </>
                         )}
                     </Button>
