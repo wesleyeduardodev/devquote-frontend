@@ -273,8 +273,9 @@ export const deliveryService = {
         return { data: response.data, headers: response.headers };
     },
 
-    getGlobalStatistics: async (): Promise<DeliveryStatusCount> => {
-        const response = await api.get('/deliveries/statistics');
+    getGlobalStatistics: async (flowType?: string): Promise<DeliveryStatusCount> => {
+        const params = flowType ? { flowType } : {};
+        const response = await api.get('/deliveries/statistics', { params });
         return response.data;
     },
 

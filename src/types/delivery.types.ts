@@ -52,6 +52,7 @@ export interface DeliveryStatusCount {
     approved: number;
     rejected: number;
     production: number;
+    cancelled: number;
 }
 
 export interface CreateDeliveryData {

@@ -79,7 +79,8 @@ const DeliveryList: React.FC = () => {
 
     const fetchStatistics = async () => {
         try {
-            const stats = await deliveryService.getGlobalStatistics();
+            const flowTypeFilter = filters.flowType === 'TODOS' ? undefined : filters.flowType;
+            const stats = await deliveryService.getGlobalStatistics(flowTypeFilter);
             setStatistics(stats);
         } catch (error) {
             console.error('Erro ao carregar estatísticas:', error);
@@ -88,7 +89,7 @@ const DeliveryList: React.FC = () => {
 
     React.useEffect(() => {
         fetchStatistics();
-    }, []);
+    }, [filters.flowType]);
 
     const handleSelectDelivery = (deliveryId: number) => {
         setSelectedDeliveries(prev => {
@@ -669,59 +670,66 @@ const DeliveryList: React.FC = () => {
         if (!statistics) return null;
 
         const statusCards = [
-            { 
-                key: 'pending', 
-                label: 'Pendente', 
-                count: statistics.pending, 
+            {
+                key: 'pending',
+                label: 'Pendente',
+                count: statistics.pending,
                 color: 'bg-yellow-50 text-yellow-700 border-yellow-100',
                 icon: '⏳'
             },
-            { 
-                key: 'development', 
+            {
+                key: 'development',
                 label: 'Desenvolvimento',
-                count: statistics.development, 
+                count: statistics.development,
                 color: 'bg-blue-50 text-blue-700 border-blue-100',
                 icon: '🔧'
             },
-            { 
-                key: 'delivered', 
-                label: 'Entregue', 
-                count: statistics.delivered, 
+            {
+                key: 'delivered',
+                label: 'Entregue',
+                count: statistics.delivered,
                 color: 'bg-green-50 text-green-700 border-green-100',
                 icon: '📦'
             },
-            { 
-                key: 'homologation', 
+            {
+                key: 'homologation',
                 label: 'Homologação',
-                count: statistics.homologation, 
+                count: statistics.homologation,
                 color: 'bg-amber-50 text-amber-700 border-amber-100',
                 icon: '🔍'
             },
-            { 
-                key: 'approved', 
-                label: 'Aprovado', 
-                count: statistics.approved, 
+            {
+                key: 'approved',
+                label: 'Aprovado',
+                count: statistics.approved,
                 color: 'bg-emerald-50 text-emerald-700 border-emerald-100',
                 icon: '✅'
             },
-            { 
-                key: 'rejected', 
-                label: 'Rejeitado', 
-                count: statistics.rejected, 
+            {
+                key: 'rejected',
+                label: 'Rejeitado',
+                count: statistics.rejected,
                 color: 'bg-rose-50 text-rose-700 border-rose-100',
                 icon: '❌'
             },
-            { 
-                key: 'production', 
+            {
+                key: 'production',
                 label: 'Produção',
-                count: statistics.production, 
+                count: statistics.production,
                 color: 'bg-violet-50 text-violet-700 border-violet-100',
                 icon: '🚀'
+            },
+            {
+                key: 'cancelled',
+                label: 'Cancelado',
+                count: statistics.cancelled,
+                color: 'bg-red-50 text-red-600 border-red-200',
+                icon: '🚫'
             }
         ];
 
         return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3">
                 {statusCards.map(card => (
                     <Card key={card.key} className={`p-3 border ${card.color} hover:shadow-sm transition-shadow cursor-default`}>
                         <div className="text-center">
