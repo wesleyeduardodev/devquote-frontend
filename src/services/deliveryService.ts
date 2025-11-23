@@ -119,6 +119,11 @@ export const deliveryService = {
         return response.data;
     },
 
+    updateEnvironment: async (id: number, environment: string | undefined): Promise<Delivery> => {
+        const response = await api.patch(`/deliveries/${id}/environment`, { environment });
+        return response.data;
+    },
+
     delete: async (id: number): Promise<boolean> => {
         await api.delete(`/deliveries/${id}`);
         return true;

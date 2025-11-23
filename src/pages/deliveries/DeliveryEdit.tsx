@@ -44,6 +44,9 @@ const DeliveryEdit: React.FC = () => {
     const [notes, setNotes] = useState<string>('');
     const [originalNotes, setOriginalNotes] = useState<string>('');
     const [savingNotes, setSavingNotes] = useState(false);
+    const [environment, setEnvironment] = useState<string>('');
+    const [originalEnvironment, setOriginalEnvironment] = useState<string>('');
+    const [savingEnvironment, setSavingEnvironment] = useState(false);
 
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -118,6 +121,9 @@ const DeliveryEdit: React.FC = () => {
             const initialNotes = deliveryData.notes || '';
             setNotes(initialNotes);
             setOriginalNotes(initialNotes);
+            const initialEnvironment = deliveryData.environment || '';
+            setEnvironment(initialEnvironment);
+            setOriginalEnvironment(initialEnvironment);
 
             let taskFlowType: string | undefined;
             if (deliveryData.taskId) {
@@ -479,6 +485,58 @@ const DeliveryEdit: React.FC = () => {
                             <p className="text-gray-500">Nenhuma tarefa selecionada</p>
                         </div>
                     )}
+                </Card>
+
+                {/* Ambiente da Entrega */}
+                <Card className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">Ambiente da Entrega</h3>
+                        {canEdit && environment !== originalEnvironment && (
+                            <Button
+                                onClick={async () => {
+                                    if (!delivery) return;
+                                    try {
+                                        setSavingEnvironment(true);
+                                        await deliveryService.updateEnvironment(delivery.id, environment || undefined);
+                                        setOriginalEnvironment(environment);
+                                        toast.success('Ambiente atualizado com sucesso!');
+                                        await loadDeliveryData();
+                                    } catch (error) {
+                                        console.error('Erro ao atualizar ambiente:', error);
+                                        toast.error('Erro ao atualizar ambiente');
+                                    } finally {
+                                        setSavingEnvironment(false);
+                                    }
+                                }}
+                                disabled={savingEnvironment}
+                                size="sm"
+                            >
+                                {savingEnvironment ? 'Salvando...' : 'Salvar'}
+                            </Button>
+                        )}
+                    </div>
+                    <div>
+                        <select
+                            value={environment}
+                            onChange={(e) => setEnvironment(e.target.value)}
+                            disabled={!canEdit}
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                !canEdit ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300'
+                            }`}
+                        >
+                            <option value="">Não Especificado</option>
+                            <option value="PRODUCAO">Produção</option>
+                            <option value="HOMOLOGACAO">Homologação</option>
+                            <option value="DESENVOLVIMENTO">Desenvolvimento</option>
+                        </select>
+                        {environment && (
+                            <div className="mt-3">
+                                <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded border ${formatEnvironment(environment).colorClass}`}>
+                                    {formatEnvironment(environment).label}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </Card>
 
                 {/* Observações Gerais */}
