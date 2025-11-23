@@ -7,6 +7,7 @@ export const STATUS = {
         APPROVED: 'APPROVED',
         REJECTED: 'REJECTED',
         PRODUCTION: 'PRODUCTION',
+        CANCELLED: 'CANCELLED',
     },
 
     PROJECT: {
@@ -40,6 +41,7 @@ export const STATUS_LABELS = {
     APPROVED: 'Aprovado',
     REJECTED: 'Rejeitado',
     PRODUCTION: 'Produção',
+    CANCELLED: 'Cancelado',
 
     PLANNING: 'Planejamento',
 
@@ -64,6 +66,7 @@ export const STATUS_COLORS = {
     APPROVED: 'bg-green-100 text-green-800',
     REJECTED: 'bg-red-100 text-red-800',
     PRODUCTION: 'bg-emerald-100 text-emerald-800',
+    CANCELLED: 'bg-red-100 text-red-600',
 
     PLANNING: 'bg-indigo-100 text-indigo-800',
 

@@ -1,6 +1,6 @@
 import { BaseEntity } from './api.types';
 
-export type DeliveryStatus = 'PENDING' | 'DEVELOPMENT' | 'DELIVERED' | 'HOMOLOGATION' | 'APPROVED' | 'REJECTED' | 'PRODUCTION';
+export type DeliveryStatus = 'PENDING' | 'DEVELOPMENT' | 'DELIVERED' | 'HOMOLOGATION' | 'APPROVED' | 'REJECTED' | 'PRODUCTION' | 'CANCELLED';
 
 export interface DeliveryItem extends BaseEntity {
     id: number;

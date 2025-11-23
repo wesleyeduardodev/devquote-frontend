@@ -12,7 +12,7 @@ export interface DeliveryOperationalItemFormData {
     deliveryId?: number;
     title: string;
     description?: string;
-    status: 'PENDING' | 'DELIVERED';
+    status: 'PENDING' | 'DELIVERED' | 'CANCELLED';
     startedAt?: string;
     finishedAt?: string;
 }
@@ -29,7 +29,7 @@ const operationalItemSchema = yup.object({
     deliveryId: yup.number().optional(),
     title: yup.string().required('Título é obrigatório'),
     description: yup.string().optional(),
-    status: yup.string().oneOf(['PENDING', 'DELIVERED']).required('Status é obrigatório'),
+    status: yup.string().oneOf(['PENDING', 'DELIVERED', 'CANCELLED']).required('Status é obrigatório'),
     startedAt: yup.string().required('Data de início é obrigatória'),
     finishedAt: yup.string().when('status', {
         is: 'DELIVERED',
@@ -38,9 +38,10 @@ const operationalItemSchema = yup.object({
     })
 });
 
-const statusOptions: { value: 'PENDING' | 'DELIVERED'; label: string; color: string; bg: string }[] = [
+const statusOptions: { value: 'PENDING' | 'DELIVERED' | 'CANCELLED'; label: string; color: string; bg: string }[] = [
     { value: 'PENDING', label: 'Pendente', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-100' },
-    { value: 'DELIVERED', label: 'Entregue', color: 'text-green-700', bg: 'bg-green-50 border-green-100' }
+    { value: 'DELIVERED', label: 'Entregue', color: 'text-green-700', bg: 'bg-green-50 border-green-100' },
+    { value: 'CANCELLED', label: 'Cancelado', color: 'text-red-600', bg: 'bg-red-50 border-red-200' }
 ];
 
 export default function DeliveryOperationalItemForm({

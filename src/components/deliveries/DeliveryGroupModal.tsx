@@ -79,7 +79,8 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
             HOMOLOGATION: 'text-amber-700 bg-amber-50 border-amber-100',
             APPROVED: 'text-emerald-700 bg-emerald-50 border-emerald-100',
             REJECTED: 'text-rose-700 bg-rose-50 border-rose-100',
-            PRODUCTION: 'text-violet-700 bg-violet-50 border-violet-100'
+            PRODUCTION: 'text-violet-700 bg-violet-50 border-violet-100',
+            CANCELLED: 'text-red-600 bg-red-50 border-red-200'
         };
         return colors[status] || 'text-gray-700 bg-gray-50 border-gray-100';
     };
@@ -92,7 +93,8 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
             HOMOLOGATION: 'Homologação',
             APPROVED: 'Aprovado',
             REJECTED: 'Rejeitado',
-            PRODUCTION: 'Produção'
+            PRODUCTION: 'Produção',
+            CANCELLED: 'Cancelado'
         };
         return labels[status] || status;
     };

@@ -43,7 +43,8 @@ const statusOptions: { value: DeliveryStatus; label: string; color: string; bg: 
     { value: 'HOMOLOGATION', label: 'Homologação', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100' },
     { value: 'APPROVED', label: 'Aprovado', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
     { value: 'REJECTED', label: 'Rejeitado', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-100' },
-    { value: 'PRODUCTION', label: 'Produção', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-100' }
+    { value: 'PRODUCTION', label: 'Produção', color: 'text-violet-700', bg: 'bg-violet-50 border-violet-100' },
+    { value: 'CANCELLED', label: 'Cancelado', color: 'text-red-600', bg: 'bg-red-50 border-red-200' }
 ];
 
 export default function DeliveryItemForm({
