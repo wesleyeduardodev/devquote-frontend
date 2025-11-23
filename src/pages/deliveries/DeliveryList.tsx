@@ -826,24 +826,26 @@ const DeliveryList: React.FC = () => {
                         )}
                     </Button>
 
-                    <Button
-                        variant="outline"
-                        onClick={handleGenerateStatistics}
-                        disabled={generatingReport}
-                        className="w-full sm:w-auto"
-                    >
-                        {generatingReport ? (
-                            <>
-                                <LoadingSpinner size="sm" />
-                                Gerando...
-                            </>
-                        ) : (
-                            <>
-                                <BarChart3 className="h-4 w-4 mr-2" />
-                                Estatísticas Operacionais
-                            </>
-                        )}
-                    </Button>
+                    {canViewValues && (
+                        <Button
+                            variant="outline"
+                            onClick={handleGenerateStatistics}
+                            disabled={generatingReport}
+                            className="w-full sm:w-auto"
+                        >
+                            {generatingReport ? (
+                                <>
+                                    <LoadingSpinner size="sm" />
+                                    Gerando...
+                                </>
+                            ) : (
+                                <>
+                                    <BarChart3 className="h-4 w-4 mr-2" />
+                                    Estatísticas Operacionais
+                                </>
+                            )}
+                        </Button>
+                    )}
 
                     {canCreate && (
                         <Button onClick={() => navigate('/deliveries/create')} className="w-full sm:w-auto">
