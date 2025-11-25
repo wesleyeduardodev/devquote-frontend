@@ -841,7 +841,7 @@ const DeliveryList: React.FC = () => {
                             ) : (
                                 <>
                                     <BarChart3 className="h-4 w-4 mr-2" />
-                                    Estatísticas Operacionais
+                                    Estatísticas
                                 </>
                             )}
                         </Button>
