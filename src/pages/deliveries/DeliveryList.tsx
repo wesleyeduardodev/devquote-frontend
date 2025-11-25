@@ -802,7 +802,7 @@ const DeliveryList: React.FC = () => {
                         ) : (
                             <>
                                 <Download className="h-4 w-4 mr-2" />
-                                Exportar Desenvolvimento
+                                Desenvolvimento
                             </>
                         )}
                     </Button>
@@ -821,7 +821,7 @@ const DeliveryList: React.FC = () => {
                         ) : (
                             <>
                                 <Download className="h-4 w-4 mr-2" />
-                                Exportar Operacional
+                                Operacional
                             </>
                         )}
                     </Button>
