@@ -23,6 +23,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { taskService } from '@/services/taskService';
 import { deliveryService } from '@/services/deliveryService';
 import billingPeriodService from '@/services/billingPeriodService';
+import { reportService } from '@/services/reportService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -33,9 +34,12 @@ const Dashboard = () => {
   const { user, hasProfile } = useAuth();
 
   const [exportingTasks, setExportingTasks] = useState(false);
+  const [exportingTasksWithItems, setExportingTasksWithItems] = useState(false);
+  const [exportingDeliveries, setExportingDeliveries] = useState(false);
   const [exportingDeliveriesDev, setExportingDeliveriesDev] = useState(false);
   const [exportingDeliveriesOp, setExportingDeliveriesOp] = useState(false);
   const [exportingBilling, setExportingBilling] = useState(false);
+  const [exportingStatistics, setExportingStatistics] = useState(false);
 
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
@@ -51,15 +55,46 @@ const Dashboard = () => {
   const handleExportTasks = async () => {
     try {
       setExportingTasks(true);
-      const blob = await taskService.exportToExcel();
+      const blob = await taskService.exportTasksOnlyToExcel();
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_tarefas_${timestamp}.xlsx`);
+      downloadBlob(blob, `Relatorio_Tarefas_${timestamp}.xlsx`);
       toast.success('Relatório de tarefas exportado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao exportar tarefas:', error);
       toast.error('Erro ao exportar relatório de tarefas');
     } finally {
       setExportingTasks(false);
+    }
+  };
+
+  const handleExportTasksWithItems = async () => {
+    try {
+      setExportingTasksWithItems(true);
+      const blob = await taskService.exportToExcel();
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+      downloadBlob(blob, `Relatorio_Tarefas_Itens_${timestamp}.xlsx`);
+      toast.success('Relatório de tarefas + itens exportado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao exportar tarefas + itens:', error);
+      toast.error('Erro ao exportar relatório de tarefas + itens');
+    } finally {
+      setExportingTasksWithItems(false);
+    }
+  };
+
+  const handleExportDeliveries = async () => {
+    try {
+      setExportingDeliveries(true);
+      const canViewAmounts = hasProfile('ADMIN') || hasProfile('MANAGER');
+      const blob = await deliveryService.exportDeliveriesOnlyToExcel(canViewAmounts);
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+      downloadBlob(blob, `relatorio_entregas_${timestamp}.xlsx`);
+      toast.success('Relatório de entregas exportado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao exportar entregas:', error);
+      toast.error('Erro ao exportar relatório de entregas');
+    } finally {
+      setExportingDeliveries(false);
     }
   };
 
@@ -107,6 +142,24 @@ const Dashboard = () => {
       toast.error('Erro ao exportar relatório de faturamento');
     } finally {
       setExportingBilling(false);
+    }
+  };
+
+  const handleExportStatistics = async () => {
+    try {
+      setExportingStatistics(true);
+      const blob = await reportService.generateOperationalPdf({
+        dataInicio: '',
+        dataFim: ''
+      });
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
+      downloadBlob(blob, `relatorio_estatisticas_${timestamp}.pdf`);
+      toast.success('Relatório de estatísticas exportado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao exportar estatísticas:', error);
+      toast.error('Erro ao exportar relatório de estatísticas');
+    } finally {
+      setExportingStatistics(false);
     }
   };
 
@@ -240,8 +293,8 @@ const Dashboard = () => {
 
         {/* Seção de Relatórios - Primeira posição */}
         <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {/* Exportar Tarefas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {/* 1. Relatório Tarefas (só tarefas) */}
             <div
               onClick={handleExportTasks}
               className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
@@ -256,7 +309,37 @@ const Dashboard = () => {
               </span>
             </div>
 
-            {/* Exportar Entregas Desenvolvimento */}
+            {/* 2. Tarefas + Itens */}
+            <div
+              onClick={handleExportTasksWithItems}
+              className="flex flex-col items-center p-6 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-colors cursor-pointer"
+            >
+              {exportingTasksWithItems ? (
+                <Loader2 className="w-8 h-8 text-cyan-600 mb-2 animate-spin" />
+              ) : (
+                <FileText className="w-8 h-8 text-cyan-600 mb-2" />
+              )}
+              <span className="text-sm font-medium text-cyan-800 text-center">
+                {exportingTasksWithItems ? 'Exportando...' : 'Tarefas + Itens'}
+              </span>
+            </div>
+
+            {/* 3. Entregas (só entregas, ambos fluxos) */}
+            <div
+              onClick={handleExportDeliveries}
+              className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer"
+            >
+              {exportingDeliveries ? (
+                <Loader2 className="w-8 h-8 text-green-600 mb-2 animate-spin" />
+              ) : (
+                <Download className="w-8 h-8 text-green-600 mb-2" />
+              )}
+              <span className="text-sm font-medium text-green-800 text-center">
+                {exportingDeliveries ? 'Exportando...' : 'Entregas'}
+              </span>
+            </div>
+
+            {/* 4. Entrega Desenvolvimento (com itens) */}
             <div
               onClick={handleExportDeliveriesDev}
               className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
@@ -271,7 +354,7 @@ const Dashboard = () => {
               </span>
             </div>
 
-            {/* Exportar Entregas Operacional */}
+            {/* 5. Entrega Operacional (com itens) */}
             <div
               onClick={handleExportDeliveriesOp}
               className="flex flex-col items-center p-6 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
@@ -286,7 +369,7 @@ const Dashboard = () => {
               </span>
             </div>
 
-            {/* Exportar Faturamento - Somente ADMIN/MANAGER */}
+            {/* 6. Relatório Faturamento - Somente ADMIN/MANAGER */}
             {(hasProfile('ADMIN') || hasProfile('MANAGER')) && (
               <div
                 onClick={handleExportBilling}
@@ -299,6 +382,23 @@ const Dashboard = () => {
                 )}
                 <span className="text-sm font-medium text-yellow-800 text-center">
                   {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
+                </span>
+              </div>
+            )}
+
+            {/* 7. Estatísticas - Somente ADMIN/MANAGER */}
+            {(hasProfile('ADMIN') || hasProfile('MANAGER')) && (
+              <div
+                onClick={handleExportStatistics}
+                className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer"
+              >
+                {exportingStatistics ? (
+                  <Loader2 className="w-8 h-8 text-orange-600 mb-2 animate-spin" />
+                ) : (
+                  <BarChart3 className="w-8 h-8 text-orange-600 mb-2" />
+                )}
+                <span className="text-sm font-medium text-orange-800 text-center">
+                  {exportingStatistics ? 'Exportando...' : 'Estatísticas'}
                 </span>
               </div>
             )}
