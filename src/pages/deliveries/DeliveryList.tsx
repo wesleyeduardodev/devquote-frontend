@@ -44,6 +44,7 @@ const DeliveryList: React.FC = () => {
         setFilter,
         clearFilters,
         exportToExcel,
+        exportDeliveriesOnlyToExcel,
         deleteBulk
     } = useDeliveries();
 
@@ -502,6 +503,7 @@ const DeliveryList: React.FC = () => {
 
     const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO', canViewValues);
     const handleExportOperational = () => exportToExcel('OPERACIONAL', canViewValues);
+    const handleExportAll = () => exportDeliveriesOnlyToExcel(canViewValues);
 
     const handleGenerateStatistics = async () => {
         try {
@@ -822,6 +824,25 @@ const DeliveryList: React.FC = () => {
                             <>
                                 <Download className="h-4 w-4 mr-2" />
                                 Operacional
+                            </>
+                        )}
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={handleExportAll}
+                        disabled={exporting}
+                        className="w-full sm:w-auto"
+                    >
+                        {exporting ? (
+                            <>
+                                <LoadingSpinner size="sm" />
+                                Exportando...
+                            </>
+                        ) : (
+                            <>
+                                <Download className="h-4 w-4 mr-2" />
+                                Entregas
                             </>
                         )}
                     </Button>

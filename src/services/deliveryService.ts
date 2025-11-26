@@ -273,6 +273,30 @@ export const deliveryService = {
         return { data: response.data, headers: response.headers };
     },
 
+    exportDeliveriesOnlyToExcel: async (canViewAmounts?: boolean): Promise<Blob> => {
+        const params: any = {};
+        if (canViewAmounts !== undefined) {
+            params.canViewAmounts = canViewAmounts;
+        }
+        const response = await api.get('/deliveries/export/excel-only', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
+    exportDeliveriesOnlyToExcelWithResponse: async (canViewAmounts?: boolean): Promise<{ data: Blob; headers: any }> => {
+        const params: any = {};
+        if (canViewAmounts !== undefined) {
+            params.canViewAmounts = canViewAmounts;
+        }
+        const response = await api.get('/deliveries/export/excel-only', {
+            params,
+            responseType: 'blob'
+        });
+        return { data: response.data, headers: response.headers };
+    },
+
     getGlobalStatistics: async (flowType?: string): Promise<DeliveryStatusCount> => {
         const params = flowType ? { flowType } : {};
         const response = await api.get('/deliveries/statistics', { params });

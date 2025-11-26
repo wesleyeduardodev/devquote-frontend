@@ -44,6 +44,7 @@ interface UseDeliveriesReturn {
     setFilter: (field: string, value: string) => void;
     clearFilters: () => void;
     exportToExcel: () => Promise<void>;
+    exportDeliveriesOnlyToExcel: () => Promise<void>;
 }
 
 export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliveriesReturn => {
@@ -241,6 +242,40 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         }
     }, []);
 
+    const exportDeliveriesOnlyToExcel = useCallback(async (canViewAmounts?: boolean) => {
+        try {
+            setExporting(true);
+            const response = await deliveryService.exportDeliveriesOnlyToExcelWithResponse(canViewAmounts);
+
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = `relatorio_entregas_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}_${new Date().toLocaleTimeString('pt-BR').replace(/:/g, '-')}.xlsx`;
+
+            if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            const blob = response.data;
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Exportação concluída!');
+        } catch (error: any) {
+            console.error('Erro ao exportar:', error);
+            toast.error('Erro ao exportar dados');
+        } finally {
+            setExporting(false);
+        }
+    }, []);
+
     useEffect(() => {
 
         if (debounceTimerRef.current) {
@@ -274,5 +309,6 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
         setFilter,
         clearFilters,
         exportToExcel,
+        exportDeliveriesOnlyToExcel,
     };
 };
