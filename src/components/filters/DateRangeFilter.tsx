@@ -41,27 +41,27 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-center gap-2 ${className}`}>
       <label className="text-sm font-medium text-gray-700">
         Período:
       </label>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <div className="relative">
           <input
             type="date"
             value={formatDateForInput(startDate)}
             onChange={handleStartDateChange}
-            className="pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+            className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
             placeholder="Data Início"
           />
         </div>
-        <span className="text-sm text-gray-500">até</span>
+        <span className="text-sm text-gray-500 hidden sm:inline">até</span>
         <div className="relative">
           <input
             type="date"
             value={formatDateForInput(endDate)}
             onChange={handleEndDateChange}
-            className="pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+            className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
             placeholder="Data Fim"
           />
         </div>

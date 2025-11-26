@@ -751,41 +751,45 @@ const DeliveryList: React.FC = () => {
             {/* Header - Responsivo: Vertical no mobile, Horizontal no desktop */}
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 {/* Filtros */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-wrap">
-                    <FlowTypeFilter
-                        value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
-                        onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
-                    />
+                <div className="w-full lg:w-auto">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-wrap">
+                        <FlowTypeFilter
+                            value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
+                            onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
+                        />
 
-                    <TaskTypeFilter
-                        value={(filters.taskType as TaskTypeFilterValue) || 'TODOS'}
-                        onChange={(value) => setFilter('taskType', value === 'TODOS' ? '' : value)}
-                        flowType={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
-                    />
+                        <TaskTypeFilter
+                            value={(filters.taskType as TaskTypeFilterValue) || 'TODOS'}
+                            onChange={(value) => setFilter('taskType', value === 'TODOS' ? '' : value)}
+                            flowType={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
+                        />
 
-                    <EnvironmentFilter
-                        value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
-                        onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
-                    />
+                        <EnvironmentFilter
+                            value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
+                            onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
+                        />
 
-                    <DateRangeFilter
-                        startDate={filters.startDate || ''}
-                        endDate={filters.endDate || ''}
-                        onStartDateChange={(date) => setFilter('startDate', date)}
-                        onEndDateChange={(date) => setFilter('endDate', date)}
-                    />
+                        <div className="w-full sm:w-auto">
+                            <DateRangeFilter
+                                startDate={filters.startDate || ''}
+                                endDate={filters.endDate || ''}
+                                onStartDateChange={(date) => setFilter('startDate', date)}
+                                onEndDateChange={(date) => setFilter('endDate', date)}
+                            />
+                        </div>
 
-                    {/* Ações em lote - visível apenas se houver seleções */}
-                    {selectedDeliveries.length > 0 && canDelete && (
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowBulkDeleteModal(true)}
-                            className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir ({selectedDeliveries.length})
-                        </Button>
-                    )}
+                        {/* Ações em lote - visível apenas se houver seleções */}
+                        {selectedDeliveries.length > 0 && canDelete && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowBulkDeleteModal(true)}
+                                className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir ({selectedDeliveries.length})
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Botões de Ação */}
