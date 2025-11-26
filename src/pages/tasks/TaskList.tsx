@@ -100,6 +100,7 @@ const TaskList: React.FC = () => {
         deleteTaskWithSubTasks,
         deleteBulkTasks,
         exportToExcel,
+        exportTasksOnlyToExcel,
         sendFinancialEmail,
         sendTaskEmail,
     } = useTasks();
@@ -1037,13 +1038,23 @@ const TaskList: React.FC = () => {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                     <Button
                         variant="outline"
+                        onClick={exportTasksOnlyToExcel}
+                        loading={exporting}
+                        disabled={exporting}
+                        className="flex items-center justify-center w-full sm:w-auto"
+                    >
+                        <Download className="w-4 h-4 mr-2" />
+                        {exporting ? 'Exportando...' : 'Tarefas'}
+                    </Button>
+                    <Button
+                        variant="outline"
                         onClick={exportToExcel}
                         loading={exporting}
                         disabled={exporting}
                         className="flex items-center justify-center w-full sm:w-auto"
                     >
                         <Download className="w-4 h-4 mr-2" />
-                        {exporting ? 'Exportando...' : 'Exportar Excel'}
+                        {exporting ? 'Exportando...' : 'Tarefas + Itens'}
                     </Button>
                     {canCreateTasks && (
                         <Button

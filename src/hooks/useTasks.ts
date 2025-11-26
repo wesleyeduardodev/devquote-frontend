@@ -112,6 +112,7 @@ interface UseTasksReturn {
     setFilter: (field: string, value: string) => void;
     clearFilters: () => void;
     exportToExcel: () => Promise<void>;
+    exportTasksOnlyToExcel: () => Promise<void>;
     sendFinancialEmail: (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[], sendEmail?: boolean, sendWhatsApp?: boolean) => Promise<void>;
     sendTaskEmail: (taskId: number, additionalEmails?: string[]) => Promise<void>;
 }
@@ -341,6 +342,35 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         }
     }, [filters.flowType]);
 
+    const exportTasksOnlyToExcel = useCallback(async () => {
+        try {
+            setExporting(true);
+            const blob = await taskService.exportTasksOnlyToExcel(filters.flowType);
+
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const filename = `Relatorio_Tarefas_${timestamp}.xlsx`;
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Relatório exportado com sucesso!');
+        } catch (error: any) {
+            console.error('Erro ao exportar relatório:', error);
+            console.error('Detalhes do erro:', error.response?.data);
+            console.error('Status do erro:', error.response?.status);
+            toast.error('Erro ao exportar relatório: ' + (error.response?.data?.message || error.message || 'Erro desconhecido'));
+        } finally {
+            setExporting(false);
+        }
+    }, [filters.flowType]);
+
     const sendFinancialEmail = useCallback(async (taskId: number, additionalEmails?: string[], additionalWhatsAppRecipients?: string[], sendEmail?: boolean, sendWhatsApp?: boolean): Promise<void> => {
         try {
             await taskService.sendFinancialEmail(taskId, additionalEmails, additionalWhatsAppRecipients, sendEmail, sendWhatsApp);
@@ -401,6 +431,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
         setFilter,
         clearFilters,
         exportToExcel,
+        exportTasksOnlyToExcel,
         sendFinancialEmail,
         sendTaskEmail,
     };

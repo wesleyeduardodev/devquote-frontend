@@ -157,6 +157,18 @@ export const taskService = {
         return response.data;
     },
 
+    exportTasksOnlyToExcel: async (flowType?: string): Promise<Blob> => {
+        const params: any = {};
+        if (flowType && flowType !== 'TODOS') {
+            params.flowType = flowType;
+        }
+        const response = await api.get('/tasks/export/excel-only', {
+            params,
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+
     exportGeneralReport: async (): Promise<Blob> => {
         const response = await api.get('/tasks/export/general-report', {
             responseType: 'blob'
