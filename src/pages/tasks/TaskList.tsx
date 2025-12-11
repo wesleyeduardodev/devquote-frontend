@@ -186,8 +186,17 @@ const TaskList: React.FC = () => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            link.download = `tarefa_${task.code}_${timestamp}.pdf`;
+            const now = new Date();
+            const timestamp = [
+                String(now.getDate()).padStart(2, '0'),
+                String(now.getMonth() + 1).padStart(2, '0'),
+                now.getFullYear(),
+                String(now.getHours()).padStart(2, '0'),
+                String(now.getMinutes()).padStart(2, '0'),
+                String(now.getSeconds()).padStart(2, '0')
+            ].join('-');
+            const flowTypeCode = task.flowType === 'DESENVOLVIMENTO' ? 'DEV' : 'OP';
+            link.download = `tarefa-${task.id}-${task.code}-${flowTypeCode}-${timestamp}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
