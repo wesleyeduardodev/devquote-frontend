@@ -13,5 +13,12 @@ export const reportService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    generateTaskPdf: async (taskId: number): Promise<Blob> => {
+        const response = await api.get(`/reports/task/${taskId}/pdf`, {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };

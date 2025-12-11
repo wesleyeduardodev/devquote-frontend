@@ -18,6 +18,7 @@ import {
     Mail,
     ChevronsLeft,
     ChevronsRight,
+    FileText,
 } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +33,7 @@ import { FlowTypeFilter, FlowTypeFilterValue } from '@/components/filters/FlowTy
 import { TaskTypeFilter, TaskTypeFilterValue } from '@/components/filters/TaskTypeFilter';
 import { EnvironmentFilter, EnvironmentFilterValue } from '@/components/filters/EnvironmentFilter';
 import { DateRangeFilter } from '@/components/filters/DateRangeFilter';
+import { reportService } from '@/services/reportService';
 import toast from 'react-hot-toast';
 
 interface SubTask {
@@ -84,6 +86,7 @@ const TaskList: React.FC = () => {
     const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
     const [isDeletingSingle, setIsDeletingSingle] = useState(false);
     const [flowType, setFlowType] = useState<FlowTypeFilterValue>('TODOS');
+    const [generatingPdfTaskId, setGeneratingPdfTaskId] = useState<number | null>(null);
 
     const {
         tasks,
@@ -173,6 +176,27 @@ const TaskList: React.FC = () => {
             toast.error('Erro ao excluir tarefa');
         } finally {
             setIsDeletingSingle(false);
+        }
+    };
+
+    const handleGeneratePdf = async (task: Task) => {
+        setGeneratingPdfTaskId(task.id);
+        try {
+            const blob = await reportService.generateTaskPdf(task.id);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            link.download = `tarefa_${task.code}_${timestamp}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success('PDF gerado com sucesso');
+        } catch (error) {
+            toast.error('Erro ao gerar PDF');
+        } finally {
+            setGeneratingPdfTaskId(null);
         }
     };
 
@@ -759,10 +783,24 @@ const TaskList: React.FC = () => {
             key: 'actions',
             title: 'AÇÕES',
             align: 'center' as const,
-            width: '180px',
+            width: '200px',
             render: (item: Task) => (
                 <div className="flex items-center justify-center gap-1">
-                    {}
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleGeneratePdf(item)}
+                        disabled={generatingPdfTaskId === item.id}
+                        title="Exportar PDF"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                    >
+                        {generatingPdfTaskId === item.id ? (
+                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            <FileText className="w-4 h-4" />
+                        )}
+                    </Button>
+
                     <Button
                         size="sm"
                         variant="ghost"
@@ -925,6 +963,21 @@ const TaskList: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm flex-1">
                         {/* Ações compactas */}
                         <div className="flex gap-1 mr-3">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleGeneratePdf(task)}
+                                disabled={generatingPdfTaskId === task.id}
+                                title="Exportar PDF"
+                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
+                            >
+                                {generatingPdfTaskId === task.id ? (
+                                    <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <FileText className="w-3.5 h-3.5" />
+                                )}
+                            </Button>
+
                             {/* 1. Visualizar */}
                             <Button
                                 size="sm"
