@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3, FileText
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -77,6 +77,7 @@ const DeliveryList: React.FC = () => {
     const [sendWhatsApp, setSendWhatsApp] = useState(true);
 
     const [generatingReport, setGeneratingReport] = useState(false);
+    const [generatingPdfDeliveryId, setGeneratingPdfDeliveryId] = useState<number | null>(null);
 
     const fetchStatistics = async () => {
         try {
@@ -401,13 +402,27 @@ const DeliveryList: React.FC = () => {
                     <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleGeneratePdf(delivery)}
+                        disabled={generatingPdfDeliveryId === delivery.deliveries?.[0]?.id}
+                        title="Gerar PDF"
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
+                        {generatingPdfDeliveryId === delivery.deliveries?.[0]?.id ? (
+                            <LoadingSpinner size="sm" />
+                        ) : (
+                            <FileText className="h-4 w-4" />
+                        )}
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleView(delivery)}
                         title="Ver detalhes"
                     >
                         <Eye className="h-4 w-4" />
                     </Button>
 
-                    {/* Botão de Email - disponível apenas para ADMIN */}
                     {isAdmin && (
                         <Button
                             variant="ghost"
@@ -444,7 +459,7 @@ const DeliveryList: React.FC = () => {
                     )}
                 </div>
             ),
-            width: '150px',
+            width: '180px',
             align: 'center'
         }
     ];
@@ -552,6 +567,42 @@ const DeliveryList: React.FC = () => {
             toast.error('Erro ao gerar relatório de estatísticas');
         } finally {
             setGeneratingReport(false);
+        }
+    };
+
+    const handleGeneratePdf = async (group: DeliveryGroupResponse) => {
+        const deliveryId = group.deliveries?.[0]?.id;
+        if (!deliveryId) {
+            toast.error('ID da entrega não encontrado');
+            return;
+        }
+
+        setGeneratingPdfDeliveryId(deliveryId);
+        try {
+            const blob = await reportService.generateDeliveryPdf(deliveryId);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const now = new Date();
+            const timestamp = [
+                String(now.getDate()).padStart(2, '0'),
+                String(now.getMonth() + 1).padStart(2, '0'),
+                now.getFullYear(),
+                String(now.getHours()).padStart(2, '0'),
+                String(now.getMinutes()).padStart(2, '0'),
+                String(now.getSeconds()).padStart(2, '0')
+            ].join('-');
+            const flowTypeCode = group.deliveries?.[0]?.flowType === 'DESENVOLVIMENTO' ? 'DEV' : 'OP';
+            link.download = `entrega-${deliveryId}-${group.taskCode}-${flowTypeCode}-${timestamp}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success('PDF gerado com sucesso');
+        } catch (error) {
+            toast.error('Erro ao gerar PDF');
+        } finally {
+            setGeneratingPdfDeliveryId(null);
         }
     };
 
@@ -945,6 +996,21 @@ const DeliveryList: React.FC = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
+                                                    onClick={() => handleGeneratePdf(delivery)}
+                                                    disabled={generatingPdfDeliveryId === delivery.deliveries?.[0]?.id}
+                                                    title="Gerar PDF"
+                                                    className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1"
+                                                >
+                                                    {generatingPdfDeliveryId === delivery.deliveries?.[0]?.id ? (
+                                                        <LoadingSpinner size="sm" />
+                                                    ) : (
+                                                        <FileText className="w-3.5 h-3.5" />
+                                                    )}
+                                                </Button>
+
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     onClick={() => handleView(delivery)}
                                                     title="Ver detalhes"
                                                     className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
@@ -952,7 +1018,6 @@ const DeliveryList: React.FC = () => {
                                                     <Eye className="w-3.5 h-3.5" />
                                                 </Button>
 
-                                                {/* Botão de Email - disponível apenas para ADMIN */}
                                                 {isAdmin && (
                                                     <Button
                                                         variant="ghost"
@@ -964,7 +1029,7 @@ const DeliveryList: React.FC = () => {
                                                         <Mail className="w-3.5 h-3.5" />
                                                     </Button>
                                                 )}
-                                                
+
                                                 {canEdit && (
                                                     <Button
                                                         variant="ghost"
@@ -976,7 +1041,7 @@ const DeliveryList: React.FC = () => {
                                                         <Edit className="w-3.5 h-3.5" />
                                                     </Button>
                                                 )}
-                                                
+
                                                 {canDelete && (
                                                     <Button
                                                         variant="ghost"

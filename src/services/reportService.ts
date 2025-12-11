@@ -20,5 +20,12 @@ export const reportService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    generateDeliveryPdf: async (deliveryId: number): Promise<Blob> => {
+        const response = await api.get(`/reports/delivery/${deliveryId}/pdf`, {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };
