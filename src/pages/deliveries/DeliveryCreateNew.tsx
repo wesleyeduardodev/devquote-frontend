@@ -13,6 +13,7 @@ import { deliveryItemService } from '../../services/deliveryItemService';
 import TaskSelectionModal from '../../components/deliveries/TaskSelectionModal';
 import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
 import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
+import { DeliveryAttachmentList } from '../../components/deliveries/DeliveryAttachmentList';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -372,6 +373,16 @@ const DeliveryCreate: React.FC = () => {
                                 </p>
                             </div>
                         </div>
+                    </Card>
+                )}
+
+                {createdDeliveryId && (
+                    <Card className="p-6">
+                        <DeliveryAttachmentList
+                            deliveryId={createdDeliveryId}
+                            readOnly={false}
+                            forceExpanded={false}
+                        />
                     </Card>
                 )}
 
