@@ -532,6 +532,17 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                 </div>
                             </div>
                         )}
+
+                        {/* Anexos da Entrega */}
+                        {deliveryGroup.deliveries?.[0]?.id && (
+                            <div className="mt-6">
+                                <DeliveryAttachmentList
+                                    deliveryId={deliveryGroup.deliveries[0].id}
+                                    readOnly={true}
+                                    forceExpanded={false}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

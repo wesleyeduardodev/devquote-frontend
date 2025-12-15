@@ -24,6 +24,7 @@ import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
 import DeliveryOperationalItemForm, { DeliveryOperationalItemFormData } from '../../components/deliveries/DeliveryOperationalItemForm';
 import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
+import { DeliveryAttachmentList } from '../../components/deliveries/DeliveryAttachmentList';
 
 const DeliveryEdit: React.FC = () => {
     const { deliveryId } = useParams<{ deliveryId: string }>();
@@ -580,6 +581,15 @@ const DeliveryEdit: React.FC = () => {
                             placeholder={canEdit ? "Digite observações gerais sobre esta entrega..." : "Nenhuma observação registrada"}
                         />
                     </div>
+                </Card>
+
+                {/* Anexos da Entrega */}
+                <Card className="p-6">
+                    <DeliveryAttachmentList
+                        deliveryId={delivery.id}
+                        readOnly={!canEdit}
+                        forceExpanded={false}
+                    />
                 </Card>
 
                 {/* Itens de Entrega */}
