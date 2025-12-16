@@ -201,7 +201,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+            <div className="bg-white rounded-xl shadow-2xl w-[95%] sm:w-[85%] lg:w-[80%] max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex items-center justify-between">
@@ -332,7 +332,10 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             className="bg-white rounded-lg p-2.5 sm:p-4 min-h-[100px] max-h-[40vh] border border-gray-200"
                                             style={resizableStyle}
                                         >
-                                            <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.description}</p>
+                                            <div
+                                                className="text-xs sm:text-sm text-gray-700 prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg"
+                                                dangerouslySetInnerHTML={{ __html: task.description }}
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -570,11 +573,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                                     className="bg-gray-50 rounded p-2 min-h-[70px] sm:min-h-[80px] max-h-[20vh]"
                                                                     style={resizableStyle}
                                                                 >
-                                                                    <p className={`text-xs sm:text-sm whitespace-pre-wrap break-words ${
-                                                                        subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
-                                                                    }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                                                        {subtask.description}
-                                                                    </p>
+                                                                    <div
+                                                                        className={`text-xs sm:text-sm prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg ${
+                                                                            subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
+                                                                        }`}
+                                                                        dangerouslySetInnerHTML={{ __html: subtask.description }}
+                                                                    />
                                                                 </div>
                                                             )}
 
