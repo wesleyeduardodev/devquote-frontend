@@ -5,7 +5,8 @@ import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import DeleteConfirmationModal from '../ui/DeleteConfirmationModal';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import RichTextEditor from '../ui/RichTextEditor';
+import { useFieldArray, useFormContext, useWatch, Controller } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
 import { subTaskService } from '@/services/subTaskService';
 import toast from 'react-hot-toast';
@@ -185,18 +186,21 @@ const SubTaskForm: React.FC = () => {
                                 </div>
 
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Descrição</label>
-                                    <textarea
-                                        {...register(`subTasks.${index}.description`)}
-                                        rows={5}
-                                        placeholder="Descreva a subtarefa em detalhes (opcional)"
-                                        className="w-full px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical text-sm sm:text-base"
-                                    />
-                                    {errors.subTasks?.[index]?.description && (
-                                        <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.subTasks[index].description.message}</p>
+                                <Controller
+                                    name={`subTasks.${index}.description`}
+                                    control={control}
+                                    render={({ field }) => (
+                                        <RichTextEditor
+                                            label="Descricao"
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            placeholder="Descreva a subtarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
+                                            error={errors.subTasks?.[index]?.description?.message}
+                                            minHeight="150px"
+                                            context={`subtask-${subTask?.id || 'new'}-${index}`}
+                                        />
                                     )}
-                                </div>
+                                />
 
 
                                 <div className="grid grid-cols-1 gap-4">

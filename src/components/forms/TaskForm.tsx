@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { FormProvider, useForm, useWatch, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { DollarSign, Upload, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
@@ -11,6 +11,7 @@ import Button from '../ui/Button';
 import SubTaskForm from './SubTaskForm';
 import FilePicker from '../ui/FilePicker';
 import AttachmentList from '../ui/AttachmentList';
+import RichTextEditor from '../ui/RichTextEditor';
 import { TaskAttachmentResponse } from '@/services/taskAttachmentService';
 
 interface SubTask {
@@ -453,16 +454,22 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
-                        <textarea
-                            {...register('description')}
-                            rows={8}
-                            placeholder="Descreva a tarefa em detalhes (opcional)&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
-                        />
-                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
-                    </div>
+                    <Controller
+                        name="description"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor
+                                label="Descricao"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                placeholder="Descreva a tarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
+                                error={errors.description?.message}
+                                disabled={isSubmitting || loading}
+                                minHeight="200px"
+                                context={`task-${initialData?.id || 'new'}`}
+                            />
+                        )}
+                    />
                 </div>
 
                 {/* Links e Informações Adicionais */}
