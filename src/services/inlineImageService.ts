@@ -1,5 +1,7 @@
 import api from './api';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8085/api';
+
 export interface InlineImageResponse {
     url: string;
     fileName: string;
@@ -19,7 +21,15 @@ export const inlineImageService = {
             },
             timeout: 30000,
         });
-        return response.data;
+
+        const data = response.data as InlineImageResponse;
+
+        if (data.url && data.url.startsWith('/api/')) {
+            const baseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+            data.url = baseUrl + data.url;
+        }
+
+        return data;
     },
 
     compressImage: (file: File, maxWidth: number = 1200, quality: number = 0.85): Promise<File> => {
