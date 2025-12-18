@@ -17,6 +17,7 @@ import { DeliveryAttachmentList } from '../../components/deliveries/DeliveryAtta
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import RichTextEditor from '../../components/ui/RichTextEditor';
 
 const DeliveryCreate: React.FC = () => {
     const navigate = useNavigate();
@@ -264,15 +265,13 @@ const DeliveryCreate: React.FC = () => {
                         </div>
 
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Observações Gerais da Entrega
-                            </label>
-                            <textarea
+                            <RichTextEditor
+                                label="Observações Gerais da Entrega"
                                 value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
-                                placeholder="Digite observações gerais sobre esta entrega..."
+                                onChange={setNotes}
+                                placeholder="Digite observações gerais sobre esta entrega. Você pode colar imagens diretamente..."
+                                minHeight="150px"
+                                context="delivery-notes-new"
                             />
                         </div>
 

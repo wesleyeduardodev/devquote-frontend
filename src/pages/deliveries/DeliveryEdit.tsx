@@ -25,6 +25,7 @@ import DeliveryOperationalItemForm, { DeliveryOperationalItemFormData } from '..
 import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import { DeliveryAttachmentList } from '../../components/deliveries/DeliveryAttachmentList';
+import RichTextEditor from '../../components/ui/RichTextEditor';
 
 const DeliveryEdit: React.FC = () => {
     const { deliveryId } = useParams<{ deliveryId: string }>();
@@ -570,15 +571,13 @@ const DeliveryEdit: React.FC = () => {
                         )}
                     </div>
                     <div>
-                        <textarea
+                        <RichTextEditor
                             value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            rows={4}
-                            readOnly={!canEdit}
-                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y ${
-                                !canEdit ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300'
-                            }`}
-                            placeholder={canEdit ? "Digite observações gerais sobre esta entrega..." : "Nenhuma observação registrada"}
+                            onChange={setNotes}
+                            placeholder={canEdit ? "Digite observações gerais sobre esta entrega. Você pode colar imagens diretamente..." : "Nenhuma observação registrada"}
+                            minHeight="150px"
+                            disabled={!canEdit}
+                            context={`delivery-notes-${deliveryId}`}
                         />
                     </div>
                 </Card>

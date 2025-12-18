@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Calendar, AlertCircle, Trash2 } from 'lucide-react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { useForm } from 'react-hook-form';
+import RichTextEditor from '../ui/RichTextEditor';
+import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { DeliveryOperationalAttachmentList } from './DeliveryOperationalAttachmentList';
@@ -58,6 +59,7 @@ export default function DeliveryOperationalItemForm({
         handleSubmit,
         watch,
         reset,
+        control,
         formState: { errors, isDirty }
     } = useForm<DeliveryOperationalItemFormData>({
         resolver: yupResolver(operationalItemSchema),
@@ -255,18 +257,21 @@ export default function DeliveryOperationalItemForm({
                     </div>
 
                     {/* Descrição */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Descrição
-                        </label>
-                        <textarea
-                            {...register('description')}
-                            rows={4}
-                            placeholder="Descreva os detalhes da atividade operacional..."
-                            disabled={isReadOnly}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical disabled:bg-gray-100"
-                        />
-                    </div>
+                    <Controller
+                        name="description"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor
+                                label="Descrição"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                placeholder="Descreva os detalhes da atividade operacional. Você pode colar imagens diretamente..."
+                                minHeight="150px"
+                                disabled={isReadOnly}
+                                context={`delivery-operational-${initialData?.id || 'new'}`}
+                            />
+                        )}
+                    />
 
                     {/* Status */}
                     <div>

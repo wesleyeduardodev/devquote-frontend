@@ -4,7 +4,8 @@ import { DeliveryItemFormData, DeliveryStatus } from '../../types/delivery.types
 import { AvailableProject } from '../../types/delivery.types';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { useForm } from 'react-hook-form';
+import RichTextEditor from '../ui/RichTextEditor';
+import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { DeliveryAttachmentList } from './DeliveryAttachmentList';
@@ -64,6 +65,7 @@ export default function DeliveryItemForm({
         watch,
         setValue,
         reset,
+        control,
         formState: { errors, isDirty }
     } = useForm<DeliveryItemFormData>({
         resolver: yupResolver(deliveryItemSchema),
@@ -359,18 +361,21 @@ export default function DeliveryItemForm({
                     </div>
 
                     {/* Observações */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Observações
-                        </label>
-                        <textarea
-                            {...register('notes')}
-                            rows={8}
-                            placeholder="Descreva as observações sobre a implementação em detalhes&#10;Você pode usar múltiplas linhas&#10;Sem limite de caracteres..."
-                            disabled={isReadOnly}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical disabled:bg-gray-100"
-                        />
-                    </div>
+                    <Controller
+                        name="notes"
+                        control={control}
+                        render={({ field }) => (
+                            <RichTextEditor
+                                label="Observações"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                placeholder="Descreva as observações sobre a implementação em detalhes. Você pode colar imagens diretamente..."
+                                minHeight="200px"
+                                disabled={isReadOnly}
+                                context={`delivery-item-${initialData?.id || 'new'}-${project.id}`}
+                            />
+                        )}
+                    />
 
 
                     {/* Anexos do Item */}
