@@ -279,6 +279,32 @@ const SubTaskForm: React.FC = () => {
                 })}
             </div>
 
+            {/* Rodapé com Total e Botão - aparece apenas quando há subtarefas */}
+            {watchSubTasks?.filter(st => !st?.excluded).length > 0 && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">
+                    <div className="text-sm text-gray-600">
+                        {canViewValues && (
+                            <>
+                                <span className="font-medium">Total: </span>
+                                <span className="text-lg font-bold text-primary-600">
+                                    {formatCurrency(calculateTotal())}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                    <Button
+                        type="button"
+                        size="sm"
+                        onClick={addSubTask}
+                        className="flex items-center justify-center w-full sm:w-auto"
+                        onMouseDown={(e) => e.preventDefault()}
+                    >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Adicionar Subtarefa
+                    </Button>
+                </div>
+            )}
+
             {watchSubTasks?.filter(st => !st?.excluded).length === 0 && (
                 <Card className="text-center py-8">
                     <div className="text-gray-500">
