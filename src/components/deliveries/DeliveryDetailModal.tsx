@@ -357,10 +357,12 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                     Observações Gerais da Entrega
                                 </h3>
                                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                    <div className="max-h-32 overflow-y-auto">
-                                        <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                            {delivery.deliveryNotes}
-                                        </p>
+                                    <div className="max-h-48 overflow-y-auto prose prose-sm max-w-none">
+                                        <div
+                                            className="text-gray-700 break-words [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                                            dangerouslySetInnerHTML={{ __html: delivery.deliveryNotes }}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -484,10 +486,12 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                     Observações do Item
                                 </h3>
                             <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="max-h-32 overflow-y-auto">
-                                    <p className="text-gray-700 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                                        {delivery.notes}
-                                    </p>
+                                <div className="max-h-48 overflow-y-auto prose prose-sm max-w-none">
+                                    <div
+                                        className="text-gray-700 break-words [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                                        dangerouslySetInnerHTML={{ __html: delivery.notes }}
+                                    />
                                 </div>
                             </div>
                         </div>

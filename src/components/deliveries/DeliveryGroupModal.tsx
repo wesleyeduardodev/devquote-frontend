@@ -135,7 +135,7 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            <div className="bg-white rounded-xl shadow-2xl w-[80vw] h-[80vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <div className="flex items-center">
@@ -167,7 +167,7 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
 
 
                 {/* Content */}
-                <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div className="flex-1 overflow-y-auto">
                     <div className="p-6 space-y-6">
                         {/* Informações da Tarefa */}
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -287,10 +287,11 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                                 {item.description && (
                                                                     <div>
                                                                         <h5 className="text-sm font-semibold text-gray-900 mb-3">Descrição</h5>
-                                                                        <div className="bg-white border border-gray-200 rounded-lg p-3">
-                                                                            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                                                                {item.description}
-                                                                            </p>
+                                                                        <div className="bg-white border border-gray-200 rounded-lg p-3 prose prose-sm max-w-none">
+                                                                            <div
+                                                                                className="text-sm text-gray-700 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                                                                dangerouslySetInnerHTML={{ __html: item.description }}
+                                                                            />
                                                                         </div>
                                                                     </div>
                                                                 )}
@@ -446,10 +447,11 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                                                     <StickyNote className="w-4 h-4 text-blue-600" />
                                                                     Observações
                                                                 </h5>
-                                                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                                                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                                                        {item.notes}
-                                                                    </p>
+                                                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg prose prose-sm max-w-none">
+                                                                    <div
+                                                                        className="text-sm text-gray-700 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                                                        dangerouslySetInnerHTML={{ __html: item.notes }}
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         )}
@@ -525,10 +527,11 @@ const DeliveryGroupModal: React.FC<DeliveryGroupModalProps> = ({ deliveryGroup, 
                                     <StickyNote className="w-5 h-5 text-amber-600" />
                                     Observações Gerais da Entrega
                                 </h3>
-                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                    <p className="text-gray-700 whitespace-pre-wrap">
-                                        {deliveryGroup.deliveries[0].notes}
-                                    </p>
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 prose prose-sm max-w-none">
+                                    <div
+                                        className="text-gray-700 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                        dangerouslySetInnerHTML={{ __html: deliveryGroup.deliveries[0].notes }}
+                                    />
                                 </div>
                             </div>
                         )}
