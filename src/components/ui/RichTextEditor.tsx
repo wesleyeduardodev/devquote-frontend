@@ -21,6 +21,23 @@ interface RichTextEditorProps {
     context?: string;
 }
 
+const convertPlainTextToHtml = (text: string): string => {
+    if (!text || text.trim() === '') return '';
+
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(text);
+    if (hasHtmlTags) return text;
+
+    const paragraphs = text.split(/\n\n+/);
+
+    return paragraphs
+        .map(paragraph => {
+            const lines = paragraph.split(/\n/);
+            const content = lines.join('<br>');
+            return `<p>${content}</p>`;
+        })
+        .join('');
+};
+
 const MenuButton: React.FC<{
     onClick: () => void;
     isActive?: boolean;
@@ -79,7 +96,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 placeholder,
             }),
         ],
-        content: value,
+        content: convertPlainTextToHtml(value),
         editable: !disabled,
         onUpdate: ({ editor }) => {
             const html = editor.getHTML();
@@ -125,14 +142,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     });
 
     useEffect(() => {
-        if (editor && value !== editor.getHTML()) {
+        if (editor) {
+            const convertedValue = convertPlainTextToHtml(value);
             const currentContent = editor.getHTML();
             const isEmpty = editor.isEmpty;
 
             if (value === '' && isEmpty) return;
-            if (value === currentContent) return;
+            if (convertedValue === currentContent) return;
 
-            editor.commands.setContent(value || '');
+            editor.commands.setContent(convertedValue);
         }
     }, [value, editor]);
 
