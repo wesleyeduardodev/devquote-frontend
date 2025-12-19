@@ -1,10 +1,47 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Undo, Redo } from 'lucide-react';
+import Underline from '@tiptap/extension-underline';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import Highlight from '@tiptap/extension-highlight';
+import TextAlign from '@tiptap/extension-text-align';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import {
+    Bold,
+    Italic,
+    Underline as UnderlineIcon,
+    Strikethrough,
+    Link as LinkIcon,
+    Image as ImageIcon,
+    Undo,
+    Redo,
+    AlignLeft,
+    AlignCenter,
+    AlignRight,
+    AlignJustify,
+    Code,
+    Minus,
+    Table as TableIcon,
+    Subscript as SubscriptIcon,
+    Superscript as SuperscriptIcon,
+    CheckSquare,
+    Palette,
+    Highlighter,
+    ChevronDown,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import { inlineImageService } from '@/services/inlineImageService';
@@ -38,6 +75,27 @@ const convertPlainTextToHtml = (text: string): string => {
         .join('');
 };
 
+const TEXT_COLORS = [
+    { name: 'Preto', color: '#000000' },
+    { name: 'Cinza', color: '#6B7280' },
+    { name: 'Vermelho', color: '#DC2626' },
+    { name: 'Laranja', color: '#EA580C' },
+    { name: 'Amarelo', color: '#CA8A04' },
+    { name: 'Verde', color: '#16A34A' },
+    { name: 'Azul', color: '#2563EB' },
+    { name: 'Roxo', color: '#9333EA' },
+    { name: 'Rosa', color: '#DB2777' },
+];
+
+const HIGHLIGHT_COLORS = [
+    { name: 'Amarelo', color: '#FEF08A' },
+    { name: 'Verde', color: '#BBF7D0' },
+    { name: 'Azul', color: '#BFDBFE' },
+    { name: 'Rosa', color: '#FBCFE8' },
+    { name: 'Roxo', color: '#DDD6FE' },
+    { name: 'Laranja', color: '#FED7AA' },
+];
+
 const MenuButton: React.FC<{
     onClick: () => void;
     isActive?: boolean;
@@ -60,6 +118,164 @@ const MenuButton: React.FC<{
     </button>
 );
 
+const Divider = () => <div className="w-px h-5 bg-gray-300 mx-1" />;
+
+const ColorPicker: React.FC<{
+    colors: { name: string; color: string }[];
+    onSelect: (color: string) => void;
+    onClear?: () => void;
+    title: string;
+    icon: React.ReactNode;
+    disabled?: boolean;
+    currentColor?: string;
+}> = ({ colors, onSelect, onClear, title, icon, disabled, currentColor }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                disabled={disabled}
+                title={title}
+                className={clsx(
+                    'p-1.5 rounded transition-colors flex items-center gap-0.5',
+                    'text-gray-600 hover:bg-gray-100',
+                    disabled && 'opacity-50 cursor-not-allowed'
+                )}
+            >
+                {icon}
+                <ChevronDown className="w-3 h-3" />
+            </button>
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20 min-w-[120px]">
+                        <div className="grid grid-cols-3 gap-1">
+                            {colors.map(({ name, color }) => (
+                                <button
+                                    key={color}
+                                    type="button"
+                                    onClick={() => {
+                                        onSelect(color);
+                                        setIsOpen(false);
+                                    }}
+                                    title={name}
+                                    className={clsx(
+                                        'w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform',
+                                        currentColor === color && 'ring-2 ring-blue-500'
+                                    )}
+                                    style={{ backgroundColor: color }}
+                                />
+                            ))}
+                        </div>
+                        {onClear && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onClear();
+                                    setIsOpen(false);
+                                }}
+                                className="w-full mt-2 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded"
+                            >
+                                Remover
+                            </button>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+const TableMenu: React.FC<{
+    editor: any;
+    disabled?: boolean;
+}> = ({ editor, disabled }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const insertTable = () => {
+        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                disabled={disabled}
+                title="Tabela"
+                className={clsx(
+                    'p-1.5 rounded transition-colors flex items-center gap-0.5',
+                    editor.isActive('table') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100',
+                    disabled && 'opacity-50 cursor-not-allowed'
+                )}
+            >
+                <TableIcon className="w-4 h-4" />
+                <ChevronDown className="w-3 h-3" />
+            </button>
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20 min-w-[160px]">
+                        {!editor.isActive('table') ? (
+                            <button
+                                type="button"
+                                onClick={insertTable}
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Inserir Tabela 3x3
+                            </button>
+                        ) : (
+                            <div className="space-y-1">
+                                <button
+                                    type="button"
+                                    onClick={() => { editor.chain().focus().addColumnAfter().run(); setIsOpen(false); }}
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded"
+                                >
+                                    Adicionar coluna
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { editor.chain().focus().addRowAfter().run(); setIsOpen(false); }}
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded"
+                                >
+                                    Adicionar linha
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { editor.chain().focus().deleteColumn().run(); setIsOpen(false); }}
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded text-red-600"
+                                >
+                                    Remover coluna
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { editor.chain().focus().deleteRow().run(); setIsOpen(false); }}
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded text-red-600"
+                                >
+                                    Remover linha
+                                </button>
+                                <hr className="my-1" />
+                                <button
+                                    type="button"
+                                    onClick={() => { editor.chain().focus().deleteTable().run(); setIsOpen(false); }}
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded text-red-600 flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                    Excluir tabela
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
     value = '',
     onChange,
@@ -76,8 +292,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
-                heading: false,
-                codeBlock: false,
+                heading: {
+                    levels: [1, 2, 3],
+                },
             }),
             Image.configure({
                 inline: true,
@@ -94,6 +311,45 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             }),
             Placeholder.configure({
                 placeholder,
+            }),
+            Underline,
+            TextStyle,
+            Color,
+            Highlight.configure({
+                multicolor: true,
+            }),
+            TextAlign.configure({
+                types: ['heading', 'paragraph'],
+            }),
+            Subscript,
+            Superscript,
+            Table.configure({
+                resizable: true,
+                HTMLAttributes: {
+                    class: 'border-collapse table-auto w-full',
+                },
+            }),
+            TableRow,
+            TableCell.configure({
+                HTMLAttributes: {
+                    class: 'border border-gray-300 p-2',
+                },
+            }),
+            TableHeader.configure({
+                HTMLAttributes: {
+                    class: 'border border-gray-300 p-2 bg-gray-100 font-bold',
+                },
+            }),
+            TaskList.configure({
+                HTMLAttributes: {
+                    class: 'list-none pl-0',
+                },
+            }),
+            TaskItem.configure({
+                nested: true,
+                HTMLAttributes: {
+                    class: 'flex items-start gap-2',
+                },
             }),
         ],
         content: convertPlainTextToHtml(value),
@@ -255,7 +511,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     disabled && 'bg-gray-50 cursor-not-allowed'
                 )}
             >
-                <div className="flex flex-wrap items-center gap-1 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+                {/* Toolbar */}
+                <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+                    {/* Formatacao basica */}
                     <MenuButton
                         onClick={() => editor.chain().focus().toggleBold().run()}
                         isActive={editor.isActive('bold')}
@@ -272,24 +530,139 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     >
                         <Italic className="w-4 h-4" />
                     </MenuButton>
-                    <div className="w-px h-5 bg-gray-300 mx-1" />
                     <MenuButton
-                        onClick={() => editor.chain().focus().toggleBulletList().run()}
-                        isActive={editor.isActive('bulletList')}
+                        onClick={() => editor.chain().focus().toggleUnderline().run()}
+                        isActive={editor.isActive('underline')}
                         disabled={disabled || isUploading}
-                        title="Lista com marcadores"
+                        title="Sublinhado (Ctrl+U)"
                     >
-                        <List className="w-4 h-4" />
+                        <UnderlineIcon className="w-4 h-4" />
                     </MenuButton>
                     <MenuButton
-                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                        isActive={editor.isActive('orderedList')}
+                        onClick={() => editor.chain().focus().toggleStrike().run()}
+                        isActive={editor.isActive('strike')}
                         disabled={disabled || isUploading}
-                        title="Lista numerada"
+                        title="Riscado"
                     >
-                        <ListOrdered className="w-4 h-4" />
+                        <Strikethrough className="w-4 h-4" />
                     </MenuButton>
-                    <div className="w-px h-5 bg-gray-300 mx-1" />
+
+                    <Divider />
+
+                    {/* Cores */}
+                    <ColorPicker
+                        colors={TEXT_COLORS}
+                        onSelect={(color) => editor.chain().focus().setColor(color).run()}
+                        onClear={() => editor.chain().focus().unsetColor().run()}
+                        title="Cor do texto"
+                        icon={<Palette className="w-4 h-4" />}
+                        disabled={disabled || isUploading}
+                        currentColor={editor.getAttributes('textStyle').color}
+                    />
+                    <ColorPicker
+                        colors={HIGHLIGHT_COLORS}
+                        onSelect={(color) => editor.chain().focus().toggleHighlight({ color }).run()}
+                        onClear={() => editor.chain().focus().unsetHighlight().run()}
+                        title="Marca-texto"
+                        icon={<Highlighter className="w-4 h-4" />}
+                        disabled={disabled || isUploading}
+                    />
+
+                    <Divider />
+
+                    {/* Alinhamento */}
+                    <MenuButton
+                        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                        isActive={editor.isActive({ textAlign: 'left' })}
+                        disabled={disabled || isUploading}
+                        title="Alinhar a esquerda"
+                    >
+                        <AlignLeft className="w-4 h-4" />
+                    </MenuButton>
+                    <MenuButton
+                        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                        isActive={editor.isActive({ textAlign: 'center' })}
+                        disabled={disabled || isUploading}
+                        title="Centralizar"
+                    >
+                        <AlignCenter className="w-4 h-4" />
+                    </MenuButton>
+                    <MenuButton
+                        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                        isActive={editor.isActive({ textAlign: 'right' })}
+                        disabled={disabled || isUploading}
+                        title="Alinhar a direita"
+                    >
+                        <AlignRight className="w-4 h-4" />
+                    </MenuButton>
+                    <MenuButton
+                        onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                        isActive={editor.isActive({ textAlign: 'justify' })}
+                        disabled={disabled || isUploading}
+                        title="Justificar"
+                    >
+                        <AlignJustify className="w-4 h-4" />
+                    </MenuButton>
+
+                    <Divider />
+
+                    {/* Listas */}
+                    <MenuButton
+                        onClick={() => editor.chain().focus().toggleTaskList().run()}
+                        isActive={editor.isActive('taskList')}
+                        disabled={disabled || isUploading}
+                        title="Lista de tarefas"
+                    >
+                        <CheckSquare className="w-4 h-4" />
+                    </MenuButton>
+
+                    <Divider />
+
+                    {/* Blocos */}
+                    <MenuButton
+                        onClick={() => editor.chain().focus().toggleCode().run()}
+                        isActive={editor.isActive('code')}
+                        disabled={disabled || isUploading}
+                        title="Codigo"
+                    >
+                        <Code className="w-4 h-4" />
+                    </MenuButton>
+                    <MenuButton
+                        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                        disabled={disabled || isUploading}
+                        title="Linha horizontal"
+                    >
+                        <Minus className="w-4 h-4" />
+                    </MenuButton>
+
+                    <Divider />
+
+                    {/* Subscrito/Sobrescrito */}
+                    <MenuButton
+                        onClick={() => editor.chain().focus().toggleSubscript().run()}
+                        isActive={editor.isActive('subscript')}
+                        disabled={disabled || isUploading}
+                        title="Subscrito"
+                    >
+                        <SubscriptIcon className="w-4 h-4" />
+                    </MenuButton>
+                    <MenuButton
+                        onClick={() => editor.chain().focus().toggleSuperscript().run()}
+                        isActive={editor.isActive('superscript')}
+                        disabled={disabled || isUploading}
+                        title="Sobrescrito"
+                    >
+                        <SuperscriptIcon className="w-4 h-4" />
+                    </MenuButton>
+
+                    <Divider />
+
+                    {/* Tabela */}
+                    <TableMenu editor={editor} disabled={disabled || isUploading} />
+
+                    <Divider />
+
+                    {/* Links e Imagens */}
                     <MenuButton
                         onClick={setLink}
                         isActive={editor.isActive('link')}
@@ -305,7 +678,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     >
                         <ImageIcon className="w-4 h-4" />
                     </MenuButton>
-                    <div className="w-px h-5 bg-gray-300 mx-1" />
+
+                    <Divider />
+
+                    {/* Undo/Redo */}
                     <MenuButton
                         onClick={() => editor.chain().focus().undo().run()}
                         disabled={disabled || isUploading || !editor.can().undo()}
@@ -320,10 +696,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     >
                         <Redo className="w-4 h-4" />
                     </MenuButton>
+
                     {isUploading && (
                         <span className="ml-auto text-xs text-gray-500">Enviando imagem...</span>
                     )}
                 </div>
+
+                {/* Editor Content */}
                 <div
                     style={{ minHeight }}
                     className={clsx(

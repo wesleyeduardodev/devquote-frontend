@@ -622,7 +622,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
                     {onCancel && (
                         <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting || loading}>
-                            Cancelar
+                            Voltar
                         </Button>
                     )}
                     <Button type="submit" loading={isSubmitting || loading} disabled={isSubmitting || loading}>
