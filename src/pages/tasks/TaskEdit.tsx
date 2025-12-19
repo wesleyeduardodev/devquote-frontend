@@ -110,9 +110,9 @@ const TaskEdit = () => {
                 requesterId: selectedRequester.id
             };
 
-            await updateTaskWithSubTasks(Number(id), taskData);
+            const updatedTask = await updateTaskWithSubTasks(Number(id), taskData);
 
-            navigate('/tasks');
+            setTask(updatedTask);
         } catch (error) {
         } finally {
             setLoading(false);
