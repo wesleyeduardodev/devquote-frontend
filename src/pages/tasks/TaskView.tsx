@@ -279,28 +279,26 @@ const TaskView: React.FC = () => {
 
                 {/* Card do Cabecalho */}
                 <Card className="overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
-                                    <FileText className="w-7 h-7 text-white" />
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4 sm:py-5">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                            <div className="flex items-start gap-3 sm:gap-4">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <h1 className="text-2xl font-bold text-white">Tarefa #{task.id}</h1>
-                                        {task.code && (
-                                            <span className="text-sm font-mono bg-white/20 px-2 py-1 rounded text-white">
-                                                {task.code}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-blue-100">{task.requesterName || 'Sem solicitante'}</p>
+                                <div className="min-w-0 flex-1">
+                                    <h1 className="text-xl sm:text-2xl font-bold text-white">Tarefa #{task.id}</h1>
+                                    {task.code && (
+                                        <span className="inline-block text-xs sm:text-sm font-mono bg-white/20 px-2 py-1 rounded text-white mt-1">
+                                            {task.code}
+                                        </span>
+                                    )}
+                                    <p className="text-blue-100 text-sm sm:text-base mt-1">{task.requesterName || 'Sem solicitante'}</p>
                                 </div>
                             </div>
                             {isAdmin && (
-                                <div className="text-right">
-                                    <p className="text-blue-100 text-sm">Valor Total</p>
-                                    <p className="text-2xl font-bold text-white">
+                                <div className="text-left sm:text-right bg-white/10 sm:bg-transparent rounded-lg p-3 sm:p-0">
+                                    <p className="text-blue-100 text-xs sm:text-sm">Valor Total</p>
+                                    <p className="text-xl sm:text-2xl font-bold text-white">
                                         {formatCurrency(calculateTaskTotal())}
                                     </p>
                                 </div>
@@ -309,8 +307,8 @@ const TaskView: React.FC = () => {
                     </div>
 
                     {/* Badges de Status */}
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <div className="flex flex-wrap gap-3">
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b border-gray-200">
+                        <div className="flex flex-wrap gap-2 sm:gap-3">
                             {task.priority && (
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(task.priority)}`}>
                                     <AlertCircle className="w-4 h-4 mr-1" />
