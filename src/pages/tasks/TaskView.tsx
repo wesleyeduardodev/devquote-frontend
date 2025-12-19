@@ -262,17 +262,19 @@ const TaskView: React.FC = () => {
                         Voltar
                     </Button>
 
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/tasks/${task.id}/edit`)}
-                            className="flex items-center"
-                        >
-                            <Edit3 className="w-4 h-4 mr-2" />
-                            Editar
-                        </Button>
-                    </div>
+                    {isAdmin && (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/tasks/${task.id}/edit`)}
+                                className="flex items-center"
+                            >
+                                <Edit3 className="w-4 h-4 mr-2" />
+                                Editar
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Card do Cabecalho */}
