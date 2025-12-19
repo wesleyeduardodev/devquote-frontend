@@ -478,17 +478,17 @@ const TaskView: React.FC = () => {
 
                 {/* Subtarefas */}
                 {subtasks.length > 0 && (
-                    <Card className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Card className="p-3 sm:p-6">
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
                             <ListChecks className="w-5 h-5 text-blue-600" />
                             Subtarefas
                             <span className="text-sm font-normal text-gray-500">
-                                ({completedSubtasks} de {totalSubtasks} concluidas)
+                                ({totalSubtasks})
                             </span>
                         </h2>
 
-                        {/* Barra de progresso */}
-                        <div className="mb-6">
+                        {/* Barra de progresso - apenas desktop */}
+                        <div className="hidden sm:block mb-6">
                             <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                                 <span>Progresso</span>
                                 <span>{Math.round(completionPercentage)}%</span>
@@ -501,19 +501,31 @@ const TaskView: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             {subtasks.map((subtask, index) => (
                                 <div key={subtask.id} className="relative">
                                     <div
-                                        className={`p-4 rounded-lg border ${
+                                        className={`p-3 sm:p-4 rounded-lg border ${
                                             subtask.completed
                                                 ? 'border-green-200 bg-green-50'
                                                 : 'border-gray-200 bg-white'
                                         }`}
                                     >
-                                        <div className="flex items-start gap-3">
-                                            {/* Numero e Checkbox */}
-                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                        {/* Header com valor - mobile */}
+                                        {isAdmin && subtask.amount !== undefined && subtask.amount > 0 && (
+                                            <div className="flex justify-end mb-2 sm:hidden">
+                                                <div className="flex items-center gap-1">
+                                                    <DollarSign className="w-4 h-4 text-green-600" />
+                                                    <span className="font-bold text-green-600 text-sm">
+                                                        {formatCurrency(subtask.amount)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-start gap-2 sm:gap-3">
+                                            {/* Numero e Checkbox - apenas desktop */}
+                                            <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
                                                 <span className="text-sm font-medium text-gray-500 w-6">
                                                     {index + 1}.
                                                 </span>
@@ -529,7 +541,7 @@ const TaskView: React.FC = () => {
                                             {/* Conteudo */}
                                             <div className="flex-1 min-w-0">
                                                 {subtask.title && (
-                                                    <p className={`font-medium mb-2 ${
+                                                    <p className={`font-medium mb-1 sm:mb-2 text-sm sm:text-base ${
                                                         subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
                                                     }`}>
                                                         {subtask.title}
@@ -544,15 +556,15 @@ const TaskView: React.FC = () => {
                                                     />
                                                 )}
                                                 {subtask.createdAt && (
-                                                    <p className="text-xs text-gray-400 mt-3">
+                                                    <p className="text-xs text-gray-400 mt-2 sm:mt-3">
                                                         Criada em {formatDate(subtask.createdAt)}
                                                     </p>
                                                 )}
                                             </div>
 
-                                            {/* Valor */}
+                                            {/* Valor - apenas desktop */}
                                             {isAdmin && subtask.amount !== undefined && subtask.amount > 0 && (
-                                                <div className="flex items-center gap-1 flex-shrink-0">
+                                                <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
                                                     <DollarSign className="w-4 h-4 text-green-600" />
                                                     <span className="font-bold text-green-600">
                                                         {formatCurrency(subtask.amount)}
