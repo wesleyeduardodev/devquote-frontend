@@ -27,7 +27,6 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
-import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
 import { FlowTypeFilter, FlowTypeFilterValue } from '@/components/filters/FlowTypeFilter';
 import { TaskTypeFilter, TaskTypeFilterValue } from '@/components/filters/TaskTypeFilter';
@@ -70,8 +69,6 @@ const TaskList: React.FC = () => {
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
     const [showFinancialEmailModal, setShowFinancialEmailModal] = useState(false);
     const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
     const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
@@ -123,39 +120,7 @@ const TaskList: React.FC = () => {
     };
 
     const handleView = (task: Task) => {
-        const taskForModal = {
-            id: task.id,
-            name: task.title,
-            code: task.code,
-            description: task.description,
-            priority: task.priority || 'MEDIUM',
-            taskType: task.taskType,
-            flowType: task.flowType,
-            environment: task.environment,
-            serverOrigin: task.serverOrigin,
-            systemModule: task.systemModule,
-            estimatedHours: undefined,
-            actualHours: undefined,
-            requesterName: task.requesterName,
-            projectName: undefined,
-            projects: undefined,
-            link: task.link,
-            meetingLink: task.meetingLink,
-            subtasks: task.subTasks?.map(subtask => ({
-                id: subtask.id || 0,
-                title: subtask.title,
-                description: subtask.description || subtask.title,
-                completed: false,
-                amount: subtask.amount,
-                createdAt: subtask.createdAt
-            })),
-            totalAmount: calculateTaskTotal(task),
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt
-        };
-
-        setSelectedTask(taskForModal);
-        setShowDetailModal(true);
+        navigate(`/tasks/${task.id}`);
     };
 
     const handleDelete = (task: Task) => {
@@ -1337,16 +1302,6 @@ const TaskList: React.FC = () => {
                 selectedCount={selectedItems.length}
                 isDeleting={isDeleting}
                 entityName="tarefa"
-            />
-
-            <TaskDetailModal
-                task={selectedTask}
-                isOpen={showDetailModal}
-                onClose={() => {
-                    setShowDetailModal(false);
-                    setSelectedTask(null);
-                }}
-                canViewValues={canViewValues}
             />
 
             {showFinancialEmailModal && taskForEmail && (

@@ -12,6 +12,7 @@ import RequesterEdit from './pages/requesters/RequesterEdit';
 import TaskList from './pages/tasks/TaskList';
 import TaskCreate from './pages/tasks/TaskCreate';
 import TaskEdit from './pages/tasks/TaskEdit';
+import TaskView from './pages/tasks/TaskView';
 import ProjectList from './pages/projects/ProjectList';
 import ProjectCreate from './pages/projects/ProjectCreate';
 import ProjectEdit from './pages/projects/ProjectEdit';
@@ -94,6 +95,11 @@ const AppRoutes: React.FC = () => {
                             <Route path="/tasks/:id/edit" element={
                                 <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <TaskEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/tasks/:id" element={
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
+                                    <TaskView/>
                                 </ProtectedRoute>
                             }/>
 
