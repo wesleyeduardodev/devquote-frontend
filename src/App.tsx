@@ -20,6 +20,7 @@ import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryGroupEdit from './pages/deliveries/DeliveryGroupEdit';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
+import DeliveryView from './pages/deliveries/DeliveryView';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
 import ProfileManagement from './pages/profiles/ProfileManagement';
 import NotificationList from './pages/notifications/NotificationList';
@@ -137,6 +138,11 @@ const AppRoutes: React.FC = () => {
                             <Route path="/deliveries/:deliveryId/edit" element={
                                 <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
                                     <DeliveryEdit/>
+                                </ProtectedRoute>
+                            }/>
+                            <Route path="/deliveries/task/:taskId" element={
+                                <ProtectedRoute requiredProfiles={['ADMIN', 'MANAGER', 'USER']}>
+                                    <DeliveryView/>
                                 </ProtectedRoute>
                             }/>
 

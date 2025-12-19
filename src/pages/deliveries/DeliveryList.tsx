@@ -18,7 +18,6 @@ import DataTable, { Column } from '../../components/ui/DataTable';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import DeliveryGroupModal from '../../components/deliveries/DeliveryGroupModal';
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
 import { FlowTypeFilter, FlowTypeFilterValue } from '../../components/filters/FlowTypeFilter';
@@ -56,8 +55,6 @@ const DeliveryList: React.FC = () => {
     const canViewValues = isAdmin || isManager;
 
     const [statistics, setStatistics] = useState<DeliveryStatusCount | null>(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [selectedGroup, setSelectedGroup] = useState<DeliveryGroupResponse | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState<DeliveryGroupResponse | null>(null);
 
@@ -464,15 +461,8 @@ const DeliveryList: React.FC = () => {
         }
     ];
 
-    const handleView = async (group: DeliveryGroupResponse) => {
-        try {
-            const groupDetails = await deliveryService.getGroupDetailsByTaskId(group.taskId);
-            setSelectedGroup(groupDetails);
-            setShowDetailModal(true);
-        } catch (error) {
-            console.error('Erro ao carregar detalhes:', error);
-            toast.error('Erro ao carregar detalhes da entrega');
-        }
+    const handleView = (group: DeliveryGroupResponse) => {
+        navigate(`/deliveries/task/${group.taskId}`);
     };
 
     const handleEdit = (group: DeliveryGroupResponse) => {
@@ -1205,14 +1195,6 @@ const DeliveryList: React.FC = () => {
             </Card>
 
             {/* Modals */}
-
-            {selectedGroup && (
-                <DeliveryGroupModal
-                    isOpen={showDetailModal}
-                    onClose={() => setShowDetailModal(false)}
-                    deliveryGroup={selectedGroup}
-                />
-            )}
 
             {groupToDelete && (
                 <DeleteConfirmationModal
