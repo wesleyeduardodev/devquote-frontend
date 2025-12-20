@@ -39,7 +39,8 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
     useEffect(() => {
         onCountChange?.(attachments.length);
-    }, [attachments.length, onCountChange]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [attachments.length]);
 
     const fetchAttachments = async () => {
         if (!taskId || taskId <= 0) {
