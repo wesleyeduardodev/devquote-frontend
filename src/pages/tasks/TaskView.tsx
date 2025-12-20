@@ -25,6 +25,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import AttachmentList from '@/components/ui/AttachmentList';
+import SubTaskAttachmentList from '@/components/ui/SubTaskAttachmentList';
 
 interface Subtask {
     id: number;
@@ -83,6 +84,9 @@ const TaskView: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isAttachmentSectionExpanded, setIsAttachmentSectionExpanded] = useState(false);
+    const [taskAttachmentCount, setTaskAttachmentCount] = useState(0);
+    const [subTaskAttachmentCounts, setSubTaskAttachmentCounts] = useState<Record<number, number>>({});
+    const [expandedSubTaskAttachments, setExpandedSubTaskAttachments] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -511,6 +515,59 @@ const TaskView: React.FC = () => {
                                                         Criada em {formatDate(subtask.createdAt)}
                                                     </p>
                                                 )}
+
+                                                {/* Anexos da SubTask */}
+                                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                                    <div
+                                                        className="cursor-pointer flex items-center justify-between py-2 hover:bg-gray-100 rounded px-2 -mx-2"
+                                                        onClick={() => setExpandedSubTaskAttachments(prev => ({
+                                                            ...prev,
+                                                            [subtask.id]: !prev[subtask.id]
+                                                        }))}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <Paperclip className="w-4 h-4 text-gray-400" />
+                                                            <span className="text-sm text-gray-600">Anexos</span>
+                                                            {subTaskAttachmentCounts[subtask.id] > 0 && (
+                                                                <span className="text-xs font-medium text-blue-600">
+                                                                    ({subTaskAttachmentCounts[subtask.id]})
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {expandedSubTaskAttachments[subtask.id] ? (
+                                                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                        ) : (
+                                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Componente oculto para carregar contagem */}
+                                                    {!expandedSubTaskAttachments[subtask.id] && (
+                                                        <div className="hidden">
+                                                            <SubTaskAttachmentList
+                                                                subTaskId={subtask.id}
+                                                                onCountChange={(count) => setSubTaskAttachmentCounts(prev => ({
+                                                                    ...prev,
+                                                                    [subtask.id]: count
+                                                                }))}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {expandedSubTaskAttachments[subtask.id] && (
+                                                        <div className="mt-2">
+                                                            <SubTaskAttachmentList
+                                                                subTaskId={subtask.id}
+                                                                forceExpanded={true}
+                                                                readOnly={true}
+                                                                onCountChange={(count) => setSubTaskAttachmentCounts(prev => ({
+                                                                    ...prev,
+                                                                    [subtask.id]: count
+                                                                }))}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             {isAdmin && subtask.amount !== undefined && subtask.amount > 0 && (
@@ -529,7 +586,7 @@ const TaskView: React.FC = () => {
                     </Card>
                 )}
 
-                {/* Anexos */}
+                {/* Anexos da Task */}
                 <Card className="overflow-hidden">
                     <div
                         className="cursor-pointer px-6 py-4 hover:bg-gray-50 transition-colors"
@@ -538,8 +595,10 @@ const TaskView: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Paperclip className="w-5 h-5 text-gray-500" />
-                                <span className="text-lg font-semibold text-gray-900">Anexos</span>
-                                <span className="text-sm text-gray-500">(clique para visualizar)</span>
+                                <span className="text-lg font-semibold text-gray-900">Anexos da Tarefa</span>
+                                {taskAttachmentCount > 0 && (
+                                    <span className="text-sm font-medium text-blue-600">({taskAttachmentCount})</span>
+                                )}
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-500">
@@ -554,12 +613,23 @@ const TaskView: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Componente oculto para carregar contagem */}
+                    {!isAttachmentSectionExpanded && (
+                        <div className="hidden">
+                            <AttachmentList
+                                taskId={task.id}
+                                onCountChange={setTaskAttachmentCount}
+                            />
+                        </div>
+                    )}
+
                     {isAttachmentSectionExpanded && (
                         <div className="px-6 pb-6 border-t border-gray-200 pt-4">
                             <AttachmentList
                                 taskId={task.id}
                                 forceExpanded={true}
                                 readOnly={true}
+                                onCountChange={setTaskAttachmentCount}
                             />
                         </div>
                     )}
