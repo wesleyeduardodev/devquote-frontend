@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Trash2, File, FileText, Image, Archive, Music, Video, AlertTriangle, ChevronDown, ChevronUp, Upload } from 'lucide-react';
-import { attachmentService } from '@/services/attachmentService';
-import { TaskAttachment } from '@/types/attachments';
+import { subTaskAttachmentService, SubTaskAttachmentResponse } from '@/services/subTaskAttachmentService';
 import LoadingSpinner from './LoadingSpinner';
 import Button from './Button';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import toast from 'react-hot-toast';
 
-interface AttachmentListProps {
-    taskId?: number;
+interface SubTaskAttachmentListProps {
+    subTaskId?: number;
     refreshTrigger?: number;
     className?: string;
     forceExpanded?: boolean;
@@ -16,33 +15,33 @@ interface AttachmentListProps {
     onCountChange?: (count: number) => void;
 }
 
-const AttachmentList: React.FC<AttachmentListProps> = ({
-    taskId,
+const SubTaskAttachmentList: React.FC<SubTaskAttachmentListProps> = ({
+    subTaskId,
     refreshTrigger = 0,
     className = '',
     forceExpanded = false,
     readOnly = false,
     onCountChange
 }) => {
-    const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
+    const [attachments, setAttachments] = useState<SubTaskAttachmentResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isExpanded, setIsExpanded] = useState(forceExpanded);
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;
-        attachment: TaskAttachment | null;
+        attachment: SubTaskAttachmentResponse | null;
     }>({ isOpen: false, attachment: null });
 
     useEffect(() => {
         fetchAttachments();
-    }, [taskId, refreshTrigger]);
+    }, [subTaskId, refreshTrigger]);
 
     useEffect(() => {
         onCountChange?.(attachments.length);
     }, [attachments.length, onCountChange]);
 
     const fetchAttachments = async () => {
-        if (!taskId || taskId <= 0) {
+        if (!subTaskId || subTaskId <= 0) {
             setAttachments([]);
             setLoading(false);
             return;
@@ -50,7 +49,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
         try {
             setLoading(true);
-            const data = await attachmentService.getTaskAttachments(taskId);
+            const data = await subTaskAttachmentService.getSubTaskAttachments(subTaskId);
             setAttachments(data.filter(attachment => !attachment.excluded));
         } catch (error) {
             toast.error('Erro ao carregar arquivos anexados');
@@ -59,28 +58,28 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         }
     };
 
-    const handleDownload = async (attachment: TaskAttachment) => {
+    const handleDownload = async (attachment: SubTaskAttachmentResponse) => {
         try {
-            const blob = await attachmentService.downloadAttachment(attachment.id);
-            
+            const blob = await subTaskAttachmentService.downloadAttachment(attachment.id);
+
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = attachment.originalFileName;
-            
+
             document.body.appendChild(link);
             link.click();
-            
+
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             toast.success('Arquivo baixado com sucesso!');
         } catch (error) {
             toast.error('Erro ao baixar arquivo');
         }
     };
 
-    const handleDeleteClick = (attachment: TaskAttachment) => {
+    const handleDeleteClick = (attachment: SubTaskAttachmentResponse) => {
         setDeleteModal({ isOpen: true, attachment });
     };
 
@@ -89,9 +88,9 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
         try {
             setDeletingId(deleteModal.attachment.id);
-            await attachmentService.deleteAttachment(deleteModal.attachment.id);
+            await subTaskAttachmentService.deleteAttachment(deleteModal.attachment.id);
             setAttachments(prev => prev.filter(a => a.id !== deleteModal.attachment!.id));
-            toast.success('Arquivo excluído com sucesso!');
+            toast.success('Arquivo excluido com sucesso!');
             setDeleteModal({ isOpen: false, attachment: null });
         } catch (error) {
             toast.error('Erro ao excluir arquivo');
@@ -144,13 +143,13 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
     const renderHeader = () => {
         const attachmentCount = loading ? '...' : attachments.length;
-        const statusText = loading ? 'Carregando...' : 
+        const statusText = loading ? 'Carregando...' :
                           attachments.length === 0 ? 'Nenhum arquivo anexado' :
                           attachments.length === 1 ? '1 arquivo anexado' :
                           `${attachments.length} arquivos anexados`;
 
         return (
-            <div 
+            <div
                 className={`border border-gray-200 rounded-lg cursor-pointer transition-all ${className}`}
                 onClick={() => setIsExpanded(!isExpanded)}
             >
@@ -182,7 +181,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     if (loading) {
         return (
             <div className={`border border-gray-200 rounded-lg ${className}`}>
-                <div 
+                <div
                     className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => setIsExpanded(false)}
                 >
@@ -209,7 +208,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     return (
         <div className={`${forceExpanded ? '' : 'border border-gray-200 rounded-lg'} ${className}`}>
             {!forceExpanded && (
-                <div 
+                <div
                     className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => setIsExpanded(false)}
                 >
@@ -230,18 +229,16 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                     </div>
                 </div>
             )}
-            
-            {/* Conteúdo quando não há anexos */}
+
             {attachments.length === 0 ? (
                 <div className="text-center py-6">
                     <File className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                     <p className="text-sm text-gray-500 mb-4">Nenhum arquivo anexado</p>
                     <p className="text-xs text-gray-400">
-                        Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa
+                        Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a subtarefa
                     </p>
                 </div>
             ) : (
-                /* Lista de anexos */
                 <>
                     <div className="divide-y divide-gray-200">
                         {attachments.map((attachment) => (
@@ -251,7 +248,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                         <div className="flex-shrink-0">
                                             {getFileIcon(attachment.contentType)}
                                         </div>
-                                        
+
                                         <div className="ml-3 flex-1 min-w-0">
                                             <div className="text-sm font-medium text-gray-900 truncate">
                                                 {attachment.originalFileName}
@@ -263,7 +260,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-2 ml-4">
                                         <Button
                                             size="sm"
@@ -274,7 +271,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                         >
                                             <Download className="w-4 h-4" />
                                         </Button>
-                                        
+
                                         {!readOnly && (
                                             <Button
                                                 size="sm"
@@ -296,7 +293,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                             </div>
                         ))}
                     </div>
-                    
+
                     {attachments.length > 5 && (
                         <div className="px-4 py-2 bg-gray-50 text-center border-t border-gray-200">
                             <p className="text-xs text-gray-500">
@@ -307,8 +304,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                     )}
                 </>
             )}
-            
-            {/* Modal de Confirmação de Exclusão */}
+
             {!readOnly && (
                 <DeleteConfirmationModal
                     isOpen={deleteModal.isOpen}
@@ -323,4 +319,4 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     );
 };
 
-export default AttachmentList;
+export default SubTaskAttachmentList;

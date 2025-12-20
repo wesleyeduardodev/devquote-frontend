@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, DollarSign } from 'lucide-react';
+import { Plus, Trash2, DollarSign, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import DeleteConfirmationModal from '../ui/DeleteConfirmationModal';
 import RichTextEditor from '../ui/RichTextEditor';
+import FilePicker from '../ui/FilePicker';
+import SubTaskAttachmentList from '../ui/SubTaskAttachmentList';
 import { useFieldArray, useFormContext, useWatch, Controller } from 'react-hook-form';
 import { useAuth } from '@/hooks/useAuth';
 import { subTaskService } from '@/services/subTaskService';
@@ -23,7 +25,11 @@ interface FormData {
     subTasks: SubTask[];
 }
 
-const SubTaskForm: React.FC = () => {
+interface SubTaskFormProps {
+    taskId?: number;
+}
+
+const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
     const { hasProfile } = useAuth();
     const isAdmin = hasProfile('ADMIN');
     const canViewValues = isAdmin;
@@ -31,6 +37,10 @@ const SubTaskForm: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [subTaskToDelete, setSubTaskToDelete] = useState<{ index: number; subTask: SubTask } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [expandedAttachments, setExpandedAttachments] = useState<Record<number, boolean>>({});
+    const [pendingFiles, setPendingFiles] = useState<Record<number, File[]>>({});
+    const [attachmentRefresh, setAttachmentRefresh] = useState<Record<number, number>>({});
+    const [attachmentCounts, setAttachmentCounts] = useState<Record<number, number>>({});
 
     const {
         control,
@@ -197,8 +207,9 @@ const SubTaskForm: React.FC = () => {
                                             placeholder="Descreva a subtarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
                                             error={errors.subTasks?.[index]?.description?.message}
                                             minHeight="150px"
-                                            entityType="TASK"
-                                            entityId={subTask?.taskId || undefined}
+                                            entityType="SUBTASK"
+                                            entityId={subTask?.id}
+                                            parentId={taskId}
                                         />
                                     )}
                                 />
@@ -230,6 +241,94 @@ const SubTaskForm: React.FC = () => {
                                     )}
 
                                 </div>
+
+                                {subTask?.id && (
+                                    <div className="mt-4 border-t pt-4">
+                                        <div
+                                            className="cursor-pointer border border-gray-200 rounded-lg"
+                                            onClick={() => setExpandedAttachments(prev => ({
+                                                ...prev,
+                                                [subTask.id!]: !prev[subTask.id!]
+                                            }))}
+                                        >
+                                            <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Paperclip className="w-4 h-4 text-gray-500" />
+                                                        <span className="text-sm font-medium text-gray-900">Anexos</span>
+                                                        {attachmentCounts[subTask.id!] > 0 && (
+                                                            <span className="text-xs font-medium text-blue-600">({attachmentCounts[subTask.id!]})</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm text-gray-500">
+                                                            {expandedAttachments[subTask.id!] ? 'Recolher' : 'Expandir'}
+                                                        </span>
+                                                        {expandedAttachments[subTask.id!] ? (
+                                                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                        ) : (
+                                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Componente oculto para carregar contagem */}
+                                        {!expandedAttachments[subTask.id!] && (
+                                            <div className="hidden">
+                                                <SubTaskAttachmentList
+                                                    subTaskId={subTask.id}
+                                                    refreshTrigger={attachmentRefresh[subTask.id!] || 0}
+                                                    onCountChange={(count) => setAttachmentCounts(prev => ({
+                                                        ...prev,
+                                                        [subTask.id!]: count
+                                                    }))}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {expandedAttachments[subTask.id!] && (
+                                            <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                                <div className="mb-4">
+                                                    <p className="text-sm text-gray-500">
+                                                        Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a subtarefa
+                                                    </p>
+                                                </div>
+
+                                                <FilePicker
+                                                    files={pendingFiles[subTask.id!] || []}
+                                                    onFilesChange={(files) => setPendingFiles(prev => ({
+                                                        ...prev,
+                                                        [subTask.id!]: files
+                                                    }))}
+                                                    maxFiles={10}
+                                                    maxFileSize={10}
+                                                    subTaskId={subTask.id}
+                                                    showUploadButton={true}
+                                                    onUploadSuccess={() => {
+                                                        setAttachmentRefresh(prev => ({
+                                                            ...prev,
+                                                            [subTask.id!]: (prev[subTask.id!] || 0) + 1
+                                                        }));
+                                                    }}
+                                                />
+
+                                                <div className="mt-4">
+                                                    <SubTaskAttachmentList
+                                                        subTaskId={subTask.id}
+                                                        refreshTrigger={attachmentRefresh[subTask.id!] || 0}
+                                                        forceExpanded={true}
+                                                        onCountChange={(count) => setAttachmentCounts(prev => ({
+                                                            ...prev,
+                                                            [subTask.id!]: count
+                                                        }))}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <input

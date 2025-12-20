@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8085/api'
 
 export type InlineImageEntityType =
     | 'TASK'
+    | 'SUBTASK'
     | 'DELIVERY'
     | 'DELIVERY_DEVELOPMENT_ITEM'
     | 'DELIVERY_OPERATIONAL_ITEM'

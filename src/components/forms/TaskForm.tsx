@@ -176,6 +176,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     const [attachmentRefresh, setAttachmentRefresh] = useState(0);
 
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+    const [attachmentCount, setAttachmentCount] = useState(0);
 
     const [isAttachmentSectionExpanded, setIsAttachmentSectionExpanded] = useState(false);
 
@@ -523,7 +524,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         {hasSubTasks ? (
                             <div>
                                 <h3 className="text-lg font-medium text-gray-900 mb-4">Subtarefas</h3>
-                                <SubTaskForm />
+                                <SubTaskForm taskId={taskId || initialData?.id} />
                                 {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
                             </div>
                         ) : (
@@ -548,7 +549,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 {/* Seção de Anexos - Colapsável */}
                 <div className="border-t pt-6">
                     {/* Cabeçalho clicável */}
-                    <div 
+                    <div
                         className="cursor-pointer border border-gray-200 rounded-lg"
                         onClick={() => setIsAttachmentSectionExpanded(!isAttachmentSectionExpanded)}
                     >
@@ -557,13 +558,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 <div className="flex items-center gap-2">
                                     <Paperclip className="w-5 h-5 text-gray-500" />
                                     <span className="text-lg font-medium text-gray-900">Anexos</span>
-                                    <span className="text-sm text-gray-500">
-                                        {!taskId ? (
-                                            `(${pendingFiles.length} selecionados)`
-                                        ) : (
-                                            `(clique para gerenciar)`
-                                        )}
-                                    </span>
+                                    {!taskId ? (
+                                        pendingFiles.length > 0 && (
+                                            <span className="text-sm font-medium text-blue-600">({pendingFiles.length})</span>
+                                        )
+                                    ) : (
+                                        attachmentCount > 0 && (
+                                            <span className="text-sm font-medium text-blue-600">({attachmentCount})</span>
+                                        )
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-gray-500">
@@ -579,18 +582,29 @@ const TaskForm: React.FC<TaskFormProps> = ({
                         </div>
                     </div>
 
+                    {/* Componente oculto para carregar contagem */}
+                    {taskId && taskId > 0 && !isAttachmentSectionExpanded && (
+                        <div className="hidden">
+                            <AttachmentList
+                                taskId={taskId}
+                                refreshTrigger={attachmentRefresh}
+                                onCountChange={setAttachmentCount}
+                            />
+                        </div>
+                    )}
+
                     {/* Conteúdo da seção quando expandida */}
                     {isAttachmentSectionExpanded && (
                         <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
                             <div className="mb-4">
                                 <p className="text-sm text-gray-500">
-                                    {taskId 
-                                        ? "Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa"
-                                        : "Selecione arquivos que serão anexados após criar a tarefa"
+                                    {taskId
+                                        ? "Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a tarefa"
+                                        : "Selecione arquivos que serao anexados apos criar a tarefa"
                                     }
                                 </p>
                             </div>
-                            
+
                             {/* Componente único para criação e edição */}
                             <FilePicker
                                 files={pendingFiles}
@@ -608,10 +622,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                             {taskId && taskId > 0 && (
                                 <div className="mt-4">
-                                    <AttachmentList 
+                                    <AttachmentList
                                         taskId={taskId}
                                         refreshTrigger={attachmentRefresh}
                                         forceExpanded={true}
+                                        onCountChange={setAttachmentCount}
                                     />
                                 </div>
                             )}
