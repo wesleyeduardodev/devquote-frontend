@@ -295,7 +295,8 @@ const DeliveryCreate: React.FC = () => {
                                 onChange={setNotes}
                                 placeholder="Digite observações gerais sobre esta entrega. Você pode colar imagens diretamente..."
                                 minHeight="150px"
-                                context="delivery-notes-create"
+                                entityType="DELIVERY"
+                                entityId={createdDeliveryId || undefined}
                             />
                         </div>
 

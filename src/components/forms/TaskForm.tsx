@@ -466,7 +466,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                 error={errors.description?.message}
                                 disabled={isSubmitting || loading}
                                 minHeight="200px"
-                                context={`task-${initialData?.id || 'new'}`}
+                                entityType="TASK"
+                                entityId={taskId || initialData?.id}
                             />
                         )}
                     />

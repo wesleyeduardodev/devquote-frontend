@@ -372,7 +372,9 @@ export default function DeliveryItemForm({
                                 placeholder="Descreva as observações sobre a implementação em detalhes. Você pode colar imagens diretamente..."
                                 minHeight="200px"
                                 disabled={isReadOnly}
-                                context={`delivery-item-${initialData?.id || 'new'}-${project.id}`}
+                                entityType="DELIVERY_DEVELOPMENT_ITEM"
+                                entityId={initialData?.id}
+                                parentId={initialData?.deliveryId}
                             />
                         )}
                     />

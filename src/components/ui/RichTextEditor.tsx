@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
-import { inlineImageService } from '@/services/inlineImageService';
+import { inlineImageService, InlineImageEntityType } from '@/services/inlineImageService';
 
 interface RichTextEditorProps {
     value?: string;
@@ -55,7 +55,9 @@ interface RichTextEditorProps {
     label?: string;
     required?: boolean;
     minHeight?: string;
-    context?: string;
+    entityType: InlineImageEntityType;
+    entityId?: number;
+    parentId?: number;
 }
 
 const convertPlainTextToHtml = (text: string): string => {
@@ -285,7 +287,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     label,
     required,
     minHeight = '200px',
-    context = 'general',
+    entityType,
+    entityId,
+    parentId,
 }) => {
     const [isUploading, setIsUploading] = React.useState(false);
 
@@ -419,6 +423,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const handleImageUpload = useCallback(async (file: File) => {
         if (!editor) return;
 
+        if (!entityId) {
+            toast.error('Salve o registro antes de adicionar imagens.');
+            return;
+        }
+
         if (!inlineImageService.isValidImageType(file)) {
             toast.error('Tipo de imagem nao suportado. Use JPEG, PNG, GIF ou WebP.');
             return;
@@ -435,7 +444,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
         try {
             const compressedFile = await inlineImageService.compressImage(file);
-            const response = await inlineImageService.uploadImage(compressedFile, context);
+            const response = await inlineImageService.uploadImage(compressedFile, {
+                entityType,
+                entityId,
+                parentId,
+            });
 
             editor.chain().focus().setImage({ src: response.url }).run();
 
@@ -448,9 +461,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         } finally {
             setIsUploading(false);
         }
-    }, [editor, context]);
+    }, [editor, entityType, entityId, parentId]);
 
     const handleImageButtonClick = useCallback(() => {
+        if (!entityId) {
+            toast.error('Salve o registro antes de adicionar imagens.');
+            return;
+        }
+
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/jpeg,image/png,image/gif,image/webp';
@@ -461,7 +479,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             }
         };
         input.click();
-    }, [handleImageUpload]);
+    }, [handleImageUpload, entityId]);
 
     const setLink = useCallback(() => {
         if (!editor) return;
@@ -495,6 +513,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             </div>
         );
     }
+
+    const isImageUploadDisabled = disabled || isUploading || !entityId;
 
     return (
         <div className="w-full">
@@ -673,8 +693,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     </MenuButton>
                     <MenuButton
                         onClick={handleImageButtonClick}
-                        disabled={disabled || isUploading}
-                        title="Inserir imagem (ou cole com Ctrl+V)"
+                        disabled={isImageUploadDisabled}
+                        title={!entityId ? "Salve o registro para adicionar imagens" : "Inserir imagem (ou cole com Ctrl+V)"}
                     >
                         <ImageIcon className="w-4 h-4" />
                     </MenuButton>
@@ -716,7 +736,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             </div>
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
             <p className="mt-1 text-xs text-gray-500">
-                Dica: Cole imagens diretamente com Ctrl+V ou arraste e solte.
+                {entityId
+                    ? 'Dica: Cole imagens diretamente com Ctrl+V ou arraste e solte.'
+                    : 'Salve o registro para habilitar upload de imagens.'}
             </p>
         </div>
     );

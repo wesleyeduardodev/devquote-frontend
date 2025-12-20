@@ -2,6 +2,13 @@ import api from './api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8085/api';
 
+export type InlineImageEntityType =
+    | 'TASK'
+    | 'DELIVERY'
+    | 'DELIVERY_DEVELOPMENT_ITEM'
+    | 'DELIVERY_OPERATIONAL_ITEM'
+    | 'BILLING_PERIOD';
+
 export interface InlineImageResponse {
     url: string;
     fileName: string;
@@ -9,11 +16,21 @@ export interface InlineImageResponse {
     fileSize: number;
 }
 
+export interface InlineImageUploadParams {
+    entityType: InlineImageEntityType;
+    entityId: number;
+    parentId?: number;
+}
+
 export const inlineImageService = {
-    uploadImage: async (file: File, context: string = 'general'): Promise<InlineImageResponse> => {
+    uploadImage: async (file: File, params: InlineImageUploadParams): Promise<InlineImageResponse> => {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('context', context);
+        formData.append('entityType', params.entityType);
+        formData.append('entityId', params.entityId.toString());
+        if (params.parentId) {
+            formData.append('parentId', params.parentId.toString());
+        }
 
         const response = await api.post('/inline-images/upload', formData, {
             headers: {

@@ -577,7 +577,8 @@ const DeliveryEdit: React.FC = () => {
                             placeholder={canEdit ? "Digite observações gerais sobre esta entrega. Você pode colar imagens diretamente..." : "Nenhuma observação registrada"}
                             minHeight="150px"
                             disabled={!canEdit}
-                            context={`delivery-notes-${deliveryId}`}
+                            entityType="DELIVERY"
+                            entityId={delivery?.id}
                         />
                     </div>
                 </Card>

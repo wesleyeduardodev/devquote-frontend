@@ -197,7 +197,8 @@ const SubTaskForm: React.FC = () => {
                                             placeholder="Descreva a subtarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
                                             error={errors.subTasks?.[index]?.description?.message}
                                             minHeight="150px"
-                                            context={`subtask-${subTask?.id || 'new'}-${index}`}
+                                            entityType="TASK"
+                                            entityId={subTask?.taskId || undefined}
                                         />
                                     )}
                                 />

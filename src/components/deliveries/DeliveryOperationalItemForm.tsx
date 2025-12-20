@@ -268,7 +268,9 @@ export default function DeliveryOperationalItemForm({
                                 placeholder="Descreva os detalhes da atividade operacional. Você pode colar imagens diretamente..."
                                 minHeight="150px"
                                 disabled={isReadOnly}
-                                context={`delivery-operational-${initialData?.id || 'new'}`}
+                                entityType="DELIVERY_OPERATIONAL_ITEM"
+                                entityId={initialData?.id}
+                                parentId={initialData?.deliveryId}
                             />
                         )}
                     />
