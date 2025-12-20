@@ -242,10 +242,10 @@ const DeliveryView: React.FC = () => {
                                         {deliveryGroup.taskName}
                                     </h1>
                                     <div className="flex flex-wrap items-center gap-2 text-blue-100 text-sm mt-1">
-                                        <span>Tarefa #{deliveryGroup.taskId}</span>
+                                        <span>Entrega #{delivery?.id}</span>
                                         <span className="hidden sm:inline">•</span>
                                         <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-xs">
-                                            {deliveryGroup.taskCode}
+                                            {deliveryGroup.taskId} - {deliveryGroup.taskCode}
                                         </span>
                                         <span className="hidden sm:inline">•</span>
                                         <span>{deliveryGroup.totalDeliveries} entregas</span>

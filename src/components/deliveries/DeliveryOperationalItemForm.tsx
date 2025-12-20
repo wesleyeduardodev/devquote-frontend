@@ -134,6 +134,7 @@ export default function DeliveryOperationalItemForm({
                             <div className="flex items-start gap-2 flex-1 min-w-0">
                                 <FileText className="h-4 w-4 text-gray-500 mt-1 flex-shrink-0" />
                                 <h3 className="font-medium text-gray-900 text-sm leading-5 break-words">
+                                    {initialData?.id && <span className="text-gray-500">#{initialData.id} - </span>}
                                     {currentTitle || 'Novo Item Operacional'}
                                 </h3>
                             </div>
@@ -191,7 +192,10 @@ export default function DeliveryOperationalItemForm({
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-gray-500" />
-                            <h3 className="font-medium text-gray-900">{currentTitle || 'Novo Item Operacional'}</h3>
+                            <h3 className="font-medium text-gray-900">
+                                {initialData?.id && <span className="text-gray-500">#{initialData.id} - </span>}
+                                {currentTitle || 'Novo Item Operacional'}
+                            </h3>
                         </div>
                     </div>
 

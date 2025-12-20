@@ -163,7 +163,7 @@ const DeliveryList: React.FC = () => {
             align: 'center'
         },
         {
-            key: 'task.id',
+            key: 'delivery.id',
             title: 'ID',
             sortable: true,
             filterable: true,
@@ -171,7 +171,7 @@ const DeliveryList: React.FC = () => {
             align: 'center' as const,
             render: (delivery) => (
                 <span className="font-medium text-gray-900">
-                    #{delivery.taskId || 'N/A'}
+                    #{delivery.deliveries?.[0]?.id || 'N/A'}
                 </span>
             ),
             width: '70px'
@@ -184,10 +184,10 @@ const DeliveryList: React.FC = () => {
             align: 'center' as const,
             render: (delivery) => (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                    {delivery.taskCode || 'N/A'}
+                    {delivery.taskId} - {delivery.taskCode || 'N/A'}
                 </span>
             ),
-            width: '90px'
+            width: '120px'
         },
         {
             key: 'flowType',
@@ -953,10 +953,10 @@ const DeliveryList: React.FC = () => {
                                     <div className="flex items-start gap-3">
                                         <div className="flex items-center gap-2 flex-1">
                                             <span className="text-sm font-medium text-gray-900">
-                                                #{delivery.taskId || 'N/A'}
+                                                #{delivery.deliveries?.[0]?.id || 'N/A'}
                                             </span>
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                                {delivery.taskCode || 'N/A'}
+                                                {delivery.taskId} - {delivery.taskCode || 'N/A'}
                                             </span>
                                         </div>
                                     </div>
