@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3, FileText
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3, FileText, RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,6 +13,7 @@ import {
 } from '../../types/delivery.types';
 import { deliveryService } from '../../services/deliveryService';
 import { reportService } from '../../services/reportService';
+import { gitSyncService } from '../../services/gitSyncService';
 import { formatMobileRecordCountText } from '../../utils/paginationUtils';
 import DataTable, { Column } from '../../components/ui/DataTable';
 import Button from '../../components/ui/Button';
@@ -75,6 +76,7 @@ const DeliveryList: React.FC = () => {
 
     const [generatingReport, setGeneratingReport] = useState(false);
     const [generatingPdfDeliveryId, setGeneratingPdfDeliveryId] = useState<number | null>(null);
+    const [syncing, setSyncing] = useState(false);
 
     const fetchStatistics = async () => {
         try {
@@ -510,6 +512,25 @@ const DeliveryList: React.FC = () => {
     const handleExportOperational = () => exportToExcel('OPERACIONAL', canViewValues);
     const handleExportAll = () => exportDeliveriesOnlyToExcel(canViewValues);
 
+    const handleSync = async () => {
+        setSyncing(true);
+        try {
+            const response = await gitSyncService.syncMergedPullRequests();
+            if (response.success) {
+                toast.success(response.message);
+                await fetchDeliveryGroups();
+                fetchStatistics();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error) {
+            console.error('Erro ao sincronizar PRs:', error);
+            toast.error('Erro ao sincronizar PRs mergeados');
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     const handleGenerateStatistics = async () => {
         try {
             setGeneratingReport(true);
@@ -835,6 +856,28 @@ const DeliveryList: React.FC = () => {
 
                 {/* Botões de Ação */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                    {isAdmin && (
+                        <Button
+                            variant="outline"
+                            onClick={handleSync}
+                            disabled={syncing}
+                            className="w-full sm:w-auto"
+                            title="Sincronizar PRs mergeados do GitHub"
+                        >
+                            {syncing ? (
+                                <>
+                                    <LoadingSpinner size="sm" />
+                                    Sincronizando...
+                                </>
+                            ) : (
+                                <>
+                                    <RefreshCw className="h-4 w-4 mr-2" />
+                                    Sincronizar
+                                </>
+                            )}
+                        </Button>
+                    )}
+
                     <Button
                         variant="outline"
                         onClick={handleExportDevelopment}
