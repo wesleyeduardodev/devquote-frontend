@@ -186,6 +186,7 @@ const TaskView: React.FC = () => {
             case 'NOVO_SERVIDOR': return 'Novo Servidor';
             case 'MONITORING': return 'Monitoramento';
             case 'SUPPORT': return 'Suporte';
+            case 'CODE_REVIEW': return 'Code Review'
             default: return taskType;
         }
     };

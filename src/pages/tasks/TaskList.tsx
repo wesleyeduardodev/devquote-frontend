@@ -331,6 +331,7 @@ const TaskList: React.FC = () => {
             DATABASE_APPLICATION: '💿 Aplicação de Banco',
             DATABASE: '🗄️ Banco de Dados',
             INFRASTRUCTURE: '🏗️ Infraestrutura',
+            CODE_REVIEW: '🔎 Code Review'
         };
         const label = labels[taskType] || taskType;
         const envAbbr = getEnvironmentAbbreviation(environment);

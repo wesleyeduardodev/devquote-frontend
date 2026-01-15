@@ -13,7 +13,8 @@ export type TaskType =
     | 'LOGS'
     | 'NOVO_SERVIDOR'
     | 'MONITORING'
-    | 'SUPPORT';
+    | 'SUPPORT'
+    | 'REVIEW_CODE'
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 

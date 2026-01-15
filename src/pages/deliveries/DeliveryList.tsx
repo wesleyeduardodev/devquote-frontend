@@ -250,6 +250,7 @@ const DeliveryList: React.FC = () => {
                         case 'NEW_SERVER': label = '🖥️ Novo Servidor'; break;
                         case 'MONITORING': label = '📊 Monitoramento'; break;
                         case 'SUPPORT': label = '🔧 Suporte'; break;
+                        case 'CODE_REVIEW': label = '🔎 Code Review'; break;
 
                         case 'BUG': label = '🐛 Bug'; break;
                         case 'ENHANCEMENT': label = '✨ Melhoria'; break;

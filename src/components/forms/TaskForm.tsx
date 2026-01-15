@@ -309,6 +309,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
         { value: 'NOVO_SERVIDOR', label: '🖥️ Novo Servidor' },
         { value: 'MONITORING', label: '📊 Monitoramento' },
         { value: 'SUPPORT', label: '🛠️ Suporte' },
+        { value: 'CODE_REVIEW', label: '🔎 Code Review' },
     ];
 
     const taskTypeOptions = flowType === 'OPERACIONAL' ? operacionalTaskTypeOptions : desenvolvimentoTaskTypeOptions;
