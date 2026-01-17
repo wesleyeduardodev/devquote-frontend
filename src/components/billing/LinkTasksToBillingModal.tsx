@@ -149,9 +149,11 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
             'BACKUP': 'Backup',
             'DEPLOY': 'Deploy',
             'LOGS': 'Logs',
-            'NOVO_SERVIDOR': 'Novo Servidor',
+            'NEW_SERVER': 'Novo Servidor',
+            'DATABASE_APPLICATION': 'Aplicação de Banco',
             'MONITORING': 'Monitoramento',
-            'SUPPORT': 'Suporte'
+            'SUPPORT': 'Suporte',
+            'CODE_REVIEW': 'Code Review'
         };
         return types[taskType] || taskType;
     };

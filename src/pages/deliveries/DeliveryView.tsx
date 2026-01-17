@@ -147,7 +147,8 @@ const DeliveryView: React.FC = () => {
             'SUPPORT': 'Suporte',
             'BUG': 'Bug',
             'ENHANCEMENT': 'Melhoria',
-            'NEW_FEATURE': 'Nova Funcionalidade'
+            'NEW_FEATURE': 'Nova Funcionalidade',
+            'CODE_REVIEW': 'Code Review'
         };
         return types[taskType] || taskType;
     };
