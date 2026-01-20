@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TaskTypeFilterValue = 'TODOS' | 'BUG' | 'ENHANCEMENT' | 'NEW_FEATURE' | 'BACKUP' | 'DEPLOY' | 'LOGS' | 'DATABASE_APPLICATION' | 'NEW_SERVER' | 'MONITORING' | 'SUPPORT';
+export type TaskTypeFilterValue = 'TODOS' | 'BUG' | 'ENHANCEMENT' | 'NEW_FEATURE' | 'BACKUP' | 'DEPLOY' | 'LOGS' | 'DATABASE_APPLICATION' | 'NEW_SERVER' | 'MONITORING' | 'SUPPORT' | 'CODE_REVIEW';
 export type FlowType = 'TODOS' | 'DESENVOLVIMENTO' | 'OPERACIONAL';
 
 interface TaskTypeFilterProps {
@@ -25,7 +25,8 @@ const operationalTypes = [
   { value: 'DATABASE_APPLICATION', label: '🗄️ Aplicação de Banco' },
   { value: 'NEW_SERVER', label: '💻 Novo Servidor' },
   { value: 'MONITORING', label: '📊 Monitoramento' },
-  { value: 'SUPPORT', label: '🛠️ Suporte' }
+  { value: 'SUPPORT', label: '🛠️ Suporte' },
+  { value: 'CODE_REVIEW', label: '🔎 Code Review' }
 ];
 
 export const TaskTypeFilter: React.FC<TaskTypeFilterProps> = ({
@@ -55,7 +56,7 @@ export const TaskTypeFilter: React.FC<TaskTypeFilterProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value as TaskTypeFilterValue)}
         disabled={isDisabled}
-        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+        className="px-3 w-full py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

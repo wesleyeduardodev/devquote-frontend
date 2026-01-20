@@ -21,7 +21,7 @@ export const FlowTypeFilter: React.FC<FlowTypeFilterProps> = ({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as FlowTypeFilterValue)}
-        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+        className="px-3 w-full py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
       >
         <option value="TODOS">Todos</option>
         <option value="DESENVOLVIMENTO">Desenvolvimento</option>

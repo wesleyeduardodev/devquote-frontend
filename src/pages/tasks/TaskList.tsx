@@ -1037,7 +1037,8 @@ const TaskList: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 {/* Filtros */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-wrap">
+                <div className="flex flex-col gap-2 sm:grid sm:items-center sm:gap-3 sm:grid-cols-[auto_auto_auto]
+                [@media(min-width:1024px)_and_(max-width:1164px)]:grid-rows-3">
                     <FlowTypeFilter
                         value={flowType}
                         onChange={setFlowType}
@@ -1052,6 +1053,7 @@ const TaskList: React.FC = () => {
                     <EnvironmentFilter
                         value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
                         onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
+                        className='[@media(min-width:1024px)_and_(max-width:1164px)]:col-span-2'
                     />
 
                     <DateRangeFilter
@@ -1059,6 +1061,7 @@ const TaskList: React.FC = () => {
                         endDate={filters.endDate || ''}
                         onStartDateChange={(date) => setFilter('startDate', date)}
                         onEndDateChange={(date) => setFilter('endDate', date)}
+                        className='sm:col-span-2'
                     />
                 </div>
 

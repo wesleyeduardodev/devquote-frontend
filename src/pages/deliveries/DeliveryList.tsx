@@ -815,7 +815,8 @@ const DeliveryList: React.FC = () => {
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 {/* Filtros */}
                 <div className="w-full lg:w-auto">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:flex-wrap">
+                    <div className="sm:w-min flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto]
+                    sm:grid-rows-3 sm:items-center sm:gap-3 sm:flex-wrap">
                         <FlowTypeFilter
                             value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
                             onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
@@ -832,7 +833,7 @@ const DeliveryList: React.FC = () => {
                             onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
                         />
 
-                        <div className="w-full sm:w-auto">
+                        <div className="w-full sm:[grid-area:3/1/3/span_2]">
                             <DateRangeFilter
                                 startDate={filters.startDate || ''}
                                 endDate={filters.endDate || ''}
@@ -856,7 +857,7 @@ const DeliveryList: React.FC = () => {
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto_auto] sm:items-center sm:gap-3">
                     {isAdmin && (
                         <Button
                             variant="outline"
