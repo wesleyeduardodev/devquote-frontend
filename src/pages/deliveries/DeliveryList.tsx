@@ -820,7 +820,7 @@ const DeliveryList: React.FC = () => {
                 {/* Filtros */}
                 <div className="w-full lg:w-auto">
                     <div className="sm:w-min flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto]
-                    sm:grid-rows-3 sm:items-center sm:gap-3 sm:flex-wrap">
+                    sm:grid-rows-3 sm:items-center sm:gap-3 sm:flex-wrap md:flex md:flex-row md:w-full">
                         <FlowTypeFilter
                             value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
                             onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
@@ -837,7 +837,7 @@ const DeliveryList: React.FC = () => {
                             onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
                         />
 
-                        <div className="w-full sm:[grid-area:3/1/3/span_2]">
+                        <div className="w-full sm:[grid-area:3/1/3/span_2] [@media(min-width:2140px)]:w-auto">
                             <DateRangeFilter
                                 startDate={filters.startDate || ''}
                                 endDate={filters.endDate || ''}
@@ -861,7 +861,8 @@ const DeliveryList: React.FC = () => {
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto_auto] sm:items-center sm:gap-3">
+                <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto_auto] sm:items-center sm:gap-3
+                md:my-5 [@media(min-width:1760px)]:flex [@media(min-width:1760px)]:flex-row">
                     {isAdmin && (
                         <Button
                             variant="outline"
@@ -963,7 +964,7 @@ const DeliveryList: React.FC = () => {
                     )}
 
                     {canCreate && (
-                        <Button onClick={() => navigate('/deliveries/create')} className="w-full sm:w-auto">
+                        <Button onClick={() => navigate('/deliveries/create')} className="w-full sm:w-auto lg:w-max">
                             <Plus className="h-4 w-4 mr-2" />
                             Nova Entrega
                         </Button>
