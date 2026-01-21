@@ -739,68 +739,72 @@ const DeliveryList: React.FC = () => {
                 key: 'pending',
                 label: 'Pendente',
                 count: statistics.pending,
-                color: 'bg-yellow-50 text-yellow-700 border-yellow-100',
+                color: 'text-yellow-700 border-yellow-100',
                 icon: '⏳'
             },
             {
                 key: 'development',
                 label: 'Desenvolvimento',
                 count: statistics.development,
-                color: 'bg-blue-50 text-blue-700 border-blue-100',
+                color: 'text-blue-700 border-blue-100',
                 icon: '🔧'
             },
             {
                 key: 'delivered',
                 label: 'Entregue',
                 count: statistics.delivered,
-                color: 'bg-green-50 text-green-700 border-green-100',
+                color: 'text-green-700 border-green-100',
                 icon: '📦'
             },
             {
                 key: 'homologation',
                 label: 'Homologação',
                 count: statistics.homologation,
-                color: 'bg-amber-50 text-amber-700 border-amber-100',
+                color: 'text-amber-700 border-amber-100',
                 icon: '🔍'
             },
             {
                 key: 'approved',
                 label: 'Aprovado',
                 count: statistics.approved,
-                color: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                color: 'text-emerald-700 border-emerald-100',
                 icon: '✅'
             },
             {
                 key: 'rejected',
                 label: 'Rejeitado',
                 count: statistics.rejected,
-                color: 'bg-rose-50 text-rose-700 border-rose-100',
+                color: 'text-rose-700 border-rose-100',
                 icon: '❌'
             },
             {
                 key: 'production',
                 label: 'Produção',
                 count: statistics.production,
-                color: 'bg-violet-50 text-violet-700 border-violet-100',
+                color: 'text-violet-700 border-violet-100',
                 icon: '🚀'
             },
             {
                 key: 'cancelled',
                 label: 'Cancelado',
                 count: statistics.cancelled,
-                color: 'bg-red-50 text-red-600 border-red-200',
+                color: 'text-red-600 border-red-200',
                 icon: '🚫'
             }
         ];
 
         return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:[grid-template-columns:repeat(8,auto)] gap-y-7 gap-x-3">
                 {statusCards.map(card => (
-                    <Card key={card.key} className={`p-3 border ${card.color} hover:shadow-sm transition-shadow cursor-default`}>
-                        <div className="text-center">
-                            <div className="text-lg mb-1">{card.icon}</div>
-                            <div className="text-xl font-bold mb-1">{card.count}</div>
-                            <div className="text-xs font-medium leading-tight">{card.label}</div>
+                    <Card key={card.key} className={`flex-auto p-0 border ${card.color} hover:shadow-sm transition-shadow cursor-default 
+                    relative overflow-visible`}>
+                        <div className="text-start flex items-center mt-2">
+                            <div>
+                                <div className="text-xs font-medium leading-tight">{card.label}</div>
+                                <div className="text-xl font-bold mb-1">{card.count}</div>
+                            </div>
+                            <div className={`text-lg absolute border-2 bg-white ${card.color} rounded-full left-0 top-0 
+                            translate-x-1/2 -translate-y-1/2`}>{card.icon}</div>
                         </div>
                     </Card>
                 ))}
