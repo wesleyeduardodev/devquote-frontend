@@ -82,7 +82,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
           build-args: |
-            VITE_API_URL=https://devquote.com.br/api
+            VITE_API_URL=/api
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -102,21 +102,38 @@ jobs:
           git clone https://${{ secrets.GH_PAT }}@github.com/${{ env.INFRA_REPO }}.git infra-repo
           cd infra-repo
 
-          # Atualizar tag da imagem do frontend diretamente no deployment
+          # Atualizar tag da imagem do frontend em TODOS os tenants
           echo "Updating frontend image tag to ${{ steps.tags.outputs.IMAGE_TAG }}..."
-          sed -i "s|image: wesleyeduardodev/devquote-frontend:.*|image: wesleyeduardodev/devquote-frontend:${{ steps.tags.outputs.IMAGE_TAG }}|g" k8s/frontend/deployment.yaml
+
+          # Atualizar tenant Wesley
+          if [ -f "k8s/tenants/wesley/frontend/deployment.yaml" ]; then
+            sed -i "s|image: wesleyeduardodev/devquote-frontend:.*|image: wesleyeduardodev/devquote-frontend:${{ steps.tags.outputs.IMAGE_TAG }}|g" k8s/tenants/wesley/frontend/deployment.yaml
+            echo "Updated Wesley frontend deployment"
+          fi
+
+          # Atualizar tenant Joao
+          if [ -f "k8s/tenants/joao/frontend/deployment.yaml" ]; then
+            sed -i "s|image: wesleyeduardodev/devquote-frontend:.*|image: wesleyeduardodev/devquote-frontend:${{ steps.tags.outputs.IMAGE_TAG }}|g" k8s/tenants/joao/frontend/deployment.yaml
+            echo "Updated Joao frontend deployment"
+          fi
+
+          # Manter compatibilidade com estrutura antiga (remover depois da migracao)
+          if [ -f "k8s/frontend/deployment.yaml" ]; then
+            sed -i "s|image: wesleyeduardodev/devquote-frontend:.*|image: wesleyeduardodev/devquote-frontend:${{ steps.tags.outputs.IMAGE_TAG }}|g" k8s/frontend/deployment.yaml
+            echo "Updated legacy frontend deployment"
+          fi
 
           # Verificar mudanças
-          echo "Changes made to k8s/frontend/deployment.yaml:"
-          git diff k8s/frontend/deployment.yaml
+          echo "Changes made:"
+          git diff --name-only
 
           # Commit e push
-          git add k8s/frontend/deployment.yaml
+          git add -A k8s/
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update frontend to ${{ steps.tags.outputs.IMAGE_TAG }} (commit: ${{ github.sha }})"
+            git commit -m "Update frontend to ${{ steps.tags.outputs.IMAGE_TAG }} [all tenants]"
             echo "Pushing changes to infra repository..."
             git push
             echo "Infrastructure repository updated successfully!"
