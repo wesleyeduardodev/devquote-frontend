@@ -1,5 +1,8 @@
 # DevQuote Frontend
 
+## Executar local
+VITE_API_URL=http://localhost:8080/api
+
 ## 🎯 Propósito
 Aplicação web React/TypeScript para gestão completa de tarefas, entregas e faturamento de projetos de desenvolvimento. Interface moderna e responsiva com sistema avançado de permissões granulares.
 
