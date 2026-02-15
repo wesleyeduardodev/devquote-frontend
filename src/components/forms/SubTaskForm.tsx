@@ -342,7 +342,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                     <div className="flex items-center gap-2">
                                         {subTask?.id ? (
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                                                Subtarefa #{subTask.id}
+                                                {`Subtarefa #${index+1} - ${subTask.id}`}
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white">
