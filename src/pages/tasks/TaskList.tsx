@@ -475,9 +475,24 @@ const TaskList: React.FC = () => {
             width: '90px',
             align: 'center' as const,
             render: (item) => (
-                <span className="text-sm font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-          {item.code}
-        </span>
+                item.link ?
+                    <div className="flex items-center gap-2">
+                        <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 bg-gray-100 rounded px-2 py-1 hover:text-blue-800 flex items-center gap-1.5 max-w-xs truncate"
+                            onClick={(e) => e.stopPropagation()}
+                            title={item.link}
+                        >
+                            <span className="truncate">{item.code}</span>
+                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                        </a>
+                    </div>
+                    :
+                    <span className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                        {item.code || 'N/A'}
+                    </span>                
             ),
         },
         {

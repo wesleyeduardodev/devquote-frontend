@@ -104,6 +104,7 @@ export interface DeliveryGroupResponse {
     taskName: string;
     taskCode: string;
     taskType?: string;
+    taskLink?: string;
     taskValue?: number;
     deliveryId?: number;
     deliveryStatus: DeliveryStatus;

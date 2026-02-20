@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3, FileText, RefreshCw
+    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3, FileText, RefreshCw,
+    ExternalLink
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -101,7 +102,6 @@ const DeliveryList: React.FC = () => {
             }
         });
     };
-
     const handleSelectAll = () => {
         const availableDeliveryIds = deliveryGroups
             .map(group => group.deliveries?.[0]?.id)
@@ -185,7 +185,22 @@ const DeliveryList: React.FC = () => {
             filterable: true,
             align: 'center' as const,
             render: (delivery) => (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                delivery.taskLink ? 
+                <div className="flex items-center gap-2">
+                    <a
+                        href={delivery.taskLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 bg-gray-100 rounded px-2 py-1 hover:text-blue-800 flex items-center gap-1.5 max-w-xs truncate"
+                        onClick={(e) => e.stopPropagation()}
+                        title={delivery.taskLink}
+                    >
+                        <span className="truncate">{delivery.taskId} - {delivery.taskCode || 'N/A'}</span>
+                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                    </a>
+                </div>
+                :
+                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
                     {delivery.taskId} - {delivery.taskCode || 'N/A'}
                 </span>
             ),

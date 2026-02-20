@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { X, Eye } from 'lucide-react';
+import { X, Eye, ExternalLink } from 'lucide-react';
 import billingPeriodService from '@/services/billingPeriodService';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
@@ -7,6 +7,7 @@ interface Task {
     id: number;
     code: string;
     title: string;
+    link: string;
     description?: string;
     amount: number;
     requesterName: string;
@@ -213,7 +214,22 @@ const ViewTasksModal: React.FC<Props> = ({
             filterable: true,
             width: '100px',
             render: (link: BillingPeriodTask) => (
-                <span className="font-mono text-xs">{link?.task?.code}</span>
+                link.task.link ?
+                <div className="flex items-center gap-2">
+                    <a
+                        href={link.task.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 bg-gray-100 rounded px-2 py-1 hover:text-blue-800 flex items-center gap-1 max-w-xs truncate"
+                        onClick={(e) => e.stopPropagation()}
+                        title={link.task.link}
+                    >
+                        <span className="truncate">{link.task.code}</span>
+                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                    </a>
+                </div> 
+                :
+                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{link.task.code || '-'}</span>
             )
         },
         {
