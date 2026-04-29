@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, DollarSign, Paperclip, ChevronDown, ChevronUp, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -72,28 +72,22 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
 
     const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>({});
-    const initializedFieldIds = useRef<Set<string>>(new Set());
 
-    useEffect(() => {
-        setCollapsedCards(prev => {
-            const next = { ...prev };
-            let changed = false;
-            fields.forEach((f, idx) => {
-                if (initializedFieldIds.current.has(f.id)) return;
-                initializedFieldIds.current.add(f.id);
-                const subTask = watchSubTasks?.[idx];
-                next[f.id] = !!subTask?.id;
-                changed = true;
-            });
-            return changed ? next : prev;
-        });
-    }, [fields, watchSubTasks]);
+    const isCardCollapsed = (fieldId: string, idx: number): boolean => {
+        if (collapsedCards[fieldId] !== undefined) return collapsedCards[fieldId];
+        return !!watchSubTasks?.[idx]?.id;
+    };
 
-    const toggleCard = (fieldId: string) =>
-        setCollapsedCards(prev => ({ ...prev, [fieldId]: !prev[fieldId] }));
+    const toggleCard = (fieldId: string, idx: number) => {
+        const currentlyCollapsed = isCardCollapsed(fieldId, idx);
+        setCollapsedCards(prev => ({ ...prev, [fieldId]: !currentlyCollapsed }));
+    };
 
     const visibleFields = fields.filter((_, idx) => !watchSubTasks?.[idx]?.excluded);
-    const anyExpanded = visibleFields.some(f => collapsedCards[f.id] === false);
+    const anyExpanded = visibleFields.some(f => {
+        const idx = fields.findIndex(ff => ff.id === f.id);
+        return !isCardCollapsed(f.id, idx);
+    });
 
     const setAllCollapsed = (collapsed: boolean) => {
         setCollapsedCards(prev => {
@@ -264,7 +258,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                     const subTask = watchSubTasks?.[index];
                     if (subTask?.excluded) return null;
 
-                    const collapsed = collapsedCards[field.id] !== false;
+                    const collapsed = isCardCollapsed(field.id, index);
                     const visiblePosition = visibleFields.findIndex(f => f.id === field.id);
                     const isFirstVisible = visiblePosition === 0;
                     const isLastVisible = visiblePosition === visibleFields.length - 1;
@@ -275,7 +269,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                         <Card>
                             <div
                                 className="flex items-center justify-between gap-2 cursor-pointer select-none"
-                                onClick={() => toggleCard(field.id)}
+                                onClick={() => toggleCard(field.id, index)}
                             >
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                     <button
