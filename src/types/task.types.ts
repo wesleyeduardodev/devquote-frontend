@@ -59,7 +59,7 @@ export interface SubTask extends BaseEntity {
     actualHours?: number;
     assignedTo?: string;
     completedAt?: string;
-    order?: number;
+    sortOrder?: number;
 }
 
 export interface CreateTaskData {
@@ -86,7 +86,7 @@ export interface CreateSubTaskData {
     amount: number;
     estimatedHours?: number;
     assignedTo?: string;
-    order?: number;
+    sortOrder?: number;
 }
 
 export interface UpdateTaskData extends Partial<CreateTaskData> {
@@ -165,7 +165,7 @@ export interface SubTaskFormData {
     amount: number | string;
     estimatedHours?: number;
     assignedTo?: string;
-    order?: number;
+    sortOrder?: number;
 }
 
 export interface TaskActivity {

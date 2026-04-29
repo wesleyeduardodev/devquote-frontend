@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, DollarSign, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Plus, Trash2, DollarSign, Paperclip, ChevronDown, ChevronUp, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -12,6 +12,22 @@ import { useFieldArray, useFormContext, useWatch, Controller } from 'react-hook-
 import { useAuth } from '@/hooks/useAuth';
 import { subTaskService } from '@/services/subTaskService';
 import toast from 'react-hot-toast';
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    KeyboardSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface SubTask {
     id?: number;
@@ -28,6 +44,30 @@ interface FormData {
 interface SubTaskFormProps {
     taskId?: number;
 }
+
+interface SortableItemRenderProps {
+    attributes: ReturnType<typeof useSortable>['attributes'];
+    listeners: ReturnType<typeof useSortable>['listeners'];
+    isDragging: boolean;
+}
+
+const SortableSubTaskItem: React.FC<{
+    id: string;
+    children: (handle: SortableItemRenderProps) => React.ReactNode;
+}> = ({ id, children }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+    const style: React.CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 10 : undefined,
+    };
+    return (
+        <div ref={setNodeRef} style={style}>
+            {children({ attributes, listeners, isDragging })}
+        </div>
+    );
+};
 
 const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
     const { hasProfile } = useAuth();
@@ -49,12 +89,69 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
         setValue
     } = useFormContext<FormData>();
 
-    const { fields, append } = useFieldArray({
+    const { fields, append, move } = useFieldArray({
         control,
         name: 'subTasks'
     });
 
     const watchSubTasks = useWatch({ control, name: 'subTasks' });
+
+    const [collapsedCards, setCollapsedCards] = useState<Record<string, boolean>>({});
+    const initializedFieldIds = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        setCollapsedCards(prev => {
+            const next = { ...prev };
+            let changed = false;
+            fields.forEach((f, idx) => {
+                if (initializedFieldIds.current.has(f.id)) return;
+                initializedFieldIds.current.add(f.id);
+                const subTask = watchSubTasks?.[idx];
+                next[f.id] = !!subTask?.id;
+                changed = true;
+            });
+            return changed ? next : prev;
+        });
+    }, [fields, watchSubTasks]);
+
+    const toggleCard = (fieldId: string) =>
+        setCollapsedCards(prev => ({ ...prev, [fieldId]: !prev[fieldId] }));
+
+    const visibleFields = fields.filter((_, idx) => !watchSubTasks?.[idx]?.excluded);
+    const anyExpanded = visibleFields.some(f => collapsedCards[f.id] === false);
+
+    const setAllCollapsed = (collapsed: boolean) => {
+        setCollapsedCards(prev => {
+            const next = { ...prev };
+            visibleFields.forEach(f => { next[f.id] = collapsed; });
+            return next;
+        });
+    };
+
+    const handleMoveUp = (index: number) => {
+        if (index <= 0) return;
+        move(index, index - 1);
+    };
+
+    const handleMoveDown = (index: number) => {
+        if (index >= fields.length - 1) return;
+        move(index, index + 1);
+    };
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = fields.findIndex(f => f.id === active.id);
+        const newIndex = fields.findIndex(f => f.id === over.id);
+        if (oldIndex !== -1 && newIndex !== -1) {
+            move(oldIndex, newIndex);
+        }
+    };
 
     const calculateTotal = (): number => {
         if (!watchSubTasks) return 0;
@@ -156,6 +253,22 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                             </span>
                         </div>
                     )}
+                    {visibleFields.length > 0 && (
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={(e) => { e.preventDefault(); setAllCollapsed(anyExpanded); }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            className="flex items-center justify-center w-full sm:w-auto"
+                        >
+                            {anyExpanded ? (
+                                <><ChevronUp className="w-4 h-4 mr-1" />Colapsar todas</>
+                            ) : (
+                                <><ChevronDown className="w-4 h-4 mr-1" />Expandir todas</>
+                            )}
+                        </Button>
+                    )}
                     <Button
                         type="button"
                         size="sm"
@@ -169,215 +282,258 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                 </div>
             </div>
 
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={visibleFields.map(f => f.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-4">
                 {fields.map((field, index) => {
                     const subTask = watchSubTasks?.[index];
                     if (subTask?.excluded) return null;
 
+                    const collapsed = collapsedCards[field.id] !== false;
+                    const visiblePosition = visibleFields.findIndex(f => f.id === field.id);
+                    const isFirstVisible = visiblePosition === 0;
+                    const isLastVisible = visiblePosition === visibleFields.length - 1;
+
                     return (
-                        <Card key={field.id}>
-
-                            <div className="space-y-3 sm:space-y-4">
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                                        Título <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        {...register(`subTasks.${index}.title`)}
-                                        rows={2}
-                                        placeholder="Digite o título da subtarefa"
-                                        className="w-full px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical text-sm sm:text-base"
-                                        maxLength={200}
-                                    />
-                                    {errors.subTasks?.[index]?.title && (
-                                        <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.subTasks[index].title.message}</p>
-                                    )}
+                        <SortableSubTaskItem key={field.id} id={field.id}>
+                          {({ attributes, listeners }) => (
+                        <Card>
+                            <div
+                                className="flex items-center justify-between gap-2 cursor-pointer select-none"
+                                onClick={() => toggleCard(field.id)}
+                            >
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <button
+                                        type="button"
+                                        {...attributes}
+                                        {...listeners}
+                                        onClick={(e) => e.stopPropagation()}
+                                        title="Arraste para reordenar"
+                                        aria-label="Arrastar"
+                                        className="p-1 rounded hover:bg-gray-100 text-gray-400 cursor-grab active:cursor-grabbing touch-none shrink-0"
+                                    >
+                                        <GripVertical className="w-4 h-4" />
+                                    </button>
+                                    <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white shrink-0">
+                                        {visiblePosition + 1}
+                                    </span>
+                                    <span className="text-sm sm:text-base font-medium text-gray-900 truncate" title={subTask?.title || ''}>
+                                        {subTask?.title?.trim() || (subTask?.id ? `Subtarefa ${subTask.id}` : 'Nova subtarefa')}
+                                    </span>
                                 </div>
 
-
-                                <Controller
-                                    name={`subTasks.${index}.description`}
-                                    control={control}
-                                    render={({ field }) => (
-                                        <RichTextEditor
-                                            label="Descricao"
-                                            value={field.value || ''}
-                                            onChange={field.onChange}
-                                            placeholder="Descreva a subtarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
-                                            error={errors.subTasks?.[index]?.description?.message}
-                                            minHeight="150px"
-                                            entityType="SUBTASK"
-                                            entityId={subTask?.id}
-                                            parentId={taskId}
-                                        />
+                                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleMoveUp(index); }}
+                                        disabled={isFirstVisible}
+                                        title="Mover para cima"
+                                        className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                    >
+                                        <ArrowUp className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleMoveDown(index); }}
+                                        disabled={isLastVisible}
+                                        title="Mover para baixo"
+                                        className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                    >
+                                        <ArrowDown className="w-4 h-4" />
+                                    </button>
+                                    {canViewValues && watchSubTasks?.[index]?.amount && (
+                                        <span className="text-sm sm:text-base font-bold text-green-600">
+                                            {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
+                                        </span>
                                     )}
-                                />
-
-
-                                <div className="grid grid-cols-1 gap-4">
-                                    {canViewValues ? (
-                                        <div className="relative">
-                                            <Input
-                                                {...register(`subTasks.${index}.amount`, {
-                                                    valueAsNumber: false
-                                                })}
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                label="Valor"
-                                                placeholder="0,00"
-                                                error={errors.subTasks?.[index]?.amount?.message}
-                                            />
-                                            <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
-                                        </div>
-                                    ) : (
-
-                                        <input
-                                            type="hidden"
-                                            {...register(`subTasks.${index}.amount`)}
-                                            value="0"
-                                        />
-                                    )}
-
-                                </div>
-
-                                {subTask?.id && (
-                                    <div className="mt-4 border-t pt-4">
-                                        <div
-                                            className="cursor-pointer border border-gray-200 rounded-lg"
-                                            onClick={() => setExpandedAttachments(prev => ({
-                                                ...prev,
-                                                [subTask.id!]: !prev[subTask.id!]
-                                            }))}
+                                    {subTask?.id && (
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="danger"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteSubTask(index); }}
+                                            className="p-1.5 sm:p-2"
+                                            title="Excluir subtarefa"
                                         >
-                                            <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Paperclip className="w-4 h-4 text-gray-500" />
-                                                        <span className="text-sm font-medium text-gray-900">Anexos</span>
-                                                        {attachmentCounts[subTask.id!] > 0 && (
-                                                            <span className="text-xs font-medium text-blue-600">({attachmentCounts[subTask.id!]})</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm text-gray-500">
-                                                            {expandedAttachments[subTask.id!] ? 'Recolher' : 'Expandir'}
-                                                        </span>
-                                                        {expandedAttachments[subTask.id!] ? (
-                                                            <ChevronUp className="w-4 h-4 text-gray-400" />
-                                                        ) : (
-                                                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                    {collapsed ? (
+                                        <ChevronDown className="w-5 h-5 text-gray-500" />
+                                    ) : (
+                                        <ChevronUp className="w-5 h-5 text-gray-500" />
+                                    )}
+                                </div>
+                            </div>
 
-                                        {/* Componente oculto para carregar contagem */}
-                                        {!expandedAttachments[subTask.id!] && (
-                                            <div className="hidden">
-                                                <SubTaskAttachmentList
-                                                    subTaskId={subTask.id}
-                                                    refreshTrigger={attachmentRefresh[subTask.id!] || 0}
-                                                    onCountChange={(count) => setAttachmentCounts(prev => ({
-                                                        ...prev,
-                                                        [subTask.id!]: count
-                                                    }))}
+                            {!collapsed && (
+                                <div className="space-y-3 sm:space-y-4 mt-4 pt-4 border-t border-gray-200">
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                            Título <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            {...register(`subTasks.${index}.title`)}
+                                            rows={2}
+                                            placeholder="Digite o título da subtarefa"
+                                            className="w-full px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical text-sm sm:text-base"
+                                            maxLength={200}
+                                        />
+                                        {errors.subTasks?.[index]?.title && (
+                                            <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.subTasks[index].title.message}</p>
+                                        )}
+                                    </div>
+
+
+                                    <Controller
+                                        name={`subTasks.${index}.description`}
+                                        control={control}
+                                        render={({ field }) => (
+                                            <RichTextEditor
+                                                label="Descricao"
+                                                value={field.value || ''}
+                                                onChange={field.onChange}
+                                                placeholder="Descreva a subtarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
+                                                error={errors.subTasks?.[index]?.description?.message}
+                                                minHeight="150px"
+                                                entityType="SUBTASK"
+                                                entityId={subTask?.id}
+                                                parentId={taskId}
+                                            />
+                                        )}
+                                    />
+
+
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {canViewValues ? (
+                                            <div className="relative">
+                                                <Input
+                                                    {...register(`subTasks.${index}.amount`, {
+                                                        valueAsNumber: false
+                                                    })}
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    label="Valor"
+                                                    placeholder="0,00"
+                                                    error={errors.subTasks?.[index]?.amount?.message}
                                                 />
+                                                <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
                                             </div>
+                                        ) : (
+
+                                            <input
+                                                type="hidden"
+                                                {...register(`subTasks.${index}.amount`)}
+                                                value="0"
+                                            />
                                         )}
 
-                                        {expandedAttachments[subTask.id!] && (
-                                            <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                                <div className="mb-4">
-                                                    <p className="text-sm text-gray-500">
-                                                        Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a subtarefa
-                                                    </p>
+                                    </div>
+
+                                    {subTask?.id && (
+                                        <div className="mt-4 border-t pt-4">
+                                            <div
+                                                className="cursor-pointer border border-gray-200 rounded-lg"
+                                                onClick={() => setExpandedAttachments(prev => ({
+                                                    ...prev,
+                                                    [subTask.id!]: !prev[subTask.id!]
+                                                }))}
+                                            >
+                                                <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Paperclip className="w-4 h-4 text-gray-500" />
+                                                            <span className="text-sm font-medium text-gray-900">Anexos</span>
+                                                            {attachmentCounts[subTask.id!] > 0 && (
+                                                                <span className="text-xs font-medium text-blue-600">({attachmentCounts[subTask.id!]})</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm text-gray-500">
+                                                                {expandedAttachments[subTask.id!] ? 'Recolher' : 'Expandir'}
+                                                            </span>
+                                                            {expandedAttachments[subTask.id!] ? (
+                                                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                            ) : (
+                                                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            </div>
 
-                                                <FilePicker
-                                                    files={pendingFiles[subTask.id!] || []}
-                                                    onFilesChange={(files) => setPendingFiles(prev => ({
-                                                        ...prev,
-                                                        [subTask.id!]: files
-                                                    }))}
-                                                    maxFiles={10}
-                                                    maxFileSize={10}
-                                                    subTaskId={subTask.id}
-                                                    showUploadButton={true}
-                                                    onUploadSuccess={() => {
-                                                        setAttachmentRefresh(prev => ({
-                                                            ...prev,
-                                                            [subTask.id!]: (prev[subTask.id!] || 0) + 1
-                                                        }));
-                                                    }}
-                                                />
-
-                                                <div className="mt-4">
+                                            {/* Componente oculto para carregar contagem */}
+                                            {!expandedAttachments[subTask.id!] && (
+                                                <div className="hidden">
                                                     <SubTaskAttachmentList
                                                         subTaskId={subTask.id}
                                                         refreshTrigger={attachmentRefresh[subTask.id!] || 0}
-                                                        forceExpanded={true}
                                                         onCountChange={(count) => setAttachmentCounts(prev => ({
                                                             ...prev,
                                                             [subTask.id!]: count
                                                         }))}
                                                     />
                                                 </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                            )}
+
+                                            {expandedAttachments[subTask.id!] && (
+                                                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                                    <div className="mb-4">
+                                                        <p className="text-sm text-gray-500">
+                                                            Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a subtarefa
+                                                        </p>
+                                                    </div>
+
+                                                    <FilePicker
+                                                        files={pendingFiles[subTask.id!] || []}
+                                                        onFilesChange={(files) => setPendingFiles(prev => ({
+                                                            ...prev,
+                                                            [subTask.id!]: files
+                                                        }))}
+                                                        maxFiles={10}
+                                                        maxFileSize={10}
+                                                        subTaskId={subTask.id}
+                                                        showUploadButton={true}
+                                                        onUploadSuccess={() => {
+                                                            setAttachmentRefresh(prev => ({
+                                                                ...prev,
+                                                                [subTask.id!]: (prev[subTask.id!] || 0) + 1
+                                                            }));
+                                                        }}
+                                                    />
+
+                                                    <div className="mt-4">
+                                                        <SubTaskAttachmentList
+                                                            subTaskId={subTask.id}
+                                                            refreshTrigger={attachmentRefresh[subTask.id!] || 0}
+                                                            forceExpanded={true}
+                                                            onCountChange={(count) => setAttachmentCounts(prev => ({
+                                                                ...prev,
+                                                                [subTask.id!]: count
+                                                            }))}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             <input
                                 type="hidden"
                                 {...register(`subTasks.${index}.excluded`)}
                             />
-
-                            <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-gray-200">
-                                <div className="flex items-center justify-between gap-2">
-
-                                    <div className="flex items-center gap-2">
-                                        {subTask?.id ? (
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                                                {`Subtarefa #${index+1} - ${subTask.id}`}
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-gray-400 to-gray-500 text-white">
-                                                Nova Subtarefa
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center gap-2 sm:gap-3">
-
-                                        {canViewValues && watchSubTasks?.[index]?.amount && (
-                                            <span className="text-sm sm:text-base font-bold text-green-600">
-                                                {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
-                                            </span>
-                                        )}
-
-                                        {subTask?.id && (
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="danger"
-                                                onClick={() => handleDeleteSubTask(index)}
-                                                className="p-1.5 sm:p-2"
-                                                title="Excluir subtarefa"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
                         </Card>
+                          )}
+                        </SortableSubTaskItem>
                     );
                 })}
             </div>
+                </SortableContext>
+            </DndContext>
 
             {/* Rodapé com Total e Botão - aparece apenas quando há subtarefas */}
             {watchSubTasks?.filter(st => !st?.excluded).length > 0 && (

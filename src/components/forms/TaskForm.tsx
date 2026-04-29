@@ -106,12 +106,12 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                 initialData?.subTasks
                     ? [...initialData.subTasks].sort((a, b) => {
-
+                        const ao = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+                        const bo = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+                        if (ao !== bo) return ao - bo;
                         if (a.id && b.id) return a.id - b.id;
-
                         if (a.id) return -1;
                         if (b.id) return 1;
-
                         return 0;
                     })
                     : [
@@ -161,6 +161,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 priority: initialData?.priority || 'MEDIUM',
                 subTasks: initialData?.subTasks
                     ? [...initialData.subTasks].sort((a, b) => {
+                        const ao = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+                        const bo = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+                        if (ao !== bo) return ao - bo;
                         if (a.id && b.id) return a.id - b.id;
                         if (a.id) return -1;
                         if (b.id) return 1;
@@ -240,9 +243,10 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 ...data,
                 requesterId: data.requesterId || initialData?.requesterId,
                 amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
-                subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any) => ({
+                subTasks: data.hasSubTasks ? (data.subTasks || []).map((subTask: any, index: number) => ({
                     ...subTask,
                     amount: parseFloat(subTask.amount || '0'),
+                    sortOrder: index + 1,
                     taskId: initialData?.id || null,
                 })) : [],
             };
