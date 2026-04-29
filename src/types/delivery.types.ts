@@ -17,6 +17,7 @@ export interface DeliveryItem extends BaseEntity {
     startedAt?: string;
     finishedAt?: string;
     notes?: string;
+    sortOrder?: number;
 }
 
 export interface Delivery extends BaseEntity {

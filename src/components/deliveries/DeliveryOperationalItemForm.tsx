@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, AlertCircle, Trash2 } from 'lucide-react';
+import { FileText, Calendar, AlertCircle, Trash2, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import RichTextEditor from '../ui/RichTextEditor';
@@ -23,6 +23,12 @@ interface DeliveryOperationalItemFormProps {
     onSave: (data: DeliveryOperationalItemFormData) => void;
     onDelete?: () => void;
     isReadOnly?: boolean;
+    position?: number;
+    isFirst?: boolean;
+    isLast?: boolean;
+    onMoveUp?: () => void;
+    onMoveDown?: () => void;
+    dragHandleProps?: Record<string, any>;
 }
 
 const operationalItemSchema = yup.object({
@@ -49,7 +55,13 @@ export default function DeliveryOperationalItemForm({
     initialData,
     onSave,
     onDelete,
-    isReadOnly = false
+    isReadOnly = false,
+    position,
+    isFirst,
+    isLast,
+    onMoveUp,
+    onMoveDown,
+    dragHandleProps
 }: DeliveryOperationalItemFormProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -132,9 +144,27 @@ export default function DeliveryOperationalItemForm({
                         {/* Título */}
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-2 flex-1 min-w-0">
+                                {dragHandleProps && (
+                                    <button
+                                        type="button"
+                                        {...dragHandleProps}
+                                        onClick={(e) => e.stopPropagation()}
+                                        title="Arraste para reordenar"
+                                        className="p-1 -m-1 rounded hover:bg-gray-200 text-gray-400 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+                                    >
+                                        <GripVertical className="h-4 w-4" />
+                                    </button>
+                                )}
+                                {position !== undefined && (
+                                    <span
+                                        className="inline-flex items-center justify-center mt-0.5 px-2 py-0.5 rounded-lg text-xs font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white flex-shrink-0"
+                                        title={initialData?.id ? `ID: ${initialData.id}` : ''}
+                                    >
+                                        {position}
+                                    </span>
+                                )}
                                 <FileText className="h-4 w-4 text-gray-500 mt-1 flex-shrink-0" />
                                 <h3 className="font-medium text-gray-900 text-sm leading-5 break-words">
-                                    {initialData?.id && <span className="text-gray-500">#{initialData.id} - </span>}
                                     {currentTitle || 'Novo Item Operacional'}
                                 </h3>
                             </div>
@@ -154,7 +184,29 @@ export default function DeliveryOperationalItemForm({
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                                {onMoveUp && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                                        disabled={isFirst}
+                                        title="Mover para cima"
+                                        className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                    >
+                                        <ArrowUp className="h-4 w-4" />
+                                    </button>
+                                )}
+                                {onMoveDown && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                                        disabled={isLast}
+                                        title="Mover para baixo"
+                                        className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                    >
+                                        <ArrowDown className="h-4 w-4" />
+                                    </button>
+                                )}
                                 {onDelete && !isReadOnly && (
                                     <Button
                                         variant="ghost"
@@ -189,17 +241,35 @@ export default function DeliveryOperationalItemForm({
 
                 {/* Desktop Layout */}
                 <div className="hidden sm:flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-gray-500" />
-                            <h3 className="font-medium text-gray-900">
-                                {initialData?.id && <span className="text-gray-500">#{initialData.id} - </span>}
+                    <div className="flex items-center gap-3 min-w-0">
+                        {dragHandleProps && (
+                            <button
+                                type="button"
+                                {...dragHandleProps}
+                                onClick={(e) => e.stopPropagation()}
+                                title="Arraste para reordenar"
+                                className="p-1 -m-1 rounded hover:bg-gray-200 text-gray-400 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+                            >
+                                <GripVertical className="h-4 w-4" />
+                            </button>
+                        )}
+                        {position !== undefined && (
+                            <span
+                                className="inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-xs font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white flex-shrink-0"
+                                title={initialData?.id ? `ID: ${initialData.id}` : ''}
+                            >
+                                {position}
+                            </span>
+                        )}
+                        <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                            <h3 className="font-medium text-gray-900 truncate">
                                 {currentTitle || 'Novo Item Operacional'}
                             </h3>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.color} ${statusInfo.bg}`}>
                             {statusInfo.label}
                         </span>
@@ -209,6 +279,29 @@ export default function DeliveryOperationalItemForm({
                                 <AlertCircle className="h-4 w-4" />
                                 <span className="text-xs font-medium">Não salvo</span>
                             </div>
+                        )}
+
+                        {onMoveUp && (
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                                disabled={isFirst}
+                                title="Mover para cima"
+                                className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                            >
+                                <ArrowUp className="h-4 w-4" />
+                            </button>
+                        )}
+                        {onMoveDown && (
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                                disabled={isLast}
+                                title="Mover para baixo"
+                                className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                            >
+                                <ArrowDown className="h-4 w-4" />
+                            </button>
                         )}
 
                         {onDelete && !isReadOnly && (

@@ -56,6 +56,10 @@ const deliveryOperationalService = {
   deleteAttachment: async (id: number): Promise<void> => {
     await api.delete(`/delivery-operational/attachments/${id}`);
   },
+
+  reorderItems: async (deliveryId: number, items: Array<{ id: number; sortOrder: number }>): Promise<void> => {
+    await api.patch('/delivery-operational/items/reorder', { deliveryId, items });
+  },
 };
 
 export default deliveryOperationalService;

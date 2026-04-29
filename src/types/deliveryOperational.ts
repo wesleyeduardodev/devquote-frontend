@@ -19,6 +19,7 @@ export interface DeliveryOperationalItem {
   status: 'PENDING' | 'DELIVERED';
   startedAt?: string;
   finishedAt?: string;
+  sortOrder?: number;
   attachments: DeliveryOperationalAttachment[];
   createdAt: string;
   updatedAt: string;
@@ -31,4 +32,5 @@ export interface DeliveryOperationalItemRequest {
   status: string;
   startedAt?: string;
   finishedAt?: string;
+  sortOrder?: number;
 }

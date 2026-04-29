@@ -24,10 +24,9 @@ import {
 import {
     SortableContext,
     sortableKeyboardCoordinates,
-    useSortable,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import SortableListItem from '../ui/SortableListItem';
 
 interface SubTask {
     id?: number;
@@ -44,30 +43,6 @@ interface FormData {
 interface SubTaskFormProps {
     taskId?: number;
 }
-
-interface SortableItemRenderProps {
-    attributes: ReturnType<typeof useSortable>['attributes'];
-    listeners: ReturnType<typeof useSortable>['listeners'];
-    isDragging: boolean;
-}
-
-const SortableSubTaskItem: React.FC<{
-    id: string;
-    children: (handle: SortableItemRenderProps) => React.ReactNode;
-}> = ({ id, children }) => {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-    const style: React.CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        zIndex: isDragging ? 10 : undefined,
-    };
-    return (
-        <div ref={setNodeRef} style={style}>
-            {children({ attributes, listeners, isDragging })}
-        </div>
-    );
-};
 
 const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
     const { hasProfile } = useAuth();
@@ -295,7 +270,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                     const isLastVisible = visiblePosition === visibleFields.length - 1;
 
                     return (
-                        <SortableSubTaskItem key={field.id} id={field.id}>
+                        <SortableListItem key={field.id} id={field.id}>
                           {({ attributes, listeners }) => (
                         <Card>
                             <div
@@ -528,7 +503,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                             />
                         </Card>
                           )}
-                        </SortableSubTaskItem>
+                        </SortableListItem>
                     );
                 })}
             </div>

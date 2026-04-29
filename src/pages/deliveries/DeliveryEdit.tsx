@@ -26,6 +26,22 @@ import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionM
 import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
 import { DeliveryAttachmentList } from '../../components/deliveries/DeliveryAttachmentList';
 import RichTextEditor from '../../components/ui/RichTextEditor';
+import SortableListItem from '../../components/ui/SortableListItem';
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    KeyboardSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    SortableContext,
+    sortableKeyboardCoordinates,
+    arrayMove,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 const DeliveryEdit: React.FC = () => {
     const { deliveryId } = useParams<{ deliveryId: string }>();
@@ -392,6 +408,69 @@ const DeliveryEdit: React.FC = () => {
     };
 
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    );
+
+    const persistDevReorder = async (newItems: DeliveryItem[]) => {
+        if (!delivery) return;
+        try {
+            await deliveryItemService.reorder(
+                delivery.id,
+                newItems.map((it, idx) => ({ id: it.id, sortOrder: idx + 1 }))
+            );
+        } catch (error) {
+            console.error('Erro ao reordenar itens de entrega:', error);
+            toast.error('Erro ao reordenar itens');
+            await loadDeliveryData();
+        }
+    };
+
+    const handleDevReorder = (oldIndex: number, newIndex: number) => {
+        if (oldIndex === newIndex || oldIndex < 0 || newIndex < 0) return;
+        const newItems = arrayMove(deliveryItems, oldIndex, newIndex);
+        setDeliveryItems(newItems);
+        persistDevReorder(newItems);
+    };
+
+    const handleDevDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = deliveryItems.findIndex(i => String(i.id) === active.id);
+        const newIndex = deliveryItems.findIndex(i => String(i.id) === over.id);
+        handleDevReorder(oldIndex, newIndex);
+    };
+
+    const persistOpReorder = async (newItems: DeliveryOperationalItem[]) => {
+        if (!delivery) return;
+        try {
+            await deliveryOperationalService.reorderItems(
+                delivery.id,
+                newItems.map((it, idx) => ({ id: it.id, sortOrder: idx + 1 }))
+            );
+        } catch (error) {
+            console.error('Erro ao reordenar itens operacionais:', error);
+            toast.error('Erro ao reordenar itens');
+            await loadDeliveryData();
+        }
+    };
+
+    const handleOpReorder = (oldIndex: number, newIndex: number) => {
+        if (oldIndex === newIndex || oldIndex < 0 || newIndex < 0) return;
+        const newItems = arrayMove(operationalItems, oldIndex, newIndex);
+        setOperationalItems(newItems);
+        persistOpReorder(newItems);
+    };
+
+    const handleOpDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = operationalItems.findIndex(i => String(i.id) === active.id);
+        const newIndex = operationalItems.findIndex(i => String(i.id) === over.id);
+        handleOpReorder(oldIndex, newIndex);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -636,18 +715,32 @@ const DeliveryEdit: React.FC = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="space-y-4">
-                                {operationalItems.map((item) => (
-                                    <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-150">
-                                        <DeliveryOperationalItemForm
-                                            initialData={item}
-                                            onSave={(data) => handleSaveOperationalItem(item.id, data)}
-                                            onDelete={() => handleDeleteOperationalItemClick(item)}
-                                            isReadOnly={!canEdit}
-                                        />
+                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleOpDragEnd}>
+                                <SortableContext items={operationalItems.map(i => String(i.id))} strategy={verticalListSortingStrategy}>
+                                    <div className="space-y-4">
+                                        {operationalItems.map((item, index) => (
+                                            <SortableListItem key={item.id} id={String(item.id)}>
+                                                {({ attributes, listeners }) => (
+                                                    <div className="bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-150">
+                                                        <DeliveryOperationalItemForm
+                                                            initialData={item}
+                                                            onSave={(data) => handleSaveOperationalItem(item.id, data)}
+                                                            onDelete={() => handleDeleteOperationalItemClick(item)}
+                                                            isReadOnly={!canEdit}
+                                                            position={index + 1}
+                                                            isFirst={index === 0}
+                                                            isLast={index === operationalItems.length - 1}
+                                                            onMoveUp={canEdit ? () => handleOpReorder(index, index - 1) : undefined}
+                                                            onMoveDown={canEdit ? () => handleOpReorder(index, index + 1) : undefined}
+                                                            dragHandleProps={canEdit ? { ...attributes, ...listeners } : undefined}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </SortableListItem>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </SortableContext>
+                            </DndContext>
                         )
                     ) : (
                         /* Renderização Original: Itens de Desenvolvimento */
@@ -668,41 +761,55 @@ const DeliveryEdit: React.FC = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="space-y-4">
-                                {deliveryItems.map((item) => {
-                                    const project = selectedProjects.find(p => p.id === item.projectId);
-                                    const formData = itemsFormData.get(item.id);
+                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDevDragEnd}>
+                                <SortableContext items={deliveryItems.map(i => String(i.id))} strategy={verticalListSortingStrategy}>
+                                    <div className="space-y-4">
+                                        {deliveryItems.map((item, index) => {
+                                            const project = selectedProjects.find(p => p.id === item.projectId);
+                                            const formData = itemsFormData.get(item.id);
 
-                                    if (!project) return null;
+                                            if (!project) return null;
 
-                                    return (
-                                        <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
-                                            <DeliveryItemForm
-                                                project={project}
-                                                initialData={formData}
-                                                onSave={(data) => handleSaveItemData(item.id, data)}
-                                                isReadOnly={!canEdit}
-                                                customActions={
-                                                    canDelete ? (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setItemToDelete(item);
-                                                                setShowDeleteModal(true);
-                                                            }}
-                                                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                                                            title={`Remover ${project.name}`}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    ) : undefined
-                                                }
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                                            return (
+                                                <SortableListItem key={item.id} id={String(item.id)}>
+                                                    {({ attributes, listeners }) => (
+                                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
+                                                            <DeliveryItemForm
+                                                                project={project}
+                                                                initialData={formData}
+                                                                onSave={(data) => handleSaveItemData(item.id, data)}
+                                                                isReadOnly={!canEdit}
+                                                                position={index + 1}
+                                                                isFirst={index === 0}
+                                                                isLast={index === deliveryItems.length - 1}
+                                                                onMoveUp={canEdit ? () => handleDevReorder(index, index - 1) : undefined}
+                                                                onMoveDown={canEdit ? () => handleDevReorder(index, index + 1) : undefined}
+                                                                dragHandleProps={canEdit ? { ...attributes, ...listeners } : undefined}
+                                                                customActions={
+                                                                    canDelete ? (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => {
+                                                                                setItemToDelete(item);
+                                                                                setShowDeleteModal(true);
+                                                                            }}
+                                                                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                                                            title={`Remover ${project.name}`}
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    ) : undefined
+                                                                }
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </SortableListItem>
+                                            );
+                                        })}
+                                    </div>
+                                </SortableContext>
+                            </DndContext>
                         )
                     )}
                 </Card>

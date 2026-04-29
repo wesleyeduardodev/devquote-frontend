@@ -130,5 +130,9 @@ export const deliveryItemService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    reorder: async (deliveryId: number, items: Array<{ id: number; sortOrder: number }>): Promise<void> => {
+        await api.patch('/delivery-items/reorder', { deliveryId, items });
     }
 };
