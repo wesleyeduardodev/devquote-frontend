@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Pencil, Trash2, ListChecks, Mail, Eye,
-  Download, Search, Filter, Check, X, Settings2, Lock
+  Plus, Pencil, Trash2, ListChecks, Mail, Eye, Send,
+  Download, Search, Filter, Check, X, Settings2, Lock, MoreHorizontal
 } from 'lucide-react'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -120,12 +120,37 @@ const TaskList: React.FC = () => {
     deleteTaskWithSubTasks, deleteBulkTasks,
     setPage, setPageSize, setFilter, clearFilters, setSorting,
     exportToExcel, exportTasksOnlyToExcel,
-  } = useTasks({ size: 25 })
+  } = useTasks({ size: 100 })
 
   const [search, setSearch] = React.useState((filters.title as string) || '')
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
+  const [emailLoadingId, setEmailLoadingId] = React.useState<number | null>(null)
+
+  const handleSendFinancialEmail = React.useCallback(async (task: Task) => {
+    setEmailLoadingId(task.id)
+    try {
+      await taskService.sendFinancialEmail(task.id)
+      toast.success('E-mail financeiro enviado')
+    } catch {
+      toast.error('Erro ao enviar e-mail financeiro')
+    } finally {
+      setEmailLoadingId(null)
+    }
+  }, [])
+
+  const handleSendTaskEmail = React.useCallback(async (task: Task) => {
+    setEmailLoadingId(task.id)
+    try {
+      await taskService.sendTaskEmail(task.id)
+      toast.success('E-mail da tarefa enviado')
+    } catch {
+      toast.error('Erro ao enviar e-mail da tarefa')
+    } finally {
+      setEmailLoadingId(null)
+    }
+  }, [])
   const [stats, setStats] = React.useState<{ total: number; totalWithoutDelivery: number; totalWithoutBilling: number } | null>(null)
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return DEFAULT_COLUMN_VISIBILITY
@@ -328,64 +353,73 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 140, enableSorting: false,
+      id: '__actions', header: '', size: 170, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-          {/* Primárias: visualizar + editar */}
-          <div className="flex items-center gap-0.5">
+        <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          {canCRUD && (
             <Button
               size="icon-sm"
               variant="ghost"
-              onClick={() => navigate(`/tasks/${row.original.id}`)}
-              aria-label="Visualizar"
-              title="Visualizar"
+              onClick={() => navigate(`/tasks/${row.original.id}/edit`)}
+              aria-label="Editar"
+              title="Editar"
             >
-              <Eye />
+              <Pencil />
             </Button>
-            {canCRUD && (
-              <Button
-                size="icon-sm"
-                variant="ghost"
-                onClick={() => navigate(`/tasks/${row.original.id}/edit`)}
-                aria-label="Editar"
-                title="Editar"
-              >
-                <Pencil />
-              </Button>
-            )}
-          </div>
-
-          {/* Secundárias: exportar + excluir (com separação visual) */}
-          <div className="flex items-center gap-0.5 border-l border-border-subtle pl-2">
+          )}
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => handleGeneratePdf(row.original)}
+            loading={pdfLoadingId === row.original.id}
+            disabled={pdfLoadingId === row.original.id}
+            aria-label="Exportar PDF do orçamento"
+            title="Exportar PDF do orçamento"
+            className="text-text-secondary hover:text-[var(--danger-strong)]"
+          >
+            <PdfIcon />
+          </Button>
+          {canCRUD && (
             <Button
               size="icon-sm"
               variant="ghost"
-              onClick={() => handleGeneratePdf(row.original)}
-              loading={pdfLoadingId === row.original.id}
-              disabled={pdfLoadingId === row.original.id}
-              aria-label="Exportar PDF do orçamento"
-              title="Exportar PDF do orçamento"
+              onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
+              aria-label="Excluir"
+              title="Excluir"
               className="text-text-secondary hover:text-[var(--danger-strong)]"
             >
-              <PdfIcon />
+              <Trash2 />
             </Button>
-            {canCRUD && (
-              <Button
-                size="icon-sm"
-                variant="ghost"
-                onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
-                aria-label="Excluir"
-                title="Excluir"
-                className="text-text-secondary hover:text-[var(--danger-strong)]"
-              >
-                <Trash2 />
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="ghost" aria-label="Mais ações" title="Mais ações">
+                <MoreHorizontal />
               </Button>
-            )}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={() => handleSendFinancialEmail(row.original)}
+                disabled={emailLoadingId === row.original.id}
+              >
+                <Mail />Enviar e-mail financeiro
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => handleSendTaskEmail(row.original)}
+                disabled={emailLoadingId === row.original.id}
+              >
+                <Send />Enviar e-mail da tarefa
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate(`/tasks/${row.original.id}`)}>
+                <Eye />Ver detalhes
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       ),
     },
-  ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId])
+  ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId, emailLoadingId])
 
   /** Aplica visibilidade — mantém ordem do manifest. */
   const columns = React.useMemo(() => {
@@ -654,39 +688,53 @@ const TaskList: React.FC = () => {
               )}
             </button>
 
-            <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-border-subtle">
-              <div className="flex items-center gap-0.5">
-                <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}`)} aria-label="Visualizar" title="Visualizar"><Eye /></Button>
-                {canCRUD && (
-                  <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
-                )}
-              </div>
-              <div className="flex items-center gap-0.5 border-l border-border-subtle pl-2">
+            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              {canCRUD && (
+                <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
+              )}
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => handleGeneratePdf(t)}
+                loading={pdfLoadingId === t.id}
+                disabled={pdfLoadingId === t.id}
+                aria-label="Exportar PDF do orçamento"
+                title="Exportar PDF do orçamento"
+                className="text-text-secondary hover:text-[var(--danger-strong)]"
+              >
+                <PdfIcon />
+              </Button>
+              {canCRUD && (
                 <Button
                   size="icon-sm"
                   variant="ghost"
-                  onClick={() => handleGeneratePdf(t)}
-                  loading={pdfLoadingId === t.id}
-                  disabled={pdfLoadingId === t.id}
-                  aria-label="Exportar PDF do orçamento"
-                  title="Exportar PDF do orçamento"
+                  onClick={() => setConfirmDelete({ kind: 'one', ids: [t.id] })}
+                  aria-label="Excluir"
+                  title="Excluir"
                   className="text-text-secondary hover:text-[var(--danger-strong)]"
                 >
-                  <PdfIcon />
+                  <Trash2 />
                 </Button>
-                {canCRUD && (
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    onClick={() => setConfirmDelete({ kind: 'one', ids: [t.id] })}
-                    aria-label="Excluir"
-                    title="Excluir"
-                    className="text-text-secondary hover:text-[var(--danger-strong)]"
-                  >
-                    <Trash2 />
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon-sm" variant="ghost" aria-label="Mais ações" title="Mais ações">
+                    <MoreHorizontal />
                   </Button>
-                )}
-              </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => handleSendFinancialEmail(t)} disabled={emailLoadingId === t.id}>
+                    <Mail />Enviar e-mail financeiro
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleSendTaskEmail(t)} disabled={emailLoadingId === t.id}>
+                    <Send />Enviar e-mail da tarefa
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => navigate(`/tasks/${t.id}`)}>
+                    <Eye />Ver detalhes
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         ))}
