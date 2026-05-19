@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, DollarSign, Paperclip, ChevronDown, ChevronUp, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
+import { Plus, Trash2, DollarSign, Paperclip, ChevronDown, ChevronUp, ArrowUp, ArrowDown, GripVertical, X } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -155,6 +155,16 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
 
     const handleDeleteSubTask = (index: number): void => {
         const subTask = watchSubTasks?.[index];
+
+        // Subtarefa nova (ainda não salva no backend) — remove direto, sem modal
+        if (!subTask?.id) {
+            const filtered = [...watchSubTasks];
+            filtered.splice(index, 1);
+            setValue('subTasks', filtered);
+            return;
+        }
+
+        // Subtarefa persistida — exige confirmação (delete via API)
         setSubTaskToDelete({ index, subTask });
         setShowDeleteModal(true);
     };
@@ -307,7 +317,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                             {formatCurrency(parseFloat(watchSubTasks[index].amount) || 0)}
                                         </span>
                                     )}
-                                    {subTask?.id && (
+                                    {subTask?.id ? (
                                         <Button
                                             type="button"
                                             size="sm"
@@ -318,6 +328,16 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteSubTask(index); }}
+                                            title="Remover esta subtarefa"
+                                            aria-label="Remover esta subtarefa"
+                                            className="p-1.5 sm:p-2 rounded-md text-text-tertiary hover:text-[var(--danger-strong)] hover:bg-danger-soft transition-colors"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
                                     )}
                                     {collapsed ? (
                                         <ChevronDown className="w-5 h-5 text-text-tertiary" />
