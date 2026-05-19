@@ -84,6 +84,7 @@ const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; l
   { id: 'createdByUserName',  label: 'Criada por',          defaultVisible: false },
   { id: 'updatedAt',          label: 'Atualizada em',       defaultVisible: false },
   { id: 'updatedByUserName',  label: 'Atualizada por',      defaultVisible: false },
+  { id: 'subTasksCount',      label: 'Subtarefas',          defaultVisible: false },
 ]
 
 const DEFAULT_COLUMN_VISIBILITY: Record<string, boolean> = COLUMN_DEFS.reduce((acc, c) => {
@@ -179,6 +180,8 @@ const TaskList: React.FC = () => {
     }
   }, [])
   const [stats, setStats] = React.useState<{ total: number; totalWithoutDelivery: number; totalWithoutBilling: number } | null>(null)
+  const [filteredTotal, setFilteredTotal] = React.useState<number | null>(null)
+  const [filteredTotalLoading, setFilteredTotalLoading] = React.useState(false)
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return DEFAULT_COLUMN_VISIBILITY
     try {
@@ -233,6 +236,38 @@ const TaskList: React.FC = () => {
     const t = setTimeout(() => setFilter('title', search), 300)
     return () => clearTimeout(t)
   }, [search])
+
+  // Soma total filtrada (via backend, todas as páginas)
+  React.useEffect(() => {
+    let cancelled = false
+    // Mesmo debounce do hook (300ms) pra alinhar com refetch da lista
+    const t = setTimeout(async () => {
+      setFilteredTotalLoading(true)
+      try {
+        // Normaliza datas para ISO (mesma lógica do useTasks)
+        const toIso = (s: any) => {
+          if (!s) return s
+          const str = String(s)
+          if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
+            const [d, m, y] = str.split('/')
+            return `${y}-${m}-${d}`
+          }
+          return undefined
+        }
+        const normalized: Record<string, any> = { ...filters }
+        if (normalized.startDate) normalized.startDate = toIso(normalized.startDate)
+        if (normalized.endDate)   normalized.endDate   = toIso(normalized.endDate)
+        const total = await taskService.getTotalAmount(normalized)
+        if (!cancelled) setFilteredTotal(total)
+      } catch {
+        if (!cancelled) setFilteredTotal(null)
+      } finally {
+        if (!cancelled) setFilteredTotalLoading(false)
+      }
+    }, 300)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [filters])
 
   // Adapter useTasks.sorting (field/direction) <-> TanStack SortingState (id/desc)
   const tanstackSorting = React.useMemo(
@@ -417,6 +452,20 @@ const TaskList: React.FC = () => {
           <StatusPill on={!!row.original.hasQuoteInBilling} onLabel="Faturado" offLabel="Sem fatura" tone="success" />
         </div>
       ),
+    },
+    {
+      id: 'subTasksCount', accessorKey: 'subTasks', header: 'Subtarefas', size: 110, enableSorting: false, meta: { align: 'center' },
+      cell: ({ row }) => {
+        const subs = (row.original as any).subTasks as any[] | undefined
+        const count = subs?.filter((s) => !s?.excluded).length ?? 0
+        if (count === 0) return <span className="text-text-tertiary">—</span>
+        return (
+          <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-accent-soft text-accent text-xs font-medium">
+            <ListChecks className="size-3" />
+            {count}
+          </span>
+        )
+      },
     },
     {
       id: 'amount', accessorKey: 'amount', header: 'Valor', size: 100, enableSorting: false, meta: { align: 'center' },
@@ -780,13 +829,58 @@ const TaskList: React.FC = () => {
             onPageSizeChange: setPageSize,
           } : undefined}
           empty={
-            <EmptyState
-              icon={<ListChecks />}
-              title="Nenhuma tarefa"
-              description={chips.length > 0 ? 'Ajuste os filtros para ver outras tarefas.' : 'Crie a primeira tarefa.'}
-              actions={<Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>}
-            />
+            chips.length > 0 ? (
+              <EmptyState
+                icon={<Filter />}
+                title="Nenhuma tarefa com esses filtros"
+                description="Ajuste os filtros aplicados ou limpe-os para ver todas as tarefas."
+                actions={
+                  <div className="flex items-center gap-2">
+                    <Button variant="secondary" onClick={() => { setSearch(''); clearFilters() }}>
+                      Limpar filtros
+                    </Button>
+                    {canCRUD && (
+                      <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>
+                        Nova tarefa
+                      </Button>
+                    )}
+                  </div>
+                }
+              />
+            ) : (
+              <EmptyState
+                icon={<ListChecks />}
+                title="Nenhuma tarefa"
+                description="Você ainda não tem tarefas cadastradas. Crie a primeira."
+                actions={canCRUD ? <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button> : undefined}
+              />
+            )
           }
+          footer={(() => {
+            const pageCount = tasks.length
+            const totalRows = pagination?.totalElements ?? pageCount
+            const hasActiveFilters = chips.length > 0
+            return (
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3 text-text-secondary">
+                  <span>
+                    <span className="text-text-tertiary">{hasActiveFilters ? 'Tarefas filtradas:' : 'Total de tarefas:'}</span>{' '}
+                    <span className="font-medium text-text-primary tabular-nums">{totalRows.toLocaleString('pt-BR')}</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-text-tertiary">
+                    {hasActiveFilters ? 'Soma filtrada:' : 'Soma total:'}
+                  </span>
+                  <span className="text-sm font-semibold text-text-primary tabular-nums">
+                    {filteredTotalLoading
+                      ? <span className="inline-block w-20 h-4 rounded bg-surface-2 animate-pulse" aria-label="Carregando…" />
+                      : brl(filteredTotal ?? 0)}
+                  </span>
+                </div>
+              </div>
+            )
+          })()}
         />
       </div>
 
@@ -794,7 +888,25 @@ const TaskList: React.FC = () => {
       <div className="lg:hidden space-y-2">
         {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
         {!loading && tasks.length === 0 && (
-          <EmptyState icon={<ListChecks />} title="Nenhuma tarefa" description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie a primeira.'} actions={<Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova</Button>} />
+          chips.length > 0 ? (
+            <EmptyState
+              icon={<Filter />}
+              title="Nenhuma tarefa com esses filtros"
+              description="Ajuste ou limpe os filtros."
+              actions={
+                <Button variant="secondary" onClick={() => { setSearch(''); clearFilters() }}>
+                  Limpar filtros
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={<ListChecks />}
+              title="Nenhuma tarefa"
+              description="Crie a primeira."
+              actions={canCRUD ? <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova</Button> : undefined}
+            />
+          )
         )}
         {!loading && tasks.map((t: any) => (
           <div

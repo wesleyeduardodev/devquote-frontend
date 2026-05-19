@@ -119,6 +119,24 @@ export const taskService = {
         };
     },
 
+    /**
+     * Soma de `amount` das tarefas que batem com os filtros (todas as páginas).
+     * Backend: GET /tasks/total-amount?<filtros>
+     */
+    getTotalAmount: async (filters?: Record<string, any>): Promise<number> => {
+        const queryParams = new URLSearchParams();
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value.toString().trim() !== '') {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+        const qs = queryParams.toString();
+        const response = await api.get(`/tasks/total-amount${qs ? `?${qs}` : ''}`);
+        return Number(response.data?.totalAmount ?? 0);
+    },
+
     createWithSubTasks: async (data: any): Promise<any> => {
         const response = await api.post('/tasks/full', data);
         return response.data;

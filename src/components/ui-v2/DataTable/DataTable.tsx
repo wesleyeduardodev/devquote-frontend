@@ -48,6 +48,8 @@ export interface DataTableProps<T> {
 
   /** Customizações de UI */
   empty?: React.ReactNode
+  /** Conteúdo do <tfoot>. Recebe as colunas visíveis e renderiza uma linha agregada. */
+  footer?: React.ReactNode
   className?: string
   density?: 'compact' | 'comfortable'
   stickyHeader?: boolean
@@ -59,7 +61,7 @@ export function DataTable<T>({
   selectable, selection, onSelectionChange,
   sorting, onSortingChange,
   pagination, onRowClick,
-  empty, className, density = 'compact', stickyHeader = true,
+  empty, footer, className, density = 'compact', stickyHeader = true,
 }: DataTableProps<T>) {
 
   const finalColumns = React.useMemo<ColumnDef<T, any>[]>(() => {
@@ -242,6 +244,15 @@ export function DataTable<T>({
               ))
             )}
           </tbody>
+          {footer && !loading && table.getRowModel().rows.length > 0 && (
+            <tfoot className="bg-surface-app/60 border-t-2 border-border-strong">
+              <tr>
+                <td colSpan={finalColumns.length} className="px-3 py-2.5">
+                  {footer}
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 
