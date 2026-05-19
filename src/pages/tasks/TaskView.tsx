@@ -245,8 +245,8 @@ const TaskView: React.FC = () => {
     const taskName = task.title || task.name || '';
 
     return (
-        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
-            <div className="w-full mx-auto space-y-6">
+        <div className="w-full">
+            <div className="w-full space-y-4">
                 {/* Header com acoes */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <Button
