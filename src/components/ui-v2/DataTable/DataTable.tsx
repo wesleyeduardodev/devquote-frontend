@@ -126,10 +126,24 @@ export function DataTable<T>({
     )
   }
 
+  // Refetch (já há dados, e voltou a carregar) vs initial load
+  const hasData = data.length > 0
+  const isRefetching = !!loading && hasData
+
   return (
-    <div className={cn('rounded-lg border border-border-subtle bg-surface-1 overflow-hidden', className)}>
+    <div className={cn('rounded-lg border border-border-subtle bg-surface-1 overflow-hidden relative', className)}>
+      {/* Top loading bar — visível em qualquer fetch (initial ou refetch). Estilo GitHub/Vercel. */}
+      {loading && (
+        <div
+          aria-hidden
+          className="absolute top-0 left-0 right-0 z-30 h-0.5 overflow-hidden pointer-events-none"
+        >
+          <div className="absolute inset-y-0 left-0 w-1/3 bg-accent rounded-r-full animate-loading-bar" />
+        </div>
+      )}
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm table-fixed">
+        <table className={cn('min-w-full text-sm table-fixed', isRefetching && 'opacity-70 transition-opacity')}>
+
           <thead className={cn('bg-surface-app/60 border-b border-border-strong', stickyHeader && 'sticky top-0 z-10')}>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-border-subtle">
@@ -178,7 +192,7 @@ export function DataTable<T>({
                       style={{ width: h.getSize() !== 150 ? h.getSize() : undefined }}
                     >
                       {filter ? (
-                        <ColumnFilterInput {...filter} align={align === 'center' ? 'center' : align === 'right' ? 'right' : 'left'} />
+                        <ColumnFilterInput {...filter} loading={isRefetching} align={align === 'center' ? 'center' : align === 'right' ? 'right' : 'left'} />
                       ) : null}
                     </th>
                   )
@@ -187,7 +201,8 @@ export function DataTable<T>({
             )}
           </thead>
           <tbody>
-            {loading ? (
+            {loading && !hasData ? (
+              // Initial load (sem dados ainda) → Skeleton completo
               Array.from({ length: 8 }).map((_, i) => (
                 <tr key={`sk-${i}`} className={cn('border-b border-border-subtle', rowH)}>
                   {finalColumns.map((c, j) => (
