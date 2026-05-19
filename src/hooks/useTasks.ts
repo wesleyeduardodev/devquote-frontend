@@ -403,7 +403,7 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
 
         debounceTimerRef.current = setTimeout(() => {
             fetchTasks();
-        }, 1000);
+        }, 300);
 
         return () => {
             if (debounceTimerRef.current) {

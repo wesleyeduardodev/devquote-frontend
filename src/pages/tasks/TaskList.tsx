@@ -160,7 +160,7 @@ const TaskList: React.FC = () => {
       cell: ({ row }) => <span className="font-mono text-[11px] text-text-tertiary">#{row.original.id}</span>,
     },
     {
-      accessorKey: 'code', header: 'Código', size: 120, meta: { align: 'center' },
+      accessorKey: 'code', header: 'Código', size: 110, meta: { align: 'center' },
       cell: ({ row }) => (
         <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
           {row.original.code}
@@ -168,7 +168,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      accessorKey: 'flowType', header: 'Fluxo', size: 180, meta: { align: 'center' },
+      accessorKey: 'flowType', header: 'Fluxo', size: 165, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <FlowChip value={row.original.flowType} />
@@ -176,7 +176,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      accessorKey: 'taskType', header: 'Tipo', size: 200, meta: { align: 'center' },
+      accessorKey: 'taskType', header: 'Tipo', size: 180, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <TaskTypeLabel value={row.original.taskType} />
@@ -197,29 +197,23 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'status', header: 'Status', size: 220, meta: { align: 'center' },
+      id: 'delivery', header: 'Entrega', size: 120, meta: { align: 'center' },
       cell: ({ row }) => (
-        <div className="flex items-center justify-center gap-1.5 flex-wrap">
-          <StatusPill
-            on={!!row.original.hasDelivery}
-            onLabel="Entrega"
-            offLabel="Sem entrega"
-            tone="info"
-          />
-          <StatusPill
-            on={!!row.original.hasQuoteInBilling}
-            onLabel="Faturado"
-            offLabel="Sem fatura"
-            tone="success"
-          />
-          {row.original.financialEmailSent && (
-            <Badge variant="neutral" size="sm"><Mail className="size-3" />Enviado</Badge>
-          )}
+        <div className="flex justify-center">
+          <StatusPill on={!!row.original.hasDelivery} onLabel="Entrega" offLabel="Sem entrega" tone="info" />
         </div>
       ),
     },
     {
-      accessorKey: 'amount', header: 'Valor', size: 110, meta: { align: 'center' },
+      id: 'billing', header: 'Faturamento', size: 125, meta: { align: 'center' },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <StatusPill on={!!row.original.hasQuoteInBilling} onLabel="Faturado" offLabel="Sem fatura" tone="success" />
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'amount', header: 'Valor', size: 100, meta: { align: 'center' },
       cell: ({ row }) => {
         const v = row.original.amount ?? 0
         return (
@@ -230,7 +224,7 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 160,
+      id: '__actions', header: '', size: 140,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           {/* Primárias: visualizar + editar */}
@@ -306,7 +300,6 @@ const TaskList: React.FC = () => {
   if (filters.endDate)      chips.push({ key: 'endDate',      label: 'Criada até',         value: String(filters.endDate),                                                                                                   onRemove: () => setFilter('endDate', '') })
   if (filters.hasDelivery !== undefined && filters.hasDelivery !== '') chips.push({ key: 'hasDelivery', label: 'Entrega', value: filters.hasDelivery === 'true' || filters.hasDelivery === true ? 'Sim' : 'Não', onRemove: () => setFilter('hasDelivery', '') })
   if (filters.hasQuoteInBilling !== undefined && filters.hasQuoteInBilling !== '') chips.push({ key: 'hasBilling', label: 'Faturamento', value: filters.hasQuoteInBilling === 'true' || filters.hasQuoteInBilling === true ? 'Sim' : 'Não', onRemove: () => setFilter('hasQuoteInBilling', '') })
-  if (filters.financialEmailSent !== undefined && filters.financialEmailSent !== '') chips.push({ key: 'emailSent', label: 'Email financeiro', value: filters.financialEmailSent === 'true' || filters.financialEmailSent === true ? 'Enviado' : 'Não enviado', onRemove: () => setFilter('financialEmailSent', '') })
 
   const activeFilterCount = chips.length
 
@@ -317,37 +310,6 @@ const TaskList: React.FC = () => {
         subtitle={pagination ? `${pagination.totalElements} tarefa${pagination.totalElements === 1 ? '' : 's'}` : undefined}
         filters={
           <>
-            <div className="w-[80px]">
-              <Input
-                placeholder="ID"
-                value={(filters.id as string) || ''}
-                onChange={(e) => setFilter('id', e.target.value)}
-                inputMode="numeric"
-              />
-            </div>
-            <div className="w-[140px]">
-              <Input
-                placeholder="Código"
-                value={(filters.code as string) || ''}
-                onChange={(e) => setFilter('code', e.target.value)}
-              />
-            </div>
-            <div className="w-full sm:w-[240px]">
-              <Input
-                leadingIcon={<Search />}
-                placeholder="Buscar por título..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <Select value={(filters.flowType as string) || '__all'} onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}>
-              <SelectTrigger className="w-[160px] h-8"><SelectValue placeholder="Fluxo: Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all">Fluxo: Todos</SelectItem>
-                <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
-                <SelectItem value="OPERACIONAL">Operacional</SelectItem>
-              </SelectContent>
-            </Select>
             <Button variant="secondary" leadingIcon={<Filter />} onClick={() => setFiltersOpen(true)}>
               Filtros
               {activeFilterCount > 0 && (
@@ -357,18 +319,17 @@ const TaskList: React.FC = () => {
               )}
             </Button>
 
-            {/* Estatísticas globais (todas as páginas) */}
-            <div className="hidden md:flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-2 ml-1">
               <StatChip
                 label="Sem entrega"
                 value={stats?.totalWithoutDelivery}
-                onClick={() => setFilter('hasDelivery', 'false')}
+                onClick={() => setFilter('hasDelivery', filters.hasDelivery === 'false' ? '' : 'false')}
                 active={filters.hasDelivery === 'false'}
               />
               <StatChip
                 label="Sem fatura"
                 value={stats?.totalWithoutBilling}
-                onClick={() => setFilter('hasQuoteInBilling', 'false')}
+                onClick={() => setFilter('hasQuoteInBilling', filters.hasQuoteInBilling === 'false' ? '' : 'false')}
                 active={filters.hasQuoteInBilling === 'false'}
               />
             </div>
@@ -406,6 +367,79 @@ const TaskList: React.FC = () => {
         <DataTable<Task>
           data={tasks as any[]}
           columns={columns}
+          columnFilters={{
+            id: {
+              type: 'number',
+              value: (filters.id as string) || '',
+              onChange: (v) => setFilter('id', v),
+              placeholder: '#',
+            },
+            code: {
+              value: (filters.code as string) || '',
+              onChange: (v) => setFilter('code', v),
+              placeholder: 'Código...',
+            },
+            flowType: {
+              value: (filters.flowType as string) || '',
+              onChange: (v) => setFilter('flowType', v),
+              render: () => (
+                <Select value={(filters.flowType as string) || '__all'} onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos</SelectItem>
+                    <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
+                    <SelectItem value="OPERACIONAL">Operacional</SelectItem>
+                  </SelectContent>
+                </Select>
+              ),
+            },
+            taskType: {
+              value: (filters.taskType as string) || '',
+              onChange: (v) => setFilter('taskType', v),
+              render: () => (
+                <Select value={(filters.taskType as string) || '__all'} onValueChange={(v) => setFilter('taskType', v === '__all' ? '' : v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos</SelectItem>
+                    {TASK_TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ),
+            },
+            title: {
+              value: (filters.title as string) || '',
+              onChange: (v) => { setSearch(v); setFilter('title', v) },
+              placeholder: 'Buscar título...',
+            },
+            delivery: {
+              value: (filters.hasDelivery as string) || '',
+              onChange: (v) => setFilter('hasDelivery', v),
+              render: () => (
+                <Select value={(filters.hasDelivery as string) || '__all'} onValueChange={(v) => setFilter('hasDelivery', v === '__all' ? '' : v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos</SelectItem>
+                    <SelectItem value="true">Com entrega</SelectItem>
+                    <SelectItem value="false">Sem entrega</SelectItem>
+                  </SelectContent>
+                </Select>
+              ),
+            },
+            billing: {
+              value: (filters.hasQuoteInBilling as string) || '',
+              onChange: (v) => setFilter('hasQuoteInBilling', v),
+              render: () => (
+                <Select value={(filters.hasQuoteInBilling as string) || '__all'} onValueChange={(v) => setFilter('hasQuoteInBilling', v === '__all' ? '' : v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos</SelectItem>
+                    <SelectItem value="true">Faturado</SelectItem>
+                    <SelectItem value="false">Sem fatura</SelectItem>
+                  </SelectContent>
+                </Select>
+              ),
+            },
+          }}
           rowKey={(r) => r.id}
           loading={loading}
           error={error}
@@ -637,14 +671,6 @@ const TaskList: React.FC = () => {
                   onChange={(v) => setFilter('hasQuoteInBilling', v)}
                   onLabel="Faturado"
                   offLabel="Sem fatura"
-                />
-              </FilterField>
-              <FilterField label="Email financeiro">
-                <TriStateToggle
-                  value={filters.financialEmailSent as any}
-                  onChange={(v) => setFilter('financialEmailSent', v)}
-                  onLabel="Enviado"
-                  offLabel="Não enviado"
                 />
               </FilterField>
             </FilterSection>

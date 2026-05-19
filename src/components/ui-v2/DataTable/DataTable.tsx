@@ -8,6 +8,7 @@ import { cn } from '@/utils/cn'
 import { Checkbox } from '../Checkbox'
 import { Skeleton } from '../Skeleton'
 import { EmptyState } from '../EmptyState'
+import { ColumnFilterInput } from './ColumnFilterInput'
 
 export interface DataTableProps<T> {
   data: T[]
@@ -15,6 +16,13 @@ export interface DataTableProps<T> {
   rowKey?: (row: T) => string | number
   loading?: boolean
   error?: string | null
+
+  /**
+   * Map de filtros por column.id (ou accessorKey).
+   * Quando fornecido, renderiza uma linha de filtros logo abaixo do header.
+   * Manter fora da memo dos columns evita stale closures.
+   */
+  columnFilters?: Record<string, import('./ColumnFilterInput').ColumnFilterConfig>
 
   /** Modo de seleção */
   selectable?: boolean
@@ -47,6 +55,7 @@ export interface DataTableProps<T> {
 
 export function DataTable<T>({
   data, columns, rowKey, loading, error,
+  columnFilters,
   selectable, selection, onSelectionChange,
   sorting, onSortingChange,
   pagination, onRowClick,
@@ -148,6 +157,30 @@ export function DataTable<T>({
                 })}
               </tr>
             ))}
+
+            {/* Linha de filtros por coluna. O filtro vem do prop `columnFilters` (não do
+                meta dos columns) pra evitar stale closures quando o user memoiza columns. */}
+            {columnFilters && Object.keys(columnFilters).length > 0 && (
+              <tr className="border-b border-border-subtle bg-surface-1">
+                {table.getHeaderGroups()[0].headers.map((h) => {
+                  const meta = h.column.columnDef.meta as any
+                  const align = meta?.align as ('center' | 'right' | undefined)
+                  const columnId = (h.column.columnDef as any).accessorKey ?? h.column.id
+                  const filter = columnFilters[columnId] ?? columnFilters[h.column.id]
+                  return (
+                    <th
+                      key={`f-${h.id}`}
+                      className="px-2 py-1.5"
+                      style={{ width: h.getSize() !== 150 ? h.getSize() : undefined }}
+                    >
+                      {filter ? (
+                        <ColumnFilterInput {...filter} align={align === 'center' ? 'center' : align === 'right' ? 'right' : 'left'} />
+                      ) : null}
+                    </th>
+                  )
+                })}
+              </tr>
+            )}
           </thead>
           <tbody>
             {loading ? (
