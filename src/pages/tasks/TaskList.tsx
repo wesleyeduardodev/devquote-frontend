@@ -207,11 +207,28 @@ const TaskList: React.FC = () => {
     },
     {
       id: 'code', accessorKey: 'code', header: 'Código', size: 110, enableSorting: false, meta: { align: 'center' },
-      cell: ({ row }) => (
-        <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
-          {row.original.code}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const link = (row.original as any).link
+        if (link) {
+          return (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="font-mono text-xs font-medium text-accent hover:underline tracking-tight truncate block"
+              title={`Abrir link: ${link}`}
+            >
+              {row.original.code}
+            </a>
+          )
+        }
+        return (
+          <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
+            {row.original.code}
+          </span>
+        )
+      },
     },
     {
       id: 'flowType', accessorKey: 'flowType', header: 'Fluxo', size: 165, enableSorting: false, meta: { align: 'center' },
@@ -605,14 +622,27 @@ const TaskList: React.FC = () => {
             key={t.id}
             className="w-full rounded-lg border border-border-subtle bg-surface-1 p-4 transition-colors"
           >
-            <button onClick={() => navigate(`/tasks/${t.id}`)} className="w-full text-left">
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-mono text-xs text-text-tertiary shrink-0">#{t.id}</span>
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-mono text-xs text-text-tertiary shrink-0">#{t.id}</span>
+                {t.link ? (
+                  <a
+                    href={t.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-mono text-xs font-medium text-accent hover:underline truncate"
+                    title={`Abrir link: ${t.link}`}
+                  >
+                    {t.code}
+                  </a>
+                ) : (
                   <span className="font-mono text-xs text-text-secondary truncate">{t.code}</span>
-                </div>
-                <span className={`text-sm font-medium tabular-nums shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>
+                )}
               </div>
+              <span className={`text-sm font-medium tabular-nums shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>
+            </div>
+            <button onClick={() => navigate(`/tasks/${t.id}`)} className="w-full text-left">
               <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{t.title}</p>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {t.flowType && <FlowChip value={t.flowType} />}
