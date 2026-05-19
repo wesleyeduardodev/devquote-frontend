@@ -127,7 +127,7 @@ export function DataTable<T>({
   return (
     <div className={cn('rounded-lg border border-border-subtle bg-surface-1 overflow-hidden', className)}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm table-fixed">
+        <table className="min-w-full text-sm table-fixed">
           <thead className={cn('bg-surface-app/60 border-b border-border-strong', stickyHeader && 'sticky top-0 z-10')}>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-border-subtle">

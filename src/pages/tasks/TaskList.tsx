@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, ListChecks, Mail, Eye, Send,
-  Download, Search, Filter, Check, X, Settings2, Lock, MoreHorizontal
+  Download, Search, Filter, Check, X, Settings2, Lock, MoreHorizontal, RotateCcw
 } from 'lucide-react'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -301,7 +301,7 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: 'title', accessorKey: 'title', header: 'Tarefa', enableSorting: false, meta: { wrap: true },
+      id: 'title', accessorKey: 'title', header: 'Tarefa', size: 360, enableSorting: false, meta: { wrap: true },
       cell: ({ row }) => (
         <div className="flex flex-col min-w-0 py-1">
           <span className="text-text-primary font-medium leading-snug break-words">
@@ -966,7 +966,9 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange }) => {
   const setOne = (id: string, value: boolean) => onChange({ ...visibility, [id]: value })
   const showAll = () => onChange(COLUMN_DEFS.reduce((acc, c) => { acc[c.id] = true; return acc }, {} as Record<string, boolean>))
   const hideAll = () => onChange(COLUMN_DEFS.reduce((acc, c) => { acc[c.id] = !!c.locked; return acc }, {} as Record<string, boolean>))
+  const resetDefault = () => onChange({ ...DEFAULT_COLUMN_VISIBILITY })
   const visibleCount = COLUMN_DEFS.filter((c) => visibility[c.id]).length
+  const isDefault = COLUMN_DEFS.every((c) => !!visibility[c.id] === c.defaultVisible)
 
   return (
     <Popover>
@@ -1003,9 +1005,21 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange }) => {
             )
           })}
         </ul>
-        <div className="flex gap-1 p-2 border-t border-border-subtle">
-          <Button size="sm" variant="ghost" className="flex-1" onClick={showAll}>Mostrar todas</Button>
-          <Button size="sm" variant="ghost" className="flex-1" onClick={hideAll}>Ocultar todas</Button>
+        <div className="border-t border-border-subtle p-2 space-y-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="w-full justify-center"
+            onClick={resetDefault}
+            disabled={isDefault}
+          >
+            <RotateCcw className="size-3.5 mr-1" />
+            Restaurar padrão
+          </Button>
+          <div className="flex gap-1">
+            <Button size="sm" variant="ghost" className="flex-1" onClick={showAll}>Mostrar todas</Button>
+            <Button size="sm" variant="ghost" className="flex-1" onClick={hideAll}>Ocultar todas</Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
