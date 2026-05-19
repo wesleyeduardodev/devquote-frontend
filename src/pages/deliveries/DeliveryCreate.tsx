@@ -177,7 +177,7 @@ const DeliveryCreate: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="flex items-center space-x-4">
                     <Button
@@ -190,39 +190,39 @@ const DeliveryCreate: React.FC = () => {
                         <span className="hidden sm:inline">Voltar</span>
                     </Button>
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Nova Entrega</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Nova Entrega</h1>
                     </div>
                 </div>
 
                 <Card className="overflow-hidden">
                     <div className="px-4 py-5 sm:px-6">
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Tarefa <span className="text-red-500">*</span>
                             </label>
 
                             {selectedTask ? (
-                                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                                <div className="border border-border-strong rounded-lg p-4 bg-surface-app">
                                     <div className="flex justify-between items-start">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Package className="h-5 w-5 text-blue-600" />
-                                                <h3 className="font-medium text-gray-900">{selectedTask.title}</h3>
+                                                <Package className="h-5 w-5 text-accent" />
+                                                <h3 className="font-medium text-text-primary">{selectedTask.title}</h3>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-1">{selectedTask.code}</p>
+                                            <p className="text-sm text-text-secondary mb-1">{selectedTask.code}</p>
                                             {selectedTask.flowType && (
                                                 <div className="mb-2">
                                                     <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
                                                         selectedTask.flowType === 'OPERACIONAL'
                                                             ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                                            : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                                            : 'bg-accent-soft text-accent border border-blue-200'
                                                     }`}>
                                                         {selectedTask.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                                                     </span>
                                                 </div>
                                             )}
                                             {selectedTask.requester && (
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm text-text-tertiary">
                                                     Solicitante: {selectedTask.requester.name}
                                                 </p>
                                             )}
@@ -241,9 +241,9 @@ const DeliveryCreate: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowTaskModal(true)}
-                                    className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg transition-colors hover:border-gray-400 text-gray-600 hover:text-gray-700"
+                                    className="w-full px-4 py-6 border-2 border-dashed border-border-strong rounded-lg transition-colors hover:border-gray-400 text-text-secondary hover:text-text-secondary"
                                 >
-                                    <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                    <Package className="mx-auto h-8 w-8 text-text-tertiary mb-2" />
                                     <p>Clique para selecionar uma tarefa</p>
                                 </button>
                             )}
@@ -251,21 +251,21 @@ const DeliveryCreate: React.FC = () => {
 
                         {selectedTask?.flowType !== 'OPERACIONAL' && (
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Projetos/Repositórios
                                 </label>
 
                                 {selectedProjects.length > 0 ? (
-                                    <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                                    <div className="border border-border-strong rounded-lg p-4 bg-surface-app">
                                         <div className="space-y-2">
                                             {selectedProjects.map(project => (
                                                 <div key={project.id} className="flex items-center gap-3">
-                                                    <FolderOpen className="h-4 w-4 text-green-600" />
-                                                    <span className="text-sm font-medium text-gray-900">{project.name}</span>
+                                                    <FolderOpen className="h-4 w-4 text-[var(--success-strong)]" />
+                                                    <span className="text-sm font-medium text-text-primary">{project.name}</span>
                                                 </div>
                                             ))}
                                         </div>
-                                        <div className="pt-3 border-t border-gray-200 mt-3">
+                                        <div className="pt-3 border-t border-border-subtle mt-3">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
@@ -279,9 +279,9 @@ const DeliveryCreate: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowProjectModal(true)}
-                                        className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg transition-colors hover:border-gray-400 text-gray-600 hover:text-gray-700"
+                                        className="w-full px-4 py-6 border-2 border-dashed border-border-strong rounded-lg transition-colors hover:border-gray-400 text-text-secondary hover:text-text-secondary"
                                     >
-                                        <FolderOpen className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                        <FolderOpen className="mx-auto h-8 w-8 text-text-tertiary mb-2" />
                                         <p>Clique para selecionar projetos (opcional)</p>
                                     </button>
                                 )}
@@ -301,7 +301,7 @@ const DeliveryCreate: React.FC = () => {
                         </div>
 
                         {!createdDeliveryId && (
-                            <div className="pt-4 border-t border-gray-200">
+                            <div className="pt-4 border-t border-border-subtle">
                                 <Button
                                     onClick={handleCreateDelivery}
                                     disabled={!selectedTask || isCreating}
@@ -326,7 +326,7 @@ const DeliveryCreate: React.FC = () => {
 
                 {createdDeliveryId && selectedProjects.length > 0 && (
                     <Card className="p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        <h3 className="text-lg font-medium text-text-primary mb-4">
                             Configurar Itens da Entrega
                         </h3>
                         <div className="space-y-6">
@@ -345,7 +345,7 @@ const DeliveryCreate: React.FC = () => {
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleRemoveItem(project.id)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                                className="text-[var(--danger-strong)] hover:text-red-700 hover:bg-red-50 border-red-200"
                                             >
                                                 <Trash2 className="h-4 w-4 mr-2" />
                                                 Remover
@@ -361,12 +361,12 @@ const DeliveryCreate: React.FC = () => {
                 {createdDeliveryId && selectedProjects.length === 0 && (
                     <Card className="p-6 text-center">
                         <div className="space-y-4">
-                            <Package className="mx-auto h-12 w-12 text-green-600" />
+                            <Package className="mx-auto h-12 w-12 text-[var(--success-strong)]" />
                             <div>
-                                <h3 className="font-medium text-gray-900">
+                                <h3 className="font-medium text-text-primary">
                                     Entrega criada com sucesso!
                                 </h3>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-text-secondary">
                                     A entrega foi criada para a tarefa "{selectedTask?.code}" sem itens específicos.
                                 </p>
                             </div>

@@ -228,7 +228,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                             setSelectedTasks([]);
                         }
                     }}
-                    className="rounded border-gray-300"
+                    className="rounded border-border-strong"
                 />
             ),
             render: (link: BillingPeriodTask) => (
@@ -242,7 +242,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                             setSelectedTasks(prev => prev.filter(id => id !== link?.task?.id));
                         }
                     }}
-                    className="rounded border-gray-300"
+                    className="rounded border-border-strong"
                 />
             )
         },
@@ -254,7 +254,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             width: '60px',
             align: 'center',
             render: (link: BillingPeriodTask) => (
-                <span className="font-mono text-xs text-gray-500">#{link?.task?.id || '-'}</span>
+                <span className="font-mono text-xs text-text-tertiary">#{link?.task?.id || '-'}</span>
             )
         },
         {
@@ -271,7 +271,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                         href={link.task.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-600 bg-gray-100 rounded px-2 py-1 hover:text-blue-800 flex items-center gap-1 max-w-xs truncate"
+                        className="text-xs text-accent bg-surface-2 rounded px-2 py-1 hover:text-info-strong flex items-center gap-1 max-w-xs truncate"
                         onClick={(e) => e.stopPropagation()}
                         title={link.task.link}
                     >
@@ -280,7 +280,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                     </a>
                 </div>
                 :
-                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{link.task.code || '-'}</span>
+                <span className="font-mono text-xs bg-surface-2 px-2 py-1 rounded">{link.task.code || '-'}</span>
             )
         },
         {
@@ -292,7 +292,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             render: (link: BillingPeriodTask) => (
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     link?.task?.flowType === 'DESENVOLVIMENTO'
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'bg-accent-soft text-info-strong'
                         : 'bg-purple-100 text-purple-800'
                 }`}>
                     {link?.task?.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional'}
@@ -306,7 +306,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             filterable: true,
             width: '150px',
             render: (link: BillingPeriodTask) => (
-                <span className="text-xs text-gray-700">
+                <span className="text-xs text-text-secondary">
                     {formatTaskType(link?.task?.taskType)}
                 </span>
             )
@@ -320,12 +320,12 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
             render: (link: BillingPeriodTask) => (
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                     link?.task?.environment === 'PRODUCAO'
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'bg-accent-soft text-info-strong'
                         : link?.task?.environment === 'HOMOLOGACAO'
                             ? 'bg-yellow-100 text-yellow-800'
                             : link?.task?.environment === 'DESENVOLVIMENTO'
                                 ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-600'
+                                : 'bg-surface-2 text-text-secondary'
                 }`}>
                     {formatEnvironment(link?.task?.environment)}
                 </span>
@@ -363,23 +363,23 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[75vh] overflow-hidden flex flex-col">
+            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-7xl h-[75vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-50 to-orange-50">
+                <div className="px-6 py-4 border-b border-border-subtle bg-gradient-to-r from-red-50 to-orange-50">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">
+                            <h2 className="text-xl font-bold text-text-primary">
                                 Desvincular Tarefas do Período
                             </h2>
                             {billingPeriod && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-text-secondary mt-1">
                                     {monthNames[billingPeriod.month]} de {billingPeriod.year} - Tarefas vinculadas ({linkedTasks.length})
                                 </p>
                             )}
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            className="text-text-tertiary hover:text-text-secondary transition-colors"
                         >
                             <X className="w-6 h-6" />
                         </button>
@@ -397,12 +397,12 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                             {/* Desktop: Tabela */}
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50 sticky top-0">
+                                    <thead className="bg-surface-app sticky top-0">
                                         <tr>
                                             {columns.map((column) => (
                                                 <th
                                                     key={column.key}
-                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-text-tertiary uppercase tracking-wider"
                                                     style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : undefined}
                                                 >
                                                     <div className="flex items-center gap-2">
@@ -415,7 +415,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                                                     setSortDirection(newDirection);
                                                                     setCurrentPage(0);
                                                                 }}
-                                                                className="text-gray-400 hover:text-gray-600"
+                                                                className="text-text-tertiary hover:text-text-secondary"
                                                             >
                                                                 {sortField === column.key ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                             </button>
@@ -428,7 +428,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                                                 placeholder={column.key === 'task.id' ? 'Fi' : 'Filtrar...'}
                                                                 value={filters[column.key] || ''}
                                                                 onChange={(e) => setFilters(prev => ({ ...prev, [column.key]: e.target.value }))}
-                                                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-red-500 focus:border-red-500"
+                                                                className="w-full px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-red-500 focus:border-red-500"
                                                             />
                                                         </div>
                                                     )}
@@ -436,20 +436,20 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-surface-1 divide-y divide-gray-200">
                                         {filteredTasks.length === 0 ? (
                                             <tr>
-                                                <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
+                                                <td colSpan={columns.length} className="px-6 py-4 text-center text-text-tertiary">
                                                     {loading ? "Carregando..." : "Nenhuma tarefa vinculada encontrada"}
                                                 </td>
                                             </tr>
                                         ) : (
                                             filteredTasks.map((link, index) => (
-                                                <tr key={link?.task?.id || index} className="hover:bg-gray-50">
+                                                <tr key={link?.task?.id || index} className="hover:bg-surface-app">
                                                     {columns.map((column) => (
                                                         <td
                                                             key={column.key}
-                                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                            className="px-6 py-4 whitespace-nowrap text-sm text-text-primary"
                                                             style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : undefined}
                                                         >
                                                             {column.render(link)}
@@ -483,7 +483,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                                         setSelectedTasks([]);
                                                     }
                                                 }}
-                                                className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                                                className="w-4 h-4 text-red-600 border-border-strong rounded focus:ring-red-500"
                                             />
                                             <span className="text-sm font-medium text-red-800">
                                                 {selectedTasks.length === 0 
@@ -507,35 +507,35 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                 )}
 
                                 {/* Filtros Mobile */}
-                                <div className="bg-gray-50 rounded-lg p-3 space-y-3">
-                                    <div className="text-sm font-medium text-gray-700">Filtros</div>
+                                <div className="bg-surface-app rounded-lg p-3 space-y-3">
+                                    <div className="text-sm font-medium text-text-secondary">Filtros</div>
                                     <div className="grid grid-cols-1 gap-3">
                                         <div>
-                                            <label className="block text-xs text-gray-600 mb-1">ID</label>
+                                            <label className="block text-xs text-text-secondary mb-1">ID</label>
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por ID..."
                                                 value={filters['task.id'] || ''}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, 'task.id': e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-600 mb-1">Código</label>
+                                            <label className="block text-xs text-text-secondary mb-1">Código</label>
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por código..."
                                                 value={filters['task.code'] || ''}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, 'task.code': e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-600 mb-1">Fluxo</label>
+                                            <label className="block text-xs text-text-secondary mb-1">Fluxo</label>
                                             <select
                                                 value={filters['task.flowType'] || ''}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, 'task.flowType': e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             >
                                                 <option value="">Todos</option>
                                                 <option value="DESENVOLVIMENTO">Desenvolvimento</option>
@@ -543,13 +543,13 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-600 mb-1">Título</label>
+                                            <label className="block text-xs text-text-secondary mb-1">Título</label>
                                             <input
                                                 type="text"
                                                 placeholder="Filtrar por título..."
                                                 value={filters['task.title'] || ''}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, 'task.title': e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             />
                                         </div>
                                     </div>
@@ -564,12 +564,12 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                 </div>
 
                                 {filteredTasks.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-500">
+                                    <div className="text-center py-8 text-text-tertiary">
                                         {loading ? "Carregando..." : "Nenhuma tarefa vinculada encontrada"}
                                     </div>
                                 ) : (
                                     filteredTasks.map((link, index) => (
-                                        <div key={link?.task?.id || index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div key={link?.task?.id || index} className="bg-surface-1 border border-border-subtle rounded-lg p-4 hover:shadow-md transition-shadow">
                                             {/* Header do card com checkbox e ID */}
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-start gap-3">
@@ -584,15 +584,15 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                                                 setSelectedTasks(prev => prev.filter(id => id !== taskId));
                                                             }
                                                         }}
-                                                        className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                                                        className="mt-1 w-4 h-4 text-red-600 border-border-strong rounded focus:ring-red-500"
                                                     />
                                                     <div>
-                                                        <div className="font-semibold text-gray-900 text-base">{link?.task?.title || '-'}</div>
+                                                        <div className="font-semibold text-text-primary text-base">{link?.task?.title || '-'}</div>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
                                                                 #{link?.task?.id}
                                                             </span>
-                                                            <span className="text-sm font-mono text-gray-600">{link?.task?.code}</span>
+                                                            <span className="text-sm font-mono text-text-secondary">{link?.task?.code}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -601,45 +601,45 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                             {/* Informações da tarefa */}
                                             <div className="space-y-2 text-sm">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-gray-600">Fluxo:</span>
+                                                    <span className="text-text-secondary">Fluxo:</span>
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                         link?.task?.flowType === 'DESENVOLVIMENTO'
-                                                            ? 'bg-blue-100 text-blue-800'
+                                                            ? 'bg-accent-soft text-info-strong'
                                                             : 'bg-purple-100 text-purple-800'
                                                     }`}>
                                                         {link?.task?.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional'}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-gray-600">Tipo:</span>
-                                                    <span className="text-gray-800 text-xs font-medium">
+                                                    <span className="text-text-secondary">Tipo:</span>
+                                                    <span className="text-text-primary text-xs font-medium">
                                                         {formatTaskType(link?.task?.taskType)}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-gray-600">Ambiente:</span>
+                                                    <span className="text-text-secondary">Ambiente:</span>
                                                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                                         link?.task?.environment === 'PRODUCAO'
-                                                            ? 'bg-blue-100 text-blue-800'
+                                                            ? 'bg-accent-soft text-info-strong'
                                                             : link?.task?.environment === 'HOMOLOGACAO'
                                                                 ? 'bg-yellow-100 text-yellow-800'
                                                                 : link?.task?.environment === 'DESENVOLVIMENTO'
                                                                     ? 'bg-green-100 text-green-800'
-                                                                    : 'bg-gray-100 text-gray-600'
+                                                                    : 'bg-surface-2 text-text-secondary'
                                                     }`}>
                                                         {formatEnvironment(link?.task?.environment)}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">Valor:</span>
+                                                    <span className="text-text-secondary">Valor:</span>
                                                     <span className="font-semibold text-green-600">
                                                         R$ {link?.task?.amount?.toFixed(2) || '0,00'}
                                                     </span>
                                                 </div>
                                                 {link?.task?.description && (
                                                     <div className="mt-2 pt-2 border-t border-gray-100">
-                                                        <span className="text-gray-600 text-xs">Descrição:</span>
-                                                        <p className="text-gray-800 text-sm mt-1 line-clamp-2">{link.task.description}</p>
+                                                        <span className="text-text-secondary text-xs">Descrição:</span>
+                                                        <p className="text-text-primary text-sm mt-1 line-clamp-2">{link.task.description}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -650,18 +650,18 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                             
                             {/* Paginação padrão */}
                             {pagination && pagination.totalPages > 0 && (
-                                <div className="bg-white px-4 py-3 border-t border-gray-200">
+                                <div className="bg-surface-1 px-4 py-3 border-t border-border-subtle">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
-                                            <div className="text-sm text-gray-700">
+                                            <div className="text-sm text-text-secondary">
                                                 Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, pagination.totalElements)} de {pagination.totalElements} resultados
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <span className="text-sm text-gray-700">Itens por página:</span>
+                                                <span className="text-sm text-text-secondary">Itens por página:</span>
                                                 <select
                                                     value={pageSize}
                                                     onChange={(e) => setPageSize(Number(e.target.value))}
-                                                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    className="border border-border-strong rounded px-2 py-1 text-sm focus:ring-2 focus:ring-accent focus:border-accent"
                                                 >
                                                     {[5, 10, 25, 50].map(size => (
                                                         <option key={size} value={size}>{size}</option>
@@ -673,31 +673,31 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                             <button
                                                 onClick={() => setCurrentPage(0)}
                                                 disabled={currentPage === 0}
-                                                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-sm border border-border-strong rounded hover:bg-surface-app disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 ««
                                             </button>
                                             <button
                                                 onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
                                                 disabled={currentPage === 0}
-                                                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-sm border border-border-strong rounded hover:bg-surface-app disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 ‹
                                             </button>
-                                            <span className="text-sm text-gray-600 px-2">
+                                            <span className="text-sm text-text-secondary px-2">
                                                 Página {currentPage + 1} de {pagination.totalPages}
                                             </span>
                                             <button
                                                 onClick={() => setCurrentPage(Math.min(pagination.totalPages - 1, currentPage + 1))}
                                                 disabled={currentPage >= pagination.totalPages - 1}
-                                                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-sm border border-border-strong rounded hover:bg-surface-app disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 ›
                                             </button>
                                             <button
                                                 onClick={() => setCurrentPage(pagination.totalPages - 1)}
                                                 disabled={currentPage >= pagination.totalPages - 1}
-                                                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-1 text-sm border border-border-strong rounded hover:bg-surface-app disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 »»
                                             </button>
@@ -710,9 +710,9 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="shrink-0 px-6 py-4 border-t border-border-subtle bg-surface-app">
                     <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-text-secondary">
                             <span>Total: {linkedTasks.length} tarefa(s)</span>
                             {selectedTasks.length > 0 && (
                                 <span className="ml-4 font-medium text-red-600">
@@ -738,7 +738,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                                 disabled={unlinking || selectedTasks.length === 0}
                                 className={`${selectedTasks.length > 0 
                                     ? 'bg-red-600 hover:bg-red-700 text-white' 
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-gray-300 text-text-tertiary cursor-not-allowed'
                                 }`}
                             >
                                 {unlinking ? (

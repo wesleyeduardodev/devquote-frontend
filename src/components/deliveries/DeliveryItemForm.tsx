@@ -45,7 +45,7 @@ const deliveryItemSchema = yup.object({
 
 const statusOptions: { value: DeliveryStatus; label: string; color: string; bg: string }[] = [
     { value: 'PENDING', label: 'Pendente', color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-100' },
-    { value: 'DEVELOPMENT', label: 'Desenvolvimento', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-100' },
+    { value: 'DEVELOPMENT', label: 'Desenvolvimento', color: 'text-accent', bg: 'bg-info-soft border-blue-100' },
     { value: 'DELIVERED', label: 'Entregue', color: 'text-green-700', bg: 'bg-green-50 border-green-100' },
     { value: 'HOMOLOGATION', label: 'Homologação', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100' },
     { value: 'APPROVED', label: 'Aprovado', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
@@ -146,10 +146,10 @@ export default function DeliveryItemForm({
     const statusInfo = getCurrentStatusInfo();
 
     return (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-border-subtle rounded-lg overflow-hidden">
             {/* Header */}
             <div 
-                className={`p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors ${
+                className={`p-4 bg-surface-app cursor-pointer hover:bg-surface-2 transition-colors ${
                     hasUnsavedChanges ? 'border-l-4 border-l-yellow-400' : ''
                 }`}
                 onClick={() => !isReadOnly && setIsExpanded(!isExpanded)}
@@ -166,7 +166,7 @@ export default function DeliveryItemForm({
                                         {...dragHandleProps}
                                         onClick={(e) => e.stopPropagation()}
                                         title="Arraste para reordenar"
-                                        className="p-1 -m-1 rounded hover:bg-gray-200 text-gray-400 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+                                        className="p-1 -m-1 rounded hover:bg-surface-3 text-text-tertiary cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
                                     >
                                         <GripVertical className="h-4 w-4" />
                                     </button>
@@ -179,8 +179,8 @@ export default function DeliveryItemForm({
                                         {position}
                                     </span>
                                 )}
-                                <GitBranch className="h-4 w-4 text-gray-500 mt-1 flex-shrink-0" />
-                                <h3 className="font-medium text-gray-900 text-sm leading-5 break-words">
+                                <GitBranch className="h-4 w-4 text-text-tertiary mt-1 flex-shrink-0" />
+                                <h3 className="font-medium text-text-primary text-sm leading-5 break-words">
                                     {project.name}
                                 </h3>
                             </div>
@@ -189,7 +189,7 @@ export default function DeliveryItemForm({
                                     href={project.repositoryUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 ml-2 flex-shrink-0"
+                                    className="text-accent hover:text-info-strong ml-2 flex-shrink-0"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     <ExternalLink className="h-4 w-4" />
@@ -218,7 +218,7 @@ export default function DeliveryItemForm({
                                         onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                                         disabled={isFirst}
                                         title="Mover para cima"
-                                        className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                        className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                                     >
                                         <ArrowUp className="h-4 w-4" />
                                     </button>
@@ -229,7 +229,7 @@ export default function DeliveryItemForm({
                                         onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
                                         disabled={isLast}
                                         title="Mover para baixo"
-                                        className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                        className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                                     >
                                         <ArrowDown className="h-4 w-4" />
                                     </button>
@@ -266,7 +266,7 @@ export default function DeliveryItemForm({
                                 {...dragHandleProps}
                                 onClick={(e) => e.stopPropagation()}
                                 title="Arraste para reordenar"
-                                className="p-1 -m-1 rounded hover:bg-gray-200 text-gray-400 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+                                className="p-1 -m-1 rounded hover:bg-surface-3 text-text-tertiary cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
                             >
                                 <GripVertical className="h-4 w-4" />
                             </button>
@@ -280,8 +280,8 @@ export default function DeliveryItemForm({
                             </span>
                         )}
                         <div className="flex items-center gap-2 min-w-0">
-                            <GitBranch className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                            <h3 className="font-medium text-gray-900 truncate">
+                            <GitBranch className="h-4 w-4 text-text-tertiary flex-shrink-0" />
+                            <h3 className="font-medium text-text-primary truncate">
                                 {project.name}
                             </h3>
                         </div>
@@ -291,7 +291,7 @@ export default function DeliveryItemForm({
                                 href={project.repositoryUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-accent hover:text-info-strong"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <ExternalLink className="h-4 w-4" />
@@ -317,7 +317,7 @@ export default function DeliveryItemForm({
                                 onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                                 disabled={isFirst}
                                 title="Mover para cima"
-                                className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                             >
                                 <ArrowUp className="h-4 w-4" />
                             </button>
@@ -328,7 +328,7 @@ export default function DeliveryItemForm({
                                 onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
                                 disabled={isLast}
                                 title="Mover para baixo"
-                                className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                             >
                                 <ArrowDown className="h-4 w-4" />
                             </button>
@@ -361,13 +361,13 @@ export default function DeliveryItemForm({
                 <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
                     {/* Status */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-text-secondary mb-1">
                             Status *
                         </label>
                         <select
                             {...register('status')}
                             disabled={isReadOnly}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                            className="w-full p-2 border border-border-strong rounded-md focus:ring-2 focus:ring-accent focus:border-accent disabled:bg-surface-2"
                         >
                             {statusOptions.map(option => (
                                 <option key={option.value} value={option.value}>
@@ -383,7 +383,7 @@ export default function DeliveryItemForm({
                     {/* Branches */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
                                 Branch de Desenvolvimento
                             </label>
                             <Input
@@ -395,7 +395,7 @@ export default function DeliveryItemForm({
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
                                 Branch de Origem
                             </label>
                             <Input
@@ -409,7 +409,7 @@ export default function DeliveryItemForm({
 
                     {/* Pull Request */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-text-secondary mb-1">
                             Pull Request / Merge Request
                         </label>
                         <Input
@@ -426,7 +426,7 @@ export default function DeliveryItemForm({
                     {/* Datas */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
                                 Data de Início *
                             </label>
                             <Input
@@ -441,7 +441,7 @@ export default function DeliveryItemForm({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
                                 Data de Conclusão
                             </label>
                             <Input
@@ -506,7 +506,7 @@ export default function DeliveryItemForm({
                             )}
                             
                             {isDirty && (
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-text-tertiary">
                                     Há alterações não salvas
                                 </span>
                             )}

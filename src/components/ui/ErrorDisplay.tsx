@@ -29,7 +29,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     const isForbidden = error?.response?.status === 403;
 
     const getIcon = () => {
-        if (isNetworkError) return <WifiOff className="w-8 h-8 text-gray-400" />;
+        if (isNetworkError) return <WifiOff className="w-8 h-8 text-text-tertiary" />;
         return <AlertCircle className="w-8 h-8 text-red-500" />;
     };
 
@@ -69,10 +69,10 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 
     if (variant === 'card') {
         return (
-            <div className={`${baseClasses} bg-white rounded-lg border border-gray-200 shadow-sm p-6`}>
+            <div className={`${baseClasses} bg-surface-1 rounded-lg border border-border-subtle shadow-sm p-6`}>
                 {getIcon()}
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{displayTitle}</h3>
-                <p className="mt-2 text-gray-600 max-w-sm">{displayMessage}</p>
+                <h3 className="mt-4 text-lg font-semibold text-text-primary">{displayTitle}</h3>
+                <p className="mt-2 text-text-secondary max-w-sm">{displayMessage}</p>
                 {showRetry && onRetry && (
                     <Button
                         variant="outline"
@@ -90,8 +90,8 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     return (
         <div className={`${baseClasses} p-8`}>
             {getIcon()}
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">{displayTitle}</h3>
-            <p className="mt-2 text-gray-600 max-w-md">{displayMessage}</p>
+            <h3 className="mt-4 text-lg font-semibold text-text-primary">{displayTitle}</h3>
+            <p className="mt-2 text-text-secondary max-w-md">{displayMessage}</p>
             
             {showRetry && onRetry && (
                 <Button
@@ -106,10 +106,10 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 
             {process.env.NODE_ENV === 'development' && error && (
                 <details className="mt-6 text-left">
-                    <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+                    <summary className="cursor-pointer text-sm text-text-tertiary hover:text-text-secondary">
                         Debug Info (Dev only)
                     </summary>
-                    <div className="mt-2 p-4 bg-gray-50 rounded text-xs font-mono">
+                    <div className="mt-2 p-4 bg-surface-app rounded text-xs font-mono">
                         <div><strong>URL:</strong> {error?.config?.url}</div>
                         <div><strong>Method:</strong> {error?.config?.method?.toUpperCase()}</div>
                         <div><strong>Status:</strong> {error?.response?.status}</div>

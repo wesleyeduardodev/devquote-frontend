@@ -197,27 +197,27 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between p-6 border-b border-border-subtle">
                     <div className="flex items-center">
-                        <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                            <Bell className="w-6 h-6 text-blue-600" />
+                        <div className="p-2 bg-accent-soft rounded-lg mr-3">
+                            <Bell className="w-6 h-6 text-accent" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">
+                            <h2 className="text-xl font-semibold text-text-primary">
                                 {isEditing ? 'Editar Configuração' : 'Nova Configuração'}
                             </h2>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-text-secondary">
                                 {isEditing ? 'Altere os dados da configuração' : 'Preencha os dados da nova configuração'}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-surface-2 rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-gray-500" />
+                        <X className="w-5 h-5 text-text-tertiary" />
                     </button>
                 </div>
 
@@ -225,13 +225,13 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* Tipo de Configuração */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-text-secondary mb-2">
                             Tipo de Configuração *
                         </label>
                         <select
                             value={formData.configType}
                             onChange={(e) => handleInputChange('configType', e.target.value as NotificationConfigType)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="w-full p-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                             disabled={isEditing}
                         >
                             {configTypeOptions.map(option => (
@@ -244,7 +244,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
 
                     {/* Tipo de Notificação */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-text-secondary mb-2">
                             Tipo de Notificação *
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -256,8 +256,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                                     disabled={isEditing}
                                     className={`p-3 border rounded-lg flex items-center gap-2 transition-colors ${
                                         formData.notificationType === option.value
-                                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                                            : 'border-gray-300 hover:border-gray-400'
+                                            ? 'border-primary-500 bg-accent-soft text-accent-hover'
+                                            : 'border-border-strong hover:border-text-tertiary'
                                     } ${isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {option.icon}
@@ -274,9 +274,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                                 type="checkbox"
                                 checked={formData.useRequesterContact}
                                 onChange={(e) => handleInputChange('useRequesterContact', e.target.checked)}
-                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                className="rounded border-border-strong text-accent focus:ring-accent"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-text-secondary">
                                 {formData.notificationType === NotificationType.EMAIL
                                     ? 'Usar e-mail do solicitante da tarefa'
                                     : 'Usar destinatário do solicitante da tarefa'
@@ -310,7 +310,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                                 error={errors.primaryPhone}
                                 placeholder="Número ou ID do grupo"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-text-tertiary mt-1">
                                 Número: 5511999999999 ou Grupo: 120363012345678901@g.us
                             </p>
                         </div>
@@ -318,8 +318,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
 
                     {/* E-mail Principal (quando usar solicitante - apenas informativo) */}
                     {formData.notificationType === NotificationType.EMAIL && formData.useRequesterContact && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <p className="text-sm text-blue-700">
+                        <div className="bg-info-soft border border-accent/20 rounded-lg p-3">
+                            <p className="text-sm text-accent">
                                 <strong>E-mail principal:</strong> Será usado o e-mail do solicitante vinculado à tarefa
                             </p>
                         </div>
@@ -327,8 +327,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
 
                     {/* Destinatário Principal (quando usar solicitante - apenas informativo) */}
                     {(formData.notificationType === NotificationType.SMS || formData.notificationType === NotificationType.WHATSAPP) && formData.useRequesterContact && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <p className="text-sm text-blue-700">
+                        <div className="bg-info-soft border border-accent/20 rounded-lg p-3">
+                            <p className="text-sm text-accent">
                                 <strong>Destinatário principal:</strong> Será usado o telefone do solicitante vinculado à tarefa
                             </p>
                         </div>
@@ -338,7 +338,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                     {/* E-mails em Cópia (apenas para EMAIL) */}
                     {formData.notificationType === NotificationType.EMAIL && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 E-mails em Cópia
                             </label>
                             <div className="space-y-2">
@@ -383,10 +383,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                     {/* Destinatários em Cópia (para WhatsApp e SMS) */}
                     {(formData.notificationType === NotificationType.WHATSAPP || formData.notificationType === NotificationType.SMS) && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-text-secondary mb-2">
                                 Destinatários em Cópia
                             </label>
-                            <p className="text-xs text-gray-500 mb-2">
+                            <p className="text-xs text-text-tertiary mb-2">
                                 Números de telefone ou IDs de grupos
                             </p>
                             <div className="space-y-2">
@@ -434,7 +434,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                     )}
 
                     {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-border-subtle">
                         <Button
                             type="button"
                             variant="outline"

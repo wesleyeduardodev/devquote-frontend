@@ -155,11 +155,11 @@ const TaskView: React.FC = () => {
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'URGENT': return 'bg-red-100 text-red-800';
+            case 'URGENT': return 'bg-danger-soft text-[var(--danger-strong)]';
             case 'HIGH': return 'bg-orange-100 text-orange-800';
-            case 'MEDIUM': return 'bg-yellow-100 text-yellow-800';
-            case 'LOW': return 'bg-green-100 text-green-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'MEDIUM': return 'bg-warning-soft text-[var(--warning-strong)]';
+            case 'LOW': return 'bg-success-soft text-[var(--success-strong)]';
+            default: return 'bg-surface-2 text-text-primary';
         }
     };
 
@@ -205,15 +205,15 @@ const TaskView: React.FC = () => {
         if (flowType === 'OPERACIONAL') {
             return 'bg-purple-100 text-purple-800';
         }
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-accent-soft text-accent';
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
                 <Card className="p-8 max-w-md w-full text-center">
                     <LoadingSpinner size="lg" />
-                    <p className="mt-4 text-gray-600">Carregando tarefa...</p>
+                    <p className="mt-4 text-text-secondary">Carregando tarefa...</p>
                 </Card>
             </div>
         );
@@ -221,15 +221,15 @@ const TaskView: React.FC = () => {
 
     if (!task) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
                 <Card className="p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-8 h-8 text-red-600" />
+                    <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FileText className="w-8 h-8 text-[var(--danger-strong)]" />
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h2 className="text-xl font-semibold text-text-primary mb-2">
                         Tarefa nao encontrada
                     </h2>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-text-secondary mb-6">
                         A tarefa que voce esta procurando nao foi encontrada.
                     </p>
                     <Button onClick={() => navigate('/tasks')} variant="primary" className="w-full">
@@ -245,8 +245,8 @@ const TaskView: React.FC = () => {
     const taskName = task.title || task.name || '';
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
-            <div className="w-full lg:w-[80%] mx-auto space-y-6">
+        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
+            <div className="w-full mx-auto space-y-6">
                 {/* Header com acoes */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <Button
@@ -279,13 +279,13 @@ const TaskView: React.FC = () => {
                     <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4 sm:py-5">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                             <div className="flex items-start gap-3 sm:gap-4">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
                                     <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h1 className="text-xl sm:text-2xl font-bold text-white">Tarefa #{task.id}</h1>
                                     {task.code && (
-                                        <span className="inline-block text-xs sm:text-sm font-mono bg-white/20 px-2 py-1 rounded text-white mt-1">
+                                        <span className="inline-block text-xs sm:text-sm font-mono bg-surface-1/20 px-2 py-1 rounded text-white mt-1">
                                             {task.code}
                                         </span>
                                     )}
@@ -293,7 +293,7 @@ const TaskView: React.FC = () => {
                                 </div>
                             </div>
                             {isAdmin && (
-                                <div className="text-left sm:text-right bg-white/10 sm:bg-transparent rounded-lg p-3 sm:p-0">
+                                <div className="text-left sm:text-right bg-surface-1/10 sm:bg-transparent rounded-lg p-3 sm:p-0">
                                     <p className="text-blue-100 text-xs sm:text-sm">Valor Total</p>
                                     <p className="text-xl sm:text-2xl font-bold text-white">
                                         {formatCurrency(calculateTaskTotal())}
@@ -304,7 +304,7 @@ const TaskView: React.FC = () => {
                     </div>
 
                     {/* Badges de Status */}
-                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b border-gray-200">
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-surface-app border-b border-border-subtle">
                         <div className="flex flex-wrap gap-2 sm:gap-3">
                             {task.priority && (
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(task.priority)}`}>
@@ -323,7 +323,7 @@ const TaskView: React.FC = () => {
                                 </span>
                             )}
                             {task.environment && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-soft text-[var(--success-strong)]">
                                     {getEnvironmentLabel(task.environment)}
                                 </span>
                             )}
@@ -333,12 +333,12 @@ const TaskView: React.FC = () => {
 
                 {/* Nome da Tarefa */}
                 <Card className="p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <Target className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                        <Target className="w-5 h-5 text-accent" />
                         Nome da Tarefa
                     </h2>
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <p className="text-gray-900 text-lg whitespace-pre-wrap break-words">
+                    <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                        <p className="text-text-primary text-lg whitespace-pre-wrap break-words">
                             {taskName}
                         </p>
                     </div>
@@ -347,11 +347,11 @@ const TaskView: React.FC = () => {
                 {/* Descricao */}
                 {task.description && (
                     <Card className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-accent" />
                             Descricao
                         </h2>
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
                             <div
                                 className="prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg"
                                 dangerouslySetInnerHTML={{ __html: task.description }}
@@ -363,26 +363,26 @@ const TaskView: React.FC = () => {
                 {/* Informacoes Adicionais */}
                 {(task.systemModule || task.serverOrigin || task.link || task.meetingLink) && (
                     <Card className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Briefcase className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-accent" />
                             Informacoes Adicionais
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {task.systemModule && (
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <p className="text-sm text-gray-500 mb-1">Modulo do Sistema</p>
-                                    <p className="text-gray-900 font-medium">{task.systemModule}</p>
+                                <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                                    <p className="text-sm text-text-tertiary mb-1">Modulo do Sistema</p>
+                                    <p className="text-text-primary font-medium">{task.systemModule}</p>
                                 </div>
                             )}
                             {task.serverOrigin && (
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <p className="text-sm text-gray-500 mb-1">Servidor</p>
-                                    <p className="text-gray-900 font-medium">{task.serverOrigin}</p>
+                                <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                                    <p className="text-sm text-text-tertiary mb-1">Servidor</p>
+                                    <p className="text-text-primary font-medium">{task.serverOrigin}</p>
                                 </div>
                             )}
                             {task.link && (
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                                    <p className="text-sm text-text-tertiary mb-1 flex items-center gap-1">
                                         <Link className="w-3 h-3" />
                                         Link da Tarefa
                                     </p>
@@ -391,7 +391,7 @@ const TaskView: React.FC = () => {
                                             href={task.link}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 underline break-all flex-1"
+                                            className="text-accent hover:text-accent underline break-all flex-1"
                                         >
                                             {task.link}
                                         </a>
@@ -399,8 +399,8 @@ const TaskView: React.FC = () => {
                                             onClick={() => handleCopy(task.link!, 'taskLink')}
                                             className={`p-1.5 rounded transition-all ${
                                                 copiedField === 'taskLink'
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                                    ? 'bg-success-soft text-[var(--success-strong)]'
+                                                    : 'bg-surface-3 text-text-tertiary hover:bg-gray-300'
                                             }`}
                                             title="Copiar link"
                                         >
@@ -410,8 +410,8 @@ const TaskView: React.FC = () => {
                                 </div>
                             )}
                             {task.meetingLink && (
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                                    <p className="text-sm text-text-tertiary mb-1 flex items-center gap-1">
                                         <Video className="w-3 h-3" />
                                         Link da Gravacao
                                     </p>
@@ -420,7 +420,7 @@ const TaskView: React.FC = () => {
                                             href={task.meetingLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 underline break-all flex-1"
+                                            className="text-accent hover:text-accent underline break-all flex-1"
                                         >
                                             {task.meetingLink}
                                         </a>
@@ -428,8 +428,8 @@ const TaskView: React.FC = () => {
                                             onClick={() => handleCopy(task.meetingLink!, 'meetingLink')}
                                             className={`p-1.5 rounded transition-all ${
                                                 copiedField === 'meetingLink'
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                                                    ? 'bg-success-soft text-[var(--success-strong)]'
+                                                    : 'bg-surface-3 text-text-tertiary hover:bg-gray-300'
                                             }`}
                                             title="Copiar link"
                                         >
@@ -445,23 +445,23 @@ const TaskView: React.FC = () => {
                 {/* Projetos Associados */}
                 {task.projects && task.projects.length > 0 && (
                     <Card className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <FolderOpen className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+                            <FolderOpen className="w-5 h-5 text-accent" />
                             Projetos Associados
-                            <span className="text-sm font-normal text-gray-500">({task.projects.length})</span>
+                            <span className="text-sm font-normal text-text-tertiary">({task.projects.length})</span>
                         </h2>
                         <div className="grid gap-3">
                             {task.projects.map((project) => (
-                                <div key={project.id} className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                    <FolderOpen className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                <div key={project.id} className="flex items-center gap-3 p-4 bg-surface-app rounded-lg border border-border-subtle">
+                                    <FolderOpen className="w-5 h-5 text-accent flex-shrink-0" />
                                     <div className="flex-1">
-                                        <p className="font-medium text-gray-900">{project.name}</p>
+                                        <p className="font-medium text-text-primary">{project.name}</p>
                                         {project.repositoryUrl && (
                                             <a
                                                 href={project.repositoryUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-sm text-blue-600 hover:underline"
+                                                className="text-sm text-accent hover:underline"
                                             >
                                                 {project.repositoryUrl}
                                             </a>
@@ -476,10 +476,10 @@ const TaskView: React.FC = () => {
                 {/* Subtarefas */}
                 {subtasks.length > 0 && (
                     <Card className="p-3 sm:p-6">
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                            <ListChecks className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-3 sm:mb-4 flex items-center gap-2">
+                            <ListChecks className="w-5 h-5 text-accent" />
                             Subtarefas
-                            <span className="text-sm font-normal text-gray-500">
+                            <span className="text-sm font-normal text-text-tertiary">
                                 ({totalSubtasks})
                             </span>
                         </h2>
@@ -491,14 +491,14 @@ const TaskView: React.FC = () => {
                                         className={`p-3 sm:p-4 rounded-lg border ${
                                             subtask.completed
                                                 ? 'border-green-200 bg-green-50'
-                                                : 'border-gray-200 bg-white'
+                                                : 'border-border-subtle bg-surface-1'
                                         }`}
                                     >
                                         <div className="flex items-start gap-3">
                                             <div className="flex-1 min-w-0">
                                                 {subtask.title && (
                                                     <p className={`font-medium mb-1 sm:mb-2 text-sm sm:text-base ${
-                                                        subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                                                        subtask.completed ? 'text-green-700 line-through' : 'text-text-primary'
                                                     }`}>
                                                         {subtask.title}
                                                     </p>
@@ -506,39 +506,39 @@ const TaskView: React.FC = () => {
                                                 {subtask.description && (
                                                     <div
                                                         className={`prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg ${
-                                                            subtask.completed ? 'text-green-600' : 'text-gray-700'
+                                                            subtask.completed ? 'text-[var(--success-strong)]' : 'text-text-secondary'
                                                         }`}
                                                         dangerouslySetInnerHTML={{ __html: subtask.description }}
                                                     />
                                                 )}
                                                 {subtask.createdAt && (
-                                                    <p className="text-xs text-gray-400 mt-2 sm:mt-3">
+                                                    <p className="text-xs text-text-tertiary mt-2 sm:mt-3">
                                                         Criada em {formatDate(subtask.createdAt)}
                                                     </p>
                                                 )}
 
                                                 {/* Anexos da SubTask */}
-                                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                                <div className="mt-3 pt-3 border-t border-border-subtle">
                                                     <div
-                                                        className="cursor-pointer flex items-center justify-between py-2 hover:bg-gray-100 rounded px-2 -mx-2"
+                                                        className="cursor-pointer flex items-center justify-between py-2 hover:bg-surface-2 rounded px-2 -mx-2"
                                                         onClick={() => setExpandedSubTaskAttachments(prev => ({
                                                             ...prev,
                                                             [subtask.id]: !prev[subtask.id]
                                                         }))}
                                                     >
                                                         <div className="flex items-center gap-2">
-                                                            <Paperclip className="w-4 h-4 text-gray-400" />
-                                                            <span className="text-sm text-gray-600">Anexos</span>
+                                                            <Paperclip className="w-4 h-4 text-text-tertiary" />
+                                                            <span className="text-sm text-text-secondary">Anexos</span>
                                                             {subTaskAttachmentCounts[subtask.id] > 0 && (
-                                                                <span className="text-xs font-medium text-blue-600">
+                                                                <span className="text-xs font-medium text-accent">
                                                                     ({subTaskAttachmentCounts[subtask.id]})
                                                                 </span>
                                                             )}
                                                         </div>
                                                         {expandedSubTaskAttachments[subtask.id] ? (
-                                                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                            <ChevronUp className="w-4 h-4 text-text-tertiary" />
                                                         ) : (
-                                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                            <ChevronDown className="w-4 h-4 text-text-tertiary" />
                                                         )}
                                                     </div>
 
@@ -573,8 +573,8 @@ const TaskView: React.FC = () => {
 
                                             {isAdmin && subtask.amount !== undefined && subtask.amount > 0 && (
                                                 <div className="flex items-center gap-1 flex-shrink-0">
-                                                    <DollarSign className="w-4 h-4 text-green-600" />
-                                                    <span className="font-bold text-green-600">
+                                                    <DollarSign className="w-4 h-4 text-[var(--success-strong)]" />
+                                                    <span className="font-bold text-[var(--success-strong)]">
                                                         {formatCurrency(subtask.amount)}
                                                     </span>
                                                 </div>
@@ -590,25 +590,25 @@ const TaskView: React.FC = () => {
                 {/* Anexos da Task */}
                 <Card className="overflow-hidden">
                     <div
-                        className="cursor-pointer px-6 py-4 hover:bg-gray-50 transition-colors"
+                        className="cursor-pointer px-6 py-4 hover:bg-surface-app transition-colors"
                         onClick={() => setIsAttachmentSectionExpanded(!isAttachmentSectionExpanded)}
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Paperclip className="w-5 h-5 text-gray-500" />
-                                <span className="text-lg font-semibold text-gray-900">Anexos da Tarefa</span>
+                                <Paperclip className="w-5 h-5 text-text-tertiary" />
+                                <span className="text-lg font-semibold text-text-primary">Anexos da Tarefa</span>
                                 {taskAttachmentCount > 0 && (
-                                    <span className="text-sm font-medium text-blue-600">({taskAttachmentCount})</span>
+                                    <span className="text-sm font-medium text-accent">({taskAttachmentCount})</span>
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-text-tertiary">
                                     {isAttachmentSectionExpanded ? 'Recolher' : 'Expandir'}
                                 </span>
                                 {isAttachmentSectionExpanded ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                                    <ChevronUp className="w-4 h-4 text-text-tertiary" />
                                 ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronDown className="w-4 h-4 text-text-tertiary" />
                                 )}
                             </div>
                         </div>
@@ -625,7 +625,7 @@ const TaskView: React.FC = () => {
                     )}
 
                     {isAttachmentSectionExpanded && (
-                        <div className="px-6 pb-6 border-t border-gray-200 pt-4">
+                        <div className="px-6 pb-6 border-t border-border-subtle pt-4">
                             <AttachmentList
                                 taskId={task.id}
                                 forceExpanded={true}
@@ -638,23 +638,23 @@ const TaskView: React.FC = () => {
 
                 {/* Informacoes de Registro */}
                 <Card className="p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-accent" />
                         Informacoes de Registro
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <p className="text-sm text-gray-500 mb-1">Data de Criacao</p>
-                            <p className="font-medium text-gray-900">{formatDate(task.createdAt)}</p>
+                        <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                            <p className="text-sm text-text-tertiary mb-1">Data de Criacao</p>
+                            <p className="font-medium text-text-primary">{formatDate(task.createdAt)}</p>
                             {task.createdByUserName && (
-                                <p className="text-sm text-gray-600 mt-1">por {task.createdByUserName}</p>
+                                <p className="text-sm text-text-secondary mt-1">por {task.createdByUserName}</p>
                             )}
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <p className="text-sm text-gray-500 mb-1">Ultima Atualizacao</p>
-                            <p className="font-medium text-gray-900">{formatDate(task.updatedAt)}</p>
+                        <div className="bg-surface-app rounded-lg p-4 border border-border-subtle">
+                            <p className="text-sm text-text-tertiary mb-1">Ultima Atualizacao</p>
+                            <p className="font-medium text-text-primary">{formatDate(task.updatedAt)}</p>
                             {task.updatedByUserName && (
-                                <p className="text-sm text-gray-600 mt-1">por {task.updatedByUserName}</p>
+                                <p className="text-sm text-text-secondary mt-1">por {task.updatedByUserName}</p>
                             )}
                         </div>
                     </div>

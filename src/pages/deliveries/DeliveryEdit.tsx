@@ -99,15 +99,15 @@ const DeliveryEdit: React.FC = () => {
     };
 
     const formatEnvironment = (environment?: string): { label: string; colorClass: string } => {
-        if (!environment) return { label: '-', colorClass: 'bg-gray-100 text-gray-800' };
+        if (!environment) return { label: '-', colorClass: 'bg-surface-2 text-text-primary' };
 
         const envConfig: Record<string, { label: string; colorClass: string }> = {
-            'PRODUCAO': { label: 'Produção', colorClass: 'bg-blue-100 text-blue-800 border-blue-200' },
-            'DESENVOLVIMENTO': { label: 'Desenvolvimento', colorClass: 'bg-green-100 text-green-800 border-green-200' },
-            'HOMOLOGACAO': { label: 'Homologação', colorClass: 'bg-yellow-100 text-yellow-800 border-yellow-200' }
+            'PRODUCAO': { label: 'Produção', colorClass: 'bg-accent-soft text-info-strong border-accent/20' },
+            'DESENVOLVIMENTO': { label: 'Desenvolvimento', colorClass: 'bg-success-soft text-[var(--success-strong)] border-green-200' },
+            'HOMOLOGACAO': { label: 'Homologação', colorClass: 'bg-warning-soft text-[var(--warning-strong)] border-yellow-200' }
         };
 
-        return envConfig[environment] || { label: environment, colorClass: 'bg-gray-100 text-gray-800 border-gray-200' };
+        return envConfig[environment] || { label: environment, colorClass: 'bg-surface-2 text-text-primary border-border-subtle' };
     };
 
     const formatDateTimeForInput = (dateTime: string | undefined): string => {
@@ -382,13 +382,13 @@ const DeliveryEdit: React.FC = () => {
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             PENDING: 'text-yellow-700 bg-yellow-50 border border-yellow-100',
-            DEVELOPMENT: 'text-blue-700 bg-blue-50 border border-blue-100',
+            DEVELOPMENT: 'text-accent bg-info-soft border border-blue-100',
             DELIVERED: 'text-green-700 bg-green-50 border border-green-100',
             HOMOLOGATION: 'text-amber-700 bg-amber-50 border border-amber-100',
             APPROVED: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
             REJECTED: 'text-rose-700 bg-rose-50 border border-rose-100',
             PRODUCTION: 'text-violet-700 bg-violet-50 border border-violet-100',
-            CANCELLED: 'text-red-600 bg-red-50 border border-red-200'
+            CANCELLED: 'text-[var(--danger-strong)] bg-red-50 border border-red-200'
         };
         return colors[status] || colors.PENDING;
     };
@@ -473,7 +473,7 @@ const DeliveryEdit: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center">
                 <LoadingSpinner size="lg" />
             </div>
         );
@@ -481,10 +481,10 @@ const DeliveryEdit: React.FC = () => {
 
     if (!delivery) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center">
                 <div className="text-center">
-                    <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Entrega não encontrada</h3>
+                    <Package2 className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-text-primary mb-2">Entrega não encontrada</h3>
                     <Button onClick={() => navigate('/deliveries')}>
                         Voltar para Entregas
                     </Button>
@@ -494,7 +494,7 @@ const DeliveryEdit: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -502,14 +502,14 @@ const DeliveryEdit: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/deliveries')}
-                            className="text-gray-600 hover:text-gray-900"
+                            className="text-text-secondary hover:text-text-primary"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Voltar
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Editar Entrega</h1>
-                            <p className="text-gray-600">ID: {delivery.id}</p>
+                            <h1 className="text-2xl font-bold text-text-primary">Editar Entrega</h1>
+                            <p className="text-text-secondary">ID: {delivery.id}</p>
                         </div>
                     </div>
 
@@ -518,17 +518,17 @@ const DeliveryEdit: React.FC = () => {
                 {/* Seleção de Tarefa */}
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Tarefa Associada</h3>
+                        <h3 className="text-lg font-medium text-text-primary">Tarefa Associada</h3>
                     </div>
 
                     {selectedTask ? (
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-surface-app p-4 rounded-lg">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <div className="font-medium text-gray-900">
+                                    <div className="font-medium text-text-primary">
                                         #{selectedTask.id} - {selectedTask.code}
                                     </div>
-                                    <div className="text-sm text-gray-600 mt-1">
+                                    <div className="text-sm text-text-secondary mt-1">
                                         {selectedTask.title}
                                     </div>
                                     {selectedTask.flowType && (
@@ -536,7 +536,7 @@ const DeliveryEdit: React.FC = () => {
                                             <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
                                                 selectedTask.flowType === 'OPERACIONAL'
                                                     ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                                    : 'bg-accent-soft text-info-strong border border-accent/20'
                                             }`}>
                                                 {selectedTask.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                                             </span>
@@ -544,7 +544,7 @@ const DeliveryEdit: React.FC = () => {
                                     )}
                                     {selectedTask.taskType && (
                                         <div className="mt-2">
-                                            <span className="text-sm text-gray-700">
+                                            <span className="text-sm text-text-secondary">
                                                 <span className="font-medium">Tipo:</span> {formatTaskType(selectedTask.taskType, selectedTask.flowType)}
                                             </span>
                                         </div>
@@ -556,7 +556,7 @@ const DeliveryEdit: React.FC = () => {
                                             </span>
                                         </div>
                                     )}
-                                    <div className="text-sm text-gray-500 mt-2">
+                                    <div className="text-sm text-text-tertiary mt-2">
                                         Solicitante: {selectedTask.requester?.name}
                                     </div>
                                 </div>
@@ -564,8 +564,8 @@ const DeliveryEdit: React.FC = () => {
                         </div>
                     ) : (
                         <div className="text-center py-8">
-                            <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-500">Nenhuma tarefa selecionada</p>
+                            <Package2 className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+                            <p className="text-text-tertiary">Nenhuma tarefa selecionada</p>
                         </div>
                     )}
                 </Card>
@@ -573,7 +573,7 @@ const DeliveryEdit: React.FC = () => {
                 {/* Ambiente da Entrega */}
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Ambiente da Entrega</h3>
+                        <h3 className="text-lg font-medium text-text-primary">Ambiente da Entrega</h3>
                         {canEdit && environment !== originalEnvironment && (
                             <Button
                                 onClick={async () => {
@@ -603,8 +603,8 @@ const DeliveryEdit: React.FC = () => {
                             value={environment}
                             onChange={(e) => setEnvironment(e.target.value)}
                             disabled={!canEdit}
-                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                !canEdit ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300'
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent ${
+                                !canEdit ? 'bg-surface-app border-border-subtle' : 'bg-surface-1 border-border-strong'
                             }`}
                         >
                             <option value="">Não Especificado</option>
@@ -625,7 +625,7 @@ const DeliveryEdit: React.FC = () => {
                 {/* Observações Gerais */}
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Observações Gerais da Entrega</h3>
+                        <h3 className="text-lg font-medium text-text-primary">Observações Gerais da Entrega</h3>
                         {canEdit && notes !== originalNotes && (
                             <Button
                                 onClick={async () => {
@@ -674,7 +674,7 @@ const DeliveryEdit: React.FC = () => {
                 {/* Itens de Entrega */}
                 <Card className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-medium text-gray-900">
+                        <h3 className="text-lg font-medium text-text-primary">
                             {selectedTask?.flowType === 'OPERACIONAL'
                                 ? `Itens Operacionais (${operationalItems.length})`
                                 : `Itens de Entrega (${deliveryItems.length})`
@@ -700,11 +700,11 @@ const DeliveryEdit: React.FC = () => {
                     {selectedTask?.flowType === 'OPERACIONAL' ? (
                         operationalItems.length === 0 ? (
                             <div className="text-center py-12">
-                                <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                                <Package2 className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+                                <h4 className="text-lg font-medium text-text-primary mb-2">
                                     Nenhum item operacional
                                 </h4>
-                                <p className="text-gray-500 mb-4">
+                                <p className="text-text-tertiary mb-4">
                                     Adicione itens operacionais para esta entrega
                                 </p>
                                 {canEdit && (
@@ -721,7 +721,7 @@ const DeliveryEdit: React.FC = () => {
                                         {operationalItems.map((item, index) => (
                                             <SortableListItem key={item.id} id={String(item.id)}>
                                                 {({ attributes, listeners }) => (
-                                                    <div className="bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-150">
+                                                    <div className="bg-surface-app border border-border-subtle rounded-lg hover:bg-surface-2 transition-colors duration-150">
                                                         <DeliveryOperationalItemForm
                                                             initialData={item}
                                                             onSave={(data) => handleSaveOperationalItem(item.id, data)}
@@ -746,11 +746,11 @@ const DeliveryEdit: React.FC = () => {
                         /* Renderização Original: Itens de Desenvolvimento */
                         deliveryItems.length === 0 ? (
                             <div className="text-center py-12">
-                                <Package2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                                <Package2 className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+                                <h4 className="text-lg font-medium text-text-primary mb-2">
                                     Nenhum item de entrega
                                 </h4>
-                                <p className="text-gray-500 mb-4">
+                                <p className="text-text-tertiary mb-4">
                                     Adicione projetos para criar itens de entrega
                                 </p>
                                 {canEdit && (
@@ -773,7 +773,7 @@ const DeliveryEdit: React.FC = () => {
                                             return (
                                                 <SortableListItem key={item.id} id={String(item.id)}>
                                                     {({ attributes, listeners }) => (
-                                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-150">
+                                                        <div className="bg-surface-app border border-border-subtle rounded-lg p-4 hover:bg-surface-2 transition-colors duration-150">
                                                             <DeliveryItemForm
                                                                 project={project}
                                                                 initialData={formData}
@@ -794,7 +794,7 @@ const DeliveryEdit: React.FC = () => {
                                                                                 setItemToDelete(item);
                                                                                 setShowDeleteModal(true);
                                                                             }}
-                                                                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                                                            className="text-[var(--danger-strong)] hover:text-[var(--danger-strong)] hover:bg-red-50"
                                                                             title={`Remover ${project.name}`}
                                                                         >
                                                                             <Trash2 className="h-4 w-4" />

@@ -92,12 +92,12 @@ const BillingPeriodForm: React.FC<BillingPeriodFormProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-surface-1 shadow rounded-lg p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        <h2 className="text-xl font-semibold text-text-primary mb-2">
           Dados do Período de Faturamento
         </h2>
-        <p className="text-gray-600">
+        <p className="text-text-secondary">
           Configure o mês e ano para faturamento das tarefas
         </p>
       </div>
@@ -153,7 +153,7 @@ const BillingPeriodForm: React.FC<BillingPeriodFormProps> = ({
           </Select>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-3 pt-4 border-t border-border-subtle">
           <Button
             type="button"
             variant="secondary"

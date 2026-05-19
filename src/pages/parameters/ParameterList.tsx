@@ -1,453 +1,224 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-    Plus,
-    Edit,
-    Trash2,
-    Settings,
-    XCircle,
-    FileText,
-} from 'lucide-react';
-import { useSystemParameters } from '@/hooks/useSystemParameters';
-import { useAuth } from '@/hooks/useAuth';
-import DataTable, { Column } from '@/components/ui/DataTable';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
-import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import ParameterModal from './ParameterModal';
-import toast from 'react-hot-toast';
+import * as React from 'react'
+import { Plus, Pencil, Trash2, MoreHorizontal, Settings, AlertTriangle } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
+
+import { useSystemParameters } from '@/hooks/useSystemParameters'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui-v2/Button'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { Badge } from '@/components/ui-v2/Badge'
+import { EmptyState } from '@/components/ui-v2/EmptyState'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
+import { Input } from '@/components/ui-v2/Input'
+import { Search } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
+import { SecretMask, isSensitiveParamName } from '@/components/parameters/SecretMask'
+import ParameterModal from './ParameterModal'
 
 interface SystemParameter {
-    id: number;
-    name: string;
-    value?: string;
-    description?: string;
-    createdAt?: string;
-    updatedAt?: string;
+  id: number
+  name: string
+  value?: string
+  description?: string
+}
+
+function inferCategory(name: string): string {
+  if (/WHATSAPP/i.test(name)) return 'WhatsApp'
+  if (/EMAIL|MAIL/i.test(name)) return 'E-mail'
+  if (/JWT|TOKEN_/i.test(name)) return 'Autenticação'
+  if (/AWS|S3/i.test(name)) return 'AWS / S3'
+  if (/GITHUB|GIT_/i.test(name)) return 'GitHub'
+  if (/CLICKUP/i.test(name)) return 'ClickUp'
+  if (/MULTIPART|FILE|UPLOAD/i.test(name)) return 'Upload'
+  return 'Geral'
 }
 
 const ParameterList: React.FC = () => {
-    const navigate = useNavigate();
-    const { hasProfile, user, isLoading: authLoading } = useAuth();
+  const { isAdmin } = useAuth() as any
+  const {
+    systemParameters, pagination, loading, error, filters,
+    deleteSystemParameter, deleteBulkSystemParameters,
+    setPage, setPageSize, setFilter, clearFilters,
+  } = useSystemParameters({ size: 25 })
 
-    const isAdmin = hasProfile('ADMIN');
+  const [search, setSearch] = React.useState((filters.name as string) || '')
+  const [selection, setSelection] = React.useState<Record<string, boolean>>({})
+  const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
+  const [editingId, setEditingId] = React.useState<number | 'new' | null>(null)
 
-    useEffect(() => {
-        if (!authLoading && user && !isAdmin) {
-            toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
-            navigate('/dashboard');
-        }
-    }, [hasProfile, navigate, authLoading, user, isAdmin]);
+  React.useEffect(() => {
+    const t = setTimeout(() => setFilter('name', search), 300)
+    return () => clearTimeout(t)
+  }, [search])
 
-    if (!authLoading && !isAdmin) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Acesso Negado</h2>
-                    <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
-                </div>
-            </div>
-        );
-    }
+  const selectedIds = React.useMemo(
+    () => Object.keys(selection).filter((k) => selection[k]).map((k) => Number(k)),
+    [selection]
+  )
 
-    const [selectedItems, setSelectedItems] = useState<number[]>([]);
-    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState<SystemParameter | null>(null);
-    const [isDeletingSingle, setIsDeletingSingle] = useState(false);
-    const [showParameterModal, setShowParameterModal] = useState(false);
-    const [editingParameter, setEditingParameter] = useState<SystemParameter | null>(null);
-
-    const {
-        systemParameters,
-        pagination,
-        loading,
-        sorting,
-        filters,
-        setPage,
-        setPageSize,
-        setSorting,
-        setFilter,
-        clearFilters,
-        deleteSystemParameter,
-        deleteBulkSystemParameters,
-        fetchSystemParameters,
-    } = useSystemParameters();
-
-    const handleEdit = (parameter: SystemParameter) => {
-        setEditingParameter(parameter);
-        setShowParameterModal(true);
-    };
-
-    const handleDelete = (parameter: SystemParameter) => {
-        setItemToDelete(parameter);
-        setShowDeleteModal(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!itemToDelete) return;
-
-        setIsDeletingSingle(true);
-        try {
-            await deleteSystemParameter(itemToDelete.id);
-        } catch (error) {
-            toast.error('Erro ao excluir parâmetro');
-        } finally {
-            setIsDeletingSingle(false);
-            setShowDeleteModal(false);
-            setItemToDelete(null);
-        }
-    };
-
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const handleSelectItem = (id: number) => {
-        setSelectedItems(prev =>
-            prev.includes(id)
-                ? prev.filter(item => item !== id)
-                : [...prev, id]
-        );
-    };
-
-    const handleSelectAll = () => {
-        if (selectedItems.length === systemParameters.length) {
-            setSelectedItems([]);
-        } else {
-            setSelectedItems(systemParameters.map(item => item.id));
-        }
-    };
-
-    const handleBulkDelete = async () => {
-        if (selectedItems.length === 0) return;
-
-        setIsDeleting(true);
-        try {
-            await deleteBulkSystemParameters(selectedItems);
-            setSelectedItems([]);
-        } catch (error) {
-            toast.error('Erro ao excluir parâmetros');
-        } finally {
-            setIsDeleting(false);
-            setShowBulkDeleteModal(false);
-        }
-    };
-
-    const columns: Column<SystemParameter>[] = useMemo(() => [
-        {
-            key: 'select',
-            title: '',
-            headerRender: () => (
-                <input
-                    type="checkbox"
-                    checked={systemParameters.length > 0 && selectedItems.length === systemParameters.length}
-                    onChange={handleSelectAll}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-            ),
-            render: (parameter) => (
-                <input
-                    type="checkbox"
-                    checked={selectedItems.includes(parameter.id)}
-                    onChange={() => handleSelectItem(parameter.id)}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-            ),
-            width: '50px',
-            sortable: false
-        },
-        {
-            key: 'id',
-            title: 'ID',
-            render: (parameter) => parameter.id,
-            sortable: true,
-            width: '80px',
-            hideable: true
-        },
-        {
-            key: 'name',
-            title: 'Nome',
-            render: (parameter) => (
-                <div className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="font-medium text-sm">{parameter.name}</span>
-                </div>
-            ),
-            sortable: true
-        },
-        {
-            key: 'value',
-            title: 'Valor',
-            render: (parameter) => (
-                <div className="max-w-xs truncate text-sm text-gray-600" title={parameter.value}>
-                    {parameter.value || '-'}
-                </div>
-            ),
-            sortable: false,
-            hideable: true
-        },
-        {
-            key: 'description',
-            title: 'Descrição',
-            render: (parameter) => (
-                <div className="max-w-md truncate text-sm text-gray-600" title={parameter.description}>
-                    {parameter.description || '-'}
-                </div>
-            ),
-            sortable: false,
-            hideable: true
-        },
-        {
-            key: 'actions',
-            title: 'Ações',
-            render: (parameter) => (
-                <div className="flex items-center justify-center gap-2">
-                    {isAdmin && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(parameter)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2"
-                            title="Editar"
-                        >
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                    )}
-                    {isAdmin && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(parameter)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
-                            title="Excluir"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    )}
-                </div>
-            ),
-            sortable: false,
-            width: '140px',
-            align: 'center'
-        }
-    ], [systemParameters, selectedItems, isAdmin]);
-
-    const handleCloseModal = async () => {
-        setShowParameterModal(false);
-        setEditingParameter(null);
-
-        await fetchSystemParameters();
-    };
-
-    if (authLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Carregando...</p>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <Settings className="w-6 h-6" />
-                        Parâmetros do Sistema
-                    </h1>
-                </div>
-                {isAdmin && (
-                    <Button
-                        onClick={() => setShowParameterModal(true)}
-                        className="flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Novo Parâmetro
-                    </Button>
-                )}
-            </div>
-
-            {/* Actions Bar */}
-            {selectedItems.length > 0 && isAdmin && (
-                <Card className="p-4">
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">
-                            {selectedItems.length} parâmetro(s) selecionado(s)
-                        </span>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowBulkDeleteModal(true)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir Selecionados
-                        </Button>
-                    </div>
-                </Card>
+  const columns = React.useMemo<ColumnDef<SystemParameter, any>[]>(() => [
+    { accessorKey: 'id', header: 'ID', size: 60, cell: ({ row }) => <span className="font-mono text-xs text-text-tertiary">#{row.original.id}</span> },
+    {
+      accessorKey: 'name',
+      header: 'Nome',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm text-text-primary">{row.original.name}</span>
+            {isSensitiveParamName(row.original.name) && (
+              <Badge variant="warning" size="sm"><AlertTriangle className="size-3" />Sensível</Badge>
             )}
-
-            {/* Mobile: Cards Layout */}
-            <div className="block sm:hidden">
-                {loading ? (
-                    <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-                        <span className="ml-3 text-gray-600">Carregando parâmetros...</span>
-                    </div>
-                ) : systemParameters.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Settings className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum parâmetro encontrado</h3>
-                        <p className="mt-1 text-sm text-gray-500">Comece criando um novo parâmetro</p>
-                        {isAdmin && (
-                            <Button onClick={() => setShowParameterModal(true)} className="mt-4">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Novo Parâmetro
-                            </Button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {systemParameters.map((parameter) => (
-                            <Card key={parameter.id} className="p-4">
-                                <div className="space-y-3">
-                                    {/* Header */}
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-medium text-gray-900">
-                                                #{parameter.id}
-                                            </span>
-                                        </div>
-                                        {selectedItems.length > 0 && (
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedItems.includes(parameter.id)}
-                                                onChange={() => handleSelectItem(parameter.id)}
-                                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                                            />
-                                        )}
-                                    </div>
-
-                                    {/* Nome */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Settings className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                            <h3 className="font-semibold text-gray-900 text-sm break-all">
-                                                {parameter.name}
-                                            </h3>
-                                        </div>
-                                    </div>
-
-                                    {/* Valor */}
-                                    {parameter.value && (
-                                        <div className="text-sm">
-                                            <span className="text-gray-600 font-medium">Valor: </span>
-                                            <span className="text-gray-700 break-all">{parameter.value}</span>
-                                        </div>
-                                    )}
-
-                                    {/* Descrição */}
-                                    {parameter.description && (
-                                        <div className="text-sm">
-                                            <span className="text-gray-600 font-medium">Descrição: </span>
-                                            <span className="text-gray-700">{parameter.description}</span>
-                                        </div>
-                                    )}
-
-                                    {/* Ações */}
-                                    {isAdmin && (
-                                        <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleEdit(parameter)}
-                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex-1"
-                                            >
-                                                <Edit className="w-4 h-4 mr-1" />
-                                                Editar
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleDelete(parameter)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1"
-                                            >
-                                                <Trash2 className="w-4 h-4 mr-1" />
-                                                Excluir
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* Desktop: DataTable */}
-            <Card className="p-0 hidden sm:block">
-                <DataTable
-                    data={systemParameters}
-                    columns={columns}
-                    loading={loading}
-                    pagination={pagination}
-                    onPageChange={setPage}
-                    onPageSizeChange={setPageSize}
-                    showColumnToggle={false}
-                    emptyMessage="Nenhum parâmetro encontrado"
-                    emptyDescription="Comece criando um novo parâmetro do sistema"
-                />
-            </Card>
-
-            {/* Modals */}
-            {showParameterModal && (
-                <ParameterModal
-                    isOpen={showParameterModal}
-                    onClose={handleCloseModal}
-                    parameter={editingParameter}
-                />
-            )}
-
-            {showBulkDeleteModal && (
-                <BulkDeleteModal
-                    isOpen={showBulkDeleteModal}
-                    onClose={() => setShowBulkDeleteModal(false)}
-                    onConfirm={handleBulkDelete}
-                    isDeleting={isDeleting}
-                    itemCount={selectedItems.length}
-                    itemName="parâmetro(s)"
-                />
-            )}
-
-            {showDeleteModal && itemToDelete && (
-                <DeleteConfirmationModal
-                    isOpen={showDeleteModal}
-                    onClose={() => {
-                        setShowDeleteModal(false);
-                        setItemToDelete(null);
-                    }}
-                    onConfirm={handleConfirmDelete}
-                    isDeleting={isDeletingSingle}
-                    itemName={`parâmetro "${itemToDelete.name}"`}
-                />
-            )}
+          </div>
+          <span className="text-xs text-text-tertiary">{inferCategory(row.original.name)}</span>
         </div>
-    );
-};
+      ),
+    },
+    { accessorKey: 'value', header: 'Valor', cell: ({ row }) => <SecretMask name={row.original.name} value={row.original.value} className="font-mono text-xs text-text-secondary" /> },
+    { accessorKey: 'description', header: 'Descrição', cell: ({ row }) => <span className="text-text-secondary truncate">{row.original.description || '—'}</span> },
+    {
+      id: '__actions', header: '', size: 80,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(row.original.id)} aria-label="Editar"><Pencil /></Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setEditingId(row.original.id)}><Pencil />Editar</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}>
+                <Trash2 />Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ], [])
 
-export default ParameterList;
+  const chips: any[] = []
+  if (filters.name) chips.push({ key: 'name', label: 'Nome', value: String(filters.name), onRemove: () => { setSearch(''); setFilter('name', '') } })
+
+  return (
+    <div>
+      <PageHeader
+        title="Parâmetros"
+        subtitle={pagination ? `${pagination.totalElements} parâmetro${pagination.totalElements === 1 ? '' : 's'}` : undefined}
+        filters={
+          <div className="w-full sm:w-[260px]">
+            <Input
+              leadingIcon={<Search />}
+              placeholder="Buscar por nome..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        }
+        actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo parâmetro</Button>}
+      />
+
+      <FilterChipsRow chips={chips} onClearAll={() => { setSearch(''); clearFilters() }} />
+
+      <DataTableBulkBar
+        selectedCount={selectedIds.length}
+        onClear={() => setSelection({})}
+        actions={isAdmin?.() && (
+          <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ kind: 'bulk', ids: selectedIds })}>Excluir</Button>
+        )}
+      />
+
+      <div className="hidden lg:block">
+        <DataTable<SystemParameter>
+          data={systemParameters as any[]}
+          columns={columns}
+          rowKey={(r) => r.id}
+          loading={loading}
+          error={error}
+          selectable
+          selection={selection}
+          onSelectionChange={setSelection}
+          onRowClick={(r) => setEditingId(r.id)}
+          pagination={pagination ? {
+            page: pagination.currentPage,
+            pageSize: pagination.pageSize,
+            total: pagination.totalElements,
+            onPageChange: setPage,
+            onPageSizeChange: setPageSize,
+          } : undefined}
+          empty={
+            <EmptyState
+              icon={<Settings />}
+              title="Nenhum parâmetro"
+              description={chips.length > 0 ? 'Ajuste os filtros.' : 'Cadastre o primeiro parâmetro do sistema.'}
+              actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo</Button>}
+            />
+          }
+        />
+      </div>
+
+      <div className="lg:hidden space-y-2">
+        {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+        {!loading && systemParameters.length === 0 && (
+          <EmptyState icon={<Settings />} title="Nenhum parâmetro" description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie o primeiro.'} actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo</Button>} />
+        )}
+        {!loading && systemParameters.map((p: any) => (
+          <button
+            key={p.id}
+            onClick={() => setEditingId(p.id)}
+            className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-sm text-text-primary truncate">{p.name}</span>
+              {isSensitiveParamName(p.name) && (
+                <Badge variant="warning" size="sm"><AlertTriangle className="size-3" /></Badge>
+              )}
+            </div>
+            <div className="text-xs text-text-tertiary mb-1">{inferCategory(p.name)}</div>
+            <SecretMask name={p.name} value={p.value} className="text-xs font-mono text-text-secondary" />
+            {p.description && <div className="text-xs text-text-secondary mt-1 line-clamp-1">{p.description}</div>}
+          </button>
+        ))}
+      </div>
+
+      {editingId !== null && (
+        <ParameterModal
+          isOpen={true}
+          onClose={() => setEditingId(null)}
+          parameter={editingId === 'new' ? null : (systemParameters.find((p: any) => p.id === editingId) as any)}
+        />
+      )}
+
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {confirmDelete?.kind === 'bulk' ? `${confirmDelete.ids.length} parâmetros` : 'parâmetro'}?</DialogTitle>
+            <DialogDescription>Cuidado: alguns parâmetros afetam o sistema imediatamente.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!confirmDelete) return
+                try {
+                  if (confirmDelete.kind === 'bulk') await deleteBulkSystemParameters(confirmDelete.ids)
+                  else await deleteSystemParameter(confirmDelete.ids[0])
+                  setSelection({})
+                } finally {
+                  setConfirmDelete(null)
+                }
+              }}
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+export default ParameterList

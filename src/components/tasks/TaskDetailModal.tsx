@@ -150,7 +150,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
             case 'LOW':
                 return 'bg-green-100 text-green-800';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-surface-2 text-text-primary';
         }
     };
 
@@ -201,12 +201,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-[95%] sm:w-[85%] lg:w-[80%] max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+            <div className="bg-surface-1 rounded-xl shadow-2xl w-[95%] sm:w-[85%] lg:w-[80%] max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center">
                                 <FileText className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -216,7 +216,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                            className="text-white/80 hover:text-white hover:bg-surface-1/20 rounded-lg p-2 transition-all"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -229,12 +229,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                     {task.requesterName && (
                         <div className="border-b border-gray-100 px-3 sm:px-6 py-3 sm:py-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5 text-blue-600" />
+                                <div className="w-10 h-10 bg-accent-soft rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-accent" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Solicitante</p>
-                                    <p className="text-lg font-semibold text-gray-900">{task.requesterName}</p>
+                                    <p className="text-xs text-text-tertiary uppercase tracking-wider font-medium">Solicitante</p>
+                                    <p className="text-lg font-semibold text-text-primary">{task.requesterName}</p>
                                 </div>
                             </div>
                         </div>
@@ -244,19 +244,19 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                     <div className="px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
                         {/* Task Name and Description */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <Target className="w-5 h-5 text-blue-600" />
+                            <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                <Target className="w-5 h-5 text-accent" />
                                 Informações da Tarefa
                             </h3>
-                            <div className="bg-gray-50 rounded-lg p-2.5 sm:p-4 space-y-3 sm:space-y-4">
+                            <div className="bg-surface-app rounded-lg p-2.5 sm:p-4 space-y-3 sm:space-y-4">
                                 {/* Código e Status */}
                                 <div className="flex flex-wrap gap-4 mb-4">
                                     {task.code && (
                                         <div className="flex items-center gap-2">
-                                            <Hash className="w-4 h-4 text-gray-400" />
+                                            <Hash className="w-4 h-4 text-text-tertiary" />
                                             <div>
-                                                <p className="text-xs text-gray-500">Código</p>
-                                                <span className="text-sm font-mono text-gray-900 bg-gray-200 px-2 py-1 rounded">
+                                                <p className="text-xs text-text-tertiary">Código</p>
+                                                <span className="text-sm font-mono text-text-primary bg-surface-3 px-2 py-1 rounded">
                                                     {task.code}
                                                 </span>
                                             </div>
@@ -266,7 +266,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                     {task.priority && (
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-gray-500">Prioridade:</span>
+                                            <span className="text-xs text-text-tertiary">Prioridade:</span>
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                                                 <AlertCircle className="w-3 h-3 mr-1" />
                                                 {getPriorityLabel(task.priority)}
@@ -276,11 +276,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                     {task.flowType && (
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-gray-500">Fluxo:</span>
+                                            <span className="text-xs text-text-tertiary">Fluxo:</span>
                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                                                 task.flowType === 'OPERACIONAL'
                                                     ? 'bg-purple-100 text-purple-800'
-                                                    : 'bg-blue-100 text-blue-800'
+                                                    : 'bg-accent-soft text-info-strong'
                                             }`}>
                                                 {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                                             </span>
@@ -289,8 +289,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                     {task.taskType && (
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-gray-500">Tipo:</span>
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <span className="text-xs text-text-tertiary">Tipo:</span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-soft text-info-strong">
                                                 {getTaskTypeLabel(task.taskType)}
                                             </span>
                                         </div>
@@ -298,7 +298,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                     {task.environment && (
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-gray-500">Ambiente:</span>
+                                            <span className="text-xs text-text-tertiary">Ambiente:</span>
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 {getEnvironmentLabel(task.environment)}
                                             </span>
@@ -308,7 +308,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
-                                        <p className="text-xs sm:text-sm text-gray-500">Nome da Tarefa</p>
+                                        <p className="text-xs sm:text-sm text-text-tertiary">Nome da Tarefa</p>
                                         {canViewValues && (
                                             <div className="flex items-center gap-1">
                                                 <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
@@ -318,22 +318,22 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             </div>
                                         )}
                                     </div>
-                                    <div className="bg-white rounded-lg p-2.5 sm:p-4 border border-gray-200">
+                                    <div className="bg-surface-1 rounded-lg p-2.5 sm:p-4 border border-border-subtle">
                                         <div className="max-h-20 overflow-y-auto">
-                                            <p className="text-sm sm:text-base font-medium text-gray-900 whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.name}</p>
+                                            <p className="text-sm sm:text-base font-medium text-text-primary whitespace-pre-wrap break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{task.name}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {task.description && (
                                     <div>
-                                        <p className="text-xs sm:text-sm text-gray-500 mb-1">Descrição</p>
+                                        <p className="text-xs sm:text-sm text-text-tertiary mb-1">Descrição</p>
                                         <div
-                                            className="bg-white rounded-lg p-2.5 sm:p-4 min-h-[100px] max-h-[40vh] border border-gray-200"
+                                            className="bg-surface-1 rounded-lg p-2.5 sm:p-4 min-h-[100px] max-h-[40vh] border border-border-subtle"
                                             style={resizableStyle}
                                         >
                                             <div
-                                                className="text-xs sm:text-sm text-gray-700 prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg"
+                                                className="text-xs sm:text-sm text-text-secondary prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg"
                                                 dangerouslySetInnerHTML={{ __html: task.description }}
                                             />
                                         </div>
@@ -345,18 +345,18 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {task.systemModule && (
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                                <p className="text-sm text-text-tertiary mb-1 flex items-center gap-1">
                                                     📁 Módulo do Sistema
                                                 </p>
-                                                <p className="text-gray-700 bg-gray-100 px-3 py-2 rounded">{task.systemModule}</p>
+                                                <p className="text-text-secondary bg-surface-2 px-3 py-2 rounded">{task.systemModule}</p>
                                             </div>
                                         )}
                                         {task.serverOrigin && (
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                                                <p className="text-sm text-text-tertiary mb-1 flex items-center gap-1">
                                                     🖥️ Servidor
                                                 </p>
-                                                <p className="text-gray-700 bg-gray-100 px-3 py-2 rounded">{task.serverOrigin}</p>
+                                                <p className="text-text-secondary bg-surface-2 px-3 py-2 rounded">{task.serverOrigin}</p>
                                             </div>
                                         )}
                                     </div>
@@ -366,7 +366,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 {/* Links */}
                                 <div className="space-y-4 pt-2">
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                        <p className="text-sm text-text-tertiary mb-2 flex items-center gap-1">
                                             <Link className="w-3 h-3" />
                                             Link da Tarefa
                                         </p>
@@ -377,12 +377,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                         href={task.link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
+                                                        className="text-sm text-accent hover:text-info-strong underline break-all"
                                                     >
                                                         {task.link}
                                                     </a>
                                                 ) : (
-                                                    <span className="text-sm text-gray-400">-</span>
+                                                    <span className="text-sm text-text-tertiary">-</span>
                                                 )}
                                             </div>
                                             {task.link && (
@@ -391,7 +391,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                     className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                         copiedField === 'taskLink'
                                                             ? 'bg-green-100 text-green-600'
-                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                            : 'bg-surface-2 text-text-tertiary hover:bg-surface-3'
                                                     }`}
                                                     title="Copiar link da tarefa"
                                                 >
@@ -406,7 +406,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                     </div>
                                     
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                        <p className="text-sm text-text-tertiary mb-2 flex items-center gap-1">
                                             <Video className="w-3 h-3" />
                                             Link da Gravação
                                         </p>
@@ -417,12 +417,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                         href={task.meetingLink}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
+                                                        className="text-sm text-accent hover:text-info-strong underline break-all"
                                                     >
                                                         {task.meetingLink}
                                                     </a>
                                                 ) : (
-                                                    <span className="text-sm text-gray-400">-</span>
+                                                    <span className="text-sm text-text-tertiary">-</span>
                                                 )}
                                             </div>
                                             {task.meetingLink && (
@@ -431,7 +431,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                     className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                         copiedField === 'meetingLink'
                                                             ? 'bg-green-100 text-green-600'
-                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                            : 'bg-surface-2 text-text-tertiary hover:bg-surface-3'
                                                     }`}
                                                     title="Copiar link da gravação"
                                                 >
@@ -450,20 +450,20 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                     {task.projectName && (
                                         <div className="flex items-center gap-2">
-                                            <Briefcase className="w-4 h-4 text-gray-400" />
+                                            <Briefcase className="w-4 h-4 text-text-tertiary" />
                                             <div>
-                                                <p className="text-xs text-gray-500">Projeto</p>
-                                                <p className="text-sm font-medium text-gray-900">{task.projectName}</p>
+                                                <p className="text-xs text-text-tertiary">Projeto</p>
+                                                <p className="text-sm font-medium text-text-primary">{task.projectName}</p>
                                             </div>
                                         </div>
                                     )}
                                     
                                     {(task.estimatedHours || task.actualHours) && (
                                         <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-gray-400" />
+                                            <Clock className="w-4 h-4 text-text-tertiary" />
                                             <div>
-                                                <p className="text-xs text-gray-500">Horas</p>
-                                                <p className="text-sm font-medium text-gray-900">
+                                                <p className="text-xs text-text-tertiary">Horas</p>
+                                                <p className="text-sm font-medium text-text-primary">
                                                     {task.actualHours || 0}h / {task.estimatedHours || 0}h estimadas
                                                 </p>
                                             </div>
@@ -476,22 +476,22 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                         {/* Projects Section */}
                         {task.projects && task.projects.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <FolderOpen className="w-5 h-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                    <FolderOpen className="w-5 h-5 text-accent" />
                                     Projetos Associados
-                                    <span className="text-sm font-normal text-gray-500">
+                                    <span className="text-sm font-normal text-text-tertiary">
                                         ({task.projects.length})
                                     </span>
                                 </h3>
-                                <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="bg-surface-app rounded-lg p-4">
                                     <div className="grid gap-3">
                                         {task.projects.map((project) => (
-                                            <div key={project.id} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                                                <FolderOpen className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                            <div key={project.id} className="flex items-center gap-3 p-3 bg-surface-1 rounded-lg border border-border-subtle">
+                                                <FolderOpen className="w-4 h-4 text-accent flex-shrink-0" />
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-gray-900">{project.name}</p>
+                                                    <p className="text-sm font-medium text-text-primary">{project.name}</p>
                                                     {project.repositoryUrl && (
-                                                        <p className="text-xs text-gray-500 mt-1">{project.repositoryUrl}</p>
+                                                        <p className="text-xs text-text-tertiary mt-1">{project.repositoryUrl}</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -504,29 +504,29 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                         {/* Subtasks Section */}
                         {task.subtasks && task.subtasks.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <ListChecks className="w-5 h-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                    <ListChecks className="w-5 h-5 text-accent" />
                                     Subtarefas
-                                    <span className="text-sm font-normal text-gray-500">
+                                    <span className="text-sm font-normal text-text-tertiary">
                                         ({completedSubtasks} de {totalSubtasks} concluídas)
                                     </span>
                                 </h3>
                                 
                                 {/* Progress bar */}
                                 <div className="mb-4">
-                                    <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                                    <div className="flex items-center justify-between text-sm text-text-secondary mb-2">
                                         <span>Progresso</span>
                                         <span>{Math.round(completionPercentage)}%</span>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div className="w-full bg-surface-3 rounded-full h-2">
                                         <div 
-                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                            className="bg-accent h-2 rounded-full transition-all duration-300"
                                             style={{ width: `${completionPercentage}%` }}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 rounded-lg p-2 sm:p-4">
+                                <div className="bg-surface-app rounded-lg p-2 sm:p-4">
                                     <div
                                         className="space-y-2 sm:space-y-3 max-h-[50vh] overflow-y-auto"
                                         style={scrollbarStyle}
@@ -535,8 +535,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                             <div key={subtask.id}>
                                                 {/* Card da Subtarefa */}
                                                 <div
-                                                    className={`p-2.5 sm:p-4 bg-white rounded-lg border ${
-                                                        subtask.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
+                                                    className={`p-2.5 sm:p-4 bg-surface-1 rounded-lg border ${
+                                                        subtask.completed ? 'border-green-200 bg-green-50' : 'border-border-subtle'
                                                     }`}
                                                 >
                                                     <div className="flex items-start gap-2 sm:gap-3">
@@ -547,7 +547,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                                     <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                                                                 </div>
                                                             ) : (
-                                                                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-gray-300 rounded-full" />
+                                                                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-border-strong rounded-full" />
                                                             )}
                                                         </div>
 
@@ -556,11 +556,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                             {/* Título */}
                                                             {subtask.title && (
                                                                 <div
-                                                                    className="bg-gray-50 rounded p-2 mb-2 min-h-[50px] sm:min-h-[60px] max-h-[15vh]"
+                                                                    className="bg-surface-app rounded p-2 mb-2 min-h-[50px] sm:min-h-[60px] max-h-[15vh]"
                                                                     style={resizableStyle}
                                                                 >
                                                                     <p className={`text-xs sm:text-sm font-medium whitespace-pre-wrap break-words ${
-                                                                        subtask.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                                                                        subtask.completed ? 'text-green-700 line-through' : 'text-text-primary'
                                                                     }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                                                                         {subtask.title}
                                                                     </p>
@@ -570,12 +570,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                                                             {/* Descrição */}
                                                             {subtask.description && (
                                                                 <div
-                                                                    className="bg-gray-50 rounded p-2 min-h-[70px] sm:min-h-[80px] max-h-[20vh]"
+                                                                    className="bg-surface-app rounded p-2 min-h-[70px] sm:min-h-[80px] max-h-[20vh]"
                                                                     style={resizableStyle}
                                                                 >
                                                                     <div
                                                                         className={`text-xs sm:text-sm prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg ${
-                                                                            subtask.completed ? 'text-green-600 line-through' : 'text-gray-700'
+                                                                            subtask.completed ? 'text-green-600 line-through' : 'text-text-secondary'
                                                                         }`}
                                                                         dangerouslySetInnerHTML={{ __html: subtask.description }}
                                                                     />
@@ -584,7 +584,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                                                             {/* Data de Criação */}
                                                             {subtask.createdAt && (
-                                                                <p className="text-xs text-gray-400 mt-2">
+                                                                <p className="text-xs text-text-tertiary mt-2">
                                                                     Criada em {formatDate(subtask.createdAt)}
                                                                 </p>
                                                             )}
@@ -612,24 +612,24 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
                         <div>
                             {/* Cabeçalho clicável da seção de anexos */}
                             <div 
-                                className="cursor-pointer border border-gray-200 rounded-lg"
+                                className="cursor-pointer border border-border-subtle rounded-lg"
                                 onClick={() => setIsAttachmentSectionExpanded(!isAttachmentSectionExpanded)}
                             >
-                                <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                                <div className="px-4 py-3 hover:bg-surface-app transition-colors">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <Paperclip className="w-5 h-5 text-gray-500" />
-                                            <span className="text-lg font-semibold text-gray-900">Anexos</span>
-                                            <span className="text-sm text-gray-500">(clique para visualizar)</span>
+                                            <Paperclip className="w-5 h-5 text-text-tertiary" />
+                                            <span className="text-lg font-semibold text-text-primary">Anexos</span>
+                                            <span className="text-sm text-text-tertiary">(clique para visualizar)</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm text-gray-500">
+                                            <span className="text-sm text-text-tertiary">
                                                 {isAttachmentSectionExpanded ? 'Recolher' : 'Expandir'}
                                             </span>
                                             {isAttachmentSectionExpanded ? (
-                                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                <ChevronUp className="w-4 h-4 text-text-tertiary" />
                                             ) : (
-                                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                <ChevronDown className="w-4 h-4 text-text-tertiary" />
                                             )}
                                         </div>
                                     </div>
@@ -638,8 +638,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                             {/* Conteúdo da seção quando expandida */}
                             {isAttachmentSectionExpanded && (
-                                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                    <p className="text-sm text-gray-500 mb-4">
+                                <div className="mt-4 p-4 border border-border-subtle rounded-lg bg-surface-app">
+                                    <p className="text-sm text-text-tertiary mb-4">
                                         Arquivos anexados à esta tarefa
                                     </p>
                                     
@@ -654,30 +654,30 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, isOpen, onClose
 
                         {/* Timestamps Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-blue-600" />
+                            <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-accent" />
                                 Informações de Registro
                             </h3>
-                            <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="bg-surface-app rounded-lg p-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Data de Criação</p>
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className="text-sm text-text-tertiary mb-1">Data de Criação</p>
+                                        <p className="text-sm font-medium text-text-primary">
                                             {formatDate(task.createdAt)}
                                         </p>
                                         {task.createdByUserName && (
-                                            <p className="text-xs text-gray-600 mt-1">
+                                            <p className="text-xs text-text-secondary mt-1">
                                                 por {task.createdByUserName}
                                             </p>
                                         )}
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Última Atualização</p>
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className="text-sm text-text-tertiary mb-1">Última Atualização</p>
+                                        <p className="text-sm font-medium text-text-primary">
                                             {formatDate(task.updatedAt)}
                                         </p>
                                         {task.updatedByUserName && (
-                                            <p className="text-xs text-gray-600 mt-1">
+                                            <p className="text-xs text-text-secondary mt-1">
                                                 por {task.updatedByUserName}
                                             </p>
                                         )}

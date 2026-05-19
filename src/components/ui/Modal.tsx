@@ -58,32 +58,30 @@ const Modal: React.FC<ModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-            {/* Overlay */}
             <div
-                className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+                className="fixed inset-0 bg-surface-inverse/40 backdrop-blur-sm transition-opacity"
                 onClick={handleOverlayClick}
             />
 
-            {/* Modal */}
             <div
                 className={clsx(
-                    'relative bg-white rounded-t-lg sm:rounded-lg shadow-xl mx-2 sm:mx-4 w-full max-h-[90vh] overflow-hidden',
+                    'relative bg-surface-1 rounded-t-lg sm:rounded-xl shadow-xl mx-2 sm:mx-4 w-full max-h-[90vh] overflow-hidden border border-border-subtle',
                     sizes[size],
                     className
                 )}
             >
-                {/* Header */}
                 {(title || showCloseButton) && (
-                    <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-white sticky top-0">
+                    <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border-subtle bg-surface-1 sticky top-0">
                         {title && (
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate pr-2">
+                            <h3 className="text-md sm:text-lg font-semibold text-text-primary truncate pr-2">
                                 {title}
                             </h3>
                         )}
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                                className="text-text-tertiary hover:text-text-primary hover:bg-surface-2 rounded-md p-1 transition-colors flex-shrink-0"
+                                aria-label="Fechar"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -91,7 +89,6 @@ const Modal: React.FC<ModalProps> = ({
                     </div>
                 )}
 
-                {/* Content */}
                 <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                     {children}
                 </div>

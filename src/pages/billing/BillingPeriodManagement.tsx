@@ -143,11 +143,11 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
                   <div key={link.id} className="p-3 flex items-center justify-between">
                     <div>
                       <p className="font-medium">{task?.title || `Tarefa #${link.taskId}`}</p>
-                      <p className="text-sm text-gray-500">{task?.code}</p>
+                      <p className="text-sm text-text-tertiary">{task?.code}</p>
                     </div>
                     <button
                       onClick={() => handleUnlinkTasks([link.taskId])}
-                      className="text-red-600 hover:text-red-800 p-1"
+                      className="text-[var(--danger-strong)] hover:text-[var(--danger-strong)] p-1"
                       disabled={loading}
                     >
                       <Trash2 size={16} />
@@ -157,7 +157,7 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
               })}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">Nenhuma tarefa vinculada</p>
+            <p className="text-text-tertiary text-center py-4">Nenhuma tarefa vinculada</p>
           )}
         </div>
 
@@ -168,7 +168,7 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
             <>
               <div className="border rounded-lg divide-y max-h-60 overflow-y-auto">
                 {availableTasks.map((task) => (
-                  <label key={task.id} className="flex items-center p-3 hover:bg-gray-50">
+                  <label key={task.id} className="flex items-center p-3 hover:bg-surface-app">
                     <input
                       type="checkbox"
                       checked={selectedTasks.includes(task.id)}
@@ -179,24 +179,24 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
                           setSelectedTasks(prev => prev.filter(id => id !== task.id));
                         }
                       }}
-                      className="rounded border-gray-300 text-blue-600 mr-3"
+                      className="rounded border-border-strong text-accent mr-3"
                     />
                     <div className="flex-1">
                       <p className="font-medium">{task.title}</p>
-                      <p className="text-sm text-gray-500">{task.code}</p>
+                      <p className="text-sm text-text-tertiary">{task.code}</p>
                     </div>
                   </label>
                 ))}
               </div>
               
               <div className="flex justify-between items-center mt-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-text-secondary">
                   {selectedTasks.length} tarefa(s) selecionada(s)
                 </p>
                 <button
                   onClick={handleLinkTasks}
                   disabled={selectedTasks.length === 0 || loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
+                  className="px-4 py-2 bg-accent text-white rounded-lg disabled:bg-gray-300 flex items-center gap-2"
                 >
                   {loading && <Loader2 size={16} className="animate-spin" />}
                   Vincular Tarefas
@@ -204,7 +204,7 @@ const TaskLinkManagementModal: React.FC<TaskLinkManagementModalProps> = ({
               </div>
             </>
           ) : (
-            <p className="text-gray-500 text-center py-4">Todas as tarefas já estão vinculadas</p>
+            <p className="text-text-tertiary text-center py-4">Todas as tarefas já estão vinculadas</p>
           )}
         </div>
       </div>
@@ -342,20 +342,20 @@ const BillingPeriodManagement: React.FC = () => {
 
   const getStatusIcon = (status: StatusValue) => {
     switch (status) {
-      case 'PAGO': return <CheckCircle className="text-green-600" size={16} />;
-      case 'FATURADO': return <FileText className="text-blue-600" size={16} />;
-      case 'ATRASADO': return <AlertCircle className="text-red-600" size={16} />;
-      case 'CANCELADO': return <XCircle className="text-gray-600" size={16} />;
+      case 'PAGO': return <CheckCircle className="text-[var(--success-strong)]" size={16} />;
+      case 'FATURADO': return <FileText className="text-accent" size={16} />;
+      case 'ATRASADO': return <AlertCircle className="text-[var(--danger-strong)]" size={16} />;
+      case 'CANCELADO': return <XCircle className="text-text-secondary" size={16} />;
       default: return <Clock className="text-orange-600" size={16} />;
     }
   };
 
   const getStatusColor = (status: StatusValue) => {
     switch (status) {
-      case 'PAGO': return 'bg-green-100 text-green-800';
-      case 'FATURADO': return 'bg-blue-100 text-blue-800';
-      case 'ATRASADO': return 'bg-red-100 text-red-800';
-      case 'CANCELADO': return 'bg-gray-100 text-gray-800';
+      case 'PAGO': return 'bg-success-soft text-[var(--success-strong)]';
+      case 'FATURADO': return 'bg-accent-soft text-info-strong';
+      case 'ATRASADO': return 'bg-danger-soft text-[var(--danger-strong)]';
+      case 'CANCELADO': return 'bg-surface-2 text-text-primary';
       default: return 'bg-orange-100 text-orange-800';
     }
   };
@@ -375,7 +375,7 @@ const BillingPeriodManagement: React.FC = () => {
           <div className="flex">
             <AlertCircle className="text-red-400 mr-3 flex-shrink-0" size={20} />
             <div>
-              <h3 className="text-red-800 font-medium">Erro ao carregar períodos</h3>
+              <h3 className="text-[var(--danger-strong)] font-medium">Erro ao carregar períodos</h3>
               <p className="text-red-700 mt-1">{error}</p>
             </div>
           </div>
@@ -389,13 +389,13 @@ const BillingPeriodManagement: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Períodos de Faturamento</h1>
-          <p className="text-gray-600 mt-1">Gerencie os períodos mensais de faturamento de tarefas</p>
+          <h1 className="text-2xl font-bold text-text-primary">Períodos de Faturamento</h1>
+          <p className="text-text-secondary mt-1">Gerencie os períodos mensais de faturamento de tarefas</p>
         </div>
         
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+          className="bg-accent text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-accent-hover transition-colors"
         >
           <Plus size={16} />
           Novo Período
@@ -406,11 +406,11 @@ const BillingPeriodManagement: React.FC = () => {
       {statistics.byStatus && Object.keys(statistics.byStatus).length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {Object.entries(statistics.byStatus).map(([status, count]: [string, number]) => (
-            <div key={status} className="bg-white p-4 rounded-lg border">
+            <div key={status} className="bg-surface-1 p-4 rounded-lg border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{status}</p>
-                  <p className="text-2xl font-bold text-gray-900">{count}</p>
+                  <p className="text-sm font-medium text-text-secondary">{status}</p>
+                  <p className="text-2xl font-bold text-text-primary">{count}</p>
                 </div>
                 {getStatusIcon(status as StatusValue)}
               </div>
@@ -420,12 +420,12 @@ const BillingPeriodManagement: React.FC = () => {
       )}
 
       {/* Filtros */}
-      <div className="bg-white p-4 rounded-lg border space-y-4">
+      <div className="bg-surface-1 p-4 rounded-lg border space-y-4">
         <div className="flex flex-wrap gap-4">
           <select
             value={yearFilter || ''}
             onChange={(e) => setYearFilter(e.target.value ? Number(e.target.value) : undefined)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
           >
             <option value="">Todos os anos</option>
             <option value="2025">2025</option>
@@ -437,7 +437,7 @@ const BillingPeriodManagement: React.FC = () => {
           <select
             value={monthFilter || ''}
             onChange={(e) => setMonthFilter(e.target.value ? Number(e.target.value) : undefined)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
           >
             <option value="">Todos os meses</option>
             <option value="1">Janeiro</option>
@@ -457,7 +457,7 @@ const BillingPeriodManagement: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as StatusValue | '')}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
           >
             <option value="">Todos os status</option>
             <option value="PENDENTE">Pendente</option>
@@ -470,7 +470,7 @@ const BillingPeriodManagement: React.FC = () => {
           <select
             value={flowType}
             onChange={(e) => setFlowType(e.target.value as FlowTypeFilterValue)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
           >
             <option value="TODOS">Todos os fluxos</option>
             <option value="DESENVOLVIMENTO">Desenvolvimento</option>
@@ -488,8 +488,8 @@ const BillingPeriodManagement: React.FC = () => {
 
         {/* Ações em lote */}
         {selectedPeriods.length > 0 && (
-          <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
-            <span className="text-blue-800 font-medium">
+          <div className="flex items-center justify-between bg-info-soft p-3 rounded-lg">
+            <span className="text-info-strong font-medium">
               {selectedPeriods.length} período(s) selecionado(s)
             </span>
             <div className="flex gap-2">
@@ -513,7 +513,7 @@ const BillingPeriodManagement: React.FC = () => {
       </div>
 
       {/* Lista de Períodos */}
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="bg-surface-1 rounded-lg border overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center p-8">
             <Loader2 className="animate-spin mr-2" size={24} />
@@ -521,16 +521,16 @@ const BillingPeriodManagement: React.FC = () => {
           </div>
         ) : billingPeriods.length === 0 ? (
           <div className="text-center py-8">
-            <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum período encontrado</h3>
-            <p className="text-gray-600">
+            <Calendar className="mx-auto text-text-tertiary mb-4" size={48} />
+            <h3 className="text-lg font-medium text-text-primary mb-2">Nenhum período encontrado</h3>
+            <p className="text-text-secondary">
               {yearFilter || monthFilter || statusFilter || flowType !== 'TODOS' ? 'Tente ajustar os filtros.' : 'Crie seu primeiro período de faturamento.'}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-app">
                 <tr>
                   <th className="w-12 p-3">
                     <input
@@ -543,19 +543,19 @@ const BillingPeriodManagement: React.FC = () => {
                           setSelectedPeriods([]);
                         }
                       }}
-                      className="rounded border-gray-300 text-blue-600"
+                      className="rounded border-border-strong text-accent"
                     />
                   </th>
-                  <th className="text-left p-3 font-medium text-gray-900">Período</th>
-                  <th className="text-left p-3 font-medium text-gray-900">Data de Pagamento</th>
-                  <th className="text-left p-3 font-medium text-gray-900">Status</th>
-                  <th className="text-left p-3 font-medium text-gray-900">Criado em</th>
-                  <th className="text-right p-3 font-medium text-gray-900">Ações</th>
+                  <th className="text-left p-3 font-medium text-text-primary">Período</th>
+                  <th className="text-left p-3 font-medium text-text-primary">Data de Pagamento</th>
+                  <th className="text-left p-3 font-medium text-text-primary">Status</th>
+                  <th className="text-left p-3 font-medium text-text-primary">Criado em</th>
+                  <th className="text-right p-3 font-medium text-text-primary">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {billingPeriods.map((period) => (
-                  <tr key={period.id} className="hover:bg-gray-50">
+                  <tr key={period.id} className="hover:bg-surface-app">
                     <td className="p-3">
                       <input
                         type="checkbox"
@@ -567,27 +567,27 @@ const BillingPeriodManagement: React.FC = () => {
                             setSelectedPeriods(prev => prev.filter(id => id !== period.id));
                           }
                         }}
-                        className="rounded border-gray-300 text-blue-600"
+                        className="rounded border-border-strong text-accent"
                       />
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-3">
-                        <Calendar className="text-gray-400" size={16} />
+                        <Calendar className="text-text-tertiary" size={16} />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-text-primary">
                             {formatMonth(period.month)} {period.year}
                           </p>
-                          <p className="text-sm text-gray-500">#{period.id}</p>
+                          <p className="text-sm text-text-tertiary">#{period.id}</p>
                         </div>
                       </div>
                     </td>
                     <td className="p-3">
                       {period.paymentDate ? (
-                        <span className="text-gray-900">
+                        <span className="text-text-primary">
                           {formatInputDate(period.paymentDate)}
                         </span>
                       ) : (
-                        <span className="text-gray-500">Não definida</span>
+                        <span className="text-text-tertiary">Não definida</span>
                       )}
                     </td>
                     <td className="p-3">
@@ -598,14 +598,14 @@ const BillingPeriodManagement: React.FC = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="p-3 text-gray-600">
+                    <td className="p-3 text-text-secondary">
                       {period.createdAt ? new Date(period.createdAt).toLocaleDateString('pt-BR') : '-'}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleOpenTaskModal(period)}
-                          className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
+                          className="p-1 text-accent hover:text-info-strong hover:bg-accent-soft rounded"
                           title="Gerenciar Tarefas"
                         >
                           <Link2 size={16} />
@@ -615,14 +615,14 @@ const BillingPeriodManagement: React.FC = () => {
                             setEditingPeriod(period);
                             setShowForm(true);
                           }}
-                          className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                          className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-2 rounded"
                           title="Editar"
                         >
                           <Eye size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(period)}
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-100 rounded"
+                          className="p-1 text-[var(--danger-strong)] hover:text-[var(--danger-strong)] hover:bg-danger-soft rounded"
                           title="Excluir"
                         >
                           <Trash2 size={16} />

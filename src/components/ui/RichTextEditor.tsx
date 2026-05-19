@@ -112,7 +112,7 @@ const MenuButton: React.FC<{
         title={title}
         className={clsx(
             'p-1.5 rounded transition-colors',
-            isActive ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100',
+            isActive ? 'bg-accent-soft text-accent' : 'text-text-secondary hover:bg-surface-2',
             disabled && 'opacity-50 cursor-not-allowed'
         )}
     >
@@ -142,7 +142,7 @@ const ColorPicker: React.FC<{
                 title={title}
                 className={clsx(
                     'p-1.5 rounded transition-colors flex items-center gap-0.5',
-                    'text-gray-600 hover:bg-gray-100',
+                    'text-text-secondary hover:bg-surface-2',
                     disabled && 'opacity-50 cursor-not-allowed'
                 )}
             >
@@ -152,7 +152,7 @@ const ColorPicker: React.FC<{
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20 min-w-[120px]">
+                    <div className="absolute top-full left-0 mt-1 bg-surface-1 border border-border-subtle rounded-lg shadow-lg p-2 z-20 min-w-[120px]">
                         <div className="grid grid-cols-3 gap-1">
                             {colors.map(({ name, color }) => (
                                 <button
@@ -164,7 +164,7 @@ const ColorPicker: React.FC<{
                                     }}
                                     title={name}
                                     className={clsx(
-                                        'w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform',
+                                        'w-6 h-6 rounded border border-border-strong hover:scale-110 transition-transform',
                                         currentColor === color && 'ring-2 ring-blue-500'
                                     )}
                                     style={{ backgroundColor: color }}
@@ -178,7 +178,7 @@ const ColorPicker: React.FC<{
                                     onClear();
                                     setIsOpen(false);
                                 }}
-                                className="w-full mt-2 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded"
+                                className="w-full mt-2 px-2 py-1 text-xs text-text-secondary hover:bg-surface-2 rounded"
                             >
                                 Remover
                             </button>
@@ -210,7 +210,7 @@ const TableMenu: React.FC<{
                 title="Tabela"
                 className={clsx(
                     'p-1.5 rounded transition-colors flex items-center gap-0.5',
-                    editor.isActive('table') ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100',
+                    editor.isActive('table') ? 'bg-accent-soft text-accent' : 'text-text-secondary hover:bg-surface-2',
                     disabled && 'opacity-50 cursor-not-allowed'
                 )}
             >
@@ -220,12 +220,12 @@ const TableMenu: React.FC<{
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20 min-w-[160px]">
+                    <div className="absolute top-full left-0 mt-1 bg-surface-1 border border-border-subtle rounded-lg shadow-lg p-2 z-20 min-w-[160px]">
                         {!editor.isActive('table') ? (
                             <button
                                 type="button"
                                 onClick={insertTable}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 rounded flex items-center gap-2"
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-surface-2 rounded flex items-center gap-2"
                             >
                                 <Plus className="w-4 h-4" />
                                 Inserir Tabela 3x3
@@ -235,28 +235,28 @@ const TableMenu: React.FC<{
                                 <button
                                     type="button"
                                     onClick={() => { editor.chain().focus().addColumnAfter().run(); setIsOpen(false); }}
-                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded"
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-surface-2 rounded"
                                 >
                                     Adicionar coluna
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => { editor.chain().focus().addRowAfter().run(); setIsOpen(false); }}
-                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded"
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-surface-2 rounded"
                                 >
                                     Adicionar linha
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => { editor.chain().focus().deleteColumn().run(); setIsOpen(false); }}
-                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded text-red-600"
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-surface-2 rounded text-red-600"
                                 >
                                     Remover coluna
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => { editor.chain().focus().deleteRow().run(); setIsOpen(false); }}
-                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded text-red-600"
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-surface-2 rounded text-red-600"
                                 >
                                     Remover linha
                                 </button>
@@ -264,7 +264,7 @@ const TableMenu: React.FC<{
                                 <button
                                     type="button"
                                     onClick={() => { editor.chain().focus().deleteTable().run(); setIsOpen(false); }}
-                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 rounded text-red-600 flex items-center gap-2"
+                                    className="w-full px-3 py-1.5 text-left text-sm hover:bg-surface-2 rounded text-red-600 flex items-center gap-2"
                                 >
                                     <Trash2 className="w-3 h-3" />
                                     Excluir tabela
@@ -310,7 +310,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             Link.configure({
                 openOnClick: false,
                 HTMLAttributes: {
-                    class: 'text-blue-600 underline hover:text-blue-800',
+                    class: 'text-accent underline hover:text-info-strong',
                 },
             }),
             Placeholder.configure({
@@ -336,12 +336,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             TableRow,
             TableCell.configure({
                 HTMLAttributes: {
-                    class: 'border border-gray-300 p-2',
+                    class: 'border border-border-strong p-2',
                 },
             }),
             TableHeader.configure({
                 HTMLAttributes: {
-                    class: 'border border-gray-300 p-2 bg-gray-100 font-bold',
+                    class: 'border border-border-strong p-2 bg-surface-2 font-bold',
                 },
             }),
             TaskList.configure({
@@ -501,14 +501,14 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
                         {label}
                         {required && <span className="text-red-500 ml-1">*</span>}
                     </label>
                 )}
-                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-32 bg-gray-200 rounded"></div>
+                <div className="border border-border-strong rounded-lg p-4 bg-surface-app animate-pulse">
+                    <div className="h-6 bg-surface-3 rounded mb-2"></div>
+                    <div className="h-32 bg-surface-3 rounded"></div>
                 </div>
             </div>
         );
@@ -519,7 +519,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -527,12 +527,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <div
                 className={clsx(
                     'border rounded-lg overflow-hidden transition-colors',
-                    error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white',
-                    disabled && 'bg-gray-50 cursor-not-allowed'
+                    error ? 'border-red-300 bg-red-50' : 'border-border-strong bg-surface-1',
+                    disabled && 'bg-surface-app cursor-not-allowed'
                 )}
             >
                 {/* Toolbar */}
-                <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+                <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-border-subtle bg-surface-app">
                     {/* Formatacao basica */}
                     <MenuButton
                         onClick={() => editor.chain().focus().toggleBold().run()}
@@ -718,7 +718,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     </MenuButton>
 
                     {isUploading && (
-                        <span className="ml-auto text-xs text-gray-500">Enviando imagem...</span>
+                        <span className="ml-auto text-xs text-text-tertiary">Enviando imagem...</span>
                     )}
                 </div>
 
@@ -735,7 +735,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 </div>
             </div>
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-text-tertiary">
                 {entityId
                     ? 'Dica: Cole imagens diretamente com Ctrl+V ou arraste e solte.'
                     : 'Salve o registro para habilitar upload de imagens.'}

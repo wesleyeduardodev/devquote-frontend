@@ -188,15 +188,15 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
                 {showProjectSelector && !selectedProject && (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-text-secondary mb-2">
                             Projeto <span className="text-red-500">*</span>
                         </label>
                         {currentProject ? (
-                            <div className="flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-between p-3 border border-border-strong rounded-lg bg-surface-app">
                                 <div className="flex items-center gap-2">
-                                    <Building className="w-4 h-4 text-blue-600" />
-                                    <span className="font-medium text-gray-900">{currentProject.name}</span>
-                                    <span className="text-gray-500">#{currentProject.id}</span>
+                                    <Building className="w-4 h-4 text-accent" />
+                                    <span className="font-medium text-text-primary">{currentProject.name}</span>
+                                    <span className="text-text-tertiary">#{currentProject.id}</span>
                                 </div>
                                 <Button
                                     type="button"
@@ -221,14 +221,14 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                                 </Button>
                                 
                                 {showProjectSearch && projects.length > 0 && (
-                                    <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg max-h-48 overflow-y-auto">
-                                        <div className="p-2 border-b border-gray-200">
+                                    <div className="mt-2 border border-border-strong rounded-lg bg-surface-1 shadow-lg max-h-48 overflow-y-auto">
+                                        <div className="p-2 border-b border-border-subtle">
                                             <input
                                                 type="text"
                                                 placeholder="Buscar projeto..."
                                                 value={projectSearchTerm}
                                                 onChange={(e) => setProjectSearchTerm(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full px-3 py-2 border border-border-strong rounded focus:ring-2 focus:ring-accent focus:border-accent"
                                             />
                                         </div>
                                         <div className="max-h-32 overflow-y-auto">
@@ -245,11 +245,11 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                                                             setShowProjectSearch(false);
                                                             setProjectSearchTerm('');
                                                         }}
-                                                        className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
+                                                        className="w-full text-left px-3 py-2 hover:bg-surface-2 flex items-center gap-2"
                                                     >
-                                                        <Building className="w-4 h-4 text-blue-600" />
+                                                        <Building className="w-4 h-4 text-accent" />
                                                         <span className="font-medium">{project.name}</span>
-                                                        <span className="text-gray-500">#{project.id}</span>
+                                                        <span className="text-text-tertiary">#{project.id}</span>
                                                     </button>
                                                 ))
                                             }
@@ -278,7 +278,7 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                             error={errors.sourceBranch?.message}
                             helpText="Branch onde está sendo desenvolvida a funcionalidade"
                         />
-                        <div className="mt-1 text-xs text-gray-500">
+                        <div className="mt-1 text-xs text-text-tertiary">
                             {sourceBranchValue.length}/200 caracteres
                         </div>
                     </div>
@@ -332,7 +332,7 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
                         error={errors.notes?.message}
                         helpText="Informações adicionais sobre a entrega"
                     />
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-text-tertiary">
                         {notesValue.length}/256 caracteres
                     </div>
                 </div>
@@ -340,7 +340,7 @@ const DeliveryForm: React.FC<DeliveryFormProps> = ({
 
             {/* Script SQL */}
             <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
+                <h2 className="text-xl font-semibold text-text-primary border-b pb-2">
                     Script de Banco de Dados
                 </h2>
 
@@ -361,7 +361,7 @@ INSERT INTO exemplo (id, nome) VALUES (1, 'Teste');"
             </div>
 
             {/* Ações */}
-            <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-end space-x-3 pt-6 border-t border-border-subtle">
                 {onCancel && (
                     <Button
                         type="button"

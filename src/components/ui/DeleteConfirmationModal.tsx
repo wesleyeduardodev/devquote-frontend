@@ -29,56 +29,50 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
         await onConfirm();
     };
 
-    const iconColor = variant === 'danger' ? 'text-red-600' : 'text-yellow-600';
-    const bgColor = variant === 'danger' ? 'bg-red-100' : 'bg-yellow-100';
+    const iconColor = variant === 'danger' ? 'text-[var(--danger-strong)]' : 'text-[var(--warning-strong)]';
+    const bgColor = variant === 'danger' ? 'bg-[var(--danger-soft)]' : 'bg-[var(--warning-soft)]';
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop */}
-            <div 
-                className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            <div
+                className="fixed inset-0 bg-surface-inverse/40 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
-            
-            {/* Modal */}
+
             <div className="flex min-h-full items-center justify-center p-4">
-                <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all">
-                    {/* Close Button */}
+                <div className="relative bg-surface-1 rounded-xl shadow-xl border border-border-subtle w-full max-w-md transform transition-all">
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute top-4 right-4 text-text-tertiary hover:text-text-primary hover:bg-surface-2 rounded-md p-1 transition-colors"
                         disabled={isDeleting}
+                        aria-label="Fechar"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4" />
                     </button>
 
-                    {/* Content */}
                     <div className="p-6">
-                        {/* Icon */}
                         <div className="flex justify-center mb-4">
                             <div className={`${bgColor} rounded-full p-3`}>
-                                <AlertTriangle className={`w-8 h-8 ${iconColor}`} />
+                                <AlertTriangle className={`w-7 h-7 ${iconColor}`} />
                             </div>
                         </div>
 
-                        {/* Title */}
-                        <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+                        <h3 className="text-lg font-semibold text-text-primary text-center mb-2">
                             {title}
                         </h3>
 
-                        {/* Description */}
                         <div className="text-center mb-6">
                             {itemName ? (
-                                <p className="text-gray-600">
+                                <p className="text-sm text-text-secondary">
                                     Tem certeza que deseja excluir{' '}
-                                    <span className="font-semibold text-gray-900">"{itemName}"</span>?
+                                    <span className="font-semibold text-text-primary">"{itemName}"</span>?
                                 </p>
                             ) : (
-                                <p className="text-gray-600">
+                                <p className="text-sm text-text-secondary">
                                     {description || 'Tem certeza que deseja excluir este item?'}
                                 </p>
                             )}
-                            <p className="text-sm text-gray-500 mt-2">
+                            <p className="text-xs text-text-tertiary mt-2">
                                 Esta ação não pode ser desfeita.
                             </p>
                         </div>

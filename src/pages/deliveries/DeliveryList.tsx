@@ -1,1480 +1,302 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import * as React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Pencil, Trash2, MoreHorizontal, Truck, Eye, Download, RefreshCw } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
+
+import { useDeliveries } from '@/hooks/useDeliveries'
+import { useAuth } from '@/hooks/useAuth'
+import { gitSyncService } from '@/services/gitSyncService'
+import { Button } from '@/components/ui-v2/Button'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { Badge } from '@/components/ui-v2/Badge'
+import { EmptyState } from '@/components/ui-v2/EmptyState'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
 import {
-    Plus, Edit, Trash2, Eye, Download, Package, ChevronsLeft, ChevronsRight, Mail, DollarSign, BarChart3, FileText, RefreshCw,
-    ExternalLink
-} from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import { useAuth } from '../../hooks/useAuth';
-import { useDeliveries } from '../../hooks/useDeliveries';
-import {
-    DeliveryGroupResponse,
-    DeliveryStatus,
-    DeliveryStatusCount
-} from '../../types/delivery.types';
-import { deliveryService } from '../../services/deliveryService';
-import { reportService } from '../../services/reportService';
-import { gitSyncService } from '../../services/gitSyncService';
-import { formatMobileRecordCountText } from '../../utils/paginationUtils';
-import DataTable, { Column } from '../../components/ui/DataTable';
-import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import DeleteConfirmationModal from '../../components/ui/DeleteConfirmationModal';
-import BulkDeleteModal from '../../components/ui/BulkDeleteModal';
-import { FlowTypeFilter, FlowTypeFilterValue } from '../../components/filters/FlowTypeFilter';
-import { TaskTypeFilter, TaskTypeFilterValue } from '../../components/filters/TaskTypeFilter';
-import { EnvironmentFilter, EnvironmentFilterValue } from '../../components/filters/EnvironmentFilter';
-import { DateRangeFilter } from '../../components/filters/DateRangeFilter';
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger
+} from '@/components/ui-v2/DropdownMenu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-v2/Select'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
+import { DeliveryStatusBadge, STATUS_LABEL } from '@/components/deliveries/DeliveryStatusBadge'
+import { DeliveryPipelineOverview } from '@/components/deliveries/DeliveryPipelineOverview'
+import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
+
+interface DeliveryGroup {
+  taskId: number
+  taskName: string
+  taskCode: string
+  taskType?: string
+  taskValue?: number
+  deliveryId?: number
+  deliveryStatus: string
+  calculatedDeliveryStatus?: string
+  totalItems?: number
+  totalDeliveries: number
+  completedDeliveries: number
+  pendingDeliveries: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+const brl = (n: number | null | undefined) =>
+  (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 const DeliveryList: React.FC = () => {
-    const navigate = useNavigate();
-    const { hasProfile } = useAuth();
-
-    const {
-        deliveryGroups,
-        pagination,
-        loading,
-        exporting,
-        sorting,
-        filters,
-        fetchDeliveryGroups,
-        setPage,
-        setPageSize,
-        setSorting,
-        setFilter,
-        clearFilters,
-        exportToExcel,
-        exportDeliveriesOnlyToExcel,
-        deleteBulk
-    } = useDeliveries();
-
-    const isAdmin = hasProfile('ADMIN');
-    const isManager = hasProfile('MANAGER');
-    const canCreate = isAdmin;
-    const canEdit = isAdmin;
-    const canDelete = isAdmin;
-    const canViewValues = isAdmin || isManager;
-
-    const [statistics, setStatistics] = useState<DeliveryStatusCount | null>(null);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [groupToDelete, setGroupToDelete] = useState<DeliveryGroupResponse | null>(null);
-
-    const [selectedDeliveries, setSelectedDeliveries] = useState<number[]>([]);
-    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-
-    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['totalItems']);
-
-    const [showDeliveryEmailModal, setShowDeliveryEmailModal] = useState(false);
-    const [groupForEmail, setGroupForEmail] = useState<DeliveryGroupResponse | null>(null);
-    const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
-    const [currentEmailInput, setCurrentEmailInput] = useState('');
-    const [additionalWhatsAppRecipients, setAdditionalWhatsAppRecipients] = useState<string[]>([]);
-    const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
-    const [sendEmail, setSendEmail] = useState(true);
-    const [sendWhatsApp, setSendWhatsApp] = useState(true);
-
-    const [generatingReport, setGeneratingReport] = useState(false);
-    const [generatingPdfDeliveryId, setGeneratingPdfDeliveryId] = useState<number | null>(null);
-    const [syncing, setSyncing] = useState(false);
-
-    const fetchStatistics = async () => {
-        try {
-            const flowTypeFilter = filters.flowType === 'TODOS' ? undefined : filters.flowType;
-            const stats = await deliveryService.getGlobalStatistics(flowTypeFilter);
-            setStatistics(stats);
-        } catch (error) {
-            console.error('Erro ao carregar estatísticas:', error);
-        }
-    };
-
-    React.useEffect(() => {
-        fetchStatistics();
-    }, [filters.flowType]);
-
-    const handleSelectDelivery = (deliveryId: number) => {
-        setSelectedDeliveries(prev => {
-            if (prev.includes(deliveryId)) {
-                return prev.filter(id => id !== deliveryId);
-            } else {
-                return [...prev, deliveryId];
-            }
-        });
-    };
-    const handleSelectAll = () => {
-        const availableDeliveryIds = deliveryGroups
-            .map(group => group.deliveries?.[0]?.id)
-            .filter((id): id is number => id !== undefined);
-
-        if (selectedDeliveries.length === availableDeliveryIds.length) {
-            setSelectedDeliveries([]);
-        } else {
-            setSelectedDeliveries(availableDeliveryIds);
-        }
-    };
-
-    const handleBulkDelete = async () => {
-        if (selectedDeliveries.length === 0) return;
-
-        setIsBulkDeleting(true);
-        try {
-            await deleteBulk(selectedDeliveries);
-            setSelectedDeliveries([]);
-            setShowBulkDeleteModal(false);
-            fetchStatistics();
-        } catch (error) {
-            console.error('Erro ao excluir entregas:', error);
-            toast.error('Erro ao excluir entregas selecionadas');
-        } finally {
-            setIsBulkDeleting(false);
-        }
-    };
-
-    const columns: Column<DeliveryGroupResponse>[] = [
-        {
-            key: 'select',
-            title: (
-                <div className="flex items-center justify-center">
-                    <input
-                        type="checkbox"
-                        checked={selectedDeliveries.length === deliveryGroups.filter(g => g.deliveries?.[0]?.id).length && deliveryGroups.length > 0}
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                </div>
-            ),
-            sortable: false,
-            filterable: false,
-            render: (delivery) => {
-                const deliveryId = delivery.deliveries?.[0]?.id;
-                if (!deliveryId) return null;
-
-                return (
-                    <div className="flex items-center justify-center">
-                        <input
-                            type="checkbox"
-                            checked={selectedDeliveries.includes(deliveryId)}
-                            onChange={() => handleSelectDelivery(deliveryId)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                    </div>
-                );
-            },
-            width: '40px',
-            align: 'center'
-        },
-        {
-            key: 'delivery.id',
-            title: 'ID',
-            sortable: true,
-            filterable: true,
-            filterType: 'number',
-            align: 'center' as const,
-            render: (delivery) => (
-                <span className="font-medium text-gray-900">
-                    #{delivery.deliveries?.[0]?.id || 'N/A'}
-                </span>
-            ),
-            width: '70px'
-        },
-        {
-            key: 'task.code',
-            title: 'CÓDIGO',
-            sortable: true,
-            filterable: true,
-            align: 'center' as const,
-            render: (delivery) => (
-                delivery.taskLink ? 
-                <div className="flex items-center gap-2">
-                    <a
-                        href={delivery.taskLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 bg-gray-100 rounded px-2 py-1 hover:text-blue-800 flex items-center gap-1.5 max-w-xs truncate"
-                        onClick={(e) => e.stopPropagation()}
-                        title={delivery.taskLink}
-                    >
-                        <span className="truncate">{delivery.taskId} - {delivery.taskCode || 'N/A'}</span>
-                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                    </a>
-                </div>
-                :
-                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                    {delivery.taskId} - {delivery.taskCode || 'N/A'}
-                </span>
-            ),
-            width: '120px'
-        },
-        {
-            key: 'flowType',
-            title: 'FLUXO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '130px',
-            align: 'center' as const,
-            render: (delivery: DeliveryGroupResponse) => {
-
-                const flowType = delivery.deliveries?.[0]?.flowType;
-                return flowType ? (
-                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
-                        flowType === 'OPERACIONAL'
-                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                            : 'bg-blue-100 text-blue-800 border border-blue-200'
-                    }`}>
-                        {flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
-                    </span>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                );
-            }
-        },
-        {
-            key: 'task.taskType',
-            title: 'TIPO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '135px',
-            align: 'center' as const,
-            render: (delivery: DeliveryGroupResponse) => {
-
-                const taskType = delivery.deliveries?.[0]?.taskType;
-                const environment = delivery.deliveries?.[0]?.environment;
-
-                const getEnvironmentAbbreviation = (env: string | undefined) => {
-                    if (!env) return '';
-                    switch (env) {
-                        case 'DESENVOLVIMENTO': return 'DEV';
-                        case 'HOMOLOGACAO': return 'HOM';
-                        case 'PRODUCAO': return 'PROD';
-                        default: return env;
-                    }
-                };
-
-                const getTaskTypeLabel = (type: string | undefined, env: string | undefined) => {
-                    if (!type) return '-';
-                    let label = '';
-                    switch (type) {
-
-                        case 'BACKUP': label = '💾 Backup'; break;
-                        case 'DEPLOY': label = '🚀 Deploy'; break;
-                        case 'LOGS': label = '📋 Logs'; break;
-                        case 'DATABASE_APPLICATION': label = '💿 Aplicação de Banco'; break;
-                        case 'NEW_SERVER': label = '🖥️ Novo Servidor'; break;
-                        case 'MONITORING': label = '📊 Monitoramento'; break;
-                        case 'SUPPORT': label = '🔧 Suporte'; break;
-                        case 'CODE_REVIEW': label = '🔎 Code Review'; break;
-
-                        case 'BUG': label = '🐛 Bug'; break;
-                        case 'ENHANCEMENT': label = '✨ Melhoria'; break;
-                        case 'NEW_FEATURE': label = '⭐ Nova Funcionalidade'; break;
-                        default: label = type;
-                    }
-
-                    const envAbbr = getEnvironmentAbbreviation(env);
-                    return envAbbr ? `${label} - ${envAbbr}` : label;
-                };
-
-                return (
-                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-700">
-                        {getTaskTypeLabel(taskType, environment)}
-                    </span>
-                );
-            }
-        },
-        {
-            key: 'task.title',
-            title: 'TÍTULO DA TAREFA',
-            sortable: true,
-            filterable: true,
-            align: 'left' as const,
-            render: (delivery) => (
-                <div className="w-full">
-                    <div
-                        className="font-medium text-gray-900 text-left text-sm"
-                        title={delivery.taskName || 'N/A'}
-                        style={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            wordBreak: 'break-word',
-                            lineHeight: '1.3',
-                            maxWidth: '100%'
-                        }}
-                    >
-                        {delivery.taskName || 'N/A'}
-                    </div>
-                </div>
-            ),
-            width: '240px'
-        },
-        ...(canViewValues ? [{
-            key: 'task.amount',
-            title: 'VALOR',
-            sortable: true,
-            filterable: false,
-            align: 'center' as const,
-            render: (delivery: DeliveryGroupResponse) => (
-                <div className="flex items-center justify-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5 text-green-600" />
-                    <span className="text-xs font-medium text-green-600 whitespace-nowrap">
-                        {formatCurrency(delivery.taskValue)}
-                    </span>
-                </div>
-            ),
-            width: '110px'
-        }] : []),
-        {
-            key: 'deliveryStatus',
-            title: 'Status',
-            sortable: true,
-            filterable: true,
-            filterType: 'select',
-            filterOptions: [
-                { value: '', label: 'Todos os Status' },
-                { value: 'Pendente', label: 'Pendente' },
-                { value: 'Desenvolvimento', label: 'Desenvolvimento' },
-                { value: 'Entregue', label: 'Entregue' },
-                { value: 'Homologação', label: 'Homologação' },
-                { value: 'Aprovado', label: 'Aprovado' },
-                { value: 'Rejeitado', label: 'Rejeitado' },
-                { value: 'Produção', label: 'Produção' },
-                { value: 'Cancelado', label: 'Cancelado' }
-            ],
-            align: 'center' as const,
-            render: (delivery) => {
-                const status = (delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING';
-                const statusColor = getStatusColor(status);
-                return (
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusColor}`}>
-                        {getStatusLabel(status)}
-                    </span>
-                );
-            },
-            width: '110px'
-        },
-        {
-            key: 'startedAt',
-            title: 'Data Início',
-            sortable: true,
-            render: (delivery) => {
-                const startedAt = delivery.deliveries?.[0]?.startedAt;
-                if (!startedAt) return <div className="text-center text-xs text-gray-700">-</div>;
-
-                const date = new Date(startedAt);
-                const formatted = `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-                return (
-                    <div className="text-center text-xs text-gray-700 whitespace-nowrap">
-                        {formatted}
-                    </div>
-                );
-            },
-            width: '130px',
-            align: 'center'
-        },
-        {
-            key: 'finishedAt',
-            title: 'Data Fim',
-            sortable: true,
-            render: (delivery) => {
-                const finishedAt = delivery.deliveries?.[0]?.finishedAt;
-                if (!finishedAt) return <div className="text-center text-xs text-gray-700">-</div>;
-
-                const date = new Date(finishedAt);
-                const formatted = `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-                return (
-                    <div className="text-center text-xs text-gray-700 whitespace-nowrap">
-                        {formatted}
-                    </div>
-                );
-            },
-            width: '130px',
-            align: 'center'
-        },
-        {
-            key: 'totalItems',
-            title: 'Qtd. Itens',
-            sortable: true,
-            render: (delivery) => (
-                <div className="text-center font-medium text-gray-900">
-                    {delivery.totalItems || 0}
-                </div>
-            ),
-            width: '90px',
-            align: 'center'
-        },
-        {
-            key: 'actions',
-            title: 'AÇÕES',
-            sortable: false,
-            filterable: false,
-            render: (delivery) => (
-                <div className="flex items-center justify-center gap-1">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleGeneratePdf(delivery)}
-                        disabled={generatingPdfDeliveryId === delivery.deliveries?.[0]?.id}
-                        title="Gerar PDF"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                    >
-                        {generatingPdfDeliveryId === delivery.deliveries?.[0]?.id ? (
-                            <LoadingSpinner size="sm" />
-                        ) : (
-                            <FileText className="h-4 w-4" />
-                        )}
-                    </Button>
-
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleView(delivery)}
-                        title="Ver detalhes"
-                    >
-                        <Eye className="h-4 w-4" />
-                    </Button>
-
-                    {isAdmin && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeliveryEmail(delivery)}
-                            title={delivery.deliveries?.[0]?.deliveryEmailSent ? "Email de entrega já enviado - Reenviar?" : "Enviar email de entrega"}
-                            className={delivery.deliveries?.[0]?.deliveryEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}
-                        >
-                            <Mail className="h-4 w-4" />
-                        </Button>
-                    )}
-
-                    {canEdit && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(delivery)}
-                            title="Editar"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </Button>
-                    )}
-
-                    {canDelete && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(delivery)}
-                            title="Excluir"
-                            className="text-red-600 hover:text-red-800"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
-            ),
-            width: '180px',
-            align: 'center'
-        }
-    ];
-
-    const handleView = (group: DeliveryGroupResponse) => {
-        navigate(`/deliveries/task/${group.taskId}`);
-    };
-
-    const handleEdit = (group: DeliveryGroupResponse) => {
-
-        const deliveryId = group.deliveries?.[0]?.id;
-        
-        if (deliveryId) {
-            navigate(`/deliveries/${deliveryId}/edit`);
-        } else {
-            toast.error('Entrega não encontrada para edição');
-        }
-    };
-
-    const handleDelete = (group: DeliveryGroupResponse) => {
-        setGroupToDelete(group);
-        setShowDeleteModal(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!groupToDelete) return;
-
-        try {
-
-            const deliveryId = groupToDelete.deliveries?.[0]?.id;
-            
-            if (deliveryId) {
-                await deliveryService.delete(deliveryId);
-                toast.success('Entrega excluída com sucesso!');
-
-                await fetchDeliveryGroups();
-                fetchStatistics();
-            } else {
-                toast.error('ID da entrega não encontrado');
-            }
-        } catch (error) {
-            console.error('Erro ao excluir entrega:', error);
-            toast.error('Erro ao excluir entrega');
-        } finally {
-            setShowDeleteModal(false);
-            setGroupToDelete(null);
-        }
-    };
-
-    const handleExportDevelopment = () => exportToExcel('DESENVOLVIMENTO', canViewValues);
-    const handleExportOperational = () => exportToExcel('OPERACIONAL', canViewValues);
-    const handleExportAll = () => exportDeliveriesOnlyToExcel(canViewValues);
-
-    const handleSync = async () => {
-        setSyncing(true);
-        try {
-            const response = await gitSyncService.syncMergedPullRequests();
-            if (response.success) {
-                toast.success(response.message);
-                await fetchDeliveryGroups();
-                fetchStatistics();
-            } else {
-                toast.error(response.message);
-            }
-        } catch (error) {
-            console.error('Erro ao sincronizar PRs:', error);
-            toast.error('Erro ao sincronizar PRs mergeados');
-        } finally {
-            setSyncing(false);
-        }
-    };
-
-    const handleGenerateStatistics = async () => {
-        try {
-            setGeneratingReport(true);
-
-            const parseDate = (dateStr: string | undefined): string | null => {
-                if (!dateStr) return null;
-
-                if (dateStr.includes('T')) {
-                    return dateStr;
-                }
-
-                const [day, month, year] = dateStr.split('/');
-                if (day && month && year) {
-                    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00`;
-                }
-
-                return new Date(dateStr).toISOString();
-            };
-
-            const dataInicio = parseDate(filters.startDate);
-            const dataFim = parseDate(filters.endDate);
-
-            const request = {
-                dataInicio,
-                dataFim,
-                tipoTarefa: filters.taskType || null,
-                ambiente: filters.environment || null
-            };
-
-            const blob = await reportService.generateOperationalPdf(request);
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            link.download = `estatisticas_operacionais_${timestamp}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-
-            toast.success('Relatório gerado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao gerar relatório:', error);
-            toast.error('Erro ao gerar relatório de estatísticas');
-        } finally {
-            setGeneratingReport(false);
-        }
-    };
-
-    const handleGeneratePdf = async (group: DeliveryGroupResponse) => {
-        const deliveryId = group.deliveries?.[0]?.id;
-        if (!deliveryId) {
-            toast.error('ID da entrega não encontrado');
-            return;
-        }
-
-        setGeneratingPdfDeliveryId(deliveryId);
-        try {
-            const blob = await reportService.generateDeliveryPdf(deliveryId);
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            const now = new Date();
-            const timestamp = [
-                String(now.getDate()).padStart(2, '0'),
-                String(now.getMonth() + 1).padStart(2, '0'),
-                now.getFullYear(),
-                String(now.getHours()).padStart(2, '0'),
-                String(now.getMinutes()).padStart(2, '0'),
-                String(now.getSeconds()).padStart(2, '0')
-            ].join('-');
-            const flowTypeCode = group.deliveries?.[0]?.flowType === 'DESENVOLVIMENTO' ? 'DEV' : 'OP';
-            link.download = `entrega-${deliveryId}-${group.taskCode}-${flowTypeCode}-${timestamp}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            toast.success('PDF gerado com sucesso');
-        } catch (error) {
-            toast.error('Erro ao gerar PDF');
-        } finally {
-            setGeneratingPdfDeliveryId(null);
-        }
-    };
-
-    const handleDeliveryEmail = (group: DeliveryGroupResponse) => {
-        setGroupForEmail(group);
-        setAdditionalEmails([]);
-        setCurrentEmailInput('');
-        setAdditionalWhatsAppRecipients([]);
-        setCurrentWhatsAppInput('');
-        setSendEmail(true);
-        setSendWhatsApp(true);
-        setShowDeliveryEmailModal(true);
-    };
-
-    const confirmSendDeliveryEmail = async () => {
-        if (!groupForEmail) return;
-
-        if (!sendEmail && !sendWhatsApp) {
-            toast.error('Selecione pelo menos um canal de notificação');
-            return;
-        }
-
-        try {
-            const deliveryId = groupForEmail.deliveries?.[0]?.id;
-            if (deliveryId) {
-                await deliveryService.sendDeliveryEmail(deliveryId, additionalEmails, additionalWhatsAppRecipients, sendEmail, sendWhatsApp);
-                toast.success('Notificação de entrega enviada com sucesso!');
-                await fetchDeliveryGroups();
-            } else {
-                toast.error('ID da entrega não encontrado');
-            }
-        } catch (error) {
-            console.error('Erro ao enviar notificação:', error);
-            toast.error('Falha ao enviar notificação');
-        } finally {
-            setShowDeliveryEmailModal(false);
-            setGroupForEmail(null);
-            setAdditionalEmails([]);
-            setCurrentEmailInput('');
-            setAdditionalWhatsAppRecipients([]);
-            setCurrentWhatsAppInput('');
-            setSendEmail(true);
-            setSendWhatsApp(true);
-        }
-    };
-
-    const addEmail = () => {
-        const email = currentEmailInput.trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            if (!additionalEmails.includes(email)) {
-                setAdditionalEmails([...additionalEmails, email]);
-                setCurrentEmailInput('');
-            } else {
-                toast.error('Este email já foi adicionado');
-            }
-        } else if (email) {
-            toast.error('Email inválido');
-        }
-    };
-
-    const removeEmail = (index: number) => {
-        setAdditionalEmails(additionalEmails.filter((_, i) => i !== index));
-    };
-
-    const addWhatsAppRecipient = () => {
-        const recipient = currentWhatsAppInput.trim();
-        if (recipient) {
-            if (!additionalWhatsAppRecipients.includes(recipient)) {
-                setAdditionalWhatsAppRecipients([...additionalWhatsAppRecipients, recipient]);
-                setCurrentWhatsAppInput('');
-            } else {
-                toast.error('Este destinatário já foi adicionado');
-            }
-        }
-    };
-
-    const removeWhatsAppRecipient = (index: number) => {
-        setAdditionalWhatsAppRecipients(additionalWhatsAppRecipients.filter((_, i) => i !== index));
-    };
-
-    const handleSort = (field: string, direction: 'asc' | 'desc') => {
-        setSorting(field, direction);
-    };
-
-    const getStatusColor = (status: DeliveryStatus) => {
-        const colors = {
-            PENDING: 'text-yellow-700 bg-yellow-50 border border-yellow-100',
-            DEVELOPMENT: 'text-blue-700 bg-blue-50 border border-blue-100',
-            DELIVERED: 'text-green-700 bg-green-50 border border-green-100',
-            HOMOLOGATION: 'text-amber-700 bg-amber-50 border border-amber-100',
-            APPROVED: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
-            REJECTED: 'text-rose-700 bg-rose-50 border border-rose-100',
-            PRODUCTION: 'text-violet-700 bg-violet-50 border border-violet-100',
-            CANCELLED: 'text-red-600 bg-red-50 border border-red-200'
-        };
-        return colors[status] || colors.PENDING;
-    };
-
-    const getStatusLabel = (status: DeliveryStatus) => {
-        const labels = {
-            PENDING: 'Pendente',
-            DEVELOPMENT: 'Desenvolvimento',
-            DELIVERED: 'Entregue',
-            HOMOLOGATION: 'Homologação',
-            APPROVED: 'Aprovado',
-            REJECTED: 'Rejeitado',
-            PRODUCTION: 'Produção',
-            CANCELLED: 'Cancelado'
-        };
-        return labels[status] || status;
-    };
-
-    const formatCurrency = (value?: number) => {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
-    };
-
-    const renderStatisticsCards = () => {
-        if (!statistics) return null;
-
-        const statusCards = [
-            {
-                key: 'pending',
-                label: 'Pendente',
-                count: statistics.pending,
-                color: 'text-yellow-700 border-yellow-100',
-                icon: '⏳'
-            },
-            {
-                key: 'development',
-                label: 'Desenvolvimento',
-                count: statistics.development,
-                color: 'text-blue-700 border-blue-100',
-                icon: '🔧'
-            },
-            {
-                key: 'delivered',
-                label: 'Entregue',
-                count: statistics.delivered,
-                color: 'text-green-700 border-green-100',
-                icon: '📦'
-            },
-            {
-                key: 'homologation',
-                label: 'Homologação',
-                count: statistics.homologation,
-                color: 'text-amber-700 border-amber-100',
-                icon: '🔍'
-            },
-            {
-                key: 'approved',
-                label: 'Aprovado',
-                count: statistics.approved,
-                color: 'text-emerald-700 border-emerald-100',
-                icon: '✅'
-            },
-            {
-                key: 'rejected',
-                label: 'Rejeitado',
-                count: statistics.rejected,
-                color: 'text-rose-700 border-rose-100',
-                icon: '❌'
-            },
-            {
-                key: 'production',
-                label: 'Produção',
-                count: statistics.production,
-                color: 'text-violet-700 border-violet-100',
-                icon: '🚀'
-            },
-            {
-                key: 'cancelled',
-                label: 'Cancelado',
-                count: statistics.cancelled,
-                color: 'text-red-600 border-red-200',
-                icon: '🚫'
-            }
-        ];
-
-        return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:[grid-template-columns:repeat(8,auto)] gap-y-7 gap-x-3">
-                {statusCards.map(card => (
-                    <Card key={card.key} className={`flex-auto p-0 border ${card.color} hover:shadow-sm transition-shadow cursor-default 
-                    relative overflow-visible`}>
-                        <div className="text-start flex items-center mt-2">
-                            <div>
-                                <div className="text-xs font-medium leading-tight">{card.label}</div>
-                                <div className="text-xl font-bold mb-1">{card.count}</div>
-                            </div>
-                            <div className={`text-lg absolute border-2 bg-white ${card.color} rounded-full left-0 top-0 
-                            translate-x-1/2 -translate-y-1/2`}>{card.icon}</div>
-                        </div>
-                    </Card>
-                ))}
-            </div>
-        );
-    };
-
-
-    return (
-        <div className="space-y-6">
-            {/* Header - Responsivo: Vertical no mobile, Horizontal no desktop */}
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                {/* Filtros */}
-                <div className="w-full lg:w-auto">
-                    <div className="sm:w-min flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto]
-                    sm:grid-rows-3 sm:items-center sm:gap-3 sm:flex-wrap md:flex md:flex-row md:w-full">
-                        <FlowTypeFilter
-                            value={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
-                            onChange={(value) => setFilter('flowType', value === 'TODOS' ? '' : value)}
-                        />
-
-                        <TaskTypeFilter
-                            value={(filters.taskType as TaskTypeFilterValue) || 'TODOS'}
-                            onChange={(value) => setFilter('taskType', value === 'TODOS' ? '' : value)}
-                            flowType={(filters.flowType as FlowTypeFilterValue) || 'TODOS'}
-                        />
-
-                        <EnvironmentFilter
-                            value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
-                            onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
-                        />
-
-                        <div className="w-full sm:[grid-area:3/1/3/span_2] [@media(min-width:2140px)]:w-auto">
-                            <DateRangeFilter
-                                startDate={filters.startDate || ''}
-                                endDate={filters.endDate || ''}
-                                onStartDateChange={(date) => setFilter('startDate', date)}
-                                onEndDateChange={(date) => setFilter('endDate', date)}
-                            />
-                        </div>
-
-                        {/* Ações em lote - visível apenas se houver seleções */}
-                        {selectedDeliveries.length > 0 && canDelete && (
-                            <Button
-                                variant="outline"
-                                onClick={() => setShowBulkDeleteModal(true)}
-                                className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir ({selectedDeliveries.length})
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Botões de Ação */}
-                <div className="flex flex-col gap-2 sm:grid sm:grid-cols-[auto_auto_auto] sm:items-center sm:gap-3
-                md:my-5 [@media(min-width:1760px)]:flex [@media(min-width:1760px)]:flex-row">
-                    {isAdmin && (
-                        <Button
-                            variant="outline"
-                            onClick={handleSync}
-                            disabled={syncing}
-                            className="w-full sm:w-auto"
-                            title="Sincronizar PRs mergeados do GitHub"
-                        >
-                            {syncing ? (
-                                <>
-                                    <LoadingSpinner size="sm" />
-                                    Sincronizando...
-                                </>
-                            ) : (
-                                <>
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Sincronizar
-                                </>
-                            )}
-                        </Button>
-                    )}
-
-                    <Button
-                        variant="outline"
-                        onClick={handleExportDevelopment}
-                        disabled={exporting}
-                        className="w-full sm:w-auto"
-                    >
-                        {exporting ? (
-                            <>
-                                <LoadingSpinner size="sm" />
-                                Exportando...
-                            </>
-                        ) : (
-                            <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Desenvolvimento
-                            </>
-                        )}
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        onClick={handleExportOperational}
-                        disabled={exporting}
-                        className="w-full sm:w-auto"
-                    >
-                        {exporting ? (
-                            <>
-                                <LoadingSpinner size="sm" />
-                                Exportando...
-                            </>
-                        ) : (
-                            <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Operacional
-                            </>
-                        )}
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        onClick={handleExportAll}
-                        disabled={exporting}
-                        className="w-full sm:w-auto"
-                    >
-                        {exporting ? (
-                            <>
-                                <LoadingSpinner size="sm" />
-                                Exportando...
-                            </>
-                        ) : (
-                            <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Entregas
-                            </>
-                        )}
-                    </Button>
-
-                    {canViewValues && (
-                        <Button
-                            variant="outline"
-                            onClick={handleGenerateStatistics}
-                            disabled={generatingReport}
-                            className="w-full sm:w-auto"
-                        >
-                            {generatingReport ? (
-                                <>
-                                    <LoadingSpinner size="sm" />
-                                    Gerando...
-                                </>
-                            ) : (
-                                <>
-                                    <BarChart3 className="h-4 w-4 mr-2" />
-                                    Estatísticas
-                                </>
-                            )}
-                        </Button>
-                    )}
-
-                    {canCreate && (
-                        <Button onClick={() => navigate('/deliveries/create')} className="w-full sm:w-auto lg:w-max">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nova Entrega
-                        </Button>
-                    )}
-                </div>
-            </div>
-
-            {/* Estatísticas por Status */}
-            {renderStatisticsCards()}
-
-            {/* Mobile: Cards Layout */}
-            <div className="block sm:hidden">
-                {loading ? (
-                    <div className="flex items-center justify-center py-8">
-                        <LoadingSpinner size="lg" />
-                        <span className="ml-3 text-gray-600">Carregando entregas...</span>
-                    </div>
-                ) : deliveryGroups.filter(delivery => delivery && delivery.taskId).length === 0 ? (
-                    <div className="text-center py-12">
-                        <Package className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma entrega criada</h3>
-                        <p className="mt-1 text-sm text-gray-500">Crie sua primeira entrega para começar</p>
-                        {canCreate && (
-                            <Button onClick={() => navigate('/deliveries/create')} className="mt-4">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Nova Entrega
-                            </Button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {deliveryGroups.filter(delivery => delivery && delivery.taskId).map((delivery) => (
-                            <Card key={delivery.taskId} className="p-4">
-                                <div className="space-y-3">
-                                    {/* Header com ID e Código */}
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <span className="text-sm font-medium text-gray-900">
-                                                #{delivery.deliveries?.[0]?.id || 'N/A'}
-                                            </span>
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                                {delivery.taskId} - {delivery.taskCode || 'N/A'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Título da Tarefa */}
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 text-lg leading-tight">
-                                            {delivery.taskName || 'N/A'}
-                                        </h3>
-                                    </div>
-
-                                    {/* Valor - apenas para ADMIN e MANAGER */}
-                                    {canViewValues && (
-                                        <div className="flex items-center gap-1 text-sm">
-                                            <DollarSign className="w-4 h-4 text-green-600" />
-                                            <span className="font-medium text-green-600">
-                                                {formatCurrency(delivery.taskValue)}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Ações + Informações - na mesma linha para economizar espaço */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-sm flex-1">
-                                            {/* Ações compactas */}
-                                            <div className="flex gap-1 mr-3">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleGeneratePdf(delivery)}
-                                                    disabled={generatingPdfDeliveryId === delivery.deliveries?.[0]?.id}
-                                                    title="Gerar PDF"
-                                                    className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1"
-                                                >
-                                                    {generatingPdfDeliveryId === delivery.deliveries?.[0]?.id ? (
-                                                        <LoadingSpinner size="sm" />
-                                                    ) : (
-                                                        <FileText className="w-3.5 h-3.5" />
-                                                    )}
-                                                </Button>
-
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleView(delivery)}
-                                                    title="Ver detalhes"
-                                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
-                                                >
-                                                    <Eye className="w-3.5 h-3.5" />
-                                                </Button>
-
-                                                {isAdmin && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleDeliveryEmail(delivery)}
-                                                        title={delivery.deliveries?.[0]?.deliveryEmailSent ? "Email de entrega já enviado - Reenviar?" : "Enviar email de entrega"}
-                                                        className={`p-1 ${delivery.deliveries?.[0]?.deliveryEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
-                                                    >
-                                                        <Mail className="w-3.5 h-3.5" />
-                                                    </Button>
-                                                )}
-
-                                                {canEdit && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleEdit(delivery)}
-                                                        title="Editar"
-                                                        className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
-                                                    >
-                                                        <Edit className="w-3.5 h-3.5" />
-                                                    </Button>
-                                                )}
-
-                                                {canDelete && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleDelete(delivery)}
-                                                        title="Excluir"
-                                                        className="text-gray-600 hover:text-red-600 hover:bg-red-50 p-1"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                            
-                                            {/* Status */}
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}`}>
-                                                {getStatusLabel((delivery.calculatedDeliveryStatus || delivery.deliveryStatus) as DeliveryStatus || 'PENDING')}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Informações Adicionais */}
-                                    <div className="flex flex-col gap-2 text-sm text-gray-600 pt-2 border-t border-gray-100">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-medium text-gray-700">Data Início:</span>
-                                            <span>
-                                                {delivery.deliveries?.[0]?.startedAt
-                                                    ? (() => {
-                                                        const date = new Date(delivery.deliveries[0].startedAt);
-                                                        return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-                                                    })()
-                                                    : '-'
-                                                }
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-medium text-gray-700">Data Fim:</span>
-                                            <span>
-                                                {delivery.deliveries?.[0]?.finishedAt
-                                                    ? (() => {
-                                                        const date = new Date(delivery.deliveries[0].finishedAt);
-                                                        return `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-                                                    })()
-                                                    : '-'
-                                                }
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                        
-                        {/* Paginação Melhorada (mobile) */}
-                        {pagination && pagination.totalPages > 1 && (
-                            <Card className="p-4">
-                                <div className="space-y-3">
-                                    {/* Informação de registros */}
-                                    <div className="text-center text-sm text-gray-600">
-                                        {formatMobileRecordCountText(
-                                            pagination.currentPage,
-                                            pagination.pageSize,
-                                            pagination.totalElements || 0
-                                        )}
-                                    </div>
-                                    
-                                    {/* Controles de navegação */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex gap-1">
-                                            {/* Primeira página */}
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(0)}
-                                                disabled={pagination.currentPage <= 0}
-                                                title="Primeira página"
-                                                className="p-2"
-                                            >
-                                                <ChevronsLeft className="w-4 h-4" />
-                                            </Button>
-                                            {/* Página anterior */}
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(Math.max(0, pagination.currentPage - 1))}
-                                                disabled={pagination.currentPage <= 0}
-                                                title="Página anterior"
-                                            >
-                                                Anterior
-                                            </Button>
-                                        </div>
-
-                                        <span className="text-sm text-gray-600 font-medium">
-                                            Página {pagination.currentPage + 1} de {pagination.totalPages}
-                                        </span>
-
-                                        <div className="flex gap-1">
-                                            {/* Próxima página */}
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(Math.min(pagination.totalPages - 1, pagination.currentPage + 1))}
-                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
-                                                title="Próxima página"
-                                            >
-                                                Próxima
-                                            </Button>
-                                            {/* Última página */}
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(pagination.totalPages - 1)}
-                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
-                                                title="Última página"
-                                                className="p-2"
-                                            >
-                                                <ChevronsRight className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Desktop: DataTable */}
-            <Card className="p-0 hidden sm:block">
-                <DataTable
-                    data={deliveryGroups.filter(delivery => delivery && delivery.taskId)}
-                    columns={columns}
-                    loading={loading}
-                    pagination={pagination ? {
-                        currentPage: pagination.currentPage || 0,
-                        pageSize: pagination.pageSize || 25,
-                        totalElements: pagination.totalElements || 0,
-                        totalPages: pagination.totalPages || 0,
-                        first: pagination.first || false,
-                        last: pagination.last || false
-                    } : null}
-                    onPageChange={setPage}
-                    onPageSizeChange={setPageSize}
-                    sorting={sorting}
-                    onSort={handleSort}
-                    filters={filters}
-                    onFilter={setFilter}
-                    onClearFilters={clearFilters}
-                    hiddenColumns={hiddenColumns}
-                    onColumnVisibilityChange={setHiddenColumns}
-                    emptyState={{
-                        icon: Package,
-                        title: 'Nenhuma entrega criada',
-                        description: 'Crie sua primeira entrega para começar',
-                        action: canCreate ? (
-                            <Button onClick={() => navigate('/deliveries/create')}>
-                                <Plus className="h-4 w-4 mr-2" />
-                                Nova Entrega
-                            </Button>
-                        ) : undefined
-                    }}
-                />
-            </Card>
-
-            {/* Modals */}
-
-            {groupToDelete && (
-                <DeleteConfirmationModal
-                    isOpen={showDeleteModal}
-                    onClose={() => setShowDeleteModal(false)}
-                    onConfirm={handleConfirmDelete}
-                    title="Excluir Entrega"
-                    message={`Tem certeza que deseja excluir a entrega da tarefa "${groupToDelete.taskName}"? Esta ação não pode ser desfeita.`}
-                />
-            )}
-
-            {/* Modal de confirmação de email de entrega */}
-            {showDeliveryEmailModal && groupForEmail && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            {/* Header */}
-                            <div className="flex items-center justify-center mb-4">
-                                <div className="bg-blue-100 p-3 rounded-full">
-                                    📧 Notificação de Entrega
-                                </div>
-                            </div>
-                            
-                            <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
-                                Tarefa: {groupForEmail.taskCode}
-                            </h2>
-
-                            <div className="mb-6">
-                                {groupForEmail.deliveries?.[0]?.deliveryEmailSent ? (
-                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                                        <div className="flex items-center mb-2">
-                                            <span className="text-amber-600 mr-2">⚠️</span>
-                                            <span className="font-semibold text-amber-800">Notificação já enviada</span>
-                                        </div>
-                                        <p className="text-amber-700 text-sm">
-                                            A notificação de entrega para esta tarefa já foi enviada anteriormente.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                                        <div className="flex items-center mb-2">
-                                            <span className="text-blue-600 mr-2">📧</span>
-                                            <span className="font-semibold text-blue-800">Enviar notificação de entrega</span>
-                                        </div>
-                                        <p className="text-blue-700 text-sm">
-                                            Enviar notificação com os detalhes da entrega.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Seleção de Canais de Notificação */}
-                                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <label className="block text-sm font-medium text-gray-900 mb-3">
-                                        Canais de Notificação
-                                    </label>
-                                    <div className="space-y-2">
-                                        <label className="flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={sendEmail}
-                                                onChange={(e) => setSendEmail(e.target.checked)}
-                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                            />
-                                            <span className="ml-2 text-sm text-gray-700">
-                                                📧 Enviar por Email
-                                            </span>
-                                        </label>
-                                        <label className="flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={sendWhatsApp}
-                                                onChange={(e) => setSendWhatsApp(e.target.checked)}
-                                                className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                            />
-                                            <span className="ml-2 text-sm text-gray-700">
-                                                💬 Enviar por WhatsApp
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Campo para adicionar emails extras em cópia */}
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Emails adicionais em cópia (opcional)
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="email"
-                                            value={currentEmailInput}
-                                            onChange={(e) => setCurrentEmailInput(e.target.value)}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault();
-                                                    addEmail();
-                                                }
-                                            }}
-                                            placeholder="exemplo@email.com"
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                        />
-                                        <Button
-                                            onClick={addEmail}
-                                            variant="outline"
-                                            type="button"
-                                        >
-                                            Adicionar
-                                        </Button>
-                                    </div>
-
-                                    {/* Lista de emails adicionados */}
-                                    {additionalEmails.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {additionalEmails.map((email, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                                                >
-                                                    {email}
-                                                    <button
-                                                        onClick={() => removeEmail(index)}
-                                                        className="hover:text-blue-900 font-bold"
-                                                        title="Remover email"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Campo para adicionar destinatários WhatsApp em cópia */}
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Destinatários WhatsApp em cópia (opcional)
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={currentWhatsAppInput}
-                                            onChange={(e) => setCurrentWhatsAppInput(e.target.value)}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault();
-                                                    addWhatsAppRecipient();
-                                                }
-                                            }}
-                                            placeholder="5511999999999 ou 120363012345678901@g.us"
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
-                                        />
-                                        <Button
-                                            onClick={addWhatsAppRecipient}
-                                            variant="outline"
-                                            type="button"
-                                        >
-                                            Adicionar
-                                        </Button>
-                                    </div>
-
-                                    {/* Lista de destinatários WhatsApp adicionados */}
-                                    {additionalWhatsAppRecipients.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {additionalWhatsAppRecipients.map((recipient, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-                                                >
-                                                    {recipient}
-                                                    <button
-                                                        onClick={() => removeWhatsAppRecipient(index)}
-                                                        className="hover:text-green-900 font-bold"
-                                                        title="Remover destinatário"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowDeliveryEmailModal(false);
-                                        setGroupForEmail(null);
-                                    }}
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={confirmSendDeliveryEmail}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                                >
-                                    {groupForEmail.deliveries?.[0]?.deliveryEmailSent ? 'Reenviar' : 'Enviar Email'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal de exclusão em lote */}
-            <BulkDeleteModal
-                isOpen={showBulkDeleteModal}
-                onClose={() => setShowBulkDeleteModal(false)}
-                onConfirm={handleBulkDelete}
-                selectedCount={selectedDeliveries.length}
-                isDeleting={isBulkDeleting}
-                entityName="entrega"
-            />
+  const navigate = useNavigate()
+  const { hasAnyProfile } = useAuth() as any
+  const {
+    deliveryGroups, pagination, loading, error, filters,
+    deleteBulk,
+    setPage, setPageSize, setFilter, clearFilters,
+    exportToExcel, exportDeliveriesOnlyToExcel,
+  } = useDeliveries({ size: 25 })
+
+  const [selection, setSelection] = React.useState<Record<string, boolean>>({})
+  const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'bulk'; ids: number[] } | null>(null)
+  const [syncing, setSyncing] = React.useState(false)
+
+  const selectedIds = React.useMemo(
+    () => Object.keys(selection).filter((k) => selection[k]).map((k) => Number(k)),
+    [selection]
+  )
+
+  const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
+
+  // Pipeline overview a partir dos dados carregados (aproximado — soma dos grupos da página atual)
+  const pipelineSegments = React.useMemo(() => {
+    const counts: Record<string, number> = {
+      PENDING: 0, DEVELOPMENT: 0, DELIVERED: 0, HOMOLOGATION: 0,
+      APPROVED: 0, REJECTED: 0, PRODUCTION: 0, CANCELLED: 0,
+    }
+    deliveryGroups.forEach((g: any) => {
+      const s = (g.calculatedDeliveryStatus || g.deliveryStatus) as string
+      if (s && counts[s] !== undefined) counts[s] += 1
+    })
+    const tones: Record<string, any> = {
+      PENDING: 'neutral', DEVELOPMENT: 'info', DELIVERED: 'info',
+      HOMOLOGATION: 'warning', APPROVED: 'success', REJECTED: 'danger',
+      PRODUCTION: 'success', CANCELLED: 'tertiary',
+    }
+    return Object.keys(counts).map((key) => ({
+      key,
+      label: STATUS_LABEL[key],
+      count: counts[key],
+      tone: tones[key],
+    }))
+  }, [deliveryGroups])
+
+  const pipelineTotal = pipelineSegments.reduce((a, b) => a + b.count, 0)
+
+  const handleSync = async () => {
+    try {
+      setSyncing(true)
+      await (gitSyncService as any).syncAll?.()
+      toast.success('Sincronização iniciada')
+    } catch (e: any) {
+      toast.error(e?.message || 'Falha ao sincronizar')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const columns = React.useMemo<ColumnDef<DeliveryGroup, any>[]>(() => [
+    {
+      id: 'id', header: 'ID', size: 70,
+      cell: ({ row }) => <span className="font-mono text-xs text-text-tertiary">#{row.original.deliveryId ?? '—'}</span>,
+    },
+    {
+      accessorKey: 'taskCode', header: 'Tarefa',
+      cell: ({ row }) => (
+        <div className="flex flex-col min-w-0">
+          <span className="text-text-primary truncate max-w-[400px]">{row.original.taskName}</span>
+          <span className="font-mono text-xs text-text-tertiary truncate">{row.original.taskCode}</span>
         </div>
-    );
-};
+      ),
+    },
+    {
+      id: 'status', header: 'Status', size: 200,
+      cell: ({ row }) => (
+        <DeliveryStatusBadge
+          status={row.original.calculatedDeliveryStatus || row.original.deliveryStatus}
+          withTime={row.original.updatedAt}
+        />
+      ),
+    },
+    {
+      id: 'progress', header: 'Itens', size: 110,
+      cell: ({ row }) => (
+        <span className="text-xs tabular-nums text-text-secondary">
+          {row.original.completedDeliveries}/{row.original.totalDeliveries}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'taskValue', header: () => <span className="block text-right">Valor</span>, size: 110,
+      cell: ({ row }) => <span className="block text-right tabular-nums text-text-primary">{brl(row.original.taskValue)}</span>,
+    },
+    {
+      id: '__actions', header: '', size: 80,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/deliveries/task/${row.original.taskId}`)} aria-label="Ver"><Eye /></Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => navigate(`/deliveries/task/${row.original.taskId}`)}><Eye />Visualizar</DropdownMenuItem>
+              {canCRUD && (
+                <DropdownMenuItem onSelect={() => navigate(`/deliveries/group/${row.original.taskId}/edit`)}><Pencil />Editar grupo</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ], [navigate, canCRUD])
 
-export default DeliveryList;
+  const chips: any[] = []
+  if (filters.flowType)    chips.push({ key: 'flowType', label: 'Fluxo',  value: FLOW_LABEL[filters.flowType as string] || String(filters.flowType), onRemove: () => setFilter('flowType', '') })
+  if (filters.environment) chips.push({ key: 'env',      label: 'Ambiente', value: String(filters.environment), onRemove: () => setFilter('environment', '') })
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Entregas"
+        subtitle={pagination ? `${pagination.totalElements} entrega${pagination.totalElements === 1 ? '' : 's'}` : undefined}
+        filters={
+          <Select value={filters.flowType || '__all'} onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}>
+            <SelectTrigger className="w-[160px] h-8"><SelectValue placeholder="Fluxo: Todos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">Fluxo: Todos</SelectItem>
+              <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
+              <SelectItem value="OPERACIONAL">Operacional</SelectItem>
+            </SelectContent>
+          </Select>
+        }
+        actions={
+          <>
+            <Button variant="secondary" leadingIcon={<RefreshCw className={syncing ? 'animate-spin' : ''} />} onClick={handleSync} loading={syncing}>
+              Sincronizar
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => exportToExcel().catch(() => {})}>Tudo</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel().catch(() => {})}>Só entregas</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {canCRUD && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
+          </>
+        }
+      />
+
+      <DeliveryPipelineOverview
+        segments={pipelineSegments}
+        total={pipelineTotal}
+        activeKey={null}
+      />
+
+      <div>
+        <FilterChipsRow chips={chips} onClearAll={() => clearFilters()} />
+
+        <DataTableBulkBar
+          selectedCount={selectedIds.length}
+          onClear={() => setSelection({})}
+          actions={canCRUD && (
+            <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ kind: 'bulk', ids: selectedIds })}>
+              Excluir
+            </Button>
+          )}
+        />
+
+        <div className="hidden lg:block">
+          <DataTable<DeliveryGroup>
+            data={deliveryGroups as any[]}
+            columns={columns}
+            rowKey={(r) => r.taskId}
+            loading={loading}
+            error={error}
+            selectable
+            selection={selection}
+            onSelectionChange={setSelection}
+            onRowClick={(r) => navigate(`/deliveries/task/${r.taskId}`)}
+            pagination={pagination ? {
+              page: pagination.currentPage,
+              pageSize: pagination.pageSize,
+              total: pagination.totalElements,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            } : undefined}
+            empty={
+              <EmptyState
+                icon={<Truck />}
+                title="Nenhuma entrega"
+                description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie a primeira entrega.'}
+                actions={canCRUD && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
+              />
+            }
+          />
+        </div>
+
+        {/* Mobile */}
+        <div className="lg:hidden space-y-2">
+          {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+          {!loading && deliveryGroups.length === 0 && (
+            <EmptyState icon={<Truck />} title="Nenhuma entrega" description="Crie a primeira." actions={canCRUD && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova</Button>} />
+          )}
+          {!loading && deliveryGroups.map((d: any) => (
+            <button
+              key={d.taskId}
+              onClick={() => navigate(`/deliveries/task/${d.taskId}`)}
+              className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <span className="font-mono text-xs text-text-tertiary shrink-0">#{d.deliveryId ?? '—'}</span>
+                <span className="text-sm font-medium tabular-nums text-text-primary shrink-0">{brl(d.taskValue)}</span>
+              </div>
+              <p className="text-sm text-text-primary mb-1 line-clamp-2">{d.taskName}</p>
+              <p className="font-mono text-xs text-text-tertiary mb-2">{d.taskCode}</p>
+              <div className="flex items-center justify-between">
+                <DeliveryStatusBadge status={d.calculatedDeliveryStatus || d.deliveryStatus} withTime={d.updatedAt} />
+                <span className="text-xs text-text-tertiary tabular-nums">{d.completedDeliveries}/{d.totalDeliveries}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {confirmDelete?.ids.length} entrega(s)?</DialogTitle>
+            <DialogDescription>Itens e anexos serão removidos. Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!confirmDelete) return
+                try {
+                  await deleteBulk(confirmDelete.ids)
+                  setSelection({})
+                } finally {
+                  setConfirmDelete(null)
+                }
+              }}
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+export default DeliveryList

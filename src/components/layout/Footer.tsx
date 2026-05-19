@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Linkedin, Github, Instagram, Facebook, Phone, Mail } from 'lucide-react';
 
 const Footer: React.FC = () => {
@@ -6,7 +6,7 @@ const Footer: React.FC = () => {
     <footer className="bg-white border-t border-gray-200 mt-16">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex flex-col items-center space-y-4">
-          {/* Nome e título */}
+          {/* Nome e tÃ­tulo */}
           <div className="text-center">
             <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Desenvolvido por Wesley Eduardo
@@ -18,14 +18,14 @@ const Footer: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600">
             <a
               href="tel:+5598981650805"
-              className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-2 hover:text-accent transition-colors"
             >
               <Phone className="w-4 h-4" />
               <span>+55 98 98165-0805</span>
             </a>
             <a
               href="mailto:wesleyeduardo.dev@gmail.com"
-              className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-2 hover:text-accent transition-colors"
             >
               <Mail className="w-4 h-4" />
               <span>wesleyeduardo.dev@gmail.com</span>
@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
               href="https://www.linkedin.com/in/wesley-eduardo-8a1066169/"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-lg bg-info-soft text-accent hover:bg-accent-soft transition-colors"
               title="LinkedIn"
             >
               <Linkedin className="w-5 h-5" />
@@ -65,7 +65,7 @@ const Footer: React.FC = () => {
               href="https://www.facebook.com/wesleyeduardo.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-lg bg-info-soft text-accent hover:bg-accent-soft transition-colors"
               title="Facebook"
             >
               <Facebook className="w-5 h-5" />
@@ -74,7 +74,7 @@ const Footer: React.FC = () => {
 
           {/* Copyright */}
           <div className="text-xs text-gray-500 text-center pt-4 border-t border-gray-100 w-full">
-            © 2025 DevQuote. Todos os direitos reservados.
+            Â© 2025 DevQuote. Todos os direitos reservados.
           </div>
         </div>
       </div>

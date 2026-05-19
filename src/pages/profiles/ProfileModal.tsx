@@ -107,27 +107,27 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-border-subtle">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg mr-3">
-              <Shield className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-accent-soft rounded-lg mr-3">
+              <Shield className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-text-primary">
                 {isEditing ? 'Editar Perfil' : 'Novo Perfil'}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-text-secondary">
                 {isEditing ? 'Edite as informações do perfil' : 'Crie um novo perfil de usuário'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-2 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-text-tertiary" />
           </button>
         </div>
 
@@ -136,7 +136,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Code */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Código *
               </label>
               <input
@@ -145,9 +145,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
                 onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())}
                 disabled={isEditing}
                 placeholder="ADMIN, MANAGER, USER..."
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.code ? 'border-red-500' : 'border-gray-300'
-                } ${isEditing ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  errors.code ? 'border-red-500' : 'border-border-strong'
+                } ${isEditing ? 'bg-surface-2 cursor-not-allowed' : ''}`}
               />
               {errors.code && (
                 <div className="flex items-center mt-1 text-sm text-red-600">
@@ -156,7 +156,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
                 </div>
               )}
               {isEditing && (
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-text-tertiary">
                   O código não pode ser alterado após a criação
                 </p>
               )}
@@ -164,7 +164,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Nome *
               </label>
               <input
@@ -172,8 +172,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Administrador, Gerente..."
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  errors.name ? 'border-red-500' : 'border-border-strong'
                 }`}
               />
               {errors.name && (
@@ -186,7 +186,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
 
             {/* Level */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Nível *
               </label>
               <input
@@ -195,8 +195,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
                 max="100"
                 value={formData.level}
                 onChange={(e) => handleInputChange('level', parseInt(e.target.value) || 1)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.level ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent ${
+                  errors.level ? 'border-red-500' : 'border-border-strong'
                 }`}
               />
               {errors.level && (
@@ -205,14 +205,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
                   {errors.level}
                 </div>
               )}
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-text-tertiary">
                 Nível de hierarquia (1 = mais alto, 100 = mais baixo)
               </p>
             </div>
 
             {/* Active */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Status
               </label>
               <div className="flex items-center">
@@ -221,13 +221,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
                   id="active"
                   checked={formData.active}
                   onChange={(e) => handleInputChange('active', e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-accent border-border-strong rounded focus:ring-accent"
                 />
-                <label htmlFor="active" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="active" className="ml-2 text-sm text-text-secondary">
                   Perfil ativo
                 </label>
               </div>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-text-tertiary">
                 Perfis inativos não podem ser atribuídos a usuários
               </p>
             </div>
@@ -235,7 +235,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary mb-2">
               Descrição
             </label>
             <textarea
@@ -243,12 +243,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, isEditing, onSave,
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Descreva as responsabilidades e permissões deste perfil..."
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+          <div className="flex justify-end space-x-3 pt-6 border-t border-border-subtle">
             <Button
               type="button"
               variant="outline"

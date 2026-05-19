@@ -130,10 +130,10 @@ export default function DeliveryOperationalItemForm({
     const statusInfo = getCurrentStatusInfo();
 
     return (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-border-subtle rounded-lg overflow-hidden">
             {/* Header */}
             <div
-                className={`p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors ${
+                className={`p-4 bg-surface-app cursor-pointer hover:bg-surface-2 transition-colors ${
                     hasUnsavedChanges ? 'border-l-4 border-l-yellow-400' : ''
                 }`}
                 onClick={() => !isReadOnly && setIsExpanded(!isExpanded)}
@@ -150,7 +150,7 @@ export default function DeliveryOperationalItemForm({
                                         {...dragHandleProps}
                                         onClick={(e) => e.stopPropagation()}
                                         title="Arraste para reordenar"
-                                        className="p-1 -m-1 rounded hover:bg-gray-200 text-gray-400 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+                                        className="p-1 -m-1 rounded hover:bg-surface-3 text-text-tertiary cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
                                     >
                                         <GripVertical className="h-4 w-4" />
                                     </button>
@@ -163,8 +163,8 @@ export default function DeliveryOperationalItemForm({
                                         {position}
                                     </span>
                                 )}
-                                <FileText className="h-4 w-4 text-gray-500 mt-1 flex-shrink-0" />
-                                <h3 className="font-medium text-gray-900 text-sm leading-5 break-words">
+                                <FileText className="h-4 w-4 text-text-tertiary mt-1 flex-shrink-0" />
+                                <h3 className="font-medium text-text-primary text-sm leading-5 break-words">
                                     {currentTitle || 'Novo Item Operacional'}
                                 </h3>
                             </div>
@@ -191,7 +191,7 @@ export default function DeliveryOperationalItemForm({
                                         onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                                         disabled={isFirst}
                                         title="Mover para cima"
-                                        className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                        className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                                     >
                                         <ArrowUp className="h-4 w-4" />
                                     </button>
@@ -202,7 +202,7 @@ export default function DeliveryOperationalItemForm({
                                         onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
                                         disabled={isLast}
                                         title="Mover para baixo"
-                                        className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                        className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                                     >
                                         <ArrowDown className="h-4 w-4" />
                                     </button>
@@ -248,7 +248,7 @@ export default function DeliveryOperationalItemForm({
                                 {...dragHandleProps}
                                 onClick={(e) => e.stopPropagation()}
                                 title="Arraste para reordenar"
-                                className="p-1 -m-1 rounded hover:bg-gray-200 text-gray-400 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+                                className="p-1 -m-1 rounded hover:bg-surface-3 text-text-tertiary cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
                             >
                                 <GripVertical className="h-4 w-4" />
                             </button>
@@ -262,8 +262,8 @@ export default function DeliveryOperationalItemForm({
                             </span>
                         )}
                         <div className="flex items-center gap-2 min-w-0">
-                            <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                            <h3 className="font-medium text-gray-900 truncate">
+                            <FileText className="h-4 w-4 text-text-tertiary flex-shrink-0" />
+                            <h3 className="font-medium text-text-primary truncate">
                                 {currentTitle || 'Novo Item Operacional'}
                             </h3>
                         </div>
@@ -287,7 +287,7 @@ export default function DeliveryOperationalItemForm({
                                 onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
                                 disabled={isFirst}
                                 title="Mover para cima"
-                                className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                             >
                                 <ArrowUp className="h-4 w-4" />
                             </button>
@@ -298,7 +298,7 @@ export default function DeliveryOperationalItemForm({
                                 onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
                                 disabled={isLast}
                                 title="Mover para baixo"
-                                className="p-1 rounded hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                className="p-1 rounded hover:bg-surface-3 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                             >
                                 <ArrowDown className="h-4 w-4" />
                             </button>
@@ -339,7 +339,7 @@ export default function DeliveryOperationalItemForm({
                 <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
                     {/* Título */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-text-secondary mb-1">
                             Título *
                         </label>
                         <Input
@@ -374,13 +374,13 @@ export default function DeliveryOperationalItemForm({
 
                     {/* Status */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-text-secondary mb-1">
                             Status *
                         </label>
                         <select
                             {...register('status')}
                             disabled={isReadOnly}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                            className="w-full p-2 border border-border-strong rounded-md focus:ring-2 focus:ring-accent focus:border-accent disabled:bg-surface-2"
                         >
                             {statusOptions.map(option => (
                                 <option key={option.value} value={option.value}>
@@ -396,7 +396,7 @@ export default function DeliveryOperationalItemForm({
                     {/* Datas */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
                                 Data de Início *
                             </label>
                             <Input
@@ -411,7 +411,7 @@ export default function DeliveryOperationalItemForm({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
                                 Data de Conclusão
                             </label>
                             <Input
@@ -454,7 +454,7 @@ export default function DeliveryOperationalItemForm({
                             </Button>
 
                             {isDirty && (
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-text-tertiary">
                                     Há alterações não salvas
                                 </span>
                             )}

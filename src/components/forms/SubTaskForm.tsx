@@ -205,9 +205,9 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
                     Subtarefas
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-accent-soft text-info-strong">
                         {watchSubTasks?.filter(st => !st?.excluded).length || 0}
                     </span>
                 </h3>
@@ -215,9 +215,9 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4">
                     {canViewValues && (
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-text-secondary">
                             <span className="font-medium">Total: </span>
-                            <span className="text-lg font-bold text-primary-600">
+                            <span className="text-lg font-bold text-accent">
                                 {formatCurrency(calculateTotal())}
                             </span>
                         </div>
@@ -279,14 +279,14 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                         onClick={(e) => e.stopPropagation()}
                                         title="Arraste para reordenar"
                                         aria-label="Arrastar"
-                                        className="p-1 rounded hover:bg-gray-100 text-gray-400 cursor-grab active:cursor-grabbing touch-none shrink-0"
+                                        className="p-1 rounded hover:bg-surface-2 text-text-tertiary cursor-grab active:cursor-grabbing touch-none shrink-0"
                                     >
                                         <GripVertical className="w-4 h-4" />
                                     </button>
                                     <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white shrink-0">
                                         {visiblePosition + 1}
                                     </span>
-                                    <span className="text-sm sm:text-base font-medium text-gray-900 truncate" title={subTask?.title || ''}>
+                                    <span className="text-sm sm:text-base font-medium text-text-primary truncate" title={subTask?.title || ''}>
                                         {subTask?.title?.trim() || (subTask?.id ? `Subtarefa ${subTask.id}` : 'Nova subtarefa')}
                                     </span>
                                 </div>
@@ -297,7 +297,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                         onClick={(e) => { e.stopPropagation(); handleMoveUp(index); }}
                                         disabled={isFirstVisible}
                                         title="Mover para cima"
-                                        className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                        className="p-1 rounded hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                                     >
                                         <ArrowUp className="w-4 h-4" />
                                     </button>
@@ -306,7 +306,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                         onClick={(e) => { e.stopPropagation(); handleMoveDown(index); }}
                                         disabled={isLastVisible}
                                         title="Mover para baixo"
-                                        className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600"
+                                        className="p-1 rounded hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed text-text-secondary"
                                     >
                                         <ArrowDown className="w-4 h-4" />
                                     </button>
@@ -328,25 +328,25 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                         </Button>
                                     )}
                                     {collapsed ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-500" />
+                                        <ChevronDown className="w-5 h-5 text-text-tertiary" />
                                     ) : (
-                                        <ChevronUp className="w-5 h-5 text-gray-500" />
+                                        <ChevronUp className="w-5 h-5 text-text-tertiary" />
                                     )}
                                 </div>
                             </div>
 
                             {!collapsed && (
-                                <div className="space-y-3 sm:space-y-4 mt-4 pt-4 border-t border-gray-200">
+                                <div className="space-y-3 sm:space-y-4 mt-4 pt-4 border-t border-border-subtle">
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                        <label className="block text-sm font-medium text-text-secondary mb-1.5 sm:mb-2">
                                             Título <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             {...register(`subTasks.${index}.title`)}
                                             rows={2}
                                             placeholder="Digite o título da subtarefa"
-                                            className="w-full px-2.5 py-2 sm:px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical text-sm sm:text-base"
+                                            className="w-full px-2.5 py-2 sm:px-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-accent resize-vertical text-sm sm:text-base"
                                             maxLength={200}
                                         />
                                         {errors.subTasks?.[index]?.title && (
@@ -388,7 +388,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                                     placeholder="0,00"
                                                     error={errors.subTasks?.[index]?.amount?.message}
                                                 />
-                                                <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
+                                                <DollarSign className="absolute right-3 top-9 h-4 w-4 text-text-tertiary" />
                                             </div>
                                         ) : (
 
@@ -404,29 +404,29 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                     {subTask?.id && (
                                         <div className="mt-4 border-t pt-4">
                                             <div
-                                                className="cursor-pointer border border-gray-200 rounded-lg"
+                                                className="cursor-pointer border border-border-subtle rounded-lg"
                                                 onClick={() => setExpandedAttachments(prev => ({
                                                     ...prev,
                                                     [subTask.id!]: !prev[subTask.id!]
                                                 }))}
                                             >
-                                                <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                                                <div className="px-4 py-3 hover:bg-surface-app transition-colors">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
-                                                            <Paperclip className="w-4 h-4 text-gray-500" />
-                                                            <span className="text-sm font-medium text-gray-900">Anexos</span>
+                                                            <Paperclip className="w-4 h-4 text-text-tertiary" />
+                                                            <span className="text-sm font-medium text-text-primary">Anexos</span>
                                                             {attachmentCounts[subTask.id!] > 0 && (
-                                                                <span className="text-xs font-medium text-blue-600">({attachmentCounts[subTask.id!]})</span>
+                                                                <span className="text-xs font-medium text-accent">({attachmentCounts[subTask.id!]})</span>
                                                             )}
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-sm text-gray-500">
+                                                            <span className="text-sm text-text-tertiary">
                                                                 {expandedAttachments[subTask.id!] ? 'Recolher' : 'Expandir'}
                                                             </span>
                                                             {expandedAttachments[subTask.id!] ? (
-                                                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                                <ChevronUp className="w-4 h-4 text-text-tertiary" />
                                                             ) : (
-                                                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                                <ChevronDown className="w-4 h-4 text-text-tertiary" />
                                                             )}
                                                         </div>
                                                     </div>
@@ -448,9 +448,9 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                             )}
 
                                             {expandedAttachments[subTask.id!] && (
-                                                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                                <div className="mt-4 p-4 border border-border-subtle rounded-lg bg-surface-app">
                                                     <div className="mb-4">
-                                                        <p className="text-sm text-gray-500">
+                                                        <p className="text-sm text-text-tertiary">
                                                             Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a subtarefa
                                                         </p>
                                                     </div>
@@ -506,12 +506,12 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
 
             {/* Rodapé com Total e Botão - aparece apenas quando há subtarefas */}
             {watchSubTasks?.filter(st => !st?.excluded).length > 0 && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">
-                    <div className="text-sm text-gray-600">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-border-subtle">
+                    <div className="text-sm text-text-secondary">
                         {canViewValues && (
                             <>
                                 <span className="font-medium">Total: </span>
-                                <span className="text-lg font-bold text-primary-600">
+                                <span className="text-lg font-bold text-accent">
                                     {formatCurrency(calculateTotal())}
                                 </span>
                             </>
@@ -532,8 +532,8 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
 
             {watchSubTasks?.filter(st => !st?.excluded).length === 0 && (
                 <Card className="text-center py-8">
-                    <div className="text-gray-500">
-                        <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <div className="text-text-tertiary">
+                        <DollarSign className="w-12 h-12 mx-auto mb-4 text-text-tertiary" />
                         <p className="mb-4">Nenhuma subtarefa adicionada</p>
                         <Button
                             onClick={addSubTask}

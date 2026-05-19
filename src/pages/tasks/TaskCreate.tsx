@@ -111,7 +111,7 @@ const TaskCreate = () => {
             width: '80px',
             align: 'center',
             render: (item) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent">
                     #{item.id}
                 </span>
             )
@@ -125,9 +125,9 @@ const TaskCreate = () => {
             width: '200px',
             render: (item) => (
                 <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-gray-400" />
+                    <User className="w-4 h-4 text-text-tertiary" />
                     <div>
-                        <p className="font-medium text-gray-900" title={item.name}>
+                        <p className="font-medium text-text-primary" title={item.name}>
                             {item.name}
                         </p>
                     </div>
@@ -143,8 +143,8 @@ const TaskCreate = () => {
             width: '150px',
             render: (item) => (
                 <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
+                    <Phone className="w-4 h-4 text-text-tertiary" />
+                    <span className="text-sm text-text-secondary">
                         {item.phone || 'Não informado'}
                     </span>
                 </div>
@@ -158,7 +158,7 @@ const TaskCreate = () => {
             filterType: 'date',
             width: '160px',
             render: (item) => (
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-text-secondary">
                     {formatDate(item.createdAt)}
                 </span>
             ),
@@ -175,7 +175,7 @@ const TaskCreate = () => {
                         e.stopPropagation();
                         handleRequesterSelect(item);
                     }}
-                    className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
+                    className="inline-flex items-center px-3 py-1 text-xs font-medium text-accent bg-accent-soft rounded-full hover:bg-accent-soft transition-colors"
                 >
                     <Check className="w-3 h-3 mr-1" />
                     Selecionar
@@ -185,22 +185,22 @@ const TaskCreate = () => {
     ];
 
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-surface-1 rounded-lg border border-border-subtle p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent">
                             #{requester.id}
                         </span>
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight mb-2">
+                    <h3 className="font-semibold text-text-primary text-base leading-tight mb-2">
                         {requester.name}
                     </h3>
 
                     <div className="space-y-1">
                         {requester.phone && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-sm text-text-secondary">
+                                <Phone className="w-4 h-4 text-text-tertiary flex-shrink-0" />
                                 <span>{requester.phone}</span>
                             </div>
                         )}
@@ -221,8 +221,8 @@ const TaskCreate = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
-                <div className="w-full lg:w-[80%] mx-auto space-y-6">
+        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
+                <div className="w-full mx-auto space-y-6">
                     {/* Header */}
                     <div className="flex items-center space-x-4">
                         <Button
@@ -243,18 +243,18 @@ const TaskCreate = () => {
                         <div className="px-4 py-5 sm:px-6">
                             {/* Seleção de Requester */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Solicitante <span className="text-red-500">*</span>
                                 </label>
                                 {selectedRequester ? (
-                                    <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                                    <div className="border border-border-strong rounded-lg p-4 bg-surface-app">
                                         <div className="flex justify-between items-start">
                                             <div className="flex-1">
-                                                <div className="font-medium text-gray-900">
+                                                <div className="font-medium text-text-primary">
                                                     {selectedRequester.name}
                                                 </div>
                                                 {selectedRequester.phone && (
-                                                    <div className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                                                    <div className="text-sm text-text-secondary mt-1 flex items-center gap-1">
                                                         <Phone className="w-4 h-4" />
                                                         {selectedRequester.phone}
                                                     </div>
@@ -265,7 +265,7 @@ const TaskCreate = () => {
                                                 onClick={() => {
                                                     setSelectedRequester(null);
                                                 }}
-                                                className="ml-2 text-gray-400 hover:text-gray-600"
+                                                className="ml-2 text-text-tertiary hover:text-text-secondary"
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>
@@ -277,8 +277,8 @@ const TaskCreate = () => {
                                         onClick={() => setShowRequesterModal(true)}
                                         className={`w-full px-4 py-3 border border-dashed rounded-lg transition-colors ${
                                             requesterError
-                                                ? 'border-red-300 text-red-600 hover:border-red-400 hover:text-red-700 bg-red-50'
-                                                : 'border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700'
+                                                ? 'border-red-300 text-[var(--danger-strong)] hover:border-red-400 hover:text-red-700 bg-red-50'
+                                                : 'border-border-strong text-text-secondary hover:border-gray-400 hover:text-text-secondary'
                                         }`}
                                     >
                                         <Search className="w-4 h-4 mx-auto mb-1" />
@@ -286,7 +286,7 @@ const TaskCreate = () => {
                                     </button>
                                 )}
                                 {requesterError && (
-                                    <p className="mt-2 text-sm text-red-600">
+                                    <p className="mt-2 text-sm text-[var(--danger-strong)]">
                                         {requesterError}
                                     </p>
                                 )}
@@ -317,32 +317,32 @@ const TaskCreate = () => {
                 {/* Modal de Seleção de Requester */}
                 {showRequesterModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-5xl">
+                        <div className="bg-surface-1 rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-5xl">
                             {/* Header do Modal */}
-                            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+                            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border-subtle flex-shrink-0">
                                 <div>
-                                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                                    <h2 className="text-lg sm:text-xl font-semibold text-text-primary">
                                         Selecionar Solicitante
                                     </h2>
                                 </div>
                                 <button
                                     onClick={() => setShowRequesterModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 p-1"
+                                    className="text-text-tertiary hover:text-text-secondary p-1"
                                 >
                                     <X className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                             </div>
 
                             {/* Busca Mobile */}
-                            <div className="lg:hidden p-4 border-b border-gray-200">
+                            <div className="lg:hidden p-4 border-b border-border-subtle">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary w-4 h-4" />
                                     <input
                                         type="text"
                                         placeholder="Buscar solicitante..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                        className="w-full pl-10 pr-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-blue-500 text-base"
                                     />
                                 </div>
                             </div>
@@ -375,15 +375,15 @@ const TaskCreate = () => {
                                     {loadingRequesters ? (
                                         <div className="flex items-center justify-center p-8">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                            <span className="ml-3 text-gray-600">Carregando...</span>
+                                            <span className="ml-3 text-text-secondary">Carregando...</span>
                                         </div>
                                     ) : filteredRequesters.length === 0 ? (
                                         <div className="p-8 text-center">
-                                            <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                            <h3 className="text-lg font-medium mb-2 text-gray-900">
+                                            <Filter className="w-12 h-12 mx-auto mb-4 text-text-tertiary/60" />
+                                            <h3 className="text-lg font-medium mb-2 text-text-primary">
                                                 Nenhum solicitante encontrado
                                             </h3>
-                                            <p className="text-gray-600">
+                                            <p className="text-text-secondary">
                                                 Tente ajustar sua busca ou limpar os filtros.
                                             </p>
                                         </div>
@@ -397,7 +397,7 @@ const TaskCreate = () => {
 
                                     {/* Paginação Mobile */}
                                     {pagination && pagination.totalPages > 1 && !searchTerm && (
-                                        <div className="p-4 border-t border-gray-200">
+                                        <div className="p-4 border-t border-border-subtle">
                                             <div className="flex items-center justify-between">
                                                 <Button
                                                     size="sm"
@@ -408,7 +408,7 @@ const TaskCreate = () => {
                                                     Anterior
                                                 </Button>
 
-                                                <span className="text-sm text-gray-600">
+                                                <span className="text-sm text-text-secondary">
                                                 Página {pagination.currentPage} de {pagination.totalPages}
                                             </span>
 

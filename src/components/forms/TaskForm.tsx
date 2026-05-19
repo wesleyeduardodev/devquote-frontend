@@ -359,7 +359,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                        <label className="block text-sm font-medium text-text-secondary mb-3">
                             Tipo de Fluxo <span className="text-red-500">*</span>
                         </label>
                         <div className="flex gap-6">
@@ -368,18 +368,18 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     {...register('flowType')}
                                     type="radio"
                                     value="DESENVOLVIMENTO"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    className="h-4 w-4 text-accent focus:ring-accent border-border-strong"
                                 />
-                                <span className="text-sm font-medium text-gray-700">💻 Desenvolvimento</span>
+                                <span className="text-sm font-medium text-text-secondary">💻 Desenvolvimento</span>
                             </label>
                             <label className="flex items-center space-x-2 cursor-pointer">
                                 <input
                                     {...register('flowType')}
                                     type="radio"
                                     value="OPERACIONAL"
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    className="h-4 w-4 text-accent focus:ring-accent border-border-strong"
                                 />
-                                <span className="text-sm font-medium text-gray-700">⚙️ Operacional</span>
+                                <span className="text-sm font-medium text-text-secondary">⚙️ Operacional</span>
                             </label>
                         </div>
                         {errors.flowType && <p className="mt-1 text-sm text-red-600">{errors.flowType.message}</p>}
@@ -410,14 +410,14 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                         <div className="md:col-span-2">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Título <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     {...register('title')}
                                     rows={2}
                                     placeholder="Digite o título da tarefa&#10;Máximo 200 caracteres"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+                                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-accent resize-vertical"
                                     maxLength={200}
                                 />
                                 {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
@@ -513,9 +513,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                     type="checkbox"
                                     id="hasSubTasks"
                                     onChange={handleHasSubTasksChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-accent focus:ring-accent border-border-strong rounded"
                                 />
-                                <label htmlFor="hasSubTasks" className="text-sm font-medium text-gray-700">
+                                <label htmlFor="hasSubTasks" className="text-sm font-medium text-text-secondary">
                                     Esta tarefa possui subtarefas?
                                 </label>
                             </div>
@@ -528,7 +528,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                         {hasSubTasks ? (
                             <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Subtarefas</h3>
+                                <h3 className="text-lg font-medium text-text-primary mb-4">Subtarefas</h3>
                                 <SubTaskForm taskId={taskId || initialData?.id} />
                                 {errors.subTasks && <p className="mt-2 text-sm text-red-600">{(errors as any).subTasks?.message}</p>}
                             </div>
@@ -544,7 +544,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                                         placeholder="0,00"
                                         error={errors.amount?.message}
                                     />
-                                    <DollarSign className="absolute right-3 top-9 h-4 w-4 text-gray-400" />
+                                    <DollarSign className="absolute right-3 top-9 h-4 w-4 text-text-tertiary" />
                                 </div>
                             )
                         )}
@@ -555,32 +555,32 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 <div className="border-t pt-6">
                     {/* Cabeçalho clicável */}
                     <div
-                        className="cursor-pointer border border-gray-200 rounded-lg"
+                        className="cursor-pointer border border-border-subtle rounded-lg"
                         onClick={() => setIsAttachmentSectionExpanded(!isAttachmentSectionExpanded)}
                     >
-                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div className="px-4 py-3 hover:bg-surface-app transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Paperclip className="w-5 h-5 text-gray-500" />
-                                    <span className="text-lg font-medium text-gray-900">Anexos</span>
+                                    <Paperclip className="w-5 h-5 text-text-tertiary" />
+                                    <span className="text-lg font-medium text-text-primary">Anexos</span>
                                     {!taskId ? (
                                         pendingFiles.length > 0 && (
-                                            <span className="text-sm font-medium text-blue-600">({pendingFiles.length})</span>
+                                            <span className="text-sm font-medium text-accent">({pendingFiles.length})</span>
                                         )
                                     ) : (
                                         attachmentCount > 0 && (
-                                            <span className="text-sm font-medium text-blue-600">({attachmentCount})</span>
+                                            <span className="text-sm font-medium text-accent">({attachmentCount})</span>
                                         )
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-500">
+                                    <span className="text-sm text-text-tertiary">
                                         {isAttachmentSectionExpanded ? 'Recolher' : 'Expandir'}
                                     </span>
                                     {isAttachmentSectionExpanded ? (
-                                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                                        <ChevronUp className="w-4 h-4 text-text-tertiary" />
                                     ) : (
-                                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                                        <ChevronDown className="w-4 h-4 text-text-tertiary" />
                                     )}
                                 </div>
                             </div>
@@ -600,9 +600,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
                     {/* Conteúdo da seção quando expandida */}
                     {isAttachmentSectionExpanded && (
-                        <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <div className="mt-4 p-4 border border-border-subtle rounded-lg bg-surface-app">
                             <div className="mb-4">
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-text-tertiary">
                                     {taskId
                                         ? "Faca upload de documentos, planilhas, imagens ou outros arquivos relacionados a tarefa"
                                         : "Selecione arquivos que serao anexados apos criar a tarefa"
@@ -640,7 +640,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 </div>
 
                 {/* Ações */}
-                <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-end space-x-3 pt-6 border-t border-border-subtle">
                     {onCancel && (
                         <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting || loading}>
                             Voltar

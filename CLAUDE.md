@@ -5,6 +5,12 @@ Instruções para o agente. Overview e funcionalidades estão no `README.md`. Re
 ## Stack
 React 18.2 · TypeScript 5.5 · Vite 5 · React Router 6.30 · Tailwind 3.4 · React Hook Form 7.62 + Yup 1.7 · Axios 1.11 · TipTap 2.10 · dnd-kit · Lucide · react-hot-toast.
 
+**Design system (redesign concluído — 2026-05-18):** Radix UI + cmdk + class-variance-authority + tailwind-merge + @tanstack/react-table + recharts + date-fns + react-hotkeys-hook. Tokens semânticos em `src/styles/tokens.css` com tema light/dark (atributo `data-theme`). Componentes base novos em `src/components/ui-v2/` (Button, Input, Badge, Card, Sheet, Dialog, DropdownMenu, Tooltip, Popover, Tabs, Checkbox, Switch, Select, Avatar, Skeleton, StatusDot, EmptyState, PageHeader, FormPage, Separator, DataTable). Utilitário `cn()` em `src/utils/cn.ts` (clsx + tailwind-merge).
+
+**Telas migradas (100% dos fluxos principais):** Login, Dashboard, NotFound, UserSettings, Solicitantes (List/Create/Edit), Projetos (List/Create/Edit), Notificações (List), Parâmetros (List + SecretMask), Tarefas (List/Create/Edit/View), Entregas (List/Create/View — Edit e GroupEdit com migração visual mínima mantendo lógica), Faturamento, Perfis (2 abas: Usuários + Perfis).
+
+**Modais existentes integrados sem reescrita:** LinkTasksToBillingModal, UnlinkTasksFromBillingModal, ViewTasksModal, BillingPeriodAttachmentModal, NotificationModal, ParameterModal, ProfileModal, UserAssignmentModal, TaskSelectionModal, ProjectSelectionModal, DeliveryItemForm, DeliveryOperationalItemForm, TaskForm. Têm erros TS pré-existentes mas funcionam — não foram tocados pra evitar regressão.
+
 ## Comandos
 
 ```powershell
@@ -17,6 +23,20 @@ npm run preview      # serve o build local
 ```
 
 Antes de PR: rodar `npm run lint` e `npm run typecheck`.
+
+## Atalhos de teclado (M1 do redesign)
+
+| Tecla | Ação |
+|---|---|
+| `⌘K / Ctrl+K` | Command palette (busca + criar + navegar + tema) |
+| `⌘N / Ctrl+N` | Criar contextual (na listagem de Tarefas → nova tarefa, etc.) |
+| `G D` | Ir para Dashboard |
+| `G T` | Ir para Tarefas |
+| `G E` | Ir para Entregas |
+| `G F` | Ir para Faturamento |
+| `[` | Toggle sidebar colapsada |
+
+Implementação em `src/hooks/useGlobalShortcuts.ts` + `src/components/layout/CommandPalette.tsx`.
 
 ## Estrutura `src/`
 

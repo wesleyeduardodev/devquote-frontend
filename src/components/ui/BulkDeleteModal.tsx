@@ -12,69 +12,52 @@ interface BulkDeleteModalProps {
 }
 
 const BulkDeleteModal: React.FC<BulkDeleteModalProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  selectedCount,
-  isDeleting = false,
-  entityName = 'itens'
+  isOpen, onClose, onConfirm, selectedCount, isDeleting = false, entityName = 'itens'
 }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-surface-inverse/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-surface-1 rounded-xl shadow-xl border border-border-subtle w-full max-w-md">
+        <div className="flex items-center justify-between p-6 border-b border-border-subtle">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="flex-shrink-0 w-10 h-10 bg-[var(--danger-soft)] rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-[var(--danger-strong)]" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Confirmar Exclusão
+            <h3 className="text-lg font-semibold text-text-primary">
+              Confirmar exclusão
             </h3>
           </div>
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            className="text-text-tertiary hover:text-text-primary hover:bg-surface-2 rounded-md p-1 transition-colors disabled:opacity-50"
+            aria-label="Fechar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6">
-          <p className="text-sm text-gray-600 mb-4">
-            Você está prestes a excluir <strong>{selectedCount}</strong> {entityName}
+          <p className="text-sm text-text-secondary mb-4">
+            Você está prestes a excluir <strong className="text-text-primary">{selectedCount}</strong> {entityName}
             {selectedCount === 1 ? '' : 's'}. Esta ação não pode ser desfeita.
           </p>
-          
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
-            <p className="text-sm text-red-800">
-              ⚠️ <strong>Atenção:</strong> Esta ação é permanente e não pode ser revertida.
+
+          <div className="bg-[var(--danger-soft)] border border-[var(--danger-border)] rounded-md p-3 mb-2">
+            <p className="text-xs text-[var(--danger-strong)] flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <span><strong>Atenção:</strong> esta ação é permanente e não pode ser revertida.</span>
             </p>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onClose}
-            disabled={isDeleting}
-          >
+        <div className="flex items-center justify-end gap-2 p-4 border-t border-border-subtle bg-surface-app/30 rounded-b-xl">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isDeleting}>
             Cancelar
           </Button>
-          <Button
-            type="button"
-            variant="danger"
-            onClick={onConfirm}
-            loading={isDeleting}
-            disabled={isDeleting}
-          >
-            {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+          <Button type="button" variant="danger" onClick={onConfirm} loading={isDeleting} disabled={isDeleting}>
+            {isDeleting ? 'Excluindo...' : 'Confirmar exclusão'}
           </Button>
         </div>
       </div>

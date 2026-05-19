@@ -1,1255 +1,424 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Shield,
-  Users,
-  Plus,
-  Edit,
-  Trash2,
-  UserPlus,
-  CheckCircle,
-  XCircle,
-  User,
-  Mail,
-  Settings,
-  Filter,
-  Search,
-  Key
-} from 'lucide-react';
-import { useUserManagement } from '@/hooks/useUserManagement';
-import { useAuth } from '@/hooks/useAuth';
-import DataTable, { Column } from '@/components/ui/DataTable';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
-import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import { Profile, UserProfile } from '@/types/profile';
-import { CreateUserDto, UpdateUserDto } from '@/types/user';
-import toast from 'react-hot-toast';
+import * as React from 'react'
+import { Plus, Pencil, Trash2, MoreHorizontal, Users, Shield, UserPlus, Search } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
 
-const ProfileManagement = () => {
-  const { hasProfile, isLoading: authLoading, user } = useAuth();
-  const navigate = useNavigate();
+import { useUserManagement } from '@/hooks/useUserManagement'
+import { useProfiles } from '@/hooks/useProfiles'
+import type { Profile, UserProfile, CreateProfileRequest, UpdateProfileRequest } from '@/types/profile'
+import { Button } from '@/components/ui-v2/Button'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { Badge } from '@/components/ui-v2/Badge'
+import { EmptyState } from '@/components/ui-v2/EmptyState'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { Avatar } from '@/components/ui-v2/Avatar'
+import { Card } from '@/components/ui-v2/Card'
+import { StatusDot } from '@/components/ui-v2/StatusDot'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui-v2/Tabs'
+import { DataTable, DataTableBulkBar } from '@/components/ui-v2/DataTable'
+import { Input } from '@/components/ui-v2/Input'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
+import ProfileModal from './ProfileModal'
+import UserAssignmentModal from './UserAssignmentModal'
 
-  const isAdmin = hasProfile('ADMIN');
+const ProfileManagement: React.FC = () => {
+  const usersHook = useUserManagement({ size: 25 })
+  const profilesHook = useProfiles(true, { size: 25 })
 
+  const [tab, setTab] = React.useState<'users' | 'profiles'>('users')
+  const [userSearch, setUserSearch] = React.useState('')
+  const [userSelection, setUserSelection] = React.useState<Record<string, boolean>>({})
+  const [confirmDeleteUser, setConfirmDeleteUser] = React.useState<{ ids: number[] } | null>(null)
 
-  const {
-    users,
-    loading: usersLoading,
-    error: usersError,
-    createUser,
-    updateUser,
-    deleteUser,
-    deleteBulkUsers,
-    pagination: usersPagination,
-    setPage: setUsersPage,
-    setPageSize: setUsersPageSize,
-    setSorting: setUsersSorting,
-    setFilter: setUsersFilter,
-    clearFilters: clearUsersFilters,
-    sorting: usersSorting,
-    filters: usersFilters,
-    refetch: refetchUsers
-  } = useUserManagement();
+  const [profileSearch, setProfileSearch] = React.useState('')
+  const [profileSelection, setProfileSelection] = React.useState<Record<string, boolean>>({})
+  const [confirmDeleteProfile, setConfirmDeleteProfile] = React.useState<{ ids: number[] } | null>(null)
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<UserProfile | null>(null);
-  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
-  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
-  const [userToResetPassword, setUserToResetPassword] = useState<UserProfile | null>(null);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [profileModal, setProfileModal] = React.useState<{ profile: Profile | null; isEditing: boolean } | null>(null)
+  const [userAssignment, setUserAssignment] = React.useState<Profile | null>(null)
 
+  React.useEffect(() => {
+    const t = setTimeout(() => usersHook.setFilter('username', userSearch), 300)
+    return () => clearTimeout(t)
+  }, [userSearch])
 
-  const [userForm, setUserForm] = useState<CreateUserDto>({
-    username: '',
-    email: '',
-    password: '',
-    name: '',
-    profileCodes: []
-  });
+  React.useEffect(() => {
+    const t = setTimeout(() => profilesHook.setFilter('name', profileSearch), 300)
+    return () => clearTimeout(t)
+  }, [profileSearch])
 
-  useEffect(() => {
-    if (!authLoading && user && !hasProfile('ADMIN') && !hasProfile('MANAGER') && !hasProfile('USER')) {
-      toast.error('Acesso negado. Você não tem permissão para acessar esta página.');
-      navigate('/');
-    }
-  }, [hasProfile, navigate, authLoading, user]);
+  const selectedUserIds = React.useMemo(
+    () => Object.keys(userSelection).filter((k) => userSelection[k]).map((k) => Number(k)),
+    [userSelection]
+  )
+  const selectedProfileIds = React.useMemo(
+    () => Object.keys(profileSelection).filter((k) => profileSelection[k]).map((k) => Number(k)),
+    [profileSelection]
+  )
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
+  /* ============= KPIs ============= */
+  const totalUsers   = usersHook.pagination?.totalElements ?? usersHook.users.length
+  const activeUsers  = usersHook.users.filter((u) => u.enabled).length
+  const adminCount   = usersHook.users.filter((u) => u.profiles?.some((p) => p.code === 'ADMIN')).length
+  const userCount    = usersHook.users.filter((u) => u.profiles?.some((p) => p.code === 'USER')).length
 
-  const toggleItem = (id: number) => {
-    setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  const toggleAll = () => {
-    const items = users;
-    const currentPageIds = items.map((item: any) => item.id);
-    const allSelected = currentPageIds.every((id: number) => selectedItems.includes(id));
-
-    if (allSelected) {
-      setSelectedItems((prev) => prev.filter((id) => !currentPageIds.includes(id)));
-    } else {
-      setSelectedItems((prev) => [...new Set([...prev, ...currentPageIds])]);
-    }
-  };
-
-  const clearSelection = () => setSelectedItems([]);
-
-  const selectionState = useMemo(() => {
-    const items = users;
-    const currentPageIds = items.map((item: any) => item.id);
-    const selectedFromCurrentPage = selectedItems.filter((id) =>
-      currentPageIds.includes(id)
-    );
-
-    return {
-      allSelected:
-        currentPageIds.length > 0 &&
-        selectedFromCurrentPage.length === currentPageIds.length,
-      someSelected:
-        selectedFromCurrentPage.length > 0 &&
-        selectedFromCurrentPage.length < currentPageIds.length,
-      hasSelection: selectedItems.length > 0,
-      selectedFromCurrentPage,
-    };
-  }, [users, selectedItems]);
-
-  const handleCreateProfile = () => {
-    setSelectedProfile(null);
-    setIsEditing(false);
-    setShowProfileModal(true);
-  };
-
-  const handleEditProfile = (profile: Profile) => {
-    setSelectedProfile(profile);
-    setIsEditing(true);
-    setShowProfileModal(true);
-  };
-
-  const handleDeleteProfile = async (profile: Profile) => {
-    if (profile.userCount && profile.userCount > 0) {
-      toast.error('Não é possível excluir um perfil que possui usuários associados');
-      return;
-    }
-
-    if (window.confirm(`Tem certeza que deseja excluir o perfil "${profile.name}"?`)) {
-      try {
-        await deleteProfile(profile.id);
-        toast.success('Perfil excluído com sucesso');
-      } catch (error: any) {
-        toast.error(error.message);
-      }
-    }
-  };
-
-  const handleSaveProfile = async (data: any) => {
-    try {
-      if (isEditing && selectedProfile) {
-        await updateProfile(selectedProfile.id, data);
-        toast.success('Perfil atualizado com sucesso');
-      } else {
-        await createProfile(data);
-        toast.success('Perfil criado com sucesso');
-      }
-      setShowProfileModal(false);
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-  };
-
-  const handleManageUsers = (profile: Profile) => {
-    setSelectedProfile(profile);
-    setShowUserModal(true);
-  };
-
-  const handleCreateUser = () => {
-    setUserForm({
-      username: '',
-      email: '',
-      password: '',
-      name: '',
-      profileCodes: []
-    });
-    setSelectedUser(null);
-    setIsEditing(false);
-    setShowCreateUserModal(true);
-  };
-
-  const handleEditUser = (user: UserProfile) => {
-    setSelectedUser(user);
-    setUserForm({
-      username: user.username,
-      email: user.email,
-      password: '',
-      name: user.name || '',
-      profileCodes: user.roles || []
-    });
-    setIsEditing(true);
-    setShowCreateUserModal(true);
-  };
-
-  const handleDeleteUser = (userItem: UserProfile) => {
-    setItemToDelete(userItem);
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDeleteUser = async () => {
-    if (!itemToDelete) return;
-
-    setIsDeletingSingle(true);
-    try {
-      await deleteUser(itemToDelete.id);
-      toast.success('Usuário excluído com sucesso');
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsDeletingSingle(false);
-      setShowDeleteModal(false);
-      setItemToDelete(null);
-    }
-  };
-
-  const handleResetPassword = (userItem: UserProfile) => {
-    setUserToResetPassword(userItem);
-    setShowResetPasswordModal(true);
-  };
-
-  const handleConfirmResetPassword = async () => {
-    if (!userToResetPassword) return;
-
-    setIsResettingPassword(true);
-    try {
-      const { userManagementService } = await import('@/services/userManagementService');
-      await userManagementService.resetPassword(userToResetPassword.id);
-      toast.success(`Senha do usuário "${userToResetPassword.username}" resetada para: usuario123`);
-    } catch (error: any) {
-      toast.error('Erro ao resetar senha do usuário');
-    } finally {
-      setIsResettingPassword(false);
-      setShowResetPasswordModal(false);
-      setUserToResetPassword(null);
-    }
-  };
-
-  const handleSaveUser = async () => {
-    try {
-      if (isEditing && selectedUser) {
-        const updateData: UpdateUserDto = {
-          username: userForm.username,
-          email: userForm.email,
-          name: userForm.name,
-          enabled: true,
-          profileCodes: userForm.profileCodes
-        };
-
-        const isChangingOwnUsername = user?.id === selectedUser.id &&
-                                      selectedUser.username !== userForm.username;
-
-        await updateUser(selectedUser.id, updateData);
-        toast.success('Usuário atualizado com sucesso');
-
-        if (isChangingOwnUsername) {
-          toast.info('Username alterado. Redirecionando para login...');
-          setTimeout(() => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-            window.location.href = '/login';
-          }, 2000);
-        }
-      } else {
-        await createUser(userForm);
-        toast.success('Usuário criado com sucesso');
-      }
-      setShowCreateUserModal(false);
-      refetchUsers();
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await deleteBulkUsers(selectedItems);
-      const qty = selectedItems.length;
-      clearSelection();
-      setShowBulkDeleteModal(false);
-      toast.success(`${qty} usuário(s) excluído(s) com sucesso`);
-    } catch (error) {
-      toast.error(`Erro ao excluir usuários selecionados`);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const adminUserColumns: Column<UserProfile>[] = [
+  /* ============= USER COLUMNS ============= */
+  const userColumns = React.useMemo<ColumnDef<UserProfile, any>[]>(() => [
+    { accessorKey: 'id', header: 'ID', size: 60, cell: ({ row }) => <span className="font-mono text-xs text-text-tertiary">#{row.original.id}</span> },
     {
-      key: 'select',
-      title: '',
-      width: '50px',
-      align: 'center',
-      headerRender: () => (
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={selectionState.allSelected}
-            ref={(input) => {
-              if (input) input.indeterminate = selectionState.someSelected;
-            }}
-            onChange={toggleAll}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-        </div>
-      ),
-      render: (item) => (
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={selectedItems.includes(item.id)}
-            onChange={() => toggleItem(item.id)}
-            className={`w-4 h-4 border-gray-300 rounded focus:ring-blue-500 ${
-              user?.id === item.id ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-            disabled={user?.id === item.id}
-            title={user?.id === item.id ? "Você não pode selecionar sua própria conta" : ""}
-          />
+      accessorKey: 'username', header: 'Usuário',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Avatar name={row.original.name || row.original.username} size="sm" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-text-primary font-medium truncate">{row.original.name || row.original.username}</span>
+            <span className="text-xs text-text-tertiary truncate">{row.original.username} · {row.original.email}</span>
+          </div>
         </div>
       ),
     },
     {
-      key: 'id',
-      title: 'ID',
-      sortable: true,
-      width: '80px',
-      align: 'center',
-      render: (item) => `#${item.id}`,
-    },
-    {
-      key: 'username',
-      title: 'Usuário',
-      sortable: true,
-      filterable: true,
-      filterType: 'text',
-      render: (item) => (
-        <div className="flex items-center">
-          <User className="w-4 h-4 mr-2 text-gray-400" />
-          <span className="font-medium">{item.username}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'name',
-      title: 'Nome',
-      sortable: true,
-      filterable: true,
-      filterType: 'text',
-      render: (item) => item.name || '-',
-    },
-    {
-      key: 'email',
-      title: 'Email',
-      sortable: true,
-      filterable: true,
-      filterType: 'text',
-      render: (item) => (
-        <a
-          href={`mailto:${item.email}`}
-          className="text-blue-600 hover:text-blue-800 hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {item.email}
-        </a>
-      ),
-    },
-    {
-      key: 'profiles',
-      title: 'Perfis',
-      render: (item) => (
+      id: 'profiles', header: 'Perfis', size: 180,
+      cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
-          {item.profiles && item.profiles.length > 0 ? (
-            item.profiles.map((profile) => (
-              <span
-                key={profile.id}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-              >
-                {profile.name}
-              </span>
-            ))
-          ) : (
-            <span className="text-xs text-gray-500">Sem perfil</span>
-          )}
+          {row.original.profiles?.length > 0 ? row.original.profiles.map((p) => (
+            <Badge key={p.id} variant="info" size="sm">{p.name}</Badge>
+          )) : <span className="text-text-tertiary text-xs">—</span>}
         </div>
       ),
     },
     {
-      key: 'enabled',
-      title: 'Status',
-      sortable: true,
-      align: 'center',
-      render: (item) => (
-        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-          item.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {item.enabled ? (
-            <>
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Ativo
-            </>
-          ) : (
-            <>
-              <XCircle className="w-3 h-3 mr-1" />
-              Inativo
-            </>
-          )}
+      accessorKey: 'enabled', header: 'Status', size: 110,
+      cell: ({ row }) => (
+        <span className="inline-flex items-center gap-1.5 text-sm">
+          <StatusDot tone={row.original.enabled ? 'success' : 'neutral'} />
+          <span className="text-text-primary">{row.original.enabled ? 'Ativo' : 'Inativo'}</span>
         </span>
       ),
     },
     {
-      key: 'actions',
-      title: 'Ações',
-      align: 'center',
-      width: '120px',
-      render: (item) => (
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleEditUser(item)}
-            title="Editar"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleDeleteUser(item)}
-            title={user?.id === item.id ? "Você não pode excluir sua própria conta" : "Excluir"}
-            className={user?.id === item.id
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-red-600 hover:text-red-800 hover:bg-red-50"}
-            disabled={user?.id === item.id}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+      id: '__actions', header: '', size: 80,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="ghost" aria-label="Mais"><MoreHorizontal /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem disabled><Pencil />Editar</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDeleteUser({ ids: [row.original.id] })}>
+                <Trash2 />Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       ),
     },
-  ];
+  ], [])
 
-  const readOnlyUserColumns: Column<UserProfile>[] = [
+  /* ============= PROFILE COLUMNS ============= */
+  const profileColumns = React.useMemo<ColumnDef<Profile, any>[]>(() => [
+    { accessorKey: 'id', header: 'ID', size: 60, cell: ({ row }) => <span className="font-mono text-xs text-text-tertiary">#{row.original.id}</span> },
     {
-      key: 'id',
-      title: 'ID',
-      sortable: true,
-      width: '80px',
-      render: (item) => `#${item.id}`,
-    },
-    {
-      key: 'username',
-      title: 'Usuário',
-      sortable: true,
-      render: (item) => (
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-gray-400" />
-          <span className="font-medium">{item.username}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'name',
-      title: 'Nome',
-      sortable: true,
-      render: (item) => item.name || '-',
-    },
-    {
-      key: 'email',
-      title: 'Email',
-      sortable: true,
-      render: (item) => (
-        <div className="flex items-center gap-2">
-          <Mail className="w-4 h-4 text-gray-400" />
-          <span>{item.email}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'profiles',
-      title: 'Perfis',
-      render: (item) => (
-        <div className="flex gap-1 flex-wrap">
-          {item.roles?.map((role) => (
-            <span
-              key={role}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-            >
-              {role === 'ADMIN' ? 'Administrador' : role === 'MANAGER' ? 'Gerente' : 'Usuário'}
-            </span>
-          )) || '-'}
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      sortable: true,
-      render: (item) => (
-        <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-            item.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}
-        >
-          {item.enabled ? (
-            <>
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Ativo
-            </>
-          ) : (
-            <>
-              <XCircle className="w-3 h-3 mr-1" />
-              Inativo
-            </>
-          )}
-        </span>
-      ),
-    },
-  ];
-
-  const userColumns = isAdmin ? adminUserColumns : readOnlyUserColumns;
-
-  const profileColumns: Column<Profile>[] = [
-    {
-      key: 'select',
-      title: '',
-      width: '50px',
-      align: 'center',
-      headerRender: () => (
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={selectionState.allSelected}
-            ref={(input) => {
-              if (input) input.indeterminate = selectionState.someSelected;
-            }}
-            onChange={toggleAll}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-        </div>
-      ),
-      render: (item) => (
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={selectedItems.includes(item.id)}
-            onChange={() => toggleItem(item.id)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      ),
-    },
-    {
-      key: 'id',
-      title: 'ID',
-      sortable: true,
-      width: '80px',
-      align: 'center',
-      render: (item) => `#${item.id}`,
-    },
-    {
-      key: 'code',
-      title: 'Código',
-      sortable: true,
-      filterable: true,
-      filterType: 'text',
-      render: (item) => (
-        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-          {item.code}
-        </span>
-      ),
-    },
-    {
-      key: 'name',
-      title: 'Nome',
-      sortable: true,
-      filterable: true,
-      filterType: 'text',
-      render: (item) => (
-        <div className="flex items-center">
-          <Shield className="w-4 h-4 mr-2 text-blue-500" />
-          <span className="font-medium">{item.name}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'description',
-      title: 'Descrição',
-      filterable: true,
-      filterType: 'text',
-      render: (item) => item.description || '-',
-    },
-    {
-      key: 'level',
-      title: 'Nível',
-      sortable: true,
-      align: 'center',
-      width: '100px',
-      render: (item) => (
-        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
-          Nível {item.level}
-        </span>
-      ),
-    },
-    {
-      key: 'userCount',
-      title: 'Usuários',
-      sortable: true,
-      align: 'center',
-      width: '100px',
-      render: (item) => (
-        <span className="inline-flex items-center">
-          <Users className="w-4 h-4 mr-1 text-gray-400" />
-          {item.userCount || 0}
-        </span>
-      ),
-    },
-    {
-      key: 'active',
-      title: 'Status',
-      sortable: true,
-      align: 'center',
-      render: (item) => (
-        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-          item.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {item.active ? (
-            <>
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Ativo
-            </>
-          ) : (
-            <>
-              <XCircle className="w-3 h-3 mr-1" />
-              Inativo
-            </>
-          )}
-        </span>
-      ),
-    },
-    {
-      key: 'createdAt',
-      title: 'Criado em',
-      sortable: true,
-      filterable: true,
-      filterType: 'date',
-      render: (item) => formatDate(item.createdAt),
-      hideable: true,
-    },
-    {
-      key: 'actions',
-      title: 'Ações',
-      align: 'center',
-      width: '150px',
-      render: (item) => (
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleManageUsers(item)}
-            title="Gerenciar Usuários"
-          >
-            <Users className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleEditProfile(item)}
-            title="Editar"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleDeleteProfile(item)}
-            title="Excluir"
-            className="text-red-600 hover:text-red-800 hover:bg-red-50"
-            disabled={!!(item.userCount && item.userCount > 0)}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  const loading = usersLoading || authLoading;
-  const error = usersError;
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-gray-600">Verificando permissões...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!authLoading && !hasProfile('ADMIN')) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Acesso Negado</h2>
-          <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const filteredUsers = users.filter((user: UserProfile) =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const UserCard: React.FC<{ user: UserProfile }> = ({ user: userItem }) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-      <div className="space-y-3">
-
-        <div className="flex items-center justify-between">
+      accessorKey: 'name', header: 'Perfil',
+      cell: ({ row }) => (
+        <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <input
-                type="checkbox"
-                checked={selectedItems.includes(userItem.id)}
-                onChange={() => toggleItem(userItem.id)}
-                className={`w-4 h-4 border-gray-300 rounded focus:ring-blue-500 ${
-                  user?.id === userItem.id ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600'
-                }`}
-                disabled={user?.id === userItem.id}
-                title={user?.id === userItem.id ? "Você não pode selecionar sua própria conta" : ""}
-              />
-            )}
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-              #{userItem.id}
-            </span>
+            <span className="text-text-primary font-medium">{row.original.name}</span>
+            <Badge variant="neutral" size="sm">{row.original.code}</Badge>
           </div>
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-            userItem.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
-            {userItem.enabled ? (
-              <>
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Ativo
-              </>
-            ) : (
-              <>
-                <XCircle className="w-3 h-3 mr-1" />
-                Inativo
-              </>
-            )}
-          </span>
-        </div>
-
-        <div>
-          <h3 className="font-semibold text-gray-900 text-base mb-1">
-            {userItem.username}
-          </h3>
-          {userItem.name && (
-            <p className="text-sm text-gray-600">{userItem.name}</p>
+          {row.original.description && (
+            <span className="text-xs text-text-tertiary truncate max-w-md">{row.original.description}</span>
           )}
         </div>
-
-        <div className="flex items-center gap-2">
-          <Mail className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-600">{userItem.email}</span>
+      ),
+    },
+    {
+      accessorKey: 'level', header: 'Nível', size: 80,
+      cell: ({ row }) => <span className="tabular-nums text-text-secondary">{row.original.level}</span>,
+    },
+    {
+      accessorKey: 'userCount', header: 'Usuários', size: 100,
+      cell: ({ row }) => <span className="tabular-nums text-text-secondary">{row.original.userCount ?? 0}</span>,
+    },
+    {
+      accessorKey: 'active', header: 'Status', size: 110,
+      cell: ({ row }) => (
+        <span className="inline-flex items-center gap-1.5 text-sm">
+          <StatusDot tone={row.original.active ? 'success' : 'neutral'} />
+          <span className="text-text-primary">{row.original.active ? 'Ativo' : 'Inativo'}</span>
+        </span>
+      ),
+    },
+    {
+      id: '__actions', header: '', size: 80,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => setProfileModal({ profile: row.original, isEditing: true })} aria-label="Editar"><Pencil /></Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="ghost" aria-label="Mais"><MoreHorizontal /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setProfileModal({ profile: row.original, isEditing: true })}><Pencil />Editar</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setUserAssignment(row.original)}><UserPlus />Atribuir usuários</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDeleteProfile({ ids: [row.original.id] })}>
+                <Trash2 />Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+      ),
+    },
+  ], [])
 
-        <div className="flex flex-wrap gap-1">
-          {userItem.profiles && userItem.profiles.length > 0 ? (
-            userItem.profiles.map((profile) => (
-              <span
-                key={profile.id}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-              >
-                {profile.name}
-              </span>
-            ))
-          ) : userItem.roles?.map((role) => (
-            <span
-              key={role}
-              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
-            >
-              {role === 'ADMIN' ? 'Administrador' : role === 'MANAGER' ? 'Gerente' : 'Usuário'}
-            </span>
-          )) || (
-            <span className="text-xs text-gray-500">Sem perfil</span>
-          )}
-        </div>
-
-        {isAdmin && (
-          <div className="flex gap-2 pt-2 border-t border-gray-100">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleEditUser(userItem)}
-              className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Editar
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => handleDeleteUser(userItem)}
-              className={`flex-1 ${user?.id === userItem.id
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-red-600 hover:text-red-700 hover:bg-red-50"}`}
-              disabled={user?.id === userItem.id}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Excluir
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const handleProfileSave = async (data: CreateProfileRequest | UpdateProfileRequest) => {
+    try {
+      if (profileModal?.isEditing && profileModal.profile) {
+        await profilesHook.updateProfile(profileModal.profile.id, data as UpdateProfileRequest)
+      } else {
+        await profilesHook.createProfile(data as CreateProfileRequest)
+      }
+      setProfileModal(null)
+    } catch (e) {
+      // erro já tratado pelo hook
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {isAdmin ? 'Gerenciamento de Usuários' : 'Visualização de Usuários'}
-          </h1>
-        </div>
-        {isAdmin && (
-          <Button
-            onClick={handleCreateUser}
-            className="flex items-center justify-center sm:justify-start"
-            variant="primary"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Novo Usuário
-          </Button>
-        )}
-      </div>
+    <div>
+      <PageHeader
+        title="Perfis & Usuários"
+        subtitle="Gerencie usuários do sistema e seus perfis de acesso"
+        actions={
+          tab === 'users' ? (
+            <Button leadingIcon={<Plus />} disabled>Novo usuário</Button>
+          ) : (
+            <Button leadingIcon={<Plus />} onClick={() => setProfileModal({ profile: null, isEditing: false })}>Novo perfil</Button>
+          )
+        }
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
-            </div>
-            <div className="ml-3 sm:ml-4">
-              <div className="text-xs sm:text-sm font-medium text-gray-500">Total</div>
-              <div className="text-lg sm:text-2xl font-bold text-gray-900">
-                {usersPagination?.totalElements || 0}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
-            </div>
-            <div className="ml-3 sm:ml-4">
-              <div className="text-xs sm:text-sm font-medium text-gray-500">Ativos</div>
-              <div className="text-lg sm:text-2xl font-bold text-green-600">
-                {users.filter((u: UserProfile) => u.enabled).length}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
-            </div>
-            <div className="ml-3 sm:ml-4">
-              <div className="text-xs sm:text-sm font-medium text-gray-500">Admins</div>
-              <div className="text-lg sm:text-2xl font-bold text-purple-600">
-                {users.filter((u: UserProfile) => u.roles?.includes('ADMIN')).length}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 border border-gray-100">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <User className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600" />
-            </div>
-            <div className="ml-3 sm:ml-4">
-              <div className="text-xs sm:text-sm font-medium text-gray-500">Usuários</div>
-              <div className="text-lg sm:text-2xl font-bold text-gray-600">
-                {users.filter((u: UserProfile) => u.roles?.includes('USER')).length}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="lg:hidden space-y-4">
-        <Card className="p-4">
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Buscar por nome, usuário ou email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-              />
-            </div>
-
-            {isAdmin && (
-              <div className="flex items-center justify-between gap-3">
-                <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectionState.allSelected}
-                      ref={(input) => {
-                        if (input) input.indeterminate = selectionState.someSelected;
-                      }}
-                      readOnly
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                  </div>
-                  <span className="text-sm">Selecionar Todos</span>
-                </Button>
-
-                {selectionState.hasSelection && (
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => setShowBulkDeleteModal(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-sm">Excluir ({selectedItems.length})</span>
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-
-
-      <div className="hidden lg:block">
-        {isAdmin && selectionState.hasSelection && (
+      {/* KPIs (somente quando estiver na aba usuários) */}
+      {tab === 'users' && (
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           <Card className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-700">
-                  {selectedItems.length} usuário(s) selecionado(s)
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={clearSelection}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  Limpar seleção
-                </Button>
-              </div>
-              <Button
-                size="sm"
-                variant="danger"
-                onClick={() => setShowBulkDeleteModal(true)}
-                className="flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Excluir Selecionados
-              </Button>
-            </div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">Total</p>
+            <p className="mt-1 text-xl font-semibold text-text-primary tabular-nums">{totalUsers}</p>
           </Card>
-        )}
-      </div>
+          <Card className="p-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">Ativos</p>
+            <p className="mt-1 text-xl font-semibold text-success-strong tabular-nums">{activeUsers}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">Admins</p>
+            <p className="mt-1 text-xl font-semibold text-text-primary tabular-nums">{adminCount}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">Usuários</p>
+            <p className="mt-1 text-xl font-semibold text-text-primary tabular-nums">{userCount}</p>
+          </Card>
+        </section>
+      )}
 
-      {loading ? (
-        <Card className="p-8">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-4 text-gray-600">Carregando...</span>
+      <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="users"><Users className="size-3.5" />Usuários{usersHook.pagination && <Badge variant="neutral" size="sm" className="ml-1">{usersHook.pagination.totalElements}</Badge>}</TabsTrigger>
+          <TabsTrigger value="profiles"><Shield className="size-3.5" />Perfis{profilesHook.pagination && <Badge variant="neutral" size="sm" className="ml-1">{profilesHook.pagination.totalElements}</Badge>}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <div className="mb-3 w-full sm:w-[280px]">
+            <Input
+              leadingIcon={<Search />}
+              placeholder="Buscar por username..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+            />
           </div>
-        </Card>
-      ) : error ? (
-        <Card className="p-8">
-          <div className="text-center">
-            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar dados</h2>
-            <p className="text-gray-600">{error}</p>
-          </div>
-        </Card>
-      ) : (
-        <>
+          <DataTableBulkBar
+            selectedCount={selectedUserIds.length}
+            onClear={() => setUserSelection({})}
+            actions={<Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDeleteUser({ ids: selectedUserIds })}>Excluir</Button>}
+          />
 
           <div className="hidden lg:block">
-            <Card className="p-0">
-              <DataTable
-                data={users}
-                columns={userColumns}
-                loading={loading}
-                pagination={usersPagination}
-                sorting={usersSorting}
-                filters={usersFilters}
-                onPageChange={setUsersPage}
-                onPageSizeChange={setUsersPageSize}
-                onSort={setUsersSorting}
-                onFilter={setUsersFilter}
-                onClearFilters={clearUsersFilters}
-                emptyMessage="Nenhum usuário encontrado"
-                showColumnToggle={true}
-                hiddenColumns={[]}
-              />
-            </Card>
+            <DataTable<UserProfile>
+              data={usersHook.users}
+              columns={userColumns}
+              rowKey={(r) => r.id}
+              loading={usersHook.loading}
+              error={usersHook.error}
+              selectable
+              selection={userSelection}
+              onSelectionChange={setUserSelection}
+              pagination={usersHook.pagination ? {
+                page: usersHook.pagination.currentPage,
+                pageSize: usersHook.pagination.pageSize,
+                total: usersHook.pagination.totalElements,
+                onPageChange: usersHook.setPage,
+                onPageSizeChange: usersHook.setPageSize,
+              } : undefined}
+              empty={<EmptyState icon={<Users />} title="Nenhum usuário" description="Crie usuários para que possam acessar o sistema." />}
+            />
           </div>
 
-          <div className="lg:hidden">
-            {filteredUsers.length === 0 ? (
-              <Card className="p-8 text-center">
-                <div className="text-gray-500">
-                  <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">Nenhum usuário encontrado</h3>
-                  <p>Tente ajustar os filtros de busca ou criar um novo usuário.</p>
+          <div className="lg:hidden space-y-2">
+            {usersHook.loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+            {!usersHook.loading && usersHook.users.length === 0 && <EmptyState icon={<Users />} title="Nenhum usuário" description="—" />}
+            {!usersHook.loading && usersHook.users.map((u) => (
+              <Card key={u.id} className="p-4">
+                <div className="flex items-center gap-2.5">
+                  <Avatar name={u.name || u.username} size="md" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-text-primary truncate">{u.name || u.username}</span>
+                      <StatusDot tone={u.enabled ? 'success' : 'neutral'} />
+                    </div>
+                    <p className="text-xs text-text-tertiary truncate">{u.email}</p>
+                  </div>
                 </div>
+                {u.profiles?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {u.profiles.map((p) => <Badge key={p.id} variant="info" size="sm">{p.name}</Badge>)}
+                  </div>
+                )}
               </Card>
-            ) : (
-              <div className="grid gap-4">
-                {filteredUsers.map((user: UserProfile) => (
-                  <UserCard key={user.id} user={user} />
-                ))}
-              </div>
-            )}
-
-            {usersPagination && usersPagination.totalPages > 1 && (
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setUsersPage(usersPagination.currentPage - 1)}
-                    disabled={usersPagination.currentPage <= 1}
-                  >
-                    Anterior
-                  </Button>
-
-                  <span className="text-sm text-gray-600">
-                    Página {usersPagination.currentPage} de {usersPagination.totalPages}
-                  </span>
-
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setUsersPage(usersPagination.currentPage + 1)}
-                    disabled={usersPagination.currentPage >= usersPagination.totalPages}
-                  >
-                    Próxima
-                  </Button>
-                </div>
-              </Card>
-            )}
+            ))}
           </div>
-        </>
-      )}
+        </TabsContent>
 
-      {showCreateUserModal && (
-        <Modal
-          isOpen={showCreateUserModal}
-          onClose={() => setShowCreateUserModal(false)}
-          title={isEditing ? 'Editar Usuário' : 'Criar Novo Usuário'}
-        >
-          <div className="space-y-4">
+        <TabsContent value="profiles">
+          <div className="mb-3 w-full sm:w-[280px]">
             <Input
-              label="Nome Completo"
-              value={userForm.name}
-              onChange={(e) => setUserForm({...userForm, name: e.target.value})}
-              placeholder="João Silva"
-              required
+              leadingIcon={<Search />}
+              placeholder="Buscar perfil..."
+              value={profileSearch}
+              onChange={(e) => setProfileSearch(e.target.value)}
             />
+          </div>
+          <DataTableBulkBar
+            selectedCount={selectedProfileIds.length}
+            onClear={() => setProfileSelection({})}
+            actions={<Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDeleteProfile({ ids: selectedProfileIds })}>Excluir</Button>}
+          />
 
-            <Input
-              label="Nome de Usuário"
-              value={userForm.username}
-              onChange={(e) => setUserForm({...userForm, username: e.target.value})}
-              placeholder="joaosilva"
-              required
-              helpText={isEditing && user?.username === selectedUser?.username ?
-                "⚠️ Alterar o username fará logout automático" : ""}
+          <div className="hidden lg:block">
+            <DataTable<Profile>
+              data={profilesHook.profiles}
+              columns={profileColumns}
+              rowKey={(r) => r.id}
+              loading={profilesHook.loading}
+              error={profilesHook.error}
+              selectable
+              selection={profileSelection}
+              onSelectionChange={setProfileSelection}
+              onRowClick={(r) => setProfileModal({ profile: r, isEditing: true })}
+              pagination={profilesHook.pagination ? {
+                page: profilesHook.pagination.currentPage,
+                pageSize: profilesHook.pagination.pageSize,
+                total: profilesHook.pagination.totalElements,
+                onPageChange: profilesHook.setPage,
+                onPageSizeChange: profilesHook.setPageSize,
+              } : undefined}
+              empty={<EmptyState icon={<Shield />} title="Nenhum perfil" description="Crie perfis para organizar permissões." actions={<Button leadingIcon={<Plus />} onClick={() => setProfileModal({ profile: null, isEditing: false })}>Novo perfil</Button>} />}
             />
+          </div>
 
-            <Input
-              label="Email"
-              type="email"
-              value={userForm.email}
-              onChange={(e) => setUserForm({...userForm, email: e.target.value})}
-              placeholder="joao@example.com"
-              required
-              error={userForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) ? 'Email inválido' : undefined}
-            />
-
-            {!isEditing && (
-              <Input
-                label="Senha"
-                type="password"
-                value={userForm.password}
-                onChange={(e) => setUserForm({...userForm, password: e.target.value})}
-                placeholder="••••••••"
-                required
-              />
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Perfil
-              </label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={userForm.profileCodes?.[0] || ''}
-                onChange={(e) => setUserForm({...userForm, profileCodes: e.target.value ? [e.target.value] : []})}
-                required
+          <div className="lg:hidden space-y-2">
+            {profilesHook.loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+            {!profilesHook.loading && profilesHook.profiles.length === 0 && <EmptyState icon={<Shield />} title="Nenhum perfil" description="Crie o primeiro." actions={<Button leadingIcon={<Plus />} onClick={() => setProfileModal({ profile: null, isEditing: false })}>Novo</Button>} />}
+            {!profilesHook.loading && profilesHook.profiles.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setProfileModal({ profile: p, isEditing: true })}
+                className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
               >
-                <option value="">Selecione um perfil</option>
-                <option value="ADMIN">Administrador</option>
-                <option value="MANAGER">Gerente</option>
-                <option value="USER">Usuário</option>
-              </select>
-            </div>
-
-            <div className="space-y-3 pt-4">
-              {isEditing && selectedUser && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowCreateUserModal(false);
-                    handleResetPassword(selectedUser);
-                  }}
-                  className="w-full text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300"
-                >
-                  <Key className="w-4 h-4 mr-2" />
-                  Resetar
-                </Button>
-              )}
-
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateUserModal(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveUser} className="flex-1">
-                  {isEditing ? 'Salvar' : 'Criar'}
-                </Button>
-              </div>
-            </div>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-medium text-text-primary truncate">{p.name}</span>
+                    <Badge variant="neutral" size="sm">{p.code}</Badge>
+                  </div>
+                  <StatusDot tone={p.active ? 'success' : 'neutral'} />
+                </div>
+                {p.description && <p className="text-xs text-text-tertiary line-clamp-2">{p.description}</p>}
+                <p className="text-xs text-text-secondary mt-1">{p.userCount ?? 0} usuário(s) · nível {p.level}</p>
+              </button>
+            ))}
           </div>
-        </Modal>
+        </TabsContent>
+      </Tabs>
+
+      {/* Modais existentes integrados */}
+      {profileModal && (
+        <ProfileModal
+          profile={profileModal.profile}
+          isEditing={profileModal.isEditing}
+          onSave={handleProfileSave}
+          onClose={() => setProfileModal(null)}
+        />
+      )}
+      {userAssignment && (
+        <UserAssignmentModal
+          profile={userAssignment}
+          users={usersHook.users}
+          onClose={() => { setUserAssignment(null); usersHook.refetch?.(); profilesHook.refetch?.() }}
+        />
       )}
 
-      <BulkDeleteModal
-        isOpen={showBulkDeleteModal}
-        onClose={() => setShowBulkDeleteModal(false)}
-        onConfirm={handleBulkDelete}
-        selectedCount={selectedItems.length}
-        isDeleting={isDeleting}
-        entityName="usuário"
-      />
+      {/* Confirms */}
+      <Dialog open={!!confirmDeleteUser} onOpenChange={(o) => { if (!o) setConfirmDeleteUser(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {confirmDeleteUser?.ids.length === 1 ? 'usuário' : `${confirmDeleteUser?.ids.length} usuários`}?</DialogTitle>
+            <DialogDescription>O acesso ao sistema será revogado imediatamente.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmDeleteUser(null)}>Cancelar</Button>
+            <Button variant="danger" onClick={async () => {
+              if (!confirmDeleteUser) return
+              try {
+                if (confirmDeleteUser.ids.length === 1) await usersHook.deleteUser(confirmDeleteUser.ids[0])
+                else await usersHook.deleteBulkUsers(confirmDeleteUser.ids)
+                setUserSelection({})
+              } catch (e: any) {
+                toast.error(e?.message || 'Falha ao excluir')
+              } finally {
+                setConfirmDeleteUser(null)
+              }
+            }}>Excluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <DeleteConfirmationModal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setItemToDelete(null);
-        }}
-        onConfirm={handleConfirmDeleteUser}
-        itemName={itemToDelete?.username}
-        isDeleting={isDeletingSingle}
-        description={itemToDelete && user?.id === itemToDelete.id
-          ? "Você não pode excluir sua própria conta."
-          : undefined}
-        variant={itemToDelete && user?.id === itemToDelete.id ? "warning" : "danger"}
-      />
-
-      <Modal
-        isOpen={showResetPasswordModal}
-        onClose={() => {
-          setShowResetPasswordModal(false);
-          setUserToResetPassword(null);
-        }}
-        title="Resetar Senha do Usuário"
-      >
-        <div className="space-y-4">
-          <div className="flex items-center justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full">
-              <Key className="w-8 h-8 text-orange-600" />
-            </div>
-          </div>
-          <p className="text-center text-gray-700">
-            Tem certeza que deseja resetar a senha do usuário{' '}
-            <span className="font-semibold">{userToResetPassword?.username}</span>?
-          </p>
-          <p className="text-center text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-            A nova senha será: <span className="font-mono font-bold text-orange-600">usuario123</span>
-          </p>
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowResetPasswordModal(false);
-                setUserToResetPassword(null);
-              }}
-              disabled={isResettingPassword}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmResetPassword}
-              disabled={isResettingPassword}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {isResettingPassword ? 'Resetando...' : 'Confirmar Reset'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <Dialog open={!!confirmDeleteProfile} onOpenChange={(o) => { if (!o) setConfirmDeleteProfile(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {confirmDeleteProfile?.ids.length === 1 ? 'perfil' : `${confirmDeleteProfile?.ids.length} perfis`}?</DialogTitle>
+            <DialogDescription>Usuários atribuídos a este perfil perderão as permissões correspondentes.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmDeleteProfile(null)}>Cancelar</Button>
+            <Button variant="danger" onClick={async () => {
+              if (!confirmDeleteProfile) return
+              try {
+                if (confirmDeleteProfile.ids.length === 1) await profilesHook.deleteProfile(confirmDeleteProfile.ids[0])
+                else await profilesHook.deleteBulkProfiles(confirmDeleteProfile.ids)
+                setProfileSelection({})
+              } catch (e: any) {
+                toast.error(e?.message || 'Falha ao excluir')
+              } finally {
+                setConfirmDeleteProfile(null)
+              }
+            }}>Excluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  );
-};
+  )
+}
 
-export default ProfileManagement;
+export default ProfileManagement

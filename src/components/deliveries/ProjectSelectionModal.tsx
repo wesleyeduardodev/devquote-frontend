@@ -193,7 +193,7 @@ export default function ProjectSelectionModal({
                         type="checkbox"
                         checked={projects.length > 0 && projects.every(project => selectedProjects.has(project.id))}
                         onChange={toggleSelectAll}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-border-strong text-accent focus:ring-accent"
                     />
                 </div>
             ),
@@ -203,7 +203,7 @@ export default function ProjectSelectionModal({
                         type="checkbox"
                         checked={selectedProjects.has(project.id)}
                         onChange={() => toggleProjectSelection(project.id)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-border-strong text-accent focus:ring-accent"
                     />
                 </div>
             ),
@@ -216,8 +216,8 @@ export default function ProjectSelectionModal({
             filterable: true,
             render: (project) => (
                 <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4 text-gray-400" />
-                    <span className="font-medium text-gray-900 truncate" title={project.name}>
+                    <FolderOpen className="h-4 w-4 text-text-tertiary" />
+                    <span className="font-medium text-text-primary truncate" title={project.name}>
                         {project.name}
                     </span>
                 </div>
@@ -232,17 +232,17 @@ export default function ProjectSelectionModal({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
-                <div className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-white sticky top-0">
+            <div className="bg-surface-1 rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+                <div className="px-4 sm:px-6 py-3 border-b border-border-subtle bg-surface-1 sticky top-0">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate pr-2">
+                            <h2 className="text-lg sm:text-xl font-semibold text-text-primary truncate pr-2">
                                 Selecionar Repositórios/Projetos
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors p-1 flex-shrink-0"
+                            className="text-text-tertiary hover:text-text-secondary transition-colors p-1 flex-shrink-0"
                             title="Fechar (ESC)"
                         >
                             <X className="w-5 h-5" />
@@ -251,7 +251,7 @@ export default function ProjectSelectionModal({
                     
                     {selectedCount > 0 && (
                         <div className="mt-3 text-sm">
-                            <span className="font-medium text-blue-600">{selectedCount}</span>
+                            <span className="font-medium text-accent">{selectedCount}</span>
                             {' '}projeto{selectedCount !== 1 ? 's' : ''} selecionado{selectedCount !== 1 ? 's' : ''}
                         </div>
                     )}
@@ -261,16 +261,16 @@ export default function ProjectSelectionModal({
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full">
                             <LoadingSpinner size="lg" />
-                            <span className="ml-3 text-gray-600">Carregando projetos...</span>
+                            <span className="ml-3 text-text-secondary">Carregando projetos...</span>
                         </div>
                     ) : projects.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                                <Package className="mx-auto h-12 w-12 text-gray-400" />
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                <Package className="mx-auto h-12 w-12 text-text-tertiary" />
+                                <h3 className="mt-2 text-sm font-medium text-text-primary">
                                     Nenhum projeto encontrado
                                 </h3>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-text-tertiary">
                                     Cadastre projetos para poder selecioná-los
                                 </p>
                             </div>
@@ -316,11 +316,11 @@ export default function ProjectSelectionModal({
                     )}
                 </div>
 
-                <div className="px-4 sm:px-6 py-1.5 border-t border-gray-200 bg-white flex items-center justify-between">
-                    <div className="text-xs sm:text-sm text-gray-600">
+                <div className="px-4 sm:px-6 py-1.5 border-t border-border-subtle bg-surface-1 flex items-center justify-between">
+                    <div className="text-xs sm:text-sm text-text-secondary">
                         {paginationData?.totalElements || 0} projeto{(paginationData?.totalElements || 0) !== 1 ? 's' : ''} disponível{(paginationData?.totalElements || 0) !== 1 ? 'eis' : ''}
                         {selectedCount > 0 && (
-                            <span className="ml-2 font-medium text-blue-600">
+                            <span className="ml-2 font-medium text-accent">
                                 • {selectedCount} selecionado{selectedCount !== 1 ? 's' : ''}
                             </span>
                         )}

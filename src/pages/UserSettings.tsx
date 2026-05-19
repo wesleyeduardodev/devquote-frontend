@@ -1,296 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { AuthService } from '../services/authService';
-import toast from 'react-hot-toast';
-import { ArrowLeft, Save, User } from 'lucide-react';
+import * as React from 'react'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { Save, User, Mail, Lock, AlertTriangle, Settings } from 'lucide-react'
 
-interface UserSettingsForm {
-  username: string;
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+import { useAuth } from '@/hooks/useAuth'
+import { AuthService } from '@/services/authService'
+
+import { FormPage } from '@/components/ui-v2/FormPage'
+import { Button } from '@/components/ui-v2/Button'
+import { Input } from '@/components/ui-v2/Input'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { Separator } from '@/components/ui-v2/Separator'
+
+interface FormState {
+  username: string
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
 }
 
 export const UserSettings: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<UserSettingsForm>({
-    username: '',
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [errors, setErrors] = useState<Partial<UserSettingsForm>>({});
+  const navigate = useNavigate()
+  const { user, logout } = useAuth() as any
+  const [loading, setLoading] = React.useState(false)
+  const [data, setData] = React.useState<FormState>({ username: '', name: '', email: '', password: '', confirmPassword: '' })
+  const [errors, setErrors] = React.useState<Partial<FormState>>({})
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (user) {
-      setFormData({
+      setData({
         username: user.username || '',
         name: user.name || user.firstName || '',
         email: user.email || '',
         password: '',
-        confirmPassword: ''
-      });
+        confirmPassword: '',
+      })
     }
-  }, [user]);
+  }, [user])
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.name || user?.name.trim() === '') {
         try {
-          const currentUser = await AuthService.getCurrentUser();
-
-          if (currentUser && currentUser.name) {
-            setFormData(prev => ({
+          const current = await AuthService.getCurrentUser()
+          if (current?.name) {
+            setData((prev) => ({
               ...prev,
-              username: currentUser.username || prev.username,
-              name: currentUser.name || prev.name,
-              email: currentUser.email || prev.email
-            }));
+              username: current.username || prev.username,
+              name: current.name || prev.name,
+              email: current.email || prev.email,
+            }))
           }
-        } catch (error) {
-          console.error('Error fetching current user:', error);
-        }
-      }
-    };
-    fetchUserData();
-  }, [user]);
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<UserSettingsForm> = {};
-
-    if (!formData.username.trim()) {
-      newErrors.username = 'Nome de usuário é obrigatório';
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Nome completo é obrigatório';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'E-mail é obrigatório';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Formato de e-mail inválido';
-    }
-
-    if (formData.password) {
-      if (formData.password.length < 6) {
-        newErrors.password = 'A senha deve ter pelo menos 6 caracteres';
-      }
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'As senhas não coincidem';
+        } catch (e) { console.error(e) }
       }
     }
+    fetchUserData()
+  }, [user])
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const validate = (): boolean => {
+    const next: Partial<FormState> = {}
+    if (!data.username.trim()) next.username = 'Nome de usuário é obrigatório'
+    if (!data.name.trim()) next.name = 'Nome completo é obrigatório'
+    if (!data.email.trim()) next.email = 'E-mail é obrigatório'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) next.email = 'Formato de e-mail inválido'
+    if (data.password) {
+      if (data.password.length < 6) next.password = 'Mínimo 6 caracteres'
+      if (data.password !== data.confirmPassword) next.confirmPassword = 'As senhas não coincidem'
+    }
+    setErrors(next)
+    return Object.keys(next).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setLoading(true);
+    e.preventDefault()
+    if (!validate()) return
+    setLoading(true)
     try {
-      await AuthService.updateProfile(formData);
-      toast.success('Perfil atualizado com sucesso! Por favor, faça login novamente.');
-      logout();
-      navigate('/login');
-    } catch (error: any) {
-      console.error('Error updating profile:', error.response?.data || error);
-      toast.error(error.response?.data?.message || 'Falha ao atualizar perfil');
+      await AuthService.updateProfile(data as any)
+      toast.success('Perfil atualizado. Faça login novamente.')
+      logout()
+      navigate('/login')
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Falha ao atualizar perfil')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name as keyof UserSettingsForm]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+  const set = <K extends keyof FormState>(k: K, v: string) => {
+    setData((prev) => ({ ...prev, [k]: v }))
+    if (errors[k]) setErrors((prev) => ({ ...prev, [k]: undefined }))
+  }
 
   if (!user) {
-    return <LoadingSpinner />;
+    return (
+      <FormPage title="Configurações" backTo="/dashboard" icon={<Settings />}>
+        <div className="space-y-3">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </FormPage>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            Voltar
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Configurações do Usuário</h1>
-          <div className="w-20"></div>
-        </div>
+    <FormPage
+      title="Configurações"
+      subtitle="Atualize seus dados de acesso"
+      backTo="/dashboard"
+      backLabel="Voltar"
+      icon={<Settings />}
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Perfil */}
+        <section>
+          <h2 className="text-xs font-medium uppercase tracking-wide text-text-tertiary mb-3 inline-flex items-center gap-1.5">
+            <User className="size-3.5" />Perfil
+          </h2>
 
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <User className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">Informações do Perfil</h2>
-              <p className="text-gray-600">Atualize os detalhes da sua conta</p>
-            </div>
+          <div className="space-y-4">
+            <Field label="Nome de usuário" hint="Não pode ser alterado" error={errors.username}>
+              <Input leadingIcon={<User />} value={data.username} disabled />
+            </Field>
+
+            <Field label="Nome completo" required error={errors.name}>
+              <Input leadingIcon={<User />} value={data.name} onChange={(e) => set('name', e.target.value)} invalid={!!errors.name} />
+            </Field>
+
+            <Field label="E-mail" required error={errors.email}>
+              <Input leadingIcon={<Mail />} type="email" value={data.email} onChange={(e) => set('email', e.target.value)} invalid={!!errors.email} />
+            </Field>
           </div>
+        </section>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                Nome de Usuário
-              </label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleChange}
-                className={errors.username ? 'border-red-500' : ''}
-                placeholder="Digite seu nome de usuário"
-                disabled
-              />
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-500">O nome de usuário não pode ser alterado</p>
-            </div>
+        <Separator />
 
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Nome
-              </label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                className={errors.name ? 'border-red-500' : ''}
-                placeholder="Digite seu nome completo"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
-            </div>
+        {/* Senha */}
+        <section>
+          <h2 className="text-xs font-medium uppercase tracking-wide text-text-tertiary mb-1 inline-flex items-center gap-1.5">
+            <Lock className="size-3.5" />Alterar senha
+          </h2>
+          <p className="text-xs text-text-tertiary mb-3">Deixe em branco para manter a senha atual</p>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                E-mail
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={errors.email ? 'border-red-500' : ''}
-                placeholder="Digite seu e-mail"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
+          <div className="space-y-4">
+            <Field label="Nova senha" error={errors.password}>
+              <Input leadingIcon={<Lock />} type="password" value={data.password} onChange={(e) => set('password', e.target.value)} invalid={!!errors.password} />
+            </Field>
 
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-medium mb-4">Alterar Senha</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Deixe estes campos vazios se você não quiser alterar sua senha
-              </p>
+            <Field label="Confirmar nova senha" error={errors.confirmPassword}>
+              <Input leadingIcon={<Lock />} type="password" value={data.confirmPassword} onChange={(e) => set('confirmPassword', e.target.value)} invalid={!!errors.confirmPassword} />
+            </Field>
+          </div>
+        </section>
 
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nova Senha
-                  </label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={errors.password ? 'border-red-500' : ''}
-                    placeholder="Digite a nova senha (opcional)"
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirmar Nova Senha
-                  </label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className={errors.confirmPassword ? 'border-red-500' : ''}
-                    placeholder="Confirme a nova senha"
-                  />
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => navigate(-1)}
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="flex items-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <LoadingSpinner size="small" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Salvar Alterações
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </Card>
-
-        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            <strong>Nota:</strong> Após atualizar seu perfil, você será desconectado e precisará fazer login novamente com suas novas credenciais.
+        <div className="rounded-md border border-warning-border bg-warning-soft p-3 flex items-start gap-2">
+          <AlertTriangle className="size-4 text-warning-strong shrink-0 mt-0.5" />
+          <p className="text-xs text-warning-strong">
+            Após atualizar, você será desconectado e precisará fazer login novamente.
           </p>
         </div>
-      </div>
-    </div>
-  );
-};
+
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+          <Button type="button" variant="secondary" onClick={() => navigate(-1)} disabled={loading}>Cancelar</Button>
+          <Button type="submit" loading={loading} leadingIcon={!loading ? <Save /> : undefined}>Salvar alterações</Button>
+        </div>
+      </form>
+    </FormPage>
+  )
+}
+
+const Field: React.FC<{ label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode }> = ({ label, required, hint, error, children }) => (
+  <div>
+    <label className="block text-xs font-medium text-text-secondary mb-1.5">
+      {label} {required && <span className="text-danger-strong">*</span>}
+    </label>
+    {children}
+    {error
+      ? <p className="mt-1 text-xs text-danger-strong">{error}</p>
+      : hint ? <p className="mt-1 text-xs text-text-tertiary">{hint}</p> : null}
+  </div>
+)

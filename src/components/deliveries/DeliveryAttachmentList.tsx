@@ -190,20 +190,20 @@ export function DeliveryAttachmentList({
     <div className={className}>
       {/* Header colapsável */}
       <div 
-        className={`flex items-center justify-between cursor-pointer hover:bg-gray-50 rounded-lg p-2 -mx-2 ${forceExpanded ? 'cursor-default' : ''}`}
+        className={`flex items-center justify-between cursor-pointer hover:bg-surface-app rounded-lg p-2 -mx-2 ${forceExpanded ? 'cursor-default' : ''}`}
         onClick={toggleExpanded}
       >
         <div className="flex items-center gap-2">
           {!forceExpanded && (
-            isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />
+            isExpanded ? <ChevronDown className="w-4 h-4 text-text-tertiary" /> : <ChevronRight className="w-4 h-4 text-text-tertiary" />
           )}
-          <File className="w-5 h-5 text-gray-400" />
-          <span className="text-sm text-gray-600">
+          <File className="w-5 h-5 text-text-tertiary" />
+          <span className="text-sm text-text-secondary">
             {isDeliveryAttachment ? 'Anexos' : 'Anexos do Item'}
           </span>
-          <span className="text-xs text-gray-400">(clique para gerenciar)</span>
+          <span className="text-xs text-text-tertiary">(clique para gerenciar)</span>
           {hasAttachments && (
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+            <span className="bg-accent-soft text-info-strong text-xs font-medium px-2 py-0.5 rounded-full">
               {attachmentCount}
             </span>
           )}
@@ -214,7 +214,7 @@ export function DeliveryAttachmentList({
             e.stopPropagation();
             toggleExpanded();
           }}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="text-sm text-text-tertiary hover:text-text-secondary"
         >
           {isExpanded ? 'Recolher' : 'Expandir'}
         </button>
@@ -226,18 +226,18 @@ export function DeliveryAttachmentList({
           {/* Upload Area - apenas se não for read-only */}
           {!readOnly && (
             <div
-              className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors ${
-                isDragOver ? 'border-blue-400 bg-blue-50' : 'hover:border-gray-400'
+              className={`border-2 border-dashed border-border-strong rounded-lg p-6 text-center transition-colors ${
+                isDragOver ? 'border-blue-400 bg-info-soft' : 'hover:border-text-tertiary'
               }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
             >
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">
+              <Upload className="w-8 h-8 text-text-tertiary mx-auto mb-2" />
+              <p className="text-sm text-text-secondary mb-2">
                 Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à {isDeliveryAttachment ? 'entrega' : 'item'}
               </p>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-text-tertiary mb-3">
                 Arraste e solte arquivos aqui ou clique para selecionar (máx. 10MB por arquivo)
               </p>
               <input
@@ -251,7 +251,7 @@ export function DeliveryAttachmentList({
               />
               <label
                 htmlFor={`file-input-${targetId}-${isDeliveryAttachment ? 'delivery' : 'item'}`}
-                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer ${
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-hover cursor-pointer ${
                   isUploading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -265,16 +265,16 @@ export function DeliveryAttachmentList({
             {loading ? (
               <div className="text-center py-4">
                 <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <p className="text-sm text-gray-500 mt-2">Carregando anexos...</p>
+                <p className="text-sm text-text-tertiary mt-2">Carregando anexos...</p>
               </div>
             ) : hasAttachments ? (
               attachments.map((attachment) => (
-                <div key={attachment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={attachment.id} className="flex items-center justify-between p-3 bg-surface-app rounded-lg">
                   <div className="flex items-center gap-3">
-                    <File className="w-5 h-5 text-gray-500" />
+                    <File className="w-5 h-5 text-text-tertiary" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{attachment.originalFileName}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-text-primary">{attachment.originalFileName}</p>
+                      <p className="text-xs text-text-tertiary">
                         {formatFileSize(attachment.fileSize)} • {new Date(attachment.uploadedAt).toLocaleString('pt-BR')}
                       </p>
                     </div>
@@ -283,7 +283,7 @@ export function DeliveryAttachmentList({
                     <button
                       type="button"
                       onClick={() => handleDownload(attachment)}
-                      className="p-1 text-blue-600 hover:text-blue-800"
+                      className="p-1 text-accent hover:text-info-strong"
                       title="Baixar arquivo"
                     >
                       <Download className="w-4 h-4" />
@@ -308,8 +308,8 @@ export function DeliveryAttachmentList({
               ))
             ) : (
               <div className="text-center py-8">
-                <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
+                <AlertCircle className="w-8 h-8 text-text-tertiary mx-auto mb-2" />
+                <p className="text-sm text-text-tertiary">
                   {readOnly 
                     ? 'Nenhum anexo encontrado' 
                     : 'Nenhum arquivo anexado ainda. Faça upload de seus primeiros arquivos acima.'
@@ -323,13 +323,13 @@ export function DeliveryAttachmentList({
           {selectedFiles.length > 0 && (
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-gray-900">
+                <h4 className="text-sm font-medium text-text-primary">
                   Arquivos selecionados ({selectedFiles.length})
                 </h4>
                 <button
                   type="button"
                   onClick={clearSelectedFiles}
-                  className="text-xs text-gray-500 hover:text-red-600 font-medium"
+                  className="text-xs text-text-tertiary hover:text-red-600 font-medium"
                 >
                   Limpar todos
                 </button>
@@ -337,16 +337,16 @@ export function DeliveryAttachmentList({
 
               <div className="space-y-2">
                 {selectedFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 bg-surface-app rounded-lg">
                     <div className="flex items-center flex-1 min-w-0">
                       <div className="flex-shrink-0">
-                        <File className="w-4 h-4 text-gray-500" />
+                        <File className="w-4 h-4 text-text-tertiary" />
                       </div>
                       <div className="ml-3 flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-text-primary truncate">
                           {file.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-text-tertiary">
                           {formatFileSizeLocal(file.size)}
                         </p>
                       </div>
@@ -354,7 +354,7 @@ export function DeliveryAttachmentList({
                     <button
                       type="button"
                       onClick={() => removeSelectedFile(index)}
-                      className="ml-3 p-1 hover:bg-red-100 hover:text-red-600 rounded text-gray-400 hover:text-red-600"
+                      className="ml-3 p-1 hover:bg-red-100 hover:text-red-600 rounded text-text-tertiary hover:text-red-600"
                       title="Remover arquivo"
                     >
                       <X className="w-4 h-4" />
@@ -369,7 +369,7 @@ export function DeliveryAttachmentList({
                   type="button"
                   onClick={handleUploadFiles}
                   disabled={isUploading}
-                  className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent ${
                     isUploading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >

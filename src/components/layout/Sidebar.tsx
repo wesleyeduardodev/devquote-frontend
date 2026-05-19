@@ -1,123 +1,264 @@
-import React from 'react';
-import {Link, useLocation} from 'react-router-dom';
+import * as React from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
-    LayoutDashboard,
-    Users,
-    CheckSquare,
-    FileText,
-    FolderOpen,
-    Truck,
-    CreditCard,
-    BarChart3,
-    Settings,
-    Bell,
-    Sliders,
-    X
-} from 'lucide-react';
-import clsx from 'clsx';
-import { useAuth } from '@/hooks/useAuth';
+  LayoutDashboard, ListChecks, Truck, DollarSign,
+  Users, FolderKanban, Shield, Bell, Settings,
+  ChevronsLeft, ChevronsRight, Sun, Moon, Monitor,
+  Zap, Check, ChevronDown
+} from 'lucide-react'
+import { cn } from '@/utils/cn'
+import { useAuth } from '@/hooks/useAuth'
+import { useTheme } from '@/hooks/useTheme'
+import { TooltipProvider, TooltipQuick } from '@/components/ui-v2/Tooltip'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
+} from '@/components/ui-v2/DropdownMenu'
 
-interface SidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
+type Profile = 'ADMIN' | 'MANAGER' | 'USER'
+
+interface NavItem {
+  to: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  shortcut?: string
+  profiles?: Profile[]
 }
 
-interface NavigationItem {
-    path: string;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    requiredProfiles: string[];
-    subItems?: NavigationItem[];
+interface NavSection {
+  title: string
+  items: NavItem[]
 }
 
-const Sidebar: React.FC<SidebarProps> = ({isOpen, onClose}) => {
-    const location = useLocation();
-    const { hasAnyProfile, isAdmin, isManager, isUser } = useAuth();
+const SECTIONS: NavSection[] = [
+  {
+    title: 'Geral',
+    items: [
+      { to: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard, shortcut: 'G D' },
+      { to: '/tasks',       label: 'Tarefas',      icon: ListChecks,      shortcut: 'G T' },
+      { to: '/deliveries',  label: 'Entregas',     icon: Truck,           shortcut: 'G E' },
+      { to: '/billing',     label: 'Faturamento',  icon: DollarSign,      shortcut: 'G F', profiles: ['ADMIN', 'MANAGER'] },
+    ],
+  },
+  {
+    title: 'Cadastros',
+    items: [
+      { to: '/requesters', label: 'Solicitantes', icon: Users,         profiles: ['ADMIN'] },
+      { to: '/projects',   label: 'Projetos',     icon: FolderKanban,  profiles: ['ADMIN'] },
+    ],
+  },
+  {
+    title: 'Administração',
+    items: [
+      { to: '/profiles',      label: 'Perfis',       icon: Shield,   profiles: ['ADMIN'] },
+      { to: '/notifications', label: 'Notificações', icon: Bell,     profiles: ['ADMIN'] },
+      { to: '/parameters',    label: 'Parâmetros',   icon: Settings, profiles: ['ADMIN'] },
+    ],
+  },
+]
 
-    const isActiveRoute = (path: string): boolean => {
-        return location.pathname === path || location.pathname.startsWith(path + '/');
-    };
+export const SIDEBAR_STORAGE_KEY = 'devquote.sidebar.collapsed'
 
-    const allNavigationItems: NavigationItem[] = [
-        {path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, requiredProfiles: ['ADMIN', 'MANAGER', 'USER']},
-        {path: '/requesters', label: 'Solicitantes', icon: Users, requiredProfiles: ['ADMIN']},
-        {path: '/tasks', label: 'Tarefas', icon: CheckSquare, requiredProfiles: ['ADMIN', 'MANAGER', 'USER']},
-        {path: '/deliveries', label: 'Entregas', icon: Truck, requiredProfiles: ['ADMIN', 'MANAGER', 'USER']},
-        {path: '/projects', label: 'Projetos', icon: FolderOpen, requiredProfiles: ['ADMIN']},
-        {path: '/billing', label: 'Faturamento', icon: CreditCard, requiredProfiles: ['ADMIN', 'MANAGER']},
-        {path: '/reports', label: 'Relatórios', icon: BarChart3, requiredProfiles: ['ADMIN', 'MANAGER']},
-        {path: '/notifications', label: 'Notificações', icon: Bell, requiredProfiles: ['ADMIN']},
-        {path: '/parameters', label: 'Parâmetros', icon: Sliders, requiredProfiles: ['ADMIN']},
-        {path: '/settings', label: 'Configurações', icon: Settings, requiredProfiles: ['ADMIN']}
-    ];
+export interface SidebarProps {
+  collapsed: boolean
+  onToggleCollapsed: () => void
+  onCloseMobile?: () => void
+}
 
-    const navigationItems = allNavigationItems.filter(item => {
-        return hasAnyProfile(item.requiredProfiles);
-    });
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onCloseMobile }) => {
+  const { hasAnyProfile } = useAuth() as any
+  const { theme, setTheme } = useTheme()
 
-    return (
-        <>
+  const isAllowed = (item: NavItem) => {
+    if (!item.profiles || item.profiles.length === 0) return true
+    return hasAnyProfile ? hasAnyProfile(item.profiles) : true
+  }
 
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-                    onClick={onClose}
-                />
-            )}
+  return (
+    <TooltipProvider delayDuration={150}>
+      <aside
+        className={cn(
+          'flex flex-col h-full',
+          'bg-[var(--sidebar-bg)] text-[var(--sidebar-text)]',
+          'border-r border-[var(--sidebar-border)]',
+          'transition-[width] duration-base ease-smooth',
+          collapsed ? 'w-[64px]' : 'w-[260px]'
+        )}
+      >
+        <div className={cn('h-14 flex items-center px-3 border-b border-[var(--sidebar-border)] gap-2 shrink-0', collapsed && 'justify-center px-0')}>
+          <BrandMark collapsed={collapsed} />
+          {!collapsed && <WorkspaceSwitcher />}
+        </div>
 
-
-            <aside
-                className={clsx(
-                    'fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0',
-                    isOpen ? 'translate-x-0' : '-translate-x-full'
+        <nav className="flex-1 overflow-y-auto py-3 px-2">
+          {SECTIONS.map((sec) => {
+            const visibleItems = sec.items.filter(isAllowed)
+            if (visibleItems.length === 0) return null
+            return (
+              <div key={sec.title} className="mb-4">
+                {!collapsed && (
+                  <div className="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--sidebar-text-dim)]">
+                    {sec.title}
+                  </div>
                 )}
-            >
+                <ul className="space-y-0.5">
+                  {visibleItems.map((item) => (
+                    <li key={item.to}>
+                      <NavItemEl item={item} collapsed={collapsed} onNavigate={onCloseMobile} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </nav>
 
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                    <Link to="/dashboard" className="text-xl font-bold text-primary-600">
-                        DevQuote
-                    </Link>
+        <div className={cn('shrink-0 border-t border-[var(--sidebar-border)] p-2 flex flex-col gap-1', collapsed && 'items-center')}>
+          <ThemeToggle collapsed={collapsed} theme={theme} setTheme={setTheme} />
+          <FooterIconButton
+            collapsed={collapsed}
+            onClick={onToggleCollapsed}
+            icon={collapsed ? <ChevronsRight /> : <ChevronsLeft />}
+            label={collapsed ? 'Expandir' : 'Recolher'}
+            shortcut="["
+          />
+        </div>
+      </aside>
+    </TooltipProvider>
+  )
+}
 
-                    <button
-                        onClick={onClose}
-                        className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
-                        aria-label="Fechar menu"
-                    >
-                        <X className="w-6 h-6"/>
-                    </button>
-                </div>
+export default Sidebar
 
+const BrandMark: React.FC<{ collapsed: boolean }> = ({ collapsed }) => (
+  <div className="flex items-center gap-2">
+    <div className="h-8 w-8 rounded-md bg-accent text-accent-fg grid place-items-center shadow-sm">
+      <Zap className="size-4" strokeWidth={2.25} />
+    </div>
+    {!collapsed && (
+      <span className="text-md font-semibold text-[var(--sidebar-text)] tracking-tight">DevQuote</span>
+    )}
+  </div>
+)
 
-                <nav className="flex-1 overflow-y-auto p-4">
-                    <ul className="space-y-2">
-                        {navigationItems.map((item) => (
-                            <li key={item.path}>
-                                <Link
-                                    to={item.path}
-                                    onClick={onClose}
-                                    className={clsx(
-                                        'flex items-center px-4 py-3 rounded-lg transition-colors',
-                                        isActiveRoute(item.path)
-                                            ? 'bg-primary-50 text-primary-700 font-medium'
-                                            : 'text-gray-700 hover:bg-gray-100'
-                                    )}
-                                >
-                                    <item.icon className="w-5 h-5 mr-3"/>
-                                    <span>{item.label}</span>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-
-                <div className="p-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 text-center">
-                        © 2025 DevQuote
-                    </p>
-                </div>
-            </aside>
+const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () => void }> = ({ item, collapsed, onNavigate }) => {
+  const Icon = item.icon
+  const inner = (
+    <NavLink
+      to={item.to}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        cn(
+          'group relative flex items-center gap-2.5 rounded-md text-sm font-medium',
+          'h-8 px-2 transition-colors',
+          collapsed && 'justify-center px-0 w-full',
+          isActive
+            ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)]'
+            : 'text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)]'
+        )
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[var(--sidebar-active-bar)]" aria-hidden />
+          )}
+          <Icon className="size-4 shrink-0" />
+          {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+          {!collapsed && item.shortcut && (
+            <kbd className="font-mono text-[10px] text-[var(--sidebar-text-dim)] opacity-0 group-hover:opacity-100 transition-opacity">{item.shortcut}</kbd>
+          )}
         </>
-    );
-};
+      )}
+    </NavLink>
+  )
+  if (collapsed) {
+    return (
+      <TooltipQuick label={`${item.label}${item.shortcut ? ` · ${item.shortcut}` : ''}`} side="right">
+        {inner}
+      </TooltipQuick>
+    )
+  }
+  return inner
+}
 
-export default Sidebar;
+const WorkspaceSwitcher: React.FC = () => {
+  const host = typeof window !== 'undefined' ? window.location.hostname : ''
+  const tenants = [
+    { id: 'wesley', label: "Wesley's workspace", host: 'wesley.devquote.com.br' },
+    { id: 'joao',   label: "João's workspace",   host: 'joao.devquote.com.br' },
+    { id: 'local',  label: 'Local',              host: 'localhost' },
+  ]
+  const current = tenants.find((t) => host.endsWith(t.host)) || tenants.find((t) => t.id === 'local') || tenants[0]
+
+  const goTo = (host: string) => {
+    if (host === 'localhost') return
+    const url = `${window.location.protocol}//${host}${window.location.pathname}`
+    window.location.assign(url)
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex-1 min-w-0 flex items-center gap-1.5 px-2 h-8 rounded-md hover:bg-[var(--sidebar-hover)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
+        <span className="text-sm font-medium text-[var(--sidebar-text)] truncate flex-1">{current.label}</span>
+        <ChevronDown className="size-3.5 text-[var(--sidebar-text-dim)] shrink-0" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-[220px]">
+        <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {tenants.map((t) => (
+          <DropdownMenuItem key={t.id} onSelect={() => goTo(t.host)}>
+            <span className="flex-1">{t.label}</span>
+            {t.id === current.id && <Check className="size-4 text-accent" />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+const ThemeToggle: React.FC<{ collapsed: boolean; theme: string; setTheme: (t: any) => void }> = ({ collapsed, theme, setTheme }) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger
+      className={cn(
+        'flex items-center gap-2 rounded-md text-sm text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)] h-8 transition-colors',
+        collapsed ? 'w-8 justify-center' : 'w-full px-2'
+      )}
+    >
+      {theme === 'dark' ? <Moon className="size-4" /> : theme === 'dim' ? <Moon className="size-4 opacity-70" /> : theme === 'system' ? <Monitor className="size-4" /> : <Sun className="size-4" />}
+      {!collapsed && <span className="flex-1 text-left">Tema</span>}
+    </DropdownMenuTrigger>
+    <DropdownMenuContent side="top" align="start">
+      <DropdownMenuItem onSelect={() => setTheme('light')}><Sun className="size-4" />Claro</DropdownMenuItem>
+      <DropdownMenuItem onSelect={() => setTheme('dim')}><Moon className="size-4 opacity-70" />Dim (suave)</DropdownMenuItem>
+      <DropdownMenuItem onSelect={() => setTheme('dark')}><Moon className="size-4" />Escuro</DropdownMenuItem>
+      <DropdownMenuItem onSelect={() => setTheme('system')}><Monitor className="size-4" />Sistema</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+)
+
+const FooterIconButton: React.FC<{
+  collapsed: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+  shortcut?: string
+}> = ({ collapsed, onClick, icon, label, shortcut }) => {
+  const btn = (
+    <button
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-2 rounded-md text-sm text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)] h-8 transition-colors',
+        collapsed ? 'w-8 justify-center' : 'w-full px-2'
+      )}
+    >
+      <span className="[&_svg]:size-4">{icon}</span>
+      {!collapsed && <span className="flex-1 text-left">{label}</span>}
+      {!collapsed && shortcut && (
+        <kbd className="font-mono text-[10px] text-[var(--sidebar-text-dim)]">{shortcut}</kbd>
+      )}
+    </button>
+  )
+  if (collapsed) return <TooltipQuick label={`${label}${shortcut ? ` · ${shortcut}` : ''}`} side="right">{btn}</TooltipQuick>
+  return btn
+}

@@ -1,469 +1,330 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import * as React from 'react'
+import { Link } from 'react-router-dom'
 import {
-  CheckSquare,
-  Truck,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Zap,
-  TrendingUp,
-  Calendar,
-  Users,
-  Download,
-  Eye,
-  Activity,
-  BarChart3,
-  FileText,
-  Plus,
-  Loader2
-} from 'lucide-react';
-import { useDashboard } from '@/hooks/useDashboard';
-import { useAuth } from '@/hooks/useAuth';
-import { taskService } from '@/services/taskService';
-import { deliveryService } from '@/services/deliveryService';
-import billingPeriodService from '@/services/billingPeriodService';
-import { reportService } from '@/services/reportService';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
-import toast from 'react-hot-toast';
+  ListChecks, Truck, DollarSign, CheckCircle2, TrendingUp, TrendingDown,
+  Activity as ActivityIcon, AlertTriangle, ArrowRight, Inbox
+} from 'lucide-react'
+import {
+  ResponsiveContainer, AreaChart, Area, Tooltip as RTooltip, XAxis, YAxis,
+} from 'recharts'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
-const Dashboard = () => {
-  const { stats, loading, error } = useDashboard();
-  const { user, hasProfile } = useAuth();
+import { useDashboard } from '@/hooks/useDashboard'
+import { useAuth } from '@/hooks/useAuth'
+import { cn } from '@/utils/cn'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-v2/Card'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { EmptyState } from '@/components/ui-v2/EmptyState'
+import { Badge } from '@/components/ui-v2/Badge'
 
-  const [exportingTasks, setExportingTasks] = useState(false);
-  const [exportingTasksWithItems, setExportingTasksWithItems] = useState(false);
-  const [exportingDeliveries, setExportingDeliveries] = useState(false);
-  const [exportingDeliveriesDev, setExportingDeliveriesDev] = useState(false);
-  const [exportingDeliveriesOp, setExportingDeliveriesOp] = useState(false);
-  const [exportingBilling, setExportingBilling] = useState(false);
-  const [exportingStatistics, setExportingStatistics] = useState(false);
+/* ============================ Helpers ============================ */
+const brl = (n: number | null | undefined) =>
+  (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  };
+const pct = (n: number | null | undefined) => `${(n ?? 0).toFixed(1)}%`
 
-  const handleExportTasks = async () => {
-    try {
-      setExportingTasks(true);
-      const blob = await taskService.exportTasksOnlyToExcel();
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `Relatorio_Tarefas_${timestamp}.xlsx`);
-      toast.success('Relatório de tarefas exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar tarefas:', error);
-      toast.error('Erro ao exportar relatório de tarefas');
-    } finally {
-      setExportingTasks(false);
-    }
-  };
-
-  const handleExportTasksWithItems = async () => {
-    try {
-      setExportingTasksWithItems(true);
-      const blob = await taskService.exportToExcel();
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `Relatorio_Tarefas_Itens_${timestamp}.xlsx`);
-      toast.success('Relatório de tarefas + itens exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar tarefas + itens:', error);
-      toast.error('Erro ao exportar relatório de tarefas + itens');
-    } finally {
-      setExportingTasksWithItems(false);
-    }
-  };
-
-  const handleExportDeliveries = async () => {
-    try {
-      setExportingDeliveries(true);
-      const canViewAmounts = hasProfile('ADMIN') || hasProfile('MANAGER');
-      const blob = await deliveryService.exportDeliveriesOnlyToExcel(canViewAmounts);
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_entregas_${timestamp}.xlsx`);
-      toast.success('Relatório de entregas exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar entregas:', error);
-      toast.error('Erro ao exportar relatório de entregas');
-    } finally {
-      setExportingDeliveries(false);
-    }
-  };
-
-  const handleExportDeliveriesDev = async () => {
-    try {
-      setExportingDeliveriesDev(true);
-      const canViewAmounts = hasProfile('ADMIN') || hasProfile('MANAGER');
-      const blob = await deliveryService.exportToExcel('DESENVOLVIMENTO', canViewAmounts);
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_entregas_desenvolvimento_${timestamp}.xlsx`);
-      toast.success('Relatório de entregas (Desenvolvimento) exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar entregas desenvolvimento:', error);
-      toast.error('Erro ao exportar relatório de entregas');
-    } finally {
-      setExportingDeliveriesDev(false);
-    }
-  };
-
-  const handleExportDeliveriesOp = async () => {
-    try {
-      setExportingDeliveriesOp(true);
-      const canViewAmounts = hasProfile('ADMIN') || hasProfile('MANAGER');
-      const blob = await deliveryService.exportToExcel('OPERACIONAL', canViewAmounts);
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_entregas_operacional_${timestamp}.xlsx`);
-      toast.success('Relatório de entregas (Operacional) exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar entregas operacional:', error);
-      toast.error('Erro ao exportar relatório de entregas');
-    } finally {
-      setExportingDeliveriesOp(false);
-    }
-  };
-
-  const handleExportBilling = async () => {
-    try {
-      setExportingBilling(true);
-      const blob = await billingPeriodService.exportToExcel({});
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_faturamento_${timestamp}.xlsx`);
-      toast.success('Relatório de faturamento exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar faturamento:', error);
-      toast.error('Erro ao exportar relatório de faturamento');
-    } finally {
-      setExportingBilling(false);
-    }
-  };
-
-  const handleExportStatistics = async () => {
-    try {
-      setExportingStatistics(true);
-      const blob = await reportService.generateOperationalPdf({
-        dataInicio: '',
-        dataFim: ''
-      });
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '').replace('T', '_');
-      downloadBlob(blob, `relatorio_estatisticas_${timestamp}.pdf`);
-      toast.success('Relatório de estatísticas exportado com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao exportar estatísticas:', error);
-      toast.error('Erro ao exportar relatório de estatísticas');
-    } finally {
-      setExportingStatistics(false);
-    }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
+/* ============================ KPI Card ============================ */
+interface KpiCardProps {
+  label: string
+  value: React.ReactNode
+  delta?: number
+  deltaSuffix?: string
+  trend?: { x: string; y: number }[]
+  loading?: boolean
+}
+const KpiCard: React.FC<KpiCardProps> = ({ label, value, delta, deltaSuffix, trend, loading }) => {
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-gray-600">Carregando dashboard...</p>
-        </div>
-      </div>
-    );
+      <Card className="p-5">
+        <Skeleton className="h-3 w-20 mb-3" />
+        <Skeleton className="h-7 w-32 mb-2" />
+        <Skeleton className="h-3 w-24" />
+      </Card>
+    )
   }
+  const positive = (delta ?? 0) >= 0
+  return (
+    <Card className="p-5 transition-shadow hover:shadow-sm">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">{label}</p>
+      <div className="mt-2 flex items-baseline gap-2">
+        <span className="text-2xl font-semibold text-text-primary tabular-nums">{value}</span>
+      </div>
+      {typeof delta === 'number' && (
+        <div className={cn('mt-1 flex items-center gap-1 text-xs', positive ? 'text-success-strong' : 'text-danger-strong')}>
+          {positive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+          <span className="tabular-nums">{positive ? '+' : ''}{delta.toFixed(1)}%</span>
+          {deltaSuffix && <span className="text-text-tertiary">{deltaSuffix}</span>}
+        </div>
+      )}
+      {trend && trend.length > 1 && (
+        <div className="h-10 mt-3 -mx-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trend} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id={`spark-${label}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="var(--accent)" stopOpacity={0.25}/>
+                  <stop offset="100%" stopColor="var(--accent)" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="y" stroke="var(--accent)" strokeWidth={1.5} fill={`url(#spark-${label})`} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+/* ============================ Trend chart ============================ */
+const TrendChart: React.FC<{ data: { label: string; value: number; count: number }[]; loading?: boolean }> = ({ data, loading }) => {
+  if (loading) return <Skeleton className="h-64 w-full" />
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState
+        icon={<TrendingUp />}
+        title="Sem dados de tendência"
+        description="Conforme tarefas forem registradas, a tendência aparecerá aqui."
+      />
+    )
+  }
+  return (
+    <div className="h-64 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="var(--accent)" stopOpacity={0.20}/>
+              <stop offset="100%" stopColor="var(--accent)" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="label" stroke="var(--text-tertiary)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+          <YAxis stroke="var(--text-tertiary)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={50} />
+          <RTooltip
+            contentStyle={{
+              background: 'var(--surface-1)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 12,
+            }}
+            labelStyle={{ color: 'var(--text-secondary)' }}
+            formatter={(v: any, k: any) => k === 'value' ? brl(Number(v)) : v}
+          />
+          <Area type="monotone" dataKey="value" stroke="var(--accent)" strokeWidth={2} fill="url(#trend-fill)" name="Valor" />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+/* ============================ Activity Feed ============================ */
+const ActivityFeed: React.FC<{ items: any[]; loading?: boolean }> = ({ items, loading }) => {
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-2 w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  if (!items || items.length === 0) {
+    return (
+      <EmptyState
+        icon={<ActivityIcon />}
+        title="Sem atividade recente"
+        description="Histórico de eventos aparecerá aqui conforme o sistema for usado."
+      />
+    )
+  }
+  return (
+    <ul className="space-y-3">
+      {items.slice(0, 8).map((a, i) => (
+        <li key={`${a.entityId}-${i}`} className="flex items-start gap-3">
+          <div className="h-8 w-8 rounded-full bg-surface-2 grid place-items-center text-text-tertiary shrink-0">
+            <ActivityIcon className="size-3.5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-text-primary truncate">{a.description}</p>
+            <p className="text-xs text-text-tertiary mt-0.5">
+              {a.user} · {a.timestamp ? format(new Date(a.timestamp), "dd MMM, HH:mm", { locale: ptBR }) : '—'}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/* ============================ Attention card ============================ */
+interface AttentionItem {
+  icon: React.ReactNode
+  label: string
+  href: string
+  count?: number
+}
+const AttentionCard: React.FC<{ items: AttentionItem[] }> = ({ items }) => {
+  if (items.length === 0) {
+    return (
+      <Card className="p-5 border-success-border bg-success-soft/40">
+        <div className="flex items-center gap-2 text-success-strong">
+          <CheckCircle2 className="size-4" />
+          <span className="text-sm font-medium">Tudo em dia.</span>
+        </div>
+      </Card>
+    )
+  }
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-md">
+            <AlertTriangle className="size-4 text-warning-strong" />
+            Requer atenção
+            <Badge variant="warning" size="sm">{items.length}</Badge>
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ul className="divide-y divide-border-subtle">
+          {items.map((it, i) => (
+            <li key={i}>
+              <Link
+                to={it.href}
+                className="flex items-center gap-3 px-5 py-3 hover:bg-surface-2 transition-colors group"
+              >
+                <span className="text-warning-strong [&_svg]:size-4">{it.icon}</span>
+                <span className="text-sm text-text-primary flex-1">{it.label}</span>
+                <ArrowRight className="size-3.5 text-text-tertiary opacity-60 group-hover:opacity-100 transition-opacity" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  )
+}
+
+/* ============================ Dashboard ============================ */
+const Dashboard: React.FC = () => {
+  const { stats, loading, error } = useDashboard()
+  const { user, isAdmin, isManager } = useAuth() as any
+
+  const firstName = (user?.name || user?.username || 'Usuário').split(' ')[0]
+
+  // Sparklines (a partir de tasksChart)
+  const tasksSpark = React.useMemo(() => {
+    const c = stats?.tasksChart || []
+    return c.slice(-7).map((d) => ({ x: d.label, y: d.count }))
+  }, [stats])
+  const revenueSpark = React.useMemo(() => {
+    const c = stats?.tasksChart || []
+    return c.slice(-12).map((d) => ({ x: d.label, y: d.value }))
+  }, [stats])
+
+  // Attention items — heurísticos a partir dos dados existentes
+  const attentionItems = React.useMemo<AttentionItem[]>(() => {
+    const items: AttentionItem[] = []
+    const dByStatus = stats?.deliveriesByStatus || []
+    const pending = dByStatus.find((s) => s.status === 'PENDING')?.count ?? 0
+    const homolog = dByStatus.find((s) => s.status === 'HOMOLOGATION')?.count ?? 0
+    const reject  = dByStatus.find((s) => s.status === 'REJECTED')?.count ?? 0
+    if (pending > 0) items.push({ icon: <Inbox />,       label: `${pending} entrega(s) pendente(s)`,       href: '/deliveries' })
+    if (homolog > 0) items.push({ icon: <AlertTriangle/>, label: `${homolog} em homologação`,                href: '/deliveries' })
+    if (reject > 0)  items.push({ icon: <AlertTriangle/>, label: `${reject} rejeitada(s)`,                   href: '/deliveries' })
+    return items
+  }, [stats])
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar dashboard</h2>
-          <p className="text-gray-600">{error}</p>
-        </div>
-      </div>
-    );
+      <EmptyState
+        icon={<AlertTriangle />}
+        title="Erro ao carregar"
+        description={error}
+      />
+    )
   }
 
-  if (!stats) return null;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header Section */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-6 py-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 mt-2">
-                  Bem-vindo de volta, {user?.username || 'Usuário'}!
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">
-                  {new Date().toLocaleDateString('pt-BR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-8">
+      {/* Saudação */}
+      <header>
+        <h1 className="text-xl font-semibold text-text-primary leading-tight">
+          Bem-vindo de volta, {firstName}.
+        </h1>
+        <p className="text-sm text-text-secondary mt-0.5">
+          {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+        </p>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Key Performance Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Tasks */}
-          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white transform hover:scale-105 transition-transform duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm font-medium">Tarefas Cadastradas</p>
-                <p className="text-3xl font-bold">
-                  {stats.tasks?.total || 0}
-                </p>
-                <p className="text-blue-200 text-xs mt-1">
-                  Total no sistema
-                </p>
-              </div>
-              <CheckSquare className="w-12 h-12 text-blue-200" />
-            </div>
-          </Card>
+      {/* KPIs */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard
+          label="Tarefas concluídas"
+          value={(stats?.general.completedTasks ?? 0).toLocaleString('pt-BR')}
+          delta={stats?.tasks?.growthPercentage}
+          deltaSuffix="vs. mês anterior"
+          trend={tasksSpark}
+          loading={loading}
+        />
+        <KpiCard
+          label="Entregas"
+          value={(stats?.deliveries?.total ?? 0).toLocaleString('pt-BR')}
+          delta={stats?.deliveries?.growthPercentage}
+          deltaSuffix="vs. mês anterior"
+          loading={loading}
+        />
+        <KpiCard
+          label="Receita do mês"
+          value={brl(stats?.billing?.thisMonth)}
+          delta={stats?.billing?.growthPercentage}
+          deltaSuffix="vs. mês anterior"
+          trend={revenueSpark}
+          loading={loading}
+        />
+        <KpiCard
+          label="Taxa de conclusão"
+          value={pct(stats?.general.completionRate)}
+          loading={loading}
+        />
+      </section>
 
-          {/* Total Deliveries */}
-          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white transform hover:scale-105 transition-transform duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm font-medium">Total de Entregas</p>
-                <p className="text-3xl font-bold">
-                  {stats.deliveries?.total || 0}
-                </p>
-                <p className="text-purple-200 text-xs mt-1">
-                  {stats.deliveries?.active || 0} em andamento
-                </p>
-              </div>
-              <Truck className="w-12 h-12 text-purple-200" />
-            </div>
-          </Card>
+      {/* Atenção */}
+      <section>
+        {!loading && <AttentionCard items={attentionItems} />}
+        {loading && <Skeleton className="h-24 w-full" />}
+      </section>
 
-          {/* Approved Deliveries */}
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white transform hover:scale-105 transition-transform duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm font-medium">Entregas Aprovadas</p>
-                <p className="text-3xl font-bold">
-                  {stats.deliveries?.completed || 0}
-                </p>
-                <p className="text-green-200 text-xs mt-1">
-                  {((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100).toFixed(1)}% do total
-                </p>
-              </div>
-              <CheckCircle className="w-12 h-12 text-green-200" />
-            </div>
-          </Card>
-
-          {/* Taxa de Aprovação */}
-          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white transform hover:scale-105 transition-transform duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100 text-sm font-medium">Taxa de Aprovação</p>
-                <p className="text-3xl font-bold">
-                  {((stats.deliveries?.completed || 0) / (stats.deliveries?.total || 1) * 100).toFixed(1)}%
-                </p>
-                <p className="text-orange-200 text-xs mt-1">
-                  Entregas aprovadas
-                </p>
-              </div>
-              <TrendingUp className="w-12 h-12 text-orange-200" />
-            </div>
-          </Card>
-        </div>
-
-        {/* Seção de Relatórios - Primeira posição */}
-        <Card title="📊 Relatórios e Exportações" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-indigo-500">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {/* 1. Relatório Tarefas (só tarefas) */}
-            <div
-              onClick={handleExportTasks}
-              className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
-            >
-              {exportingTasks ? (
-                <Loader2 className="w-8 h-8 text-blue-600 mb-2 animate-spin" />
-              ) : (
-                <Download className="w-8 h-8 text-blue-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-blue-800 text-center">
-                {exportingTasks ? 'Exportando...' : 'Relatório Tarefas'}
-              </span>
-            </div>
-
-            {/* 2. Tarefas + Itens */}
-            <div
-              onClick={handleExportTasksWithItems}
-              className="flex flex-col items-center p-6 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-colors cursor-pointer"
-            >
-              {exportingTasksWithItems ? (
-                <Loader2 className="w-8 h-8 text-cyan-600 mb-2 animate-spin" />
-              ) : (
-                <FileText className="w-8 h-8 text-cyan-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-cyan-800 text-center">
-                {exportingTasksWithItems ? 'Exportando...' : 'Tarefas + Itens'}
-              </span>
-            </div>
-
-            {/* 3. Entregas (só entregas, ambos fluxos) */}
-            <div
-              onClick={handleExportDeliveries}
-              className="flex flex-col items-center p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer"
-            >
-              {exportingDeliveries ? (
-                <Loader2 className="w-8 h-8 text-green-600 mb-2 animate-spin" />
-              ) : (
-                <Download className="w-8 h-8 text-green-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-green-800 text-center">
-                {exportingDeliveries ? 'Exportando...' : 'Entregas'}
-              </span>
-            </div>
-
-            {/* 4. Entrega Desenvolvimento (com itens) */}
-            <div
-              onClick={handleExportDeliveriesDev}
-              className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer"
-            >
-              {exportingDeliveriesDev ? (
-                <Loader2 className="w-8 h-8 text-purple-600 mb-2 animate-spin" />
-              ) : (
-                <Truck className="w-8 h-8 text-purple-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-purple-800 text-center">
-                {exportingDeliveriesDev ? 'Exportando...' : 'Entrega Desenvolvimento'}
-              </span>
-            </div>
-
-            {/* 5. Entrega Operacional (com itens) */}
-            <div
-              onClick={handleExportDeliveriesOp}
-              className="flex flex-col items-center p-6 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
-            >
-              {exportingDeliveriesOp ? (
-                <Loader2 className="w-8 h-8 text-indigo-600 mb-2 animate-spin" />
-              ) : (
-                <Truck className="w-8 h-8 text-indigo-600 mb-2" />
-              )}
-              <span className="text-sm font-medium text-indigo-800 text-center">
-                {exportingDeliveriesOp ? 'Exportando...' : 'Entrega Operacional'}
-              </span>
-            </div>
-
-            {/* 6. Relatório Faturamento - Somente ADMIN/MANAGER */}
-            {(hasProfile('ADMIN') || hasProfile('MANAGER')) && (
-              <div
-                onClick={handleExportBilling}
-                className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer"
-              >
-                {exportingBilling ? (
-                  <Loader2 className="w-8 h-8 text-yellow-600 mb-2 animate-spin" />
-                ) : (
-                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-                )}
-                <span className="text-sm font-medium text-yellow-800 text-center">
-                  {exportingBilling ? 'Exportando...' : 'Relatório Faturamento'}
-                </span>
-              </div>
-            )}
-
-            {/* 7. Estatísticas - Somente ADMIN/MANAGER */}
-            {(hasProfile('ADMIN') || hasProfile('MANAGER')) && (
-              <div
-                onClick={handleExportStatistics}
-                className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer"
-              >
-                {exportingStatistics ? (
-                  <Loader2 className="w-8 h-8 text-orange-600 mb-2 animate-spin" />
-                ) : (
-                  <BarChart3 className="w-8 h-8 text-orange-600 mb-2" />
-                )}
-                <span className="text-sm font-medium text-orange-800 text-center">
-                  {exportingStatistics ? 'Exportando...' : 'Estatísticas'}
-                </span>
-              </div>
-            )}
-          </div>
+      {/* Trend + Activity */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Tendência</CardTitle>
+            <CardDescription>Valor faturado por período</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TrendChart data={stats?.tasksChart || []} loading={loading} />
+          </CardContent>
         </Card>
 
-        {/* Seção de Atalhos - Segunda posição */}
-        <Card title="🚀 Atalhos Rápidos" className="hover:shadow-xl transition-shadow duration-300 border-l-4 border-green-500">
-          <div className={`grid gap-6 max-w-5xl mx-auto ${
-            hasProfile('ADMIN') ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5' :
-            hasProfile('MANAGER') ? 'grid-cols-1 md:grid-cols-3 lg:grid-cols-3' :
-            'grid-cols-1 md:grid-cols-2 lg:grid-cols-2'
-          }`}>
-            {/* Ver Tarefas */}
-            <Link to="/tasks">
-              <div className="flex flex-col items-center p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                <BarChart3 className="w-8 h-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-blue-800 text-center">Ver Tarefas</span>
-              </div>
-            </Link>
-
-
-            {/* Ver Entregas */}
-            <Link to="/deliveries">
-              <div className="flex flex-col items-center p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                <Truck className="w-8 h-8 text-purple-600 mb-2" />
-                <span className="text-sm font-medium text-purple-800 text-center">Ver Entregas</span>
-              </div>
-            </Link>
-
-            {/* Ver Projetos - Somente ADMIN */}
-            {hasProfile('ADMIN') ? (
-              <Link to="/projects">
-                <div className="flex flex-col items-center p-6 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                  <CheckSquare className="w-8 h-8 text-orange-600 mb-2" />
-                  <span className="text-sm font-medium text-orange-800 text-center">Ver Projetos</span>
-                </div>
-              </Link>
-            ) : null}
-
-            {/* Ver Solicitantes - Somente ADMIN */}
-            {hasProfile('ADMIN') ? (
-              <Link to="/requesters">
-                <div className="flex flex-col items-center p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                  <Users className="w-8 h-8 text-gray-600 mb-2" />
-                  <span className="text-sm font-medium text-gray-800 text-center">Ver Solicitantes</span>
-                </div>
-              </Link>
-            ) : null}
-
-            {/* Ver Faturamento - Somente ADMIN/MANAGER */}
-            {hasProfile('ADMIN') || hasProfile('MANAGER') ? (
-              <Link to="/billing">
-                <div className="flex flex-col items-center p-6 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors cursor-pointer">
-                  <TrendingUp className="w-8 h-8 text-yellow-600 mb-2" />
-                  <span className="text-sm font-medium text-yellow-800 text-center">Ver Faturamento</span>
-                </div>
-              </Link>
-            ) : null}
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Atividade recente</CardTitle>
+            <CardDescription>Últimos eventos no sistema</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ActivityFeed items={stats?.recentActivities || []} loading={loading} />
+          </CardContent>
         </Card>
-
-      </div>
+      </section>
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

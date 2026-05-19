@@ -1,602 +1,239 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-    Plus,
-    Edit,
-    Trash2,
-    Search,
-    Filter,
-    Phone,
-    Mail,
-    Calendar,
-    XCircle,
-} from 'lucide-react';
-import { useRequesters } from '@/hooks/useRequesters';
-import { useAuth } from '@/hooks/useAuth';
-import { formatPaginationText } from '@/utils/paginationUtils';
-import DataTable, { Column } from '@/components/ui/DataTable';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
-import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import toast from 'react-hot-toast';
+import * as React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Pencil, Trash2, MoreHorizontal, Users, Mail, Phone } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
 
-interface Requester {
-    id: number;
-    name: string;
-    email?: string;
-    phone?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
+import { useRequesters } from '@/hooks/useRequesters'
+import { useAuth } from '@/hooks/useAuth'
+import { Button } from '@/components/ui-v2/Button'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { Badge } from '@/components/ui-v2/Badge'
+import { EmptyState } from '@/components/ui-v2/EmptyState'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
+import { Input } from '@/components/ui-v2/Input'
+import { Search } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
+
+interface Requester { id: number; name: string; email?: string; phone?: string }
 
 const RequesterList: React.FC = () => {
-    const navigate = useNavigate();
-    const { hasProfile, user, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate()
+  const { isAdmin } = useAuth() as any
+  const {
+    requesters, pagination, loading, error, filters,
+    deleteRequester, deleteBulkRequesters,
+    setPage, setPageSize, setFilter, clearFilters,
+  } = useRequesters({ size: 25 })
 
-    const isAdmin = hasProfile('ADMIN');
+  const [search, setSearch] = React.useState((filters.name as string) || '')
+  const [selection, setSelection] = React.useState<Record<string, boolean>>({})
+  const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
 
-    useEffect(() => {
-        if (!authLoading && user && !isAdmin) {
-            toast.error('Acesso negado. Apenas administradores podem acessar esta página.');
-            navigate('/dashboard');
-        }
-    }, [hasProfile, navigate, authLoading, user, isAdmin]);
+  React.useEffect(() => {
+    const t = setTimeout(() => setFilter('name', search), 300)
+    return () => clearTimeout(t)
+  }, [search])
 
-    if (!authLoading && !isAdmin) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Acesso Negado</h2>
-                    <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
-                </div>
-            </div>
-        );
-    }
+  const selectedIds = React.useMemo(
+    () => Object.keys(selection).filter((k) => selection[k]).map((k) => Number(k)),
+    [selection]
+  )
 
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedItems, setSelectedItems] = useState<number[]>([]);
-    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState<Requester | null>(null);
-    const [isDeletingSingle, setIsDeletingSingle] = useState(false);
-
-    const {
-        requesters,
-        pagination,
-        loading,
-        sorting,
-        filters,
-        setPage,
-        setPageSize,
-        setSorting,
-        setFilter,
-        clearFilters,
-        deleteRequester,
-        deleteBulkRequesters,
-    } = useRequesters();
-
-    const handleEdit = (id: number) => {
-        navigate(`/requesters/${id}/edit`);
-    };
-
-    const handleDelete = (requester: Requester) => {
-        setItemToDelete(requester);
-        setShowDeleteModal(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!itemToDelete) return;
-        
-        setIsDeletingSingle(true);
-        try {
-            await deleteRequester(itemToDelete.id);
-        } catch (error) {
-            toast.error('Erro ao excluir solicitante');
-        } finally {
-            setIsDeletingSingle(false);
-            setShowDeleteModal(false);
-            setItemToDelete(null);
-        }
-    };
-
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const toggleItem = (id: number) => {
-        setSelectedItems((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-        );
-    };
-
-    const toggleAll = () => {
-        const currentPageIds = requesters.map((r) => r.id);
-        const allSelected = currentPageIds.every((id) => selectedItems.includes(id));
-
-        if (allSelected) {
-            setSelectedItems((prev) => prev.filter((id) => !currentPageIds.includes(id)));
-        } else {
-            setSelectedItems((prev) => [...new Set([...prev, ...currentPageIds])]);
-        }
-    };
-
-    const clearSelection = () => setSelectedItems([]);
-
-    const selectionState = useMemo(() => {
-        const currentPageIds = requesters.map((r) => r.id);
-        const selectedFromCurrentPage = selectedItems.filter((id) =>
-            currentPageIds.includes(id)
-        );
-
-        return {
-            allSelected:
-                currentPageIds.length > 0 &&
-                selectedFromCurrentPage.length === currentPageIds.length,
-            someSelected:
-                selectedFromCurrentPage.length > 0 &&
-                selectedFromCurrentPage.length < currentPageIds.length,
-            hasSelection: selectedItems.length > 0,
-            selectedFromCurrentPage,
-        };
-    }, [requesters, selectedItems]);
-
-    const handleBulkDelete = async () => {
-        setIsDeleting(true);
-        try {
-            await deleteBulkRequesters(selectedItems);
-            const qty = selectedItems.length;
-            clearSelection();
-            setShowBulkDeleteModal(false);
-            toast.success(`${qty} solicitante(s) excluído(s) com sucesso`);
-        } catch (error) {
-            toast.error('Erro ao excluir solicitantes selecionados');
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-    const filteredRequesters = requesters.filter(
-        (r) =>
-            r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.phone?.includes(searchTerm)
-    );
-
-    const columns: Column<Requester>[] = [
-
-        ...(isAdmin ? [{
-            key: 'select',
-            title: '',
-            width: '50px',
-            align: 'center',
-            headerRender: () => (
-                <div className="flex items-center justify-center">
-                    <input
-                        type="checkbox"
-                        checked={selectionState.allSelected}
-                        ref={(input) => {
-                            if (input) input.indeterminate = selectionState.someSelected;
-                        }}
-                        onChange={toggleAll}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        title={selectionState.allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
-                    />
-                </div>
-            ),
-            render: (item) => (
-                <div className="flex items-center justify-center">
-                    <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => toggleItem(item.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                </div>
-            ),
-        }] : []),
-
-        {
-            key: 'id',
-            title: 'ID',
-            sortable: true,
-            filterable: true,
-            filterType: 'number',
-            width: '120px',
-            align: 'center',
-            render: (item) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-          #{item.id}
-        </span>
-            ),
-        },
-        {
-            key: 'name',
-            title: 'Nome',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            render: (item) => (
-                <div>
-                    <p className="font-medium text-gray-900">{item.name}</p>
-                </div>
-            ),
-        },
-        {
-            key: 'email',
-            title: 'Email',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            render: (item) => (
-                <a
-                    href={item.email ? `mailto:${item.email}` : undefined}
-                    className={`${
-                        item.email ? 'text-blue-600 hover:text-blue-800 hover:underline' : 'text-gray-400'
-                    }`}
-                    onClick={(e) => {
-                        if (!item.email) e.preventDefault();
-                        e.stopPropagation();
-                    }}
-                >
-                    {item.email || '-'}
-                </a>
-            ),
-        },
-        {
-            key: 'phone',
-            title: 'Telefone',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            render: (item) => item.phone || '-',
-        },
-        {
-            key: 'createdAt',
-            title: 'Criado em',
-            sortable: true,
-            filterable: true,
-            filterType: 'date',
-            render: (item) => formatDate(item.createdAt),
-            hideable: true,
-        },
-        {
-            key: 'updatedAt',
-            title: 'Atualizado em',
-            sortable: true,
-            filterable: true,
-            filterType: 'date',
-            render: (item) => formatDate(item.updatedAt),
-            hideable: true,
-        },
-
-        ...(isAdmin ? [{
-            key: 'actions',
-            title: 'Ações',
-            align: 'center' as const,
-            width: '120px',
-            render: (item: Requester) => (
-                <div className="flex items-center justify-center gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(item.id)} title="Editar">
-                        <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(item)}
-                        title="Excluir"
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
-                </div>
-            ),
-        }] : []),
-    ];
-
-    const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-            {/* Header do Card */}
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
-                    {/* Checkbox - apenas para ADMIN */}
-                    {isAdmin && (
-                        <div className="flex-shrink-0 pt-1">
-                            <input
-                                type="checkbox"
-                                checked={selectedItems.includes(requester.id)}
-                                onChange={() => toggleItem(requester.id)}
-                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                        </div>
-                    )}
-
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                #{requester.id}
-              </span>
-                        </div>
-                        <h3 className="font-semibold text-gray-900 text-lg leading-tight">{requester.name}</h3>
-                    </div>
-                </div>
-
-                {/* Ações - apenas para ADMIN */}
-                {isAdmin && (
-                    <div className="flex gap-1 ml-2">
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(requester.id)}
-                            title="Editar"
-                            className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                        >
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(requester)}
-                            title="Excluir"
-                            className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
-                )}
-            </div>
-
-            {/* Informações de Contato */}
-            <div className="space-y-2">
-                {requester.email && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a href={`mailto:${requester.email}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate">
-                            {requester.email}
-                        </a>
-                    </div>
-                )}
-
-                {requester.phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a href={`tel:${requester.phone}`} className="text-gray-700 hover:text-blue-600">
-                            {requester.phone}
-                        </a>
-                    </div>
-                )}
-            </div>
-
-            {/* Datas (opcional) */}
-            {(requester.createdAt || requester.updatedAt) && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 mt-3 pt-3 border-t border-gray-100">
-                    <Calendar className="w-4 h-4 flex-shrink-0" />
-                    <span>
-            {requester.createdAt
-                ? `Criado em ${formatDate(requester.createdAt)}`
-                : requester.updatedAt
-                    ? `Atualizado em ${formatDate(requester.updatedAt)}`
-                    : '-'}
-          </span>
-                </div>
-            )}
+  const columns = React.useMemo<ColumnDef<Requester, any>[]>(() => [
+    {
+      accessorKey: 'id',
+      header: () => <span>ID</span>,
+      size: 70,
+      cell: ({ row }) => <span className="font-mono text-xs text-text-tertiary">#{row.original.id}</span>,
+    },
+    {
+      accessorKey: 'name',
+      header: () => <span>Solicitante</span>,
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="text-text-primary font-medium">{row.original.name}</span>
+          {row.original.email && (
+            <a href={`mailto:${row.original.email}`} className="text-xs text-text-secondary hover:text-accent transition-colors" onClick={(e) => e.stopPropagation()}>
+              {row.original.email}
+            </a>
+          )}
         </div>
-    );
-
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        {isAdmin ? 'Gerenciamento de Solicitantes' : 'Visualização de Solicitantes'}
-                    </h1>
-                </div>
-                {isAdmin && (
-                    <Button
-                        variant="primary"
-                        onClick={() => navigate('/requesters/create')}
-                        className="flex items-center justify-center sm:justify-start"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Novo Solicitante
-                    </Button>
-                )}
-            </div>
-
-            {/* Filtros Mobile - Busca simples + seleção e bulk delete */}
-            <div className="lg:hidden space-y-4">
-                <Card className="p-4">
-                    <div className="space-y-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nome, email ou telefone..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3">
-                            <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectionState.allSelected}
-                                        ref={(input) => {
-                                            if (input) input.indeterminate = selectionState.someSelected;
-                                        }}
-                                        readOnly
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                </div>
-                                <span className="text-sm">Selecionar Todos</span>
-                            </Button>
-
-                            {isAdmin && selectionState.hasSelection && (
-                                <Button
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => setShowBulkDeleteModal(true)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span className="text-sm">Excluir ({selectedItems.length})</span>
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </Card>
-            </div>
-
-            {/* Conteúdo */}
-            {loading ? (
-                <Card className="p-8">
-                    <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <span className="ml-4 text-gray-600">Carregando...</span>
-                    </div>
-                </Card>
-            ) : (
-                <>
-                    {/* Desktop - Barra de ações quando há seleção */}
-                    <div className="hidden lg:block space-y-4">
-                        {isAdmin && selectionState.hasSelection && (
-                            <Card className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-700">
-                      {selectedItems.length} solicitante(s) selecionado(s)
-                    </span>
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={clearSelection}
-                                            className="text-gray-500 hover:text-gray-700"
-                                        >
-                                            Limpar seleção
-                                        </Button>
-                                    </div>
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => setShowBulkDeleteModal(true)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Excluir Selecionados
-                                    </Button>
-                                </div>
-                            </Card>
-                        )}
-
-                        {/* Desktop - Tabela */}
-                        <Card className="p-0">
-                            <DataTable
-                                data={requesters}
-                                columns={columns}
-                                loading={loading}
-                                pagination={pagination}
-                                sorting={sorting}
-                                filters={filters}
-                                onPageChange={setPage}
-                                onPageSizeChange={setPageSize}
-                                onSort={setSorting}
-                                onFilter={setFilter}
-                                onClearFilters={clearFilters}
-                                emptyMessage="Nenhum solicitante encontrado"
-                                showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt']}
-                            />
-                        </Card>
-                    </div>
-
-                    {/* Mobile/Tablet - Cards */}
-                    <div className="lg:hidden">
-                        {filteredRequesters.length === 0 ? (
-                            <Card className="p-8 text-center">
-                                <div className="text-gray-500">
-                                    <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                    <h3 className="text-lg font-medium mb-2">Nenhum solicitante encontrado</h3>
-                                    <p>Tente ajustar os filtros de busca ou criar um novo solicitante.</p>
-                                </div>
-                            </Card>
-                        ) : (
-                            <div className="grid gap-4">
-                                {filteredRequesters.map((requester) => (
-                                    <RequesterCard key={requester.id} requester={requester} />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Paginação Simplificada (mobile) */}
-                        {pagination && pagination.totalPages > 1 && (
-                            <Card className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => setPage(pagination.currentPage - 1)}
-                                        disabled={pagination.currentPage <= 1}
-                                    >
-                                        Anterior
-                                    </Button>
-
-                                    <span className="text-sm text-gray-600">
-                    {formatPaginationText(pagination.currentPage, pagination.totalPages)}
-                  </span>
-
-                                    <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => setPage(pagination.currentPage + 1)}
-                                        disabled={pagination.currentPage >= pagination.totalPages}
-                                    >
-                                        Próxima
-                                    </Button>
-                                </div>
-                            </Card>
-                        )}
-                    </div>
-                </>
-            )}
-
-            {/* Modal de exclusão em massa */}
-            <BulkDeleteModal
-                isOpen={showBulkDeleteModal}
-                onClose={() => setShowBulkDeleteModal(false)}
-                onConfirm={handleBulkDelete}
-                selectedCount={selectedItems.length}
-                isDeleting={isDeleting}
-                entityName="solicitante"
-            />
-
-            {/* Modal de confirmação de exclusão */}
-            <DeleteConfirmationModal
-                isOpen={showDeleteModal}
-                onClose={() => {
-                    setShowDeleteModal(false);
-                    setItemToDelete(null);
-                }}
-                onConfirm={handleConfirmDelete}
-                itemName={itemToDelete?.name}
-                isDeleting={isDeletingSingle}
-            />
+      ),
+    },
+    {
+      accessorKey: 'phone',
+      header: () => <span>Telefone</span>,
+      size: 160,
+      cell: ({ row }) => (
+        <span className="text-text-secondary tabular-nums">{row.original.phone || '—'}</span>
+      ),
+    },
+    {
+      id: '__actions',
+      header: '',
+      size: 80,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/requesters/${row.original.id}/edit`)} aria-label="Editar">
+            <Pencil />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => navigate(`/requesters/${row.original.id}/edit`)}>
+                <Pencil />Editar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}>
+                <Trash2 />Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-    );
-};
+      ),
+    },
+  ], [navigate])
 
-export default RequesterList;
+  const chips = []
+  if (filters.name) chips.push({ key: 'name', label: 'Nome', value: String(filters.name), onRemove: () => { setSearch(''); setFilter('name', '') } })
+  if (filters.email) chips.push({ key: 'email', label: 'Email', value: String(filters.email), onRemove: () => setFilter('email', '') })
+  if (filters.phone) chips.push({ key: 'phone', label: 'Telefone', value: String(filters.phone), onRemove: () => setFilter('phone', '') })
+
+  return (
+    <div>
+      <PageHeader
+        title="Solicitantes"
+        subtitle={pagination ? `${pagination.totalElements} solicitante${pagination.totalElements === 1 ? '' : 's'}` : undefined}
+        filters={
+          <div className="w-full sm:w-[260px]">
+            <Input
+              leadingIcon={<Search />}
+              placeholder="Buscar por nome..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        }
+        actions={isAdmin?.() && (
+          <Button leadingIcon={<Plus />} onClick={() => navigate('/requesters/create')}>
+            Novo solicitante
+          </Button>
+        )}
+      />
+
+      <FilterChipsRow chips={chips} onClearAll={() => { setSearch(''); clearFilters() }} />
+
+      <DataTableBulkBar
+        selectedCount={selectedIds.length}
+        onClear={() => setSelection({})}
+        actions={
+          isAdmin?.() && (
+            <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ kind: 'bulk', ids: selectedIds })}>
+              Excluir selecionados
+            </Button>
+          )
+        }
+      />
+
+      {/* Desktop */}
+      <div className="hidden lg:block">
+        <DataTable<Requester>
+          data={requesters as any[]}
+          columns={columns}
+          rowKey={(r) => r.id}
+          loading={loading}
+          error={error}
+          selectable
+          selection={selection}
+          onSelectionChange={setSelection}
+          onRowClick={(r) => navigate(`/requesters/${r.id}/edit`)}
+          pagination={pagination ? {
+            page: pagination.currentPage,
+            pageSize: pagination.pageSize,
+            total: pagination.totalElements,
+            onPageChange: setPage,
+            onPageSizeChange: setPageSize,
+          } : undefined}
+          empty={
+            <EmptyState
+              icon={<Users />}
+              title="Nenhum solicitante"
+              description={chips.length > 0 ? 'Ajuste os filtros ou limpe-os.' : 'Crie o primeiro solicitante para começar.'}
+              actions={isAdmin?.() && (
+                <Button leadingIcon={<Plus />} onClick={() => navigate('/requesters/create')}>Novo solicitante</Button>
+              )}
+            />
+          }
+        />
+      </div>
+
+      {/* Mobile */}
+      <div className="lg:hidden space-y-2">
+        {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+        {!loading && requesters.length === 0 && (
+          <EmptyState
+            icon={<Users />}
+            title="Nenhum solicitante"
+            description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie o primeiro.'}
+            actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => navigate('/requesters/create')}>Novo</Button>}
+          />
+        )}
+        {!loading && requesters.map((r: any) => (
+          <button
+            key={r.id}
+            onClick={() => navigate(`/requesters/${r.id}/edit`)}
+            className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <span className="font-medium text-text-primary truncate">{r.name}</span>
+              <Badge size="sm">#{r.id}</Badge>
+            </div>
+            {r.email && (
+              <div className="flex items-center gap-1.5 text-xs text-text-secondary truncate">
+                <Mail className="size-3 shrink-0" />{r.email}
+              </div>
+            )}
+            {r.phone && (
+              <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5">
+                <Phone className="size-3 shrink-0" />{r.phone}
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {confirmDelete?.kind === 'bulk' ? `${confirmDelete.ids.length} solicitantes` : 'solicitante'}?</DialogTitle>
+            <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!confirmDelete) return
+                try {
+                  if (confirmDelete.kind === 'bulk') await deleteBulkRequesters(confirmDelete.ids)
+                  else await deleteRequester(confirmDelete.ids[0])
+                  setSelection({})
+                } finally {
+                  setConfirmDelete(null)
+                }
+              }}
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+export default RequesterList

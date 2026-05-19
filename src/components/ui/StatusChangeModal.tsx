@@ -57,61 +57,58 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
     const isStatusChanged = selectedStatus !== quote.status;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                        Alterar Status do Orçamento
+        <div className="fixed inset-0 bg-surface-inverse/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-surface-1 rounded-xl shadow-xl border border-border-subtle max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between p-6 border-b border-border-subtle">
+                    <h2 className="text-lg font-semibold text-text-primary">
+                        Alterar status do orçamento
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-text-tertiary hover:text-text-primary hover:bg-surface-2 rounded-md p-1 transition-colors"
                         disabled={isLoading}
+                        aria-label="Fechar"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-4 h-4" />
                     </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 space-y-6">
-                    {/* Quote Info */}
-                    <div className="bg-gray-50 rounded-lg p-4">
+                <div className="p-6 space-y-5">
+                    <div className="bg-surface-2 rounded-md border border-border-subtle p-4">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span className="text-gray-600">ID:</span>
-                                <span className="ml-2 font-medium">#{quote.id}</span>
+                                <span className="text-text-tertiary">ID:</span>
+                                <span className="ml-2 font-medium text-text-primary">#{quote.id}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">Tarefa:</span>
-                                <span className="ml-2 font-medium">{quote.taskCode}</span>
+                                <span className="text-text-tertiary">Tarefa:</span>
+                                <span className="ml-2 font-medium text-text-primary">{quote.taskCode}</span>
                             </div>
                         </div>
                         <div className="mt-2">
-                            <span className="text-gray-600">Nome da Tarefa:</span>
-                            <p className="mt-1 font-medium text-gray-900">{quote.taskName}</p>
+                            <span className="text-text-tertiary text-xs">Nome da tarefa:</span>
+                            <p className="mt-1 text-sm font-medium text-text-primary">{quote.taskName}</p>
                         </div>
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                            <span className="text-gray-600">Status Atual:</span>
-                            <span className={`ml-2 font-medium ${STATUS_OPTIONS.find(s => s.value === quote.status)?.color || 'text-gray-800'}`}>
+                        <div className="mt-3 pt-3 border-t border-border-subtle">
+                            <span className="text-text-tertiary text-xs">Status atual:</span>
+                            <span className="ml-2 text-sm font-medium text-text-primary">
                                 {getCurrentStatusLabel(quote.status)}
                             </span>
                         </div>
                     </div>
 
-                    {/* Status Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Novo Status:
+                        <label className="block text-xs font-medium text-text-secondary mb-2">
+                            Novo status
                         </label>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             {STATUS_OPTIONS.map((option) => (
                                 <label
                                     key={option.value}
-                                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+                                    className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors ${
                                         selectedStatus === option.value
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                            ? 'border-accent bg-accent-soft'
+                                            : 'border-border-subtle hover:bg-surface-2'
                                     }`}
                                 >
                                     <input
@@ -120,10 +117,10 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                                         value={option.value}
                                         checked={selectedStatus === option.value}
                                         onChange={(e) => setSelectedStatus(e.target.value)}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                        className="w-4 h-4 text-accent border-border-strong focus:ring-accent"
                                         disabled={isLoading}
                                     />
-                                    <span className={`ml-3 font-medium ${option.color}`}>
+                                    <span className="ml-3 text-sm font-medium text-text-primary">
                                         {option.label}
                                     </span>
                                 </label>
@@ -132,22 +129,12 @@ const StatusChangeModal: React.FC<StatusChangeModalProps> = ({
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
-                    <Button
-                        variant="ghost"
-                        onClick={onClose}
-                        disabled={isLoading}
-                    >
+                <div className="flex justify-end gap-2 p-4 border-t border-border-subtle bg-surface-app/30 rounded-b-xl">
+                    <Button variant="ghost" onClick={onClose} disabled={isLoading}>
                         Cancelar
                     </Button>
-                    <Button
-                        variant="primary"
-                        onClick={handleConfirm}
-                        disabled={isLoading || !isStatusChanged}
-                        loading={isLoading}
-                    >
-                        {isLoading ? 'Salvando...' : 'Salvar Alteração'}
+                    <Button variant="primary" onClick={handleConfirm} disabled={isLoading || !isStatusChanged} loading={isLoading}>
+                        {isLoading ? 'Salvando...' : 'Salvar alteração'}
                     </Button>
                 </div>
             </div>

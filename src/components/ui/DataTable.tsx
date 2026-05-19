@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+﻿import React, {useState, useEffect, useMemo} from 'react';
 import {
     ChevronLeft,
     ChevronRight,
@@ -227,7 +227,7 @@ const DataTable = <T extends Record<string, any>>({
                                                 type="checkbox"
                                                 checked={isVisible}
                                                 onChange={() => toggleColumn(column.key)}
-                                                className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                className="mr-3 h-4 w-4 text-accent focus:ring-accent border-gray-300 rounded"
                                             />
 
                                             <div className="flex items-center flex-1">
@@ -293,7 +293,7 @@ const DataTable = <T extends Record<string, any>>({
                     value={filterValue}
                     onChange={(e) => handleFilterChange(column.key, e.target.value)}
                     placeholder={`Filtrar...`}
-                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-accent focus:border-accent"
                 />
                 {filterValue && (
                     <button
@@ -334,7 +334,7 @@ const DataTable = <T extends Record<string, any>>({
 
         return (
             <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                {/* Mobile: Mostrar apenas botões essenciais */}
+                {/* Mobile: Mostrar apenas botÃµes essenciais */}
                 <div className="flex items-center space-x-1 sm:hidden">
                     <Button
                         size="sm"
@@ -363,7 +363,7 @@ const DataTable = <T extends Record<string, any>>({
                     </Button>
                 </div>
 
-                {/* Desktop: Mostrar todos os botões */}
+                {/* Desktop: Mostrar todos os botÃµes */}
                 <div className="hidden sm:flex sm:items-center sm:space-x-2">
                     <Button
                         size="sm"
@@ -419,7 +419,7 @@ const DataTable = <T extends Record<string, any>>({
                         {hasActiveFilters && (
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Filter className="w-4 h-4 text-blue-600"/>
+                                    <Filter className="w-4 h-4 text-accent"/>
                                     <span className="text-sm text-gray-600">Filtros ativos</span>
                                 </div>
                                 <Button
@@ -444,7 +444,7 @@ const DataTable = <T extends Record<string, any>>({
                         <div className="flex items-center gap-2">
                             {hasActiveFilters && (
                                 <>
-                                    <Filter className="w-4 h-4 text-blue-600"/>
+                                    <Filter className="w-4 h-4 text-accent"/>
                                     <span className="text-sm text-gray-600">Filtros ativos</span>
                                     <Button
                                         size="sm"
@@ -540,11 +540,11 @@ const DataTable = <T extends Record<string, any>>({
                         
                         {onPageSizeChange && (
                             <div className="flex items-center justify-center space-x-2">
-                                <span className="text-sm text-gray-700">Por página:</span>
+                                <span className="text-sm text-gray-700">Por pÃ¡gina:</span>
                                 <select
                                     value={pagination.pageSize}
                                     onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-accent focus:border-accent"
                                 >
                                     {pageSizeOptions.map(size => (
                                         <option key={size} value={size}>{size}</option>
@@ -565,11 +565,11 @@ const DataTable = <T extends Record<string, any>>({
 
                             {onPageSizeChange && (
                                 <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-gray-700">Itens por página:</span>
+                                    <span className="text-sm text-gray-700">Itens por pÃ¡gina:</span>
                                     <select
                                         value={pagination.pageSize}
                                         onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-accent focus:border-accent"
                                     >
                                         {pageSizeOptions.map(size => (
                                             <option key={size} value={size}>{size}</option>

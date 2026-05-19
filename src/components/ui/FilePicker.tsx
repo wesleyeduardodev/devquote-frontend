@@ -182,7 +182,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
         if (contentType.includes('zip') || contentType.includes('rar') || contentType.includes('archive')) {
             return <Archive className="w-4 h-4 text-yellow-500" />;
         }
-        return <File className="w-4 h-4 text-gray-500" />;
+        return <File className="w-4 h-4 text-text-tertiary" />;
     };
 
     const formatFileSize = (bytes: number) => {
@@ -225,10 +225,10 @@ const FilePicker: React.FC<FilePickerProps> = ({
             <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                     isDragOver
-                        ? 'border-blue-400 bg-blue-50'
+                        ? 'border-blue-400 bg-info-soft'
                         : disabled
-                        ? 'border-gray-200 bg-gray-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-border-subtle bg-surface-app'
+                        : 'border-border-strong hover:border-text-tertiary'
                 }`}
                 onDrop={handleDrop}
                 onDragOver={(e) => {
@@ -237,9 +237,9 @@ const FilePicker: React.FC<FilePickerProps> = ({
                 }}
                 onDragLeave={() => setIsDragOver(false)}
             >
-                <Upload className={`mx-auto h-12 w-12 ${isDragOver ? 'text-blue-400' : 'text-gray-400'}`} />
+                <Upload className={`mx-auto h-12 w-12 ${isDragOver ? 'text-blue-400' : 'text-text-tertiary'}`} />
                 <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-text-primary">
                         {disabled 
                             ? 'Upload desabilitado'
                             : isDragOver 
@@ -257,7 +257,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
                             >
                                 Selecionar arquivos
                             </Button>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-text-tertiary mt-2">
                                 Máximo {maxFiles} arquivos, {maxFileSize}MB cada
                             </p>
                         </>
@@ -279,7 +279,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
             {files.length > 0 && (
                 <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium text-gray-900">
+                        <h4 className="text-sm font-medium text-text-primary">
                             Arquivos selecionados ({files.length})
                         </h4>
                         <div className="flex items-center space-x-2">
@@ -301,7 +301,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => onFilesChange?.([])}
-                                    className="text-xs text-gray-500 hover:text-red-600"
+                                    className="text-xs text-text-tertiary hover:text-red-600"
                                 >
                                     Limpar todos
                                 </Button>
@@ -311,16 +311,16 @@ const FilePicker: React.FC<FilePickerProps> = ({
                     
                     <div className="space-y-2">
                         {files.map((file, index) => (
-                            <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={`${file.name}-${index}`} className="flex items-center justify-between p-3 bg-surface-app rounded-lg">
                                 <div className="flex items-center flex-1 min-w-0">
                                     <div className="flex-shrink-0">
                                         {getFileIcon(file.type)}
                                     </div>
                                     <div className="ml-3 flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                        <p className="text-sm font-medium text-text-primary truncate">
                                             {file.name}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-text-tertiary">
                                             {formatFileSize(file.size)}
                                         </p>
                                     </div>

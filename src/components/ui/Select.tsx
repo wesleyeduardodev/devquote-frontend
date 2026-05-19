@@ -12,33 +12,27 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(({
-                                                               label,
-                                                               error,
-                                                               className,
-                                                               required,
-                                                               placeholder,
-                                                               children,
-                                                               ...props
-                                                           }, ref) => {
+    label, error, className, required, placeholder, children, ...props
+}, ref) => {
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">
                     {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
+                    {required && <span className="text-[var(--danger-strong)] ml-1">*</span>}
                 </label>
             )}
             <div className="relative">
                 <select
                     ref={ref}
                     className={clsx(
-                        'w-full px-3 py-2.5 pr-10 border rounded-lg shadow-sm transition-colors duration-200 appearance-none',
-                        'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
-                        'bg-white',
+                        'w-full h-10 pl-3 pr-10 rounded-md border text-sm appearance-none bg-surface-1 text-text-primary',
+                        'transition-colors duration-fast',
+                        'focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent',
                         error
-                            ? 'border-red-300 bg-red-50'
-                            : 'border-gray-300 hover:border-gray-400',
-                        'disabled:bg-gray-50 disabled:cursor-not-allowed',
+                            ? 'border-[var(--danger-strong)]'
+                            : 'border-border-strong hover:border-text-tertiary',
+                        'disabled:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-70',
                         className
                     )}
                     {...props}
@@ -50,10 +44,10 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
                     )}
                     {children}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-text-tertiary pointer-events-none" />
             </div>
             {error && (
-                <p className="mt-1 text-sm text-red-600">{error}</p>
+                <p className="mt-1 text-xs text-[var(--danger-strong)]">{error}</p>
             )}
         </div>
     );

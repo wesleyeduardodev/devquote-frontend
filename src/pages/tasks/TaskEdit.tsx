@@ -151,7 +151,7 @@ const TaskEdit = () => {
                 width: '80px',
                 align: 'center',
                 render: (item) => (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent">
                         #{item.id}
                     </span>
                 )
@@ -165,9 +165,9 @@ const TaskEdit = () => {
                 width: '200px',
                 render: (item) => (
                     <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
+                        <User className="w-4 h-4 text-text-tertiary" />
                         <div>
-                            <p className="font-medium text-gray-900" title={item.name}>
+                            <p className="font-medium text-text-primary" title={item.name}>
                                 {item.name}
                             </p>
                         </div>
@@ -183,8 +183,8 @@ const TaskEdit = () => {
                 width: '150px',
                 render: (item) => (
                     <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">
+                        <Phone className="w-4 h-4 text-text-tertiary" />
+                        <span className="text-sm text-text-secondary">
                             {item.phone || 'Não informado'}
                         </span>
                     </div>
@@ -198,7 +198,7 @@ const TaskEdit = () => {
                 filterType: 'date',
                 width: '160px',
                 render: (item) => (
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-text-secondary">
                         {formatDate(item.createdAt)}
                     </span>
                 ),
@@ -215,7 +215,7 @@ const TaskEdit = () => {
                             e.stopPropagation();
                             handleRequesterSelect(item);
                         }}
-                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
+                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-accent bg-accent-soft rounded-full hover:bg-accent-soft transition-colors"
                     >
                         <Check className="w-3 h-3 mr-1" />
                         Selecionar
@@ -228,22 +228,22 @@ const TaskEdit = () => {
     );
 
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+        <div className="bg-surface-1 rounded-lg border border-border-subtle p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent">
                             #{requester.id}
                         </span>
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-base leading-tight mb-2">
+                    <h3 className="font-semibold text-text-primary text-base leading-tight mb-2">
                         {requester.name}
                     </h3>
 
                     <div className="space-y-1">
                         {requester.phone && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-sm text-text-secondary">
+                                <Phone className="w-4 h-4 text-text-tertiary flex-shrink-0" />
                                 <span>{requester.phone}</span>
                             </div>
                         )}
@@ -265,10 +265,10 @@ const TaskEdit = () => {
 
     if (fetchLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
                 <Card className="p-8 max-w-md w-full text-center">
                     <LoadingSpinner size="lg" />
-                    <p className="mt-4 text-gray-600">Carregando tarefa...</p>
+                    <p className="mt-4 text-text-secondary">Carregando tarefa...</p>
                 </Card>
             </div>
         );
@@ -276,15 +276,15 @@ const TaskEdit = () => {
 
     if (!task) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
                 <Card className="p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Edit3 className="w-8 h-8 text-red-600" />
+                    <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Edit3 className="w-8 h-8 text-[var(--danger-strong)]" />
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h2 className="text-xl font-semibold text-text-primary mb-2">
                         Tarefa não encontrada
                     </h2>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-text-secondary mb-6">
                         A tarefa que você está procurando não foi encontrada.
                     </p>
                     <Button
@@ -300,8 +300,8 @@ const TaskEdit = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
-            <div className="w-full lg:w-[80%] mx-auto space-y-6">
+        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
+            <div className="w-full mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center space-x-4">
                     <Button
@@ -318,23 +318,23 @@ const TaskEdit = () => {
                 {/* Card Principal */}
                 <Card className="overflow-hidden">
                     {/* Header do Card */}
-                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <div className="px-4 py-5 sm:px-6 border-b border-border-subtle">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <Edit3 className="w-5 h-5 text-blue-600" />
+                                <div className="w-10 h-10 bg-accent-soft rounded-lg flex items-center justify-center">
+                                    <Edit3 className="w-5 h-5 text-accent" />
                                 </div>
                             </div>
                             <div className="ml-4 flex-1">
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                    <h3 className="text-lg font-medium text-gray-900">
+                                    <h3 className="text-lg font-medium text-text-primary">
                                         Editar Tarefa
                                     </h3>
-                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 w-fit">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent w-fit">
                                         #{(task as any)?.id}
                                     </span>
                                 </div>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm text-text-tertiary mt-1">
                                     Atualize as informações da tarefa: {(task as any)?.title || 'Carregando...'}
                                 </p>
                             </div>
@@ -351,13 +351,13 @@ const TaskEdit = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowRequesterModal(true)}
-                                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                        className="text-accent hover:text-blue-700 text-sm font-medium"
                                         title="Alterar solicitante"
                                     >
                                         Alterar
                                     </button>
                                 </div>
-                                <div className="space-y-1 text-sm text-blue-800">
+                                <div className="space-y-1 text-sm text-accent">
                                     <div><strong>Nome:</strong> {selectedRequester.name}</div>
                                     {selectedRequester.phone && (
                                         <div><strong>Telefone:</strong> {selectedRequester.phone}</div>
@@ -366,13 +366,13 @@ const TaskEdit = () => {
                             </div>
                         ) : (
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-text-secondary mb-2">
                                     Solicitante *
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setShowRequesterModal(true)}
-                                    className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                                    className="w-full px-4 py-3 border border-dashed border-border-strong rounded-lg text-text-secondary hover:border-gray-400 hover:text-text-secondary transition-colors"
                                 >
                                     <Search className="w-4 h-4 mx-auto mb-1" />
                                     Clique para selecionar um solicitante
@@ -402,18 +402,18 @@ const TaskEdit = () => {
                 <div className="lg:hidden space-y-4">
                     {/* Metadados */}
                     <Card className="p-4">
-                        <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                        <h4 className="font-medium text-text-primary mb-3 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-text-tertiary" />
                             Informações da Tarefa
                         </h4>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Criado em:</span>
-                                <span className="text-gray-900">{formatDate((task as any)?.createdAt)}</span>
+                                <span className="text-text-secondary">Criado em:</span>
+                                <span className="text-text-primary">{formatDate((task as any)?.createdAt)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Atualizado em:</span>
-                                <span className="text-gray-900">{formatDate((task as any)?.updatedAt)}</span>
+                                <span className="text-text-secondary">Atualizado em:</span>
+                                <span className="text-text-primary">{formatDate((task as any)?.updatedAt)}</span>
                             </div>
                         </div>
                     </Card>
@@ -424,12 +424,12 @@ const TaskEdit = () => {
                     <Card className="p-4">
                         <div className="grid grid-cols-2 gap-6 text-sm">
                             <div>
-                                <span className="text-gray-600">Criado em:</span>
-                                <p className="text-gray-900 font-medium">{formatDate((task as any)?.createdAt)}</p>
+                                <span className="text-text-secondary">Criado em:</span>
+                                <p className="text-text-primary font-medium">{formatDate((task as any)?.createdAt)}</p>
                             </div>
                             <div>
-                                <span className="text-gray-600">Última atualização:</span>
-                                <p className="text-gray-900 font-medium">{formatDate((task as any)?.updatedAt)}</p>
+                                <span className="text-text-secondary">Última atualização:</span>
+                                <p className="text-text-primary font-medium">{formatDate((task as any)?.updatedAt)}</p>
                             </div>
                         </div>
                     </Card>
@@ -439,35 +439,35 @@ const TaskEdit = () => {
             {/* Modal de Seleção de Requester */}
             {showRequesterModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-5xl">
+                    <div className="bg-surface-1 rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-5xl">
                         {/* Header do Modal */}
-                        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+                        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border-subtle flex-shrink-0">
                             <div>
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                                <h2 className="text-lg sm:text-xl font-semibold text-text-primary">
                                     Selecionar Solicitante
                                 </h2>
-                                <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                                <p className="text-xs sm:text-sm text-text-secondary mt-1">
                                     Escolha um solicitante para editar a tarefa
                                 </p>
                             </div>
                             <button
                                 onClick={() => setShowRequesterModal(false)}
-                                className="text-gray-400 hover:text-gray-600 p-1"
+                                className="text-text-tertiary hover:text-text-secondary p-1"
                             >
                                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
                             </button>
                         </div>
 
                         {/* Busca Mobile */}
-                        <div className="lg:hidden p-4 border-b border-gray-200">
+                        <div className="lg:hidden p-4 border-b border-border-subtle">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary w-4 h-4" />
                                 <input
                                     type="text"
                                     placeholder="Buscar solicitante..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    className="w-full pl-10 pr-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-blue-500 text-base"
                                 />
                             </div>
                         </div>
@@ -500,15 +500,15 @@ const TaskEdit = () => {
                                 {loadingRequesters ? (
                                     <div className="flex items-center justify-center p-8">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                        <span className="ml-3 text-gray-600">Carregando...</span>
+                                        <span className="ml-3 text-text-secondary">Carregando...</span>
                                     </div>
                                 ) : filteredRequesters.length === 0 ? (
                                     <div className="p-8 text-center">
-                                        <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                        <h3 className="text-lg font-medium mb-2 text-gray-900">
+                                        <Filter className="w-12 h-12 mx-auto mb-4 text-text-tertiary/60" />
+                                        <h3 className="text-lg font-medium mb-2 text-text-primary">
                                             Nenhum solicitante encontrado
                                         </h3>
-                                        <p className="text-gray-600">
+                                        <p className="text-text-secondary">
                                             Tente ajustar sua busca ou limpar os filtros.
                                         </p>
                                     </div>
@@ -522,7 +522,7 @@ const TaskEdit = () => {
 
                                 {/* Paginação Mobile */}
                                 {pagination && pagination.totalPages > 1 && !searchTerm && (
-                                    <div className="p-4 border-t border-gray-200">
+                                    <div className="p-4 border-t border-border-subtle">
                                         <div className="flex items-center justify-between">
                                             <Button
                                                 size="sm"
@@ -533,7 +533,7 @@ const TaskEdit = () => {
                                                 Anterior
                                             </Button>
 
-                                            <span className="text-sm text-gray-600">
+                                            <span className="text-sm text-text-secondary">
                                                 Página {pagination.currentPage} de {pagination.totalPages}
                                             </span>
 

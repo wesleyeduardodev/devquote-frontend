@@ -171,7 +171,7 @@ export default function TaskSelectionModal({
             sortable: true,
             filterable: true,
             render: (task) => (
-                <span className="text-sm font-medium text-gray-600">
+                <span className="text-sm font-medium text-text-secondary">
                     #{task.id}
                 </span>
             ),
@@ -185,7 +185,7 @@ export default function TaskSelectionModal({
             render: (task) => (
                 <div className="max-w-xs">
                     <div
-                        className="font-medium text-gray-900 truncate cursor-help"
+                        className="font-medium text-text-primary truncate cursor-help"
                         title={task.title}
                     >
                         {task.title}
@@ -207,12 +207,12 @@ export default function TaskSelectionModal({
                     <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
                         task.flowType === 'OPERACIONAL'
                             ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                            : 'bg-blue-100 text-blue-800 border border-blue-200'
+                            : 'bg-accent-soft text-info-strong border border-accent/20'
                     }`}>
                         {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                     </span>
                 ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-text-tertiary">-</span>
                 )
             )
         },
@@ -223,7 +223,7 @@ export default function TaskSelectionModal({
             filterable: true,
             width: '200px',
             render: (task) => (
-                <span className="text-xs text-gray-700">
+                <span className="text-xs text-text-secondary">
                     {formatTaskType(task.taskType, task.flowType)}
                 </span>
             )
@@ -237,12 +237,12 @@ export default function TaskSelectionModal({
             render: (task) => (
                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                     task.environment === 'PRODUCAO'
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'bg-accent-soft text-info-strong'
                         : task.environment === 'DESENVOLVIMENTO'
                             ? 'bg-green-100 text-green-800'
                             : task.environment === 'HOMOLOGACAO'
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-600'
+                                : 'bg-surface-2 text-text-secondary'
                 }`}>
                     {formatEnvironment(task.environment)}
                 </span>
@@ -260,7 +260,7 @@ export default function TaskSelectionModal({
                             e.stopPropagation();
                             handleRowClick(task);
                         }}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-accent bg-info-soft rounded-lg hover:bg-accent-soft transition-colors"
                     >
                         ✓ Selecionar
                     </button>
@@ -275,18 +275,18 @@ export default function TaskSelectionModal({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-full sm:max-w-7xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+            <div className="bg-surface-1 rounded-lg shadow-xl w-full max-w-full sm:max-w-7xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
                 {/* Header */}
-                <div className="px-4 sm:px-6 py-3 border-b border-gray-200 bg-white sticky top-0">
+                <div className="px-4 sm:px-6 py-3 border-b border-border-subtle bg-surface-1 sticky top-0">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate pr-2">
+                            <h2 className="text-lg sm:text-xl font-semibold text-text-primary truncate pr-2">
                                 Selecionar Tarefa para Entrega
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors p-1 flex-shrink-0"
+                            className="text-text-tertiary hover:text-text-secondary transition-colors p-1 flex-shrink-0"
                             title="Fechar (ESC)"
                         >
                             <X className="w-5 h-5" />
@@ -299,16 +299,16 @@ export default function TaskSelectionModal({
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full">
                             <LoadingSpinner size="lg" />
-                            <span className="ml-3 text-gray-600">Carregando tarefas disponíveis...</span>
+                            <span className="ml-3 text-text-secondary">Carregando tarefas disponíveis...</span>
                         </div>
                     ) : tasks.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                                <Package className="mx-auto h-12 w-12 text-gray-400" />
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                <Package className="mx-auto h-12 w-12 text-text-tertiary" />
+                                <h3 className="mt-2 text-sm font-medium text-text-primary">
                                     Nenhuma tarefa disponível
                                 </h3>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-text-tertiary">
                                     Todas as tarefas já possuem entregas vinculadas
                                 </p>
                             </div>
@@ -318,10 +318,10 @@ export default function TaskSelectionModal({
                             {/* Mobile: Cards Layout */}
                             <div className="block sm:hidden">
                                 {/* Mobile Filters */}
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                <div className="px-4 py-3 border-b border-border-subtle bg-surface-app">
                                     <div className="space-y-3">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">
                                                 Filtrar por ID:
                                             </label>
                                             <input
@@ -335,11 +335,11 @@ export default function TaskSelectionModal({
                                                     }));
                                                     setPage(0);
                                                 }}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">
                                                 Filtrar por fluxo:
                                             </label>
                                             <input
@@ -353,11 +353,11 @@ export default function TaskSelectionModal({
                                                     }));
                                                     setPage(0);
                                                 }}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">
                                                 Filtrar por código:
                                             </label>
                                             <input
@@ -371,11 +371,11 @@ export default function TaskSelectionModal({
                                                     }));
                                                     setPage(0);
                                                 }}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                            <label className="block text-xs font-medium text-text-secondary mb-1">
                                                 Filtrar por título:
                                             </label>
                                             <input
@@ -389,7 +389,7 @@ export default function TaskSelectionModal({
                                                     }));
                                                     setPage(0);
                                                 }}
-                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent"
                                             />
                                         </div>
                                         {(filters.id || filters.flowType || filters.code || filters.title) && (
@@ -398,7 +398,7 @@ export default function TaskSelectionModal({
                                                     setFilters({});
                                                     setPage(0);
                                                 }}
-                                                className="text-xs text-blue-600 font-medium hover:text-blue-800"
+                                                className="text-xs text-accent font-medium hover:text-info-strong"
                                             >
                                                 Limpar filtros
                                             </button>
@@ -410,7 +410,7 @@ export default function TaskSelectionModal({
                                     {tasks.map((task) => (
                                         <div
                                             key={task.id}
-                                            className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                                            className="bg-surface-1 border border-border-subtle rounded-lg p-4 shadow-sm"
                                         >
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1 min-w-0">
@@ -418,11 +418,11 @@ export default function TaskSelectionModal({
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                                             {task.code}
                                                         </span>
-                                                        <span className="text-sm font-medium text-gray-600">
+                                                        <span className="text-sm font-medium text-text-secondary">
                                                             #{task.id}
                                                         </span>
                                                     </div>
-                                                    <h3 className="text-sm font-medium text-gray-900 mb-2 leading-5">
+                                                    <h3 className="text-sm font-medium text-text-primary mb-2 leading-5">
                                                         {task.title}
                                                     </h3>
                                                     <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -430,25 +430,25 @@ export default function TaskSelectionModal({
                                                             <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
                                                                 task.flowType === 'OPERACIONAL'
                                                                     ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                                                    : 'bg-accent-soft text-info-strong border border-accent/20'
                                                             }`}>
                                                                 {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
                                                             </span>
                                                         )}
                                                         {task.taskType && (
-                                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                                            <span className="text-xs text-text-secondary bg-surface-2 px-2 py-1 rounded">
                                                                 {formatTaskType(task.taskType, task.flowType)}
                                                             </span>
                                                         )}
                                                         {task.environment && (
                                                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                                                 task.environment === 'PRODUCAO'
-                                                                    ? 'bg-blue-100 text-blue-800'
+                                                                    ? 'bg-accent-soft text-info-strong'
                                                                     : task.environment === 'DESENVOLVIMENTO'
                                                                         ? 'bg-green-100 text-green-800'
                                                                         : task.environment === 'HOMOLOGACAO'
                                                                             ? 'bg-yellow-100 text-yellow-800'
-                                                                            : 'bg-gray-100 text-gray-600'
+                                                                            : 'bg-surface-2 text-text-secondary'
                                                             }`}>
                                                                 {formatEnvironment(task.environment)}
                                                             </span>
@@ -456,7 +456,7 @@ export default function TaskSelectionModal({
                                                     </div>
                                                     <button
                                                         onClick={() => handleRowClick(task)}
-                                                        className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                                                        className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent-hover transition-colors"
                                                     >
                                                         ✓ Selecionar Tarefa
                                                     </button>
@@ -468,13 +468,13 @@ export default function TaskSelectionModal({
                                 
                                 {/* Mobile Pagination */}
                                 {paginationData && paginationData.totalPages > 1 && (
-                                    <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
+                                    <div className="px-4 py-4 border-t border-border-subtle bg-surface-app">
                                         <div className="flex items-center justify-center space-x-1">
                                             {/* Primeira página */}
                                             <button
                                                 onClick={() => setPage(0)}
                                                 disabled={page === 0}
-                                                className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-2 text-sm font-medium text-text-tertiary bg-surface-1 border border-border-strong rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                                 title="Primeira página"
                                             >
                                                 ⇤
@@ -484,13 +484,13 @@ export default function TaskSelectionModal({
                                             <button
                                                 onClick={() => setPage(Math.max(0, page - 1))}
                                                 disabled={page === 0}
-                                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-3 py-2 text-sm font-medium text-text-tertiary bg-surface-1 border border-border-strong rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 ‹
                                             </button>
                                             
                                             {/* Indicador de página atual */}
-                                            <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+                                            <span className="px-4 py-2 text-sm font-medium text-text-secondary bg-surface-1 border border-border-strong rounded-md">
                                                 {page + 1} de {paginationData.totalPages}
                                             </span>
                                             
@@ -498,7 +498,7 @@ export default function TaskSelectionModal({
                                             <button
                                                 onClick={() => setPage(Math.min(paginationData.totalPages - 1, page + 1))}
                                                 disabled={page >= paginationData.totalPages - 1}
-                                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-3 py-2 text-sm font-medium text-text-tertiary bg-surface-1 border border-border-strong rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 ›
                                             </button>
@@ -507,7 +507,7 @@ export default function TaskSelectionModal({
                                             <button
                                                 onClick={() => setPage(paginationData.totalPages - 1)}
                                                 disabled={page >= paginationData.totalPages - 1}
-                                                className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-2 py-2 text-sm font-medium text-text-tertiary bg-surface-1 border border-border-strong rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                                 title="Última página"
                                             >
                                                 ⇥
@@ -559,8 +559,8 @@ export default function TaskSelectionModal({
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 sm:px-6 py-2 border-t border-gray-200 bg-white">
-                    <p className="text-xs sm:text-sm text-gray-600 text-center">
+                <div className="px-4 sm:px-6 py-2 border-t border-border-subtle bg-surface-1">
+                    <p className="text-xs sm:text-sm text-text-secondary text-center">
                         {paginationData?.totalElements || 0} tarefa{(paginationData?.totalElements || 0) !== 1 ? 's' : ''} disponível{(paginationData?.totalElements || 0) !== 1 ? 'eis' : ''}
                     </p>
                 </div>

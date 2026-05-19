@@ -106,6 +106,19 @@ export const taskService = {
         return response.data;
     },
 
+    /**
+     * Contadores globais (todas as páginas).
+     * Backend: GET /tasks/stats → { total, totalWithoutDelivery, totalWithoutBilling }
+     */
+    getStats: async (): Promise<{ total: number; totalWithoutDelivery: number; totalWithoutBilling: number }> => {
+        const response = await api.get('/tasks/stats');
+        return {
+            total: response.data?.total ?? 0,
+            totalWithoutDelivery: response.data?.totalWithoutDelivery ?? 0,
+            totalWithoutBilling:  response.data?.totalWithoutBilling  ?? 0,
+        };
+    },
+
     createWithSubTasks: async (data: any): Promise<any> => {
         const response = await api.post('/tasks/full', data);
         return response.data;

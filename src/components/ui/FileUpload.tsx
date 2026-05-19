@@ -97,7 +97,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         if (file.type.includes('pdf')) return <FileText className="w-8 h-8 text-red-500" />;
         if (file.type.includes('zip') || file.type.includes('rar') || file.type.includes('7z')) 
             return <Archive className="w-8 h-8 text-yellow-500" />;
-        return <File className="w-8 h-8 text-gray-500" />;
+        return <File className="w-8 h-8 text-text-tertiary" />;
     };
 
     const formatFileSize = (bytes: number): string => {
@@ -110,8 +110,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     const addFiles = useCallback((newFiles: File[]) => {
         const validFiles: FileWithPreview[] = [];
-        
+
         for (const file of newFiles) {
+            if (files.some(f => f.file.name === file.name && f.file.size === file.size)) {
                 toast.error(`Arquivo "${file.name}" já foi adicionado`);
                 continue;
             }
@@ -229,8 +230,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 className={`
                     relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
                     ${isDragOver 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-accent bg-info-soft' 
+                        : 'border-border-strong hover:border-text-tertiary'
                     }
                     ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
                 `}
@@ -241,15 +242,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 onClick={() => fileInputRef.current?.click()}
             >
                 <div className="space-y-2">
-                    <Upload className="w-12 h-12 mx-auto text-gray-400" />
+                    <Upload className="w-12 h-12 mx-auto text-text-tertiary" />
                     <div>
-                        <p className="text-lg font-medium text-gray-700">
+                        <p className="text-lg font-medium text-text-secondary">
                             {isDragOver ? 'Solte os arquivos aqui' : 'Arraste arquivos ou clique para selecionar'}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-text-tertiary">
                             Máximo {maxFiles} arquivos, {maxFileSize}MB cada
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-text-tertiary mt-1">
                             PDF, Word, Excel, Imagens, Vídeos, Arquivos compactados
                         </p>
                     </div>
@@ -270,12 +271,12 @@ const FileUpload: React.FC<FileUploadProps> = ({
             {files.length > 0 && (
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-900">
+                        <h4 className="font-medium text-text-primary">
                             Arquivos Selecionados ({files.length})
                         </h4>
                         <button
                             onClick={clearFiles}
-                            className="text-sm text-gray-500 hover:text-red-600"
+                            className="text-sm text-text-tertiary hover:text-red-600"
                             disabled={uploading}
                         >
                             Limpar todos
@@ -292,17 +293,17 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                         ? 'border-red-200 bg-red-50' 
                                         : fileItem.uploaded 
                                         ? 'border-green-200 bg-green-50'
-                                        : 'border-gray-200 bg-gray-50'
+                                        : 'border-border-subtle bg-surface-app'
                                     }
                                 `}
                             >
                                 <div className="flex items-center space-x-3 min-w-0 flex-1">
                                     {getFileIcon(fileItem.file)}
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                        <p className="text-sm font-medium text-text-primary truncate">
                                             {fileItem.file.name}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-text-tertiary">
                                             {formatFileSize(fileItem.file.size)}
                                         </p>
                                         {fileItem.error && (
@@ -321,7 +322,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                                     )}
                                     <button
                                         onClick={() => removeFile(fileItem.id)}
-                                        className="text-gray-400 hover:text-red-600"
+                                        className="text-text-tertiary hover:text-red-600"
                                         disabled={fileItem.uploading}
                                     >
                                         <X className="w-4 h-4" />
@@ -337,7 +338,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                             <button
                                 onClick={uploadFiles}
                                 disabled={uploading || disabled}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                                className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                             >
                                 {uploading && <LoadingSpinner size="sm" />}
                                 <span>

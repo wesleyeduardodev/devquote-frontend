@@ -1,0 +1,293 @@
+/* ============================================================
+ * Design System Tokens — DevQuote
+ * Camadas: primitives → semantic (light/dark) → component
+ * Componentes consomem APENAS semantic tokens.
+ * ============================================================ */
+
+:root {
+  /* ---- Primitives: neutros (com leve viés frio, matiz 220°) ---- */
+  --gray-50:  #F8F9FB;
+  --gray-100: #F1F3F5;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --gray-950: #0A0B0F;
+
+  /* ---- Primitives: brand (violet-blue moderno) ---- */
+  --brand-50:  #EEF1FF;
+  --brand-100: #DDE2FF;
+  --brand-200: #BCC7FF;
+  --brand-300: #94A4FF;
+  --brand-400: #6B7DFF;
+  --brand-500: #4F5EE6;
+  --brand-600: #3D49C7;
+  --brand-700: #2F38A0;
+  --brand-800: #232879;
+  --brand-900: #181C57;
+
+  /* ---- Primitives: semantic (light) ---- */
+  --green-soft:   #ECFDF5;
+  --green-strong: #047857;
+  --green-border: #A7F3D0;
+
+  --amber-soft:   #FFFBEB;
+  --amber-strong: #B45309;
+  --amber-border: #FDE68A;
+
+  --red-soft:     #FEF2F2;
+  --red-strong:   #B91C1C;
+  --red-border:   #FECACA;
+
+  --blue-soft:    #EFF6FF;
+  --blue-strong:  #1D4ED8;
+  --blue-border:  #BFDBFE;
+
+  /* ---- Semantic (light theme = default) ---- */
+  --surface-app:     var(--gray-50);
+  --surface-1:       #FFFFFF;
+  --surface-2:       var(--gray-100);
+  --surface-3:       var(--gray-200);
+  --surface-inverse: var(--gray-900);
+
+  --text-primary:    var(--gray-900);
+  --text-secondary:  var(--gray-600);
+  --text-tertiary:   var(--gray-400);
+  --text-inverse:    #FFFFFF;
+  --text-link:       var(--brand-600);
+
+  --border-subtle:   var(--gray-200);
+  --border-strong:   var(--gray-300);
+  --border-focus:    var(--brand-500);
+
+  --accent:          var(--brand-500);
+  --accent-hover:    var(--brand-600);
+  --accent-active:   var(--brand-700);
+  --accent-soft:     var(--brand-50);
+  --accent-fg:       #FFFFFF;
+
+  --success-soft:    var(--green-soft);
+  --success-strong:  var(--green-strong);
+  --success-border:  var(--green-border);
+
+  --warning-soft:    var(--amber-soft);
+  --warning-strong:  var(--amber-strong);
+  --warning-border:  var(--amber-border);
+
+  --danger-soft:     var(--red-soft);
+  --danger-strong:   var(--red-strong);
+  --danger-border:   var(--red-border);
+
+  --info-soft:       var(--blue-soft);
+  --info-strong:     var(--blue-strong);
+  --info-border:     var(--blue-border);
+
+  --neutral-soft:    var(--gray-100);
+  --neutral-strong:  var(--gray-700);
+  --neutral-border:  var(--gray-200);
+
+  /* zebra row: tom entre surface-1 e surface-2, mais visível que /40 */
+  --zebra-row:       #EEF1F5;
+
+  /* sidebar — dark navy no light pra contraste forte (estilo Linear/Slack) */
+  --sidebar-bg:          #14192A;
+  --sidebar-border:      #1F2641;
+  --sidebar-text:        #E5E7F0;
+  --sidebar-text-muted:  #8A93AE;
+  --sidebar-text-dim:    #6C7592;
+  --sidebar-hover:       #1C2238;
+  --sidebar-active-bg:   rgba(107, 125, 255, 0.18);
+  --sidebar-active-text: #C7CFFF;
+  --sidebar-active-bar:  var(--brand-400);
+
+  /* ---- Shadows (realistas: offset + blur grande + opacidade baixa) ---- */
+  --shadow-xs:  0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-sm:  0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md:  0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 2px 4px -2px rgba(16, 24, 40, 0.04);
+  --shadow-lg:  0 12px 24px -6px rgba(16, 24, 40, 0.12), 0 4px 8px -4px rgba(16, 24, 40, 0.08);
+  --shadow-xl:  0 24px 48px -12px rgba(16, 24, 40, 0.20);
+
+  /* ---- Radius ---- */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+
+  /* ---- Motion ---- */
+  --duration-fast: 120ms;
+  --duration-base: 160ms;
+  --duration-slow: 220ms;
+  --ease-out:      cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- Layout ---- */
+  --sidebar-width:           260px;
+  --sidebar-width-collapsed: 64px;
+  --header-height:           56px;
+}
+
+/* ---- Semantic (dark theme — padrão, suavizado em relação a preto puro) ---- */
+[data-theme="dark"] {
+  --surface-app:     #0E1014;
+  --surface-1:       #161922;
+  --surface-2:       #1C2029;
+  --surface-3:       #262B36;
+  --surface-inverse: #FFFFFF;
+
+  --text-primary:    #E8EAED;
+  --text-secondary:  #B3B7BF;
+  --text-tertiary:   #7F8590;
+  --text-inverse:    var(--gray-950);
+  --text-link:       var(--brand-300);
+
+  --border-subtle:   #262B36;
+  --border-strong:   #353B47;
+  --border-focus:    var(--brand-400);
+
+  --accent:          var(--brand-400);
+  --accent-hover:    var(--brand-300);
+  --accent-active:   var(--brand-500);
+  --accent-soft:     rgba(79, 94, 230, 0.14);
+  --accent-fg:       #0A0B0F;
+
+  --success-soft:    rgba(16, 185, 129, 0.10);
+  --success-strong:  #6EE7B7;
+  --success-border:  rgba(16, 185, 129, 0.30);
+
+  --warning-soft:    rgba(245, 158, 11, 0.10);
+  --warning-strong:  #FCD34D;
+  --warning-border:  rgba(245, 158, 11, 0.30);
+
+  --danger-soft:     rgba(239, 68, 68, 0.10);
+  --danger-strong:   #FCA5A5;
+  --danger-border:   rgba(239, 68, 68, 0.30);
+
+  --info-soft:       rgba(59, 130, 246, 0.10);
+  --info-strong:     #93C5FD;
+  --info-border:     rgba(59, 130, 246, 0.30);
+
+  --neutral-soft:    var(--surface-2);
+  --neutral-strong:  var(--gray-300);
+  --neutral-border:  var(--border-subtle);
+
+  --zebra-row:       #1A1E27;
+
+  /* sidebar — mais escura que o conteúdo no dark */
+  --sidebar-bg:          #0A0C12;
+  --sidebar-border:      #1B1F2A;
+  --sidebar-text:        #DEE1E8;
+  --sidebar-text-muted:  #8A8F9A;
+  --sidebar-text-dim:    #5D6270;
+  --sidebar-hover:       #161A24;
+  --sidebar-active-bg:   rgba(107, 125, 255, 0.18);
+  --sidebar-active-text: #BAC2FF;
+  --sidebar-active-bar:  var(--brand-400);
+
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md:  0 4px 8px -2px rgba(0, 0, 0, 0.50), 0 2px 4px -2px rgba(0, 0, 0, 0.30);
+  --shadow-lg:  0 12px 24px -6px rgba(0, 0, 0, 0.60), 0 4px 8px -4px rgba(0, 0, 0, 0.40);
+  --shadow-xl:  0 24px 48px -12px rgba(0, 0, 0, 0.70);
+}
+
+/* ---- Semantic (dim theme — escuro mais quente/claro, alternativa pro dark puro) ---- */
+[data-theme="dim"] {
+  --surface-app:     #1A1D24;
+  --surface-1:       #21252E;
+  --surface-2:       #282D38;
+  --surface-3:       #323845;
+  --surface-inverse: #FFFFFF;
+
+  --text-primary:    #ECEEF1;
+  --text-secondary:  #C2C6CE;
+  --text-tertiary:   #8B91A0;
+  --text-inverse:    var(--gray-950);
+  --text-link:       var(--brand-300);
+
+  --border-subtle:   #323845;
+  --border-strong:   #424955;
+  --border-focus:    var(--brand-400);
+
+  --accent:          var(--brand-400);
+  --accent-hover:    var(--brand-300);
+  --accent-active:   var(--brand-500);
+  --accent-soft:     rgba(107, 125, 255, 0.16);
+  --accent-fg:       #0A0B0F;
+
+  --success-soft:    rgba(16, 185, 129, 0.12);
+  --success-strong:  #6EE7B7;
+  --success-border:  rgba(16, 185, 129, 0.32);
+
+  --warning-soft:    rgba(245, 158, 11, 0.12);
+  --warning-strong:  #FCD34D;
+  --warning-border:  rgba(245, 158, 11, 0.32);
+
+  --danger-soft:     rgba(239, 68, 68, 0.12);
+  --danger-strong:   #FCA5A5;
+  --danger-border:   rgba(239, 68, 68, 0.32);
+
+  --info-soft:       rgba(59, 130, 246, 0.12);
+  --info-strong:     #93C5FD;
+  --info-border:     rgba(59, 130, 246, 0.32);
+
+  --neutral-soft:    var(--surface-2);
+  --neutral-strong:  var(--gray-300);
+  --neutral-border:  var(--border-subtle);
+
+  --zebra-row:       #262B36;
+
+  /* sidebar — mais escura que o conteúdo no dim */
+  --sidebar-bg:          #14171F;
+  --sidebar-border:      #232834;
+  --sidebar-text:        #E2E5EB;
+  --sidebar-text-muted:  #969BA8;
+  --sidebar-text-dim:    #6A6F7C;
+  --sidebar-hover:       #1D2129;
+  --sidebar-active-bg:   rgba(107, 125, 255, 0.20);
+  --sidebar-active-text: #C2CAFF;
+  --sidebar-active-bar:  var(--brand-400);
+
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-md:  0 4px 8px -2px rgba(0, 0, 0, 0.36), 0 2px 4px -2px rgba(0, 0, 0, 0.24);
+  --shadow-lg:  0 12px 24px -6px rgba(0, 0, 0, 0.44), 0 4px 8px -4px rgba(0, 0, 0, 0.28);
+  --shadow-xl:  0 24px 48px -12px rgba(0, 0, 0, 0.55);
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}
+
+/* ---- Density modes ---- */
+[data-density="compact"] {
+  --row-h:    40px;
+  --input-h:  32px;
+  --btn-h-sm: 28px;
+  --btn-h-md: 32px;
+  --btn-h-lg: 40px;
+  --pad-card: 16px;
+}
+[data-density="comfortable"], :root {
+  --row-h:    56px;
+  --input-h:  40px;
+  --btn-h-sm: 32px;
+  --btn-h-md: 40px;
+  --btn-h-lg: 48px;
+  --pad-card: 24px;
+}
+[data-density="compact"] {
+  --row-h:    40px;
+  --input-h:  32px;
+  --btn-h-sm: 28px;
+  --btn-h-md: 32px;
+  --btn-h-lg: 40px;
+  --pad-card: 16px;
+}

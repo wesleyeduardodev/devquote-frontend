@@ -107,27 +107,27 @@ const ParameterModal: React.FC<ParameterModalProps> = ({ isOpen, onClose, parame
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between p-6 border-b border-border-subtle">
                     <div className="flex items-center">
-                        <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                            <Settings className="w-6 h-6 text-blue-600" />
+                        <div className="p-2 bg-accent-soft rounded-lg mr-3">
+                            <Settings className="w-6 h-6 text-accent" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">
+                            <h2 className="text-xl font-semibold text-text-primary">
                                 {isEditing ? 'Editar Parâmetro' : 'Novo Parâmetro'}
                             </h2>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-text-secondary">
                                 {isEditing ? 'Altere os dados do parâmetro' : 'Preencha os dados do novo parâmetro'}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-surface-2 rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-gray-500" />
+                        <X className="w-5 h-5 text-text-tertiary" />
                     </button>
                 </div>
 
@@ -145,14 +145,14 @@ const ParameterModal: React.FC<ParameterModalProps> = ({ isOpen, onClose, parame
                             required
                             maxLength={255}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-text-tertiary mt-1">
                             Use notação com pontos para organizar (ex: whatsapp.api.token)
                         </p>
                     </div>
 
                     {/* Valor */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-text-secondary mb-2">
                             Valor
                         </label>
                         <textarea
@@ -160,7 +160,7 @@ const ParameterModal: React.FC<ParameterModalProps> = ({ isOpen, onClose, parame
                             onChange={(e) => handleInputChange('value', e.target.value)}
                             rows={4}
                             placeholder="Valor do parâmetro (texto livre)"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical"
+                            className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent resize-vertical"
                         />
                     </div>
 
@@ -178,14 +178,14 @@ const ParameterModal: React.FC<ParameterModalProps> = ({ isOpen, onClose, parame
                     </div>
 
                     {/* Info box */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="bg-info-soft border border-accent/20 rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-sm text-blue-800 font-medium">
+                                <p className="text-sm text-info-strong font-medium">
                                     Dica de uso
                                 </p>
-                                <p className="text-xs text-blue-700 mt-1">
+                                <p className="text-xs text-accent mt-1">
                                     Parâmetros são úteis para configurações dinâmicas como URLs de APIs, tokens de integração,
                                     flags de funcionalidades, entre outros. Use nomes descritivos e organize por categoria com pontos.
                                 </p>
@@ -194,7 +194,7 @@ const ParameterModal: React.FC<ParameterModalProps> = ({ isOpen, onClose, parame
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-border-subtle">
                         <Button
                             type="button"
                             variant="outline"

@@ -10,39 +10,35 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({
-                                                            label,
-                                                            error,
-                                                            helpText,
-                                                            className,
-                                                            required,
-                                                            ...props
-                                                        }, ref) => {
+    label, error, helpText, className, required, ...props
+}, ref) => {
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">
                     {label}
-                    {required && <span className="text-red-500 ml-1">*</span>}
+                    {required && <span className="text-[var(--danger-strong)] ml-1">*</span>}
                 </label>
             )}
             <input
                 ref={ref}
                 className={clsx(
-                    'w-full px-3 py-3 sm:py-2.5 border rounded-lg shadow-sm transition-colors duration-200 text-base sm:text-sm',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+                    'w-full h-10 px-3 rounded-md border text-sm bg-surface-1 text-text-primary placeholder:text-text-tertiary',
+                    'transition-colors duration-fast',
+                    'focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent',
                     error
-                        ? 'border-red-300 bg-red-50'
-                        : 'border-gray-300 bg-white hover:border-gray-400',
-                    'disabled:bg-gray-50 disabled:cursor-not-allowed',
+                        ? 'border-[var(--danger-strong)]'
+                        : 'border-border-strong hover:border-text-tertiary',
+                    'disabled:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-70',
                     className
                 )}
                 {...props}
             />
             {helpText && !error && (
-                <p className="mt-1 text-sm text-gray-500">{helpText}</p>
+                <p className="mt-1 text-xs text-text-tertiary">{helpText}</p>
             )}
             {error && (
-                <p className="mt-1 text-sm text-red-600">{error}</p>
+                <p className="mt-1 text-xs text-[var(--danger-strong)]">{error}</p>
             )}
         </div>
     );

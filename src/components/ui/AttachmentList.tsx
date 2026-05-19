@@ -121,7 +121,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
         if (contentType.includes('zip') || contentType.includes('rar') || contentType.includes('archive')) {
             return <Archive className="w-4 h-4 text-yellow-500" />;
         }
-        return <File className="w-4 h-4 text-gray-500" />;
+        return <File className="w-4 h-4 text-text-tertiary" />;
     };
 
     const formatFileSize = (bytes: number) => {
@@ -152,22 +152,22 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
         return (
             <div 
-                className={`border border-gray-200 rounded-lg cursor-pointer transition-all ${className}`}
+                className={`border border-border-subtle rounded-lg cursor-pointer transition-all ${className}`}
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <div className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                <div className="px-4 py-3 hover:bg-surface-app transition-colors">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Upload className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-900">Anexos</span>
-                            <span className="text-xs text-gray-500">({attachmentCount})</span>
+                            <Upload className="w-4 h-4 text-text-tertiary" />
+                            <span className="text-sm font-medium text-text-primary">Anexos</span>
+                            <span className="text-xs text-text-tertiary">({attachmentCount})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{statusText}</span>
+                            <span className="text-xs text-text-tertiary">{statusText}</span>
                             {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                                <ChevronUp className="w-4 h-4 text-text-tertiary" />
                             ) : (
-                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                                <ChevronDown className="w-4 h-4 text-text-tertiary" />
                             )}
                         </div>
                     </div>
@@ -182,51 +182,51 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
     if (loading) {
         return (
-            <div className={`border border-gray-200 rounded-lg ${className}`}>
+            <div className={`border border-border-subtle rounded-lg ${className}`}>
                 <div 
-                    className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="px-4 py-3 border-b border-border-subtle bg-surface-app cursor-pointer hover:bg-surface-2 transition-colors"
                     onClick={() => setIsExpanded(false)}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Upload className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-900">Anexos</span>
-                            <span className="text-xs text-gray-500">(...)</span>
+                            <Upload className="w-4 h-4 text-text-tertiary" />
+                            <span className="text-sm font-medium text-text-primary">Anexos</span>
+                            <span className="text-xs text-text-tertiary">(...)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">Carregando...</span>
-                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs text-text-tertiary">Carregando...</span>
+                            <ChevronUp className="w-4 h-4 text-text-tertiary" />
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center justify-center py-6">
                     <LoadingSpinner size="sm" />
-                    <span className="ml-2 text-gray-600 text-sm">Carregando arquivos...</span>
+                    <span className="ml-2 text-text-secondary text-sm">Carregando arquivos...</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className={`${forceExpanded ? '' : 'border border-gray-200 rounded-lg'} ${className}`}>
+        <div className={`${forceExpanded ? '' : 'border border-border-subtle rounded-lg'} ${className}`}>
             {!forceExpanded && (
                 <div 
-                    className="px-4 py-3 border-b border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="px-4 py-3 border-b border-border-subtle bg-surface-app cursor-pointer hover:bg-surface-2 transition-colors"
                     onClick={() => setIsExpanded(false)}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Upload className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-900">Anexos</span>
-                            <span className="text-xs text-gray-500">({attachments.length})</span>
+                            <Upload className="w-4 h-4 text-text-tertiary" />
+                            <span className="text-sm font-medium text-text-primary">Anexos</span>
+                            <span className="text-xs text-text-tertiary">({attachments.length})</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-text-tertiary">
                                 {attachments.length === 0 ? 'Nenhum arquivo anexado' :
                                  attachments.length === 1 ? '1 arquivo anexado' :
                                  `${attachments.length} arquivos anexados`}
                             </span>
-                            <ChevronUp className="w-4 h-4 text-gray-400" />
+                            <ChevronUp className="w-4 h-4 text-text-tertiary" />
                         </div>
                     </div>
                 </div>
@@ -236,8 +236,8 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
             {attachments.length === 0 ? (
                 <div className="text-center py-6">
                     <File className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-4">Nenhum arquivo anexado</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-sm text-text-tertiary mb-4">Nenhum arquivo anexado</p>
+                    <p className="text-xs text-text-tertiary">
                         Faça upload de documentos, planilhas, imagens ou outros arquivos relacionados à tarefa
                     </p>
                 </div>
@@ -246,7 +246,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                 <>
                     <div className="divide-y divide-gray-200">
                         {attachments.map((attachment) => (
-                            <div key={attachment.id} className="p-4 hover:bg-gray-50 transition-colors">
+                            <div key={attachment.id} className="p-4 hover:bg-surface-app transition-colors">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center flex-1 min-w-0">
                                         <div className="flex-shrink-0">
@@ -254,10 +254,10 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                         </div>
                                         
                                         <div className="ml-3 flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-gray-900 truncate">
+                                            <div className="text-sm font-medium text-text-primary truncate">
                                                 {attachment.originalFileName}
                                             </div>
-                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                            <div className="flex items-center gap-3 text-xs text-text-tertiary mt-1">
                                                 <span>{formatFileSize(attachment.fileSize)}</span>
                                                 <span>•</span>
                                                 <span>Enviado em {formatDate(attachment.createdAt)}</span>
@@ -270,7 +270,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                                             size="sm"
                                             variant="ghost"
                                             onClick={() => handleDownload(attachment)}
-                                            className="p-2 hover:bg-blue-100 hover:text-blue-600"
+                                            className="p-2 hover:bg-accent-soft hover:text-accent"
                                             title="Baixar arquivo"
                                         >
                                             <Download className="w-4 h-4" />
@@ -299,8 +299,8 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                     </div>
                     
                     {attachments.length > 5 && (
-                        <div className="px-4 py-2 bg-gray-50 text-center border-t border-gray-200">
-                            <p className="text-xs text-gray-500">
+                        <div className="px-4 py-2 bg-surface-app text-center border-t border-border-subtle">
+                            <p className="text-xs text-text-tertiary">
                                 <AlertTriangle className="w-3 h-3 inline mr-1" />
                                 Muitos arquivos anexados. Considere organizar em pastas compactadas.
                             </p>

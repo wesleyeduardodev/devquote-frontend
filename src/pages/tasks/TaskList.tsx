@@ -1,1675 +1,780 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Task } from '@/types/task.types';
+import * as React from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-    Plus,
-    Edit,
-    Trash2,
-    ExternalLink,
-    CheckSquare,
-    DollarSign,
-    Search,
-    Filter,
-    User,
-    Video,
-    Calendar,
-    Eye,
-    Download,
-    Mail,
-    ChevronsLeft,
-    ChevronsRight,
-    FileText,
-} from 'lucide-react';
-import { useTasks } from '@/hooks/useTasks';
-import { useAuth } from '@/hooks/useAuth';
-import { formatPaginationText, formatMobileRecordCountText } from '@/utils/paginationUtils';
-import DataTable, { Column } from '@/components/ui/DataTable';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import BulkDeleteModal from '@/components/ui/BulkDeleteModal';
-import DeleteConfirmationModal from '@/components/ui/DeleteConfirmationModal';
-import { FlowTypeFilter, FlowTypeFilterValue } from '@/components/filters/FlowTypeFilter';
-import { TaskTypeFilter, TaskTypeFilterValue } from '@/components/filters/TaskTypeFilter';
-import { EnvironmentFilter, EnvironmentFilterValue } from '@/components/filters/EnvironmentFilter';
-import { DateRangeFilter } from '@/components/filters/DateRangeFilter';
-import { reportService } from '@/services/reportService';
-import toast from 'react-hot-toast';
+  Plus, Pencil, Trash2, ListChecks, Mail, Eye,
+  Download, Search, Filter, Check, Minus, X
+} from 'lucide-react'
+import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
+import type { ColumnDef } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
 
-interface SubTask {
-    id?: number;
-    title: string;
-    description?: string;
-    amount: number;
-    taskId?: number;
-    excluded?: boolean;
-    createdAt?: string;
-    updatedAt?: string;
+import { useTasks } from '@/hooks/useTasks'
+import { useAuth } from '@/hooks/useAuth'
+import { reportService } from '@/services/reportService'
+import { taskService } from '@/services/taskService'
+import { Button } from '@/components/ui-v2/Button'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { Badge } from '@/components/ui-v2/Badge'
+import { EmptyState } from '@/components/ui-v2/EmptyState'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
+import { Input } from '@/components/ui-v2/Input'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
+} from '@/components/ui-v2/DropdownMenu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-v2/Select'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
+import { Sheet, SheetContent, SheetHeader, SheetBody, SheetFooter, SheetTitle, SheetDescription } from '@/components/ui-v2/Sheet'
+import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
+import { TaskTypeLabel } from '@/components/tasks/TaskTypeLabel'
+
+interface Task {
+  id: number
+  code: string
+  title: string
+  description?: string
+  flowType?: string
+  taskType?: string
+  requesterId?: number
+  requesterName?: string
+  amount?: number
+  hasDelivery?: boolean
+  hasQuoteInBilling?: boolean
+  financialEmailSent?: boolean
 }
 
+const brl = (n: number | null | undefined) =>
+  (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+const TASK_TYPE_OPTIONS = [
+  { value: 'BUG', label: 'Bug' },
+  { value: 'ENHANCEMENT', label: 'Melhoria' },
+  { value: 'NEW_FEATURE', label: 'Nova funcionalidade' },
+  { value: 'BACKUP', label: 'Backup' },
+  { value: 'DEPLOY', label: 'Deploy' },
+  { value: 'LOGS', label: 'Logs' },
+  { value: 'NOVO_SERVIDOR', label: 'Novo servidor' },
+  { value: 'MONITORING', label: 'Monitoramento' },
+  { value: 'SUPPORT', label: 'Suporte' },
+  { value: 'CODE_REVIEW', label: 'Code Review' },
+  { value: 'DATABASE_APPLICATION', label: 'Aplicação BD' },
+]
+
+const ENV_OPTIONS = [
+  { value: 'DEV', label: 'Desenvolvimento' },
+  { value: 'HML', label: 'Homologação' },
+  { value: 'PROD', label: 'Produção' },
+]
+
+const STATUS_PILL_TONES = {
+  info:    { on: 'bg-info-soft text-[var(--info-strong)] border-info-border',         off: 'bg-danger-soft text-[var(--danger-strong)] border-danger-border' },
+  success: { on: 'bg-success-soft text-[var(--success-strong)] border-success-border', off: 'bg-danger-soft text-[var(--danger-strong)] border-danger-border' },
+} as const
+
+const StatusPill: React.FC<{
+  on: boolean
+  onLabel: string
+  offLabel: string
+  tone: keyof typeof STATUS_PILL_TONES
+}> = ({ on, onLabel, offLabel, tone }) => {
+  const cls = STATUS_PILL_TONES[tone][on ? 'on' : 'off']
+  const Icon = on ? Check : X
+  return (
+    <span className={`inline-flex items-center gap-1 h-5 px-1.5 rounded-full border text-[11px] font-medium ${cls}`}>
+      <Icon className="size-3" strokeWidth={2.5} />
+      {on ? onLabel : offLabel}
+    </span>
+  )
+}
 
 const TaskList: React.FC = () => {
-    const navigate = useNavigate();
-    const { hasProfile, user } = useAuth();
+  const navigate = useNavigate()
+  const { hasAnyProfile } = useAuth() as any
+  const {
+    tasks, pagination, loading, error, filters,
+    deleteTaskWithSubTasks, deleteBulkTasks,
+    setPage, setPageSize, setFilter, clearFilters,
+    exportToExcel, exportTasksOnlyToExcel,
+  } = useTasks({ size: 25 })
 
-    const isAdmin = hasProfile('ADMIN');
-    const isManager = hasProfile('MANAGER');
-    const isUser = hasProfile('USER');
-    const canCreateTasks = isAdmin || isManager || isUser;
-    const canViewValues = isAdmin || isManager;
-    const canViewDeliveryColumns = isAdmin || isManager;
-    const currentUserId = user?.id;
+  const [search, setSearch] = React.useState((filters.title as string) || '')
+  const [selection, setSelection] = React.useState<Record<string, boolean>>({})
+  const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
+  const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
+  const [stats, setStats] = React.useState<{ total: number; totalWithoutDelivery: number; totalWithoutBilling: number } | null>(null)
 
-    const canModifyTask = (task: Task) => {
-        if (isAdmin) return true;
-        if (!currentUserId) return false;
-        return task.createdByUserId === currentUserId;
-    };
+  React.useEffect(() => {
+    let cancelled = false
+    taskService.getStats()
+      .then((s) => { if (!cancelled) setStats(s) })
+      .catch(() => { /* silencioso — fallback fica em — */ })
+    return () => { cancelled = true }
+  }, [])
 
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedItems, setSelectedItems] = useState<number[]>([]);
-    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [showFinancialEmailModal, setShowFinancialEmailModal] = useState(false);
-    const [taskForEmail, setTaskForEmail] = useState<Task | null>(null);
-    const [additionalEmails, setAdditionalEmails] = useState<string[]>([]);
-    const [currentEmailInput, setCurrentEmailInput] = useState('');
-    const [additionalWhatsAppRecipients, setAdditionalWhatsAppRecipients] = useState<string[]>([]);
-    const [currentWhatsAppInput, setCurrentWhatsAppInput] = useState('');
-    const [sendEmail, setSendEmail] = useState(true);
-    const [sendWhatsApp, setSendWhatsApp] = useState(true);
-    const [showTaskEmailModal, setShowTaskEmailModal] = useState(false);
-    const [taskForTaskEmail, setTaskForTaskEmail] = useState<Task | null>(null);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-    const [isDeletingSingle, setIsDeletingSingle] = useState(false);
-    const [flowType, setFlowType] = useState<FlowTypeFilterValue>('TODOS');
-    const [generatingPdfTaskId, setGeneratingPdfTaskId] = useState<number | null>(null);
+  const handleGeneratePdf = React.useCallback(async (task: Task) => {
+    setPdfLoadingId(task.id)
+    try {
+      const blob = await reportService.generateTaskPdf(task.id)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const now = new Date()
+      const ts = [
+        String(now.getDate()).padStart(2, '0'),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        now.getFullYear(),
+        String(now.getHours()).padStart(2, '0'),
+        String(now.getMinutes()).padStart(2, '0'),
+        String(now.getSeconds()).padStart(2, '0')
+      ].join('-')
+      const flowCode = task.flowType === 'DESENVOLVIMENTO' ? 'DEV' : 'OP'
+      link.download = `tarefa-${task.id}-${task.code}-${flowCode}-${ts}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toast.success('PDF gerado com sucesso')
+    } catch {
+      toast.error('Erro ao gerar PDF')
+    } finally {
+      setPdfLoadingId(null)
+    }
+  }, [])
 
-    const {
-        tasks,
-        pagination,
-        loading,
-        exporting,
-        sorting,
-        filters,
-        setPage,
-        setPageSize,
-        setSorting,
-        setFilter,
-        clearFilters,
-        deleteTaskWithSubTasks,
-        deleteBulkTasks,
-        exportToExcel,
-        exportTasksOnlyToExcel,
-        sendFinancialEmail,
-        sendTaskEmail,
-    } = useTasks();
+  React.useEffect(() => {
+    const t = setTimeout(() => setFilter('title', search), 300)
+    return () => clearTimeout(t)
+  }, [search])
 
-    useEffect(() => {
-        if (flowType === 'TODOS') {
-            if (filters.flowType) {
-                setFilter('flowType', '');
-            }
-        } else {
-            setFilter('flowType', flowType);
-        }
-    }, [flowType]);
+  const selectedIds = React.useMemo(
+    () => Object.keys(selection).filter((k) => selection[k]).map((k) => Number(k)),
+    [selection]
+  )
 
-    const handleEdit = (id: number) => {
-        navigate(`/tasks/${id}/edit`);
-    };
+  const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
 
-    const handleView = (task: Task) => {
-        navigate(`/tasks/${task.id}`);
-    };
-
-    const handleDelete = (task: Task) => {
-        setTaskToDelete(task);
-        setShowDeleteModal(true);
-    };
-
-    const confirmDelete = async () => {
-        if (!taskToDelete) return;
-
-        setIsDeletingSingle(true);
-        try {
-            await deleteTaskWithSubTasks(taskToDelete.id);
-            setShowDeleteModal(false);
-            setTaskToDelete(null);
-            toast.success('Tarefa excluída com sucesso');
-        } catch (error) {
-            toast.error('Erro ao excluir tarefa');
-        } finally {
-            setIsDeletingSingle(false);
-        }
-    };
-
-    const handleGeneratePdf = async (task: Task) => {
-        setGeneratingPdfTaskId(task.id);
-        try {
-            const blob = await reportService.generateTaskPdf(task.id);
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            const now = new Date();
-            const timestamp = [
-                String(now.getDate()).padStart(2, '0'),
-                String(now.getMonth() + 1).padStart(2, '0'),
-                now.getFullYear(),
-                String(now.getHours()).padStart(2, '0'),
-                String(now.getMinutes()).padStart(2, '0'),
-                String(now.getSeconds()).padStart(2, '0')
-            ].join('-');
-            const flowTypeCode = task.flowType === 'DESENVOLVIMENTO' ? 'DEV' : 'OP';
-            link.download = `tarefa-${task.id}-${task.code}-${flowTypeCode}-${timestamp}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            toast.success('PDF gerado com sucesso');
-        } catch (error) {
-            toast.error('Erro ao gerar PDF');
-        } finally {
-            setGeneratingPdfTaskId(null);
-        }
-    };
-
-    const handleFinancialEmail = (task: Task) => {
-        setTaskForEmail(task);
-        setAdditionalEmails([]);
-        setCurrentEmailInput('');
-        setAdditionalWhatsAppRecipients([]);
-        setCurrentWhatsAppInput('');
-        setSendEmail(true);
-        setSendWhatsApp(true);
-        setShowFinancialEmailModal(true);
-    };
-
-    const confirmSendFinancialEmail = async () => {
-        if (!taskForEmail) return;
-
-        if (!sendEmail && !sendWhatsApp) {
-            toast.error('Selecione pelo menos um canal de notificação');
-            return;
-        }
-
-        try {
-            await sendFinancialEmail(taskForEmail.id, additionalEmails, additionalWhatsAppRecipients, sendEmail, sendWhatsApp);
-        } catch (error) {
-        } finally {
-            setShowFinancialEmailModal(false);
-            setTaskForEmail(null);
-            setAdditionalEmails([]);
-            setCurrentEmailInput('');
-            setAdditionalWhatsAppRecipients([]);
-            setCurrentWhatsAppInput('');
-            setSendEmail(true);
-            setSendWhatsApp(true);
-        }
-    };
-
-    const addEmail = () => {
-        const email = currentEmailInput.trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            if (!additionalEmails.includes(email)) {
-                setAdditionalEmails([...additionalEmails, email]);
-                setCurrentEmailInput('');
-            } else {
-                toast.error('Este email já foi adicionado');
-            }
-        } else if (email) {
-            toast.error('Email inválido');
-        }
-    };
-
-    const removeEmail = (index: number) => {
-        setAdditionalEmails(additionalEmails.filter((_, i) => i !== index));
-    };
-
-    const addWhatsAppRecipient = () => {
-        const recipient = currentWhatsAppInput.trim();
-        if (recipient) {
-            if (!additionalWhatsAppRecipients.includes(recipient)) {
-                setAdditionalWhatsAppRecipients([...additionalWhatsAppRecipients, recipient]);
-                setCurrentWhatsAppInput('');
-            } else {
-                toast.error('Este destinatário já foi adicionado');
-            }
-        }
-    };
-
-    const removeWhatsAppRecipient = (index: number) => {
-        setAdditionalWhatsAppRecipients(additionalWhatsAppRecipients.filter((_, i) => i !== index));
-    };
-
-    const handleTaskEmail = (task: Task) => {
-        setTaskForTaskEmail(task);
-        setAdditionalEmails([]);
-        setCurrentEmailInput('');
-        setShowTaskEmailModal(true);
-    };
-
-    const confirmSendTaskEmail = async () => {
-        if (!taskForTaskEmail) return;
-
-        try {
-            await sendTaskEmail(taskForTaskEmail.id, additionalEmails);
-        } catch (error) {
-        } finally {
-            setShowTaskEmailModal(false);
-            setTaskForTaskEmail(null);
-            setAdditionalEmails([]);
-            setCurrentEmailInput('');
-        }
-    };
-
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const formatCurrency = (value: number) =>
-        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-
-
-    const getPriorityColor = (priority: string) => {
-        const colors: Record<string, string> = {
-            LOW: 'bg-green-100 text-green-800',
-            MEDIUM: 'bg-yellow-100 text-yellow-800',
-            HIGH: 'bg-orange-100 text-orange-800',
-            URGENT: 'bg-red-100 text-red-800',
-        };
-        return colors[priority] || 'bg-gray-100 text-gray-800';
-    };
-
-    const getPriorityLabel = (priority: string) => {
-        const labels: Record<string, string> = {
-            LOW: '🟢 Baixa',
-            MEDIUM: '🟡 Média',
-            HIGH: '🟠 Alta',
-            URGENT: '🔴 Urgente',
-        };
-        return labels[priority] || priority;
-    };
-
-    const getEnvironmentAbbreviation = (environment?: string) => {
-        if (!environment) return '';
-        const abbreviations: Record<string, string> = {
-            DESENVOLVIMENTO: 'DEV',
-            HOMOLOGACAO: 'HOM',
-            PRODUCAO: 'PROD',
-        };
-        return abbreviations[environment] || environment;
-    };
-
-    const getTaskTypeLabel = (taskType?: string, environment?: string) => {
-        if (!taskType) return '-';
-        const labels: Record<string, string> = {
-            BUG: '🐛 Bug',
-            ENHANCEMENT: '📨 Melhoria',
-            NEW_FEATURE: '✨ Nova Funcionalidade',
-            FEATURE: '⭐ Funcionalidade',
-            MAINTENANCE: '🔧 Manutenção',
-            DOCUMENTATION: '📚 Documentação',
-            REFACTOR: '♻️ Refatoração',
-            TEST: '🧪 Teste',
-            RESEARCH: '🔍 Pesquisa',
-            SUPPORT: '🎧 Suporte',
-            MONITORING: '📊 Monitoramento',
-            HOTFIX: '🔥 Correção Urgente',
-            TASK: '📋 Tarefa',
-            BACKUP: '💾 Backup',
-            DEPLOY: '🚀 Deploy',
-            LOGS: '📝 Logs',
-            DATABASE_APPLICATION: '💿 Aplicação de Banco',
-            DATABASE: '🗄️ Banco de Dados',
-            INFRASTRUCTURE: '🏗️ Infraestrutura',
-            CODE_REVIEW: '🔎 Code Review'
-        };
-        const label = labels[taskType] || taskType;
-        const envAbbr = getEnvironmentAbbreviation(environment);
-        return envAbbr ? `${label} - ${envAbbr}` : label;
-    };
-
-    const getEnvironmentLabel = (environment?: string) => {
-        if (!environment) return '';
-        const labels: Record<string, string> = {
-            DESENVOLVIMENTO: '🔧 Desenvolvimento',
-            HOMOLOGACAO: '🧪 Homologação',
-            PRODUCAO: '🚀 Produção',
-        };
-        return labels[environment] || environment;
-    };
-
-    const calculateTaskTotal = (task?: Task) => {
-        if (!task) return 0;
-        return parseFloat(task.amount?.toString() || '0') || 0;
-    };
-
-    const toggleItem = (id: number) => {
-        const task = tasks.find(t => t.id === id);
-        if (!task || !canModifyTask(task)) return;
-
-        setSelectedItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    };
-
-    const toggleAll = () => {
-        const currentPageIds = tasks
-            .filter(task => canModifyTask(task))
-            .map((t) => t.id);
-        const allSelected = currentPageIds.every((id) => selectedItems.includes(id));
-
-        if (allSelected) {
-            setSelectedItems((prev) => prev.filter((id) => !currentPageIds.includes(id)));
-        } else {
-            setSelectedItems((prev) => [...new Set([...prev, ...currentPageIds])]);
-        }
-    };
-
-    const clearSelection = () => setSelectedItems([]);
-
-    const selectionState = useMemo(() => {
-        const modifiableTaskIds = tasks.filter(task => canModifyTask(task)).map((t) => t.id);
-        const selectedFromCurrentPage = selectedItems.filter((id) => modifiableTaskIds.includes(id));
-
-        return {
-            allSelected:
-                modifiableTaskIds.length > 0 && selectedFromCurrentPage.length === modifiableTaskIds.length,
-            someSelected:
-                selectedFromCurrentPage.length > 0 && selectedFromCurrentPage.length < modifiableTaskIds.length,
-            hasSelection: selectedItems.length > 0,
-            selectedFromCurrentPage,
-        };
-    }, [tasks, selectedItems, currentUserId]);
-
-    const handleBulkDelete = async () => {
-        if (selectedItems.length === 0) return;
-        setIsDeleting(true);
-        try {
-            await deleteBulkTasks(selectedItems);
-            const qty = selectedItems.length;
-            clearSelection();
-            setShowBulkDeleteModal(false);
-            toast.success(`${qty} tarefa(s) excluída(s) com sucesso`);
-        } catch (error) {
-            toast.error('Erro ao excluir tarefas selecionadas');
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-
-    const filteredTasks = tasks.filter(
-        (task) =>
-            task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.requesterName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-
-    const columns: Column<Task>[] = [
-
-        ...(canCreateTasks ? [{
-            key: 'select',
-            title: '',
-            width: '40px',
-            align: 'center' as const,
-            headerRender: () => (
-                <div className="flex items-center justify-center">
-                    <input
-                        type="checkbox"
-                        checked={selectionState.allSelected}
-                        ref={(input) => {
-                            if (input) input.indeterminate = selectionState.someSelected;
-                        }}
-                        onChange={toggleAll}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        title={selectionState.allSelected ? 'Desmarcar tarefas próprias' : 'Selecionar tarefas próprias'}
-                    />
-                </div>
-            ),
-            render: (item) => (
-                <div className="flex items-center justify-center">
-                    <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => toggleItem(item.id)}
-                        disabled={!canModifyTask(item)}
-                        className={`w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
-                            !canModifyTask(item) ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                        onClick={(e) => e.stopPropagation()}
-                        title={canModifyTask(item) ? 'Selecionar tarefa' : 'Você não pode modificar esta tarefa'}
-                    />
-                </div>
-            ),
-        }] : []),
-
-        {
-            key: 'id',
-            title: 'ID',
-            sortable: true,
-            filterable: true,
-            filterType: 'number',
-            width: '80px',
-            align: 'center' as const,
-            render: (item) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-          #{item.id}
+  const columns = React.useMemo<ColumnDef<Task, any>[]>(() => [
+    {
+      accessorKey: 'id', header: 'ID', size: 64, meta: { align: 'center' },
+      cell: ({ row }) => <span className="font-mono text-[11px] text-text-tertiary">#{row.original.id}</span>,
+    },
+    {
+      accessorKey: 'code', header: 'Código', size: 120, meta: { align: 'center' },
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
+          {row.original.code}
         </span>
-            ),
-        },
-        {
-            key: 'code',
-            title: 'CÓDIGO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '90px',
-            align: 'center' as const,
-            render: (item) => (
-                item.link ?
-                    <div className="flex items-center gap-2">
-                        <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 bg-gray-100 rounded px-2 py-1 hover:text-blue-800 flex items-center gap-1.5 max-w-xs truncate"
-                            onClick={(e) => e.stopPropagation()}
-                            title={item.link}
-                        >
-                            <span className="truncate">{item.code}</span>
-                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                        </a>
-                    </div>
-                    :
-                    <span className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                        {item.code || 'N/A'}
-                    </span>                
-            ),
-        },
-        {
-            key: 'flowType',
-            title: 'FLUXO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '130px',
-            align: 'center' as const,
-            render: (item) => (
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                    item.flowType === 'OPERACIONAL'
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-blue-100 text-blue-800'
-                }`}>
-                    {item.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
-                </span>
-            ),
-        },
-        {
-            key: 'taskType',
-            title: 'TIPO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '135px',
-            align: 'center' as const,
-            render: (item) => (
-                <span className="text-sm text-gray-700">
-                    {getTaskTypeLabel(item.taskType, item.environment)}
-                </span>
-            ),
-            hideable: true,
-        },
-        {
-            key: 'title',
-            title: 'TÍTULO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '240px',
-            align: 'left' as const,
-            render: (item) => (
-                <div className="w-full">
-                    <p
-                        className="font-medium text-gray-900 cursor-help text-left text-sm"
-                        title={item.title}
-                        style={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            wordBreak: 'break-word',
-                            lineHeight: '1.3',
-                            maxWidth: '100%'
-                        }}
-                    >
-                        {item.title}
-                    </p>
-                </div>
-            ),
-        },
-        {
-            key: 'priority',
-            title: 'PRIORIDADE',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '120px',
-            align: 'center' as const,
-            hideable: true,
-            hidden: true,
-            render: (item) => (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(item.priority || 'MEDIUM')}`}>
-                    {getPriorityLabel(item.priority || 'MEDIUM')}
-                </span>
-            ),
-        },
-        {
-            key: 'systemModule',
-            title: 'MÓDULO',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '120px',
-            align: 'center' as const,
-            render: (item) => (
-                <span className="text-sm text-gray-600" title={item.systemModule}>
-                    {item.systemModule ? item.systemModule.substring(0, 15) + (item.systemModule.length > 15 ? '...' : '') : '-'}
-                </span>
-            ),
-            hideable: true,
-        },
-        {
-            key: 'requesterName',
-            title: 'SOLICITANTE',
-            sortable: true,
-            filterable: true,
-            filterType: 'text',
-            width: '160px',
-            align: 'center' as const,
-            render: (item) => (
-                <div className="max-w-[160px]">
-                    <span className="text-sm text-gray-900 block truncate" title={item.requesterName || 'Não informado'}>
-                        {item.requesterName || 'Não informado'}
-                    </span>
-                </div>
-            ),
-            hideable: true,
-            hidden: true,
-        },
-        {
-            key: 'link',
-            title: 'LINK',
-            width: '80px',
-            align: 'center' as const,
-            render: (item) =>
-                item.link ? (
-                    <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                        title={item.link}
-                    >
-                        <ExternalLink className="w-4 h-4" />
-                    </a>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                ),
-            hideable: true,
-        },
-        {
-            key: 'meetingLink',
-            title: 'REUNIÃO',
-            width: '80px',
-            align: 'center' as const,
-            render: (item) =>
-                item.meetingLink ? (
-                    <a
-                        href={item.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-800 flex items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                        title={item.meetingLink}
-                    >
-                        <Video className="w-4 h-4" />
-                    </a>
-                ) : (
-                    <span className="text-gray-400">-</span>
-                ),
-            hideable: true,
-        },
-        {
-            key: 'subTasks',
-            title: 'ITENS',
-            width: '70px',
-            align: 'center' as const,
-            render: (item) => (
-                <div className="flex items-center justify-center gap-1">
-                    <CheckSquare className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">{item.subTasks?.length || 0}</span>
-                </div>
-            ),
-            hideable: true,
-            hidden: true,
-        },
-
-        ...(canViewDeliveryColumns ? [{
-            key: 'hasDelivery',
-            title: 'ENTREGA',
-            sortable: false,
-            filterable: false,
-            width: '105px',
-            align: 'center' as const,
-            render: (item: Task) => (
-                <div className="flex items-center justify-center">
-                    {item.hasDelivery ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            ✓ Vinculado
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            ✗ Pendente
-                        </span>
-                    )}
-                </div>
-            ),
-        }, {
-            key: 'hasQuoteInBilling',
-            title: 'FATURAMENTO',
-            sortable: false,
-            filterable: false,
-            width: '125px',
-            align: 'center' as const,
-            render: (item: Task) => (
-                <div className="flex items-center justify-center">
-                    {item.hasQuoteInBilling ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            ✓ Faturado
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            ⏳ Aguardando
-                        </span>
-                    )}
-                </div>
-            ),
-        }] : []),
-
-        {
-            key: 'createdByUserName',
-            title: 'CRIADO POR',
-            sortable: false,
-            filterable: false,
-            width: '160px',
-            align: 'center' as const,
-            render: (item) => (
-                <div className="max-w-[160px]">
-                    <span className="text-sm text-gray-700 block truncate" title={item.createdByUserName || '-'}>
-                        {item.createdByUserName || '-'}
-                    </span>
-                </div>
-            ),
-            hideable: true,
-            hidden: true,
-        },
-
-        ...(canViewValues ? [{
-            key: 'total',
-            title: 'VALOR TOTAL',
-            width: '110px',
-            align: 'center' as const,
-            render: (item: Task) => (
-                <div className="flex items-center justify-center gap-1">
-                    <DollarSign className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-600">
-                        {formatCurrency(calculateTaskTotal(item))}
-                    </span>
-                </div>
-            ),
-        }] : []),
-        {
-            key: 'createdAt',
-            title: 'CRIADO EM',
-            sortable: true,
-            filterable: true,
-            filterType: 'date',
-            align: 'center' as const,
-            render: (item) => formatDate(item.createdAt),
-            hideable: true,
-        },
-        {
-            key: 'updatedAt',
-            title: 'ATUALIZADO EM',
-            sortable: true,
-            filterable: true,
-            filterType: 'date',
-            align: 'center' as const,
-            render: (item) => formatDate(item.updatedAt),
-            hideable: true,
-        },
-        {
-            key: 'updatedByUserName',
-            title: 'ALTERADO POR',
-            sortable: false,
-            filterable: false,
-            align: 'center' as const,
-            render: (item) => item.updatedByUserName || '-',
-            hideable: true,
-        },
-
-        {
-            key: 'actions',
-            title: 'AÇÕES',
-            align: 'center' as const,
-            width: '200px',
-            render: (item: Task) => (
-                <div className="flex items-center justify-center gap-1">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleGeneratePdf(item)}
-                        disabled={generatingPdfTaskId === item.id}
-                        title="Exportar PDF"
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                    >
-                        {generatingPdfTaskId === item.id ? (
-                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                            <FileText className="w-4 h-4" />
-                        )}
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleView(item)}
-                        title="Visualizar detalhes"
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                    >
-                        <Eye className="w-4 h-4" />
-                    </Button>
-
-                    {/* 2. Email Financeiro - apenas ADMIN */}
-                    {isAdmin && (
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleFinancialEmail(item)}
-                            title={item.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
-                            className={item.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}
-                        >
-                            <DollarSign className="w-4 h-4" />
-                        </Button>
-                    )}
-
-                    {/* 3. Email da Tarefa - apenas ADMIN */}
-                    {isAdmin && (
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleTaskEmail(item)}
-                            title={item.taskEmailSent ? "Email de tarefa já enviado - Reenviar?" : "Enviar email de tarefa"}
-                            className={item.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}
-                        >
-                            <Mail className="w-4 h-4" />
-                        </Button>
-                    )}
-
-                    {/* 4. Editar - apenas quem pode modificar */}
-                    {canModifyTask(item) && (
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(item.id)}
-                            title="Editar"
-                        >
-                            <Edit className="w-4 h-4" />
-                        </Button>
-                    )}
-
-                    {/* 5. Excluir - apenas quem pode modificar */}
-                    {canModifyTask(item) && (
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(item)}
-                            title="Excluir"
-                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    )}
-                </div>
-            ),
-        },
-    ];
-
-    const TaskCard: React.FC<{ task: Task }> = ({ task }) => (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-
-            <div className="flex items-start gap-3 mb-3">
-
-                {canCreateTasks && (
-                    <div className="flex-shrink-0 pt-1">
-                        <input
-                            type="checkbox"
-                            checked={selectedItems.includes(task.id)}
-                            onChange={() => toggleItem(task.id)}
-                            disabled={!canModifyTask(task)}
-                            className={`w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
-                                !canModifyTask(task) ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                            title={canModifyTask(task) ? 'Selecionar tarefa' : 'Você não pode modificar esta tarefa'}
-                        />
-                    </div>
-                )}
-
-                <div className="flex-1 min-w-0">
-                    {/* Linha 1: ID + Código */}
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                            #{task.id}
-                        </span>
-                        <span className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                            {task.code}
-                        </span>
-                    </div>
-
-                    {/* Linha 2: Fluxo + Tipo (mesma ordem do desktop) */}
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            task.flowType === 'OPERACIONAL'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-blue-100 text-blue-800'
-                        }`}>
-                            {task.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
-                        </span>
-                        {task.taskType && (
-                            <span className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded truncate max-w-[150px]" title={getTaskTypeLabel(task.taskType, task.environment)}>
-                                {getTaskTypeLabel(task.taskType, task.environment)}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Linha 3: Título */}
-                    <div className="mb-2">
-                        <h3
-                            className="font-semibold text-gray-900 text-base leading-snug break-words"
-                            style={{
-                                overflowWrap: 'anywhere',
-                                wordBreak: 'break-word'
-                            }}
-                        >
-                            {task.title}
-                        </h3>
-                    </div>
-                </div>
-            </div>
-
-            {/* Informações da Task */}
-            <div className="space-y-2">
-                {/* Entrega e Faturamento - apenas para ADMIN e MANAGER */}
-                {canViewDeliveryColumns && (
-                    <div className="flex items-center gap-3 text-xs flex-wrap">
-                        <div className="flex items-center gap-1">
-                            {task.hasDelivery ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    ✓ Vinculado
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    ✗ Pendente
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                            {task.hasQuoteInBilling ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    ✓ Faturado
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    ⏳ Aguardando
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Ações + Solicitante - na mesma linha para economizar espaço */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm flex-1">
-                        {/* Ações compactas */}
-                        <div className="flex gap-1 mr-3">
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleGeneratePdf(task)}
-                                disabled={generatingPdfTaskId === task.id}
-                                title="Exportar PDF"
-                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
-                            >
-                                {generatingPdfTaskId === task.id ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <FileText className="w-3.5 h-3.5" />
-                                )}
-                            </Button>
-
-                            {/* 1. Visualizar */}
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleView(task)}
-                                title="Visualizar detalhes"
-                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
-                            >
-                                <Eye className="w-3.5 h-3.5" />
-                            </Button>
-
-                            {/* 2. Email Financeiro - apenas ADMIN */}
-                            {isAdmin && (
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleFinancialEmail(task)}
-                                    title={task.financialEmailSent ? "Email financeiro já enviado - Reenviar?" : "Enviar email financeiro"}
-                                    className={`p-1 ${task.financialEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
-                                >
-                                    <DollarSign className="w-3.5 h-3.5" />
-                                </Button>
-                            )}
-
-                            {/* 3. Email da Tarefa - apenas ADMIN */}
-                            {isAdmin && (
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleTaskEmail(task)}
-                                    title={task.taskEmailSent ? "Email de tarefa já enviado - Reenviar?" : "Enviar email de tarefa"}
-                                    className={`p-1 ${task.taskEmailSent ? 'text-green-600 hover:text-green-800 hover:bg-green-50' : 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'}`}
-                                >
-                                    <Mail className="w-3.5 h-3.5" />
-                                </Button>
-                            )}
-
-                            {/* 4. Editar - apenas quem pode modificar */}
-                            {canModifyTask(task) && (
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleEdit(task.id)}
-                                    title="Editar"
-                                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 p-1"
-                                >
-                                    <Edit className="w-3.5 h-3.5" />
-                                </Button>
-                            )}
-
-                            {/* 5. Excluir - apenas quem pode modificar */}
-                            {canModifyTask(task) && (
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleDelete(task)}
-                                    title="Excluir"
-                                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 p-1"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Valor Total - apenas para ADMIN e MANAGER */}
-                {canViewValues && (
-                    <div className="flex items-center gap-1 text-sm">
-                        <DollarSign className="w-4 h-4 text-green-600" />
-                        <span className="font-medium text-green-600">
-                            {formatCurrency(calculateTaskTotal(task))}
-                        </span>
-                    </div>
-                )}
-            </div>
+      ),
+    },
+    {
+      accessorKey: 'flowType', header: 'Fluxo', size: 180, meta: { align: 'center' },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <FlowChip value={row.original.flowType} />
         </div>
-    );
-
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                {/* Filtros */}
-                <div className="flex flex-col gap-2 sm:grid sm:items-center sm:gap-3 sm:grid-cols-[auto_auto_auto]
-                [@media(min-width:1024px)_and_(max-width:1164px)]:grid-rows-3">
-                    <FlowTypeFilter
-                        value={flowType}
-                        onChange={setFlowType}
-                    />
-
-                    <TaskTypeFilter
-                        value={(filters.taskType as TaskTypeFilterValue) || 'TODOS'}
-                        onChange={(value) => setFilter('taskType', value === 'TODOS' ? '' : value)}
-                        flowType={flowType}
-                    />
-
-                    <EnvironmentFilter
-                        value={(filters.environment as EnvironmentFilterValue) || 'TODOS'}
-                        onChange={(value) => setFilter('environment', value === 'TODOS' ? '' : value)}
-                        className='[@media(min-width:1024px)_and_(max-width:1164px)]:col-span-2'
-                    />
-
-                    <DateRangeFilter
-                        startDate={filters.startDate || ''}
-                        endDate={filters.endDate || ''}
-                        onStartDateChange={(date) => setFilter('startDate', date)}
-                        onEndDateChange={(date) => setFilter('endDate', date)}
-                        className='sm:col-span-2'
-                    />
-                </div>
-
-                {/* Botões de Ação */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={exportTasksOnlyToExcel}
-                        loading={exporting}
-                        disabled={exporting}
-                        className="flex items-center justify-center w-full sm:w-auto"
-                    >
-                        <Download className="w-4 h-4 mr-2" />
-                        {exporting ? 'Exportando...' : 'Tarefas'}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={exportToExcel}
-                        loading={exporting}
-                        disabled={exporting}
-                        className="flex items-center justify-center w-full sm:w-auto"
-                    >
-                        <Download className="w-4 h-4 mr-2" />
-                        {exporting ? 'Exportando...' : 'Tarefas + Itens'}
-                    </Button>
-                    {canCreateTasks && (
-                        <Button
-                            variant="primary"
-                            onClick={() => navigate('/tasks/create')}
-                            className="flex items-center justify-center w-full sm:w-auto"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Nova Tarefa
-                        </Button>
-                    )}
-                </div>
-            </div>
-
-            {/* Filtros Mobile - Busca + seleção e bulk delete */}
-            <div className="lg:hidden space-y-4">
-                <Card className="p-4">
-                    <div className="space-y-3">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por título, código ou solicitante..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            />
-                        </div>
-
-                        {canCreateTasks && (
-                            <div className="flex items-center justify-between gap-3">
-                                <Button size="sm" variant="ghost" onClick={toggleAll} className="flex items-center gap-2">
-                                    <div className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectionState.allSelected}
-                                            ref={(input) => {
-                                                if (input) input.indeterminate = selectionState.someSelected;
-                                            }}
-                                            readOnly
-                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <span className="text-sm">{selectionState.allSelected ? 'Desmarcar Minhas Tarefas' : 'Selecionar Minhas Tarefas'}</span>
-                                </Button>
-
-                                {selectionState.hasSelection && (
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => setShowBulkDeleteModal(true)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        <span className="text-sm">Excluir ({selectedItems.length})</span>
-                                    </Button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </Card>
-            </div>
-
-            {/* Conteúdo Responsivo */}
-            {loading ? (
-                <Card className="p-8">
-                    <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <span className="ml-4 text-gray-600">Carregando...</span>
-                    </div>
-                </Card>
-            ) : (
-                <>
-                    {/* Desktop - Barra de ações quando há seleção */}
-                    <div className="hidden lg:block space-y-4">
-                        {canCreateTasks && selectionState.hasSelection && (
-                            <Card className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-700">
-                      {selectedItems.length} tarefa(s) selecionada(s)
-                    </span>
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={clearSelection}
-                                            className="text-gray-500 hover:text-gray-700"
-                                        >
-                                            Limpar seleção
-                                        </Button>
-                                    </div>
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => setShowBulkDeleteModal(true)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Excluir Selecionadas
-                                    </Button>
-                                </div>
-                            </Card>
-                        )}
-
-                        {}
-                        <Card className="p-0">
-                            <DataTable
-                                data={tasks}
-                                columns={columns}
-                                loading={loading}
-                                pagination={pagination}
-                                sorting={sorting}
-                                filters={filters}
-                                onPageChange={setPage}
-                                onPageSizeChange={setPageSize}
-                                onSort={setSorting}
-                                onFilter={setFilter}
-                                onClearFilters={clearFilters}
-                                emptyMessage="Nenhuma tarefa encontrada"
-                                showColumnToggle={true}
-                                hiddenColumns={['createdAt', 'updatedAt', 'updatedByUserName', 'systemModule', 'link', 'meetingLink', 'priority', 'createdByUserName', 'requesterName', 'subTasks']}
-                            />
-                        </Card>
-                    </div>
-
-                    {}
-                    <div className="lg:hidden">
-                        {filteredTasks.length === 0 ? (
-                            <Card className="p-8 text-center">
-                                <div className="text-gray-500">
-                                    <Filter className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                    <h3 className="text-lg font-medium mb-2">Nenhuma tarefa encontrada</h3>
-                                    <p>Tente ajustar os filtros de busca ou criar uma nova tarefa.</p>
-                                </div>
-                            </Card>
-                        ) : (
-                            <div className="grid gap-4">
-                                {filteredTasks.map((task) => (
-                                    <TaskCard key={task.id} task={task} />
-                                ))}
-                            </div>
-                        )}
-
-                        {}
-                        {pagination && pagination.totalPages > 1 && (
-                            <Card className="p-4">
-                                <div className="space-y-3">
-                                    {}
-                                    <div className="text-center text-sm text-gray-600">
-                                        {formatMobileRecordCountText(
-                                            pagination.currentPage,
-                                            pagination.pageSize,
-                                            pagination.totalElements
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex gap-1">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(0)}
-                                                disabled={pagination.currentPage <= 0}
-                                                title="Primeira página"
-                                                className="p-2"
-                                            >
-                                                <ChevronsLeft className="w-4 h-4" />
-                                            </Button>
-                                            {/* Página anterior */}
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(pagination.currentPage - 1)}
-                                                disabled={pagination.currentPage <= 0}
-                                                title="Página anterior"
-                                            >
-                                                Anterior
-                                            </Button>
-                                        </div>
-
-                                        <span className="text-sm text-gray-600 font-medium">
-                                            {formatPaginationText(pagination.currentPage, pagination.totalPages)}
-                                        </span>
-
-                                        <div className="flex gap-1">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(pagination.currentPage + 1)}
-                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
-                                                title="Próxima página"
-                                            >
-                                                Próxima
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setPage(pagination.totalPages - 1)}
-                                                disabled={pagination.currentPage >= pagination.totalPages - 1}
-                                                title="Última página"
-                                                className="p-2"
-                                            >
-                                                <ChevronsRight className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        )}
-                    </div>
-                </>
-            )}
-
-            <BulkDeleteModal
-                isOpen={showBulkDeleteModal}
-                onClose={() => setShowBulkDeleteModal(false)}
-                onConfirm={handleBulkDelete}
-                selectedCount={selectedItems.length}
-                isDeleting={isDeleting}
-                entityName="tarefa"
-            />
-
-            {showFinancialEmailModal && taskForEmail && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <div className="w-full">
-                                <h2 className="text-lg font-semibold text-gray-900">
-                                    💰 Notificação Financeira
-                                </h2>
-                                <p className="text-sm text-gray-600 mt-1 mb-3">
-                                    Tarefa: {taskForEmail.code}
-                                </p>
-
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {taskForEmail.taskType && (
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-xs text-gray-500">Tipo:</span>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {getTaskTypeLabel(taskForEmail.taskType, undefined)}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {taskForEmail.environment && (
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-xs text-gray-500">Ambiente:</span>
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                {getEnvironmentLabel(taskForEmail.environment)}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            {taskForEmail.financialEmailSent ? (
-                                <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                                        <Mail className="w-8 h-8 text-green-600" />
-                                    </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Notificação já enviada
-                                    </h3>
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
-                                        <Mail className="w-8 h-8 text-orange-600" />
-                                    </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Enviar notificação financeira
-                                    </h3>
-                                </div>
-                            )}
-
-                            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <label className="block text-sm font-medium text-gray-900 mb-3">
-                                    Canais de Notificação
-                                </label>
-                                <div className="space-y-2">
-                                    <label className="flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={sendEmail}
-                                            onChange={(e) => setSendEmail(e.target.checked)}
-                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <span className="ml-2 text-sm text-gray-700">
-                                            📧 Enviar por Email
-                                        </span>
-                                    </label>
-                                    <label className="flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={sendWhatsApp}
-                                            onChange={(e) => setSendWhatsApp(e.target.checked)}
-                                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                        />
-                                        <span className="ml-2 text-sm text-gray-700">
-                                            💬 Enviar por WhatsApp
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Emails adicionais em cópia (opcional)
-                                </label>
-
-                                <div className="flex gap-2 mb-3">
-                                    <input
-                                        type="email"
-                                        value={currentEmailInput}
-                                        onChange={(e) => setCurrentEmailInput(e.target.value)}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                addEmail();
-                                            }
-                                        }}
-                                        placeholder="exemplo@email.com"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        onClick={addEmail}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4"
-                                    >
-                                        Adicionar
-                                    </Button>
-                                </div>
-
-                                {additionalEmails.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {additionalEmails.map((email, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                                            >
-                                                {email}
-                                                <button
-                                                    onClick={() => removeEmail(index)}
-                                                    className="hover:text-blue-900 font-bold"
-                                                    title="Remover email"
-                                                >
-                                                    ×
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Destinatários WhatsApp em cópia (opcional)
-                                </label>
-
-                                <div className="flex gap-2 mb-3">
-                                    <input
-                                        type="text"
-                                        value={currentWhatsAppInput}
-                                        onChange={(e) => setCurrentWhatsAppInput(e.target.value)}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                addWhatsAppRecipient();
-                                            }
-                                        }}
-                                        placeholder="5511999999999 ou 120363012345678901@g.us"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        onClick={addWhatsAppRecipient}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-4"
-                                    >
-                                        Adicionar
-                                    </Button>
-                                </div>
-
-                                {additionalWhatsAppRecipients.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {additionalWhatsAppRecipients.map((recipient, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-                                            >
-                                                {recipient}
-                                                <button
-                                                    onClick={() => removeWhatsAppRecipient(index)}
-                                                    className="hover:text-green-900 font-bold"
-                                                    title="Remover destinatário"
-                                                >
-                                                    ×
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center justify-end space-x-3">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        setShowFinancialEmailModal(false);
-                                        setTaskForEmail(null);
-                                    }}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={confirmSendFinancialEmail}
-                                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                                >
-                                    <Mail className="w-4 h-4 mr-2" />
-                                    {taskForEmail.financialEmailSent ? 'Reenviar' : 'Enviar Notificação'}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showTaskEmailModal && taskForTaskEmail && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900">
-                                    📧 Email de Tarefa
-                                </h2>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    Tarefa: {taskForTaskEmail.code}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            {taskForTaskEmail.taskEmailSent ? (
-                                <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                                        <Mail className="w-8 h-8 text-green-600" />
-                                    </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Email já enviado
-                                    </h3>
-                                    <p className="text-gray-600 mb-6">
-                                        O email desta tarefa já foi enviado anteriormente.
-                                        Deseja enviar novamente?
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <Mail className="w-8 h-8 text-blue-600" />
-                                    </div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Enviar email de tarefa
-                                    </h3>
-                                    <p className="text-gray-600 mb-6">
-                                        Deseja enviar um email com os detalhes desta tarefa para o solicitante?
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                                <h4 className="font-medium text-gray-900 mb-2">{taskForTaskEmail.title}</h4>
-                                <div className="text-sm text-gray-600">
-                                    <p><strong>Código:</strong> {taskForTaskEmail.code}</p>
-                                    <p><strong>Solicitante:</strong> {taskForTaskEmail.requesterName}</p>
-                                </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Emails adicionais em cópia (opcional)
-                                </label>
-
-                                <div className="flex gap-2 mb-3">
-                                    <input
-                                        type="email"
-                                        value={currentEmailInput}
-                                        onChange={(e) => setCurrentEmailInput(e.target.value)}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                addEmail();
-                                            }
-                                        }}
-                                        placeholder="exemplo@email.com"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        onClick={addEmail}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4"
-                                    >
-                                        Adicionar
-                                    </Button>
-                                </div>
-
-                                {additionalEmails.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {additionalEmails.map((email, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                                            >
-                                                {email}
-                                                <button
-                                                    onClick={() => removeEmail(index)}
-                                                    className="hover:text-blue-900 font-bold"
-                                                    title="Remover email"
-                                                >
-                                                    ×
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center justify-end space-x-3">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        setShowTaskEmailModal(false);
-                                        setTaskForTaskEmail(null);
-                                    }}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={confirmSendTaskEmail}
-                                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                                >
-                                    <Mail className="w-4 h-4 mr-2" />
-                                    {taskForTaskEmail.taskEmailSent ? 'Reenviar' : 'Enviar Email'}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <DeleteConfirmationModal
-                isOpen={showDeleteModal}
-                onClose={() => {
-                    setShowDeleteModal(false);
-                    setTaskToDelete(null);
-                }}
-                onConfirm={confirmDelete}
-                itemName={taskToDelete?.title}
-                description={taskToDelete?.subTasks && taskToDelete.subTasks.length > 0
-                    ? `Esta tarefa possui ${taskToDelete.subTasks.length} subtarefa(s) que também serão excluídas.`
-                    : undefined}
-                isDeleting={isDeletingSingle}
-            />
+      ),
+    },
+    {
+      accessorKey: 'taskType', header: 'Tipo', size: 200, meta: { align: 'center' },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <TaskTypeLabel value={row.original.taskType} />
         </div>
-    );
-};
+      ),
+    },
+    {
+      accessorKey: 'title', header: 'Tarefa', meta: { wrap: true },
+      cell: ({ row }) => (
+        <div className="flex flex-col min-w-0 py-1">
+          <span className="text-text-primary font-medium leading-snug break-words">
+            {row.original.title}
+          </span>
+          {row.original.requesterName && (
+            <span className="text-xs text-text-tertiary mt-0.5 truncate">{row.original.requesterName}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'status', header: 'Status', size: 220, meta: { align: 'center' },
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          <StatusPill
+            on={!!row.original.hasDelivery}
+            onLabel="Entrega"
+            offLabel="Sem entrega"
+            tone="info"
+          />
+          <StatusPill
+            on={!!row.original.hasQuoteInBilling}
+            onLabel="Faturado"
+            offLabel="Sem fatura"
+            tone="success"
+          />
+          {row.original.financialEmailSent && (
+            <Badge variant="neutral" size="sm"><Mail className="size-3" />Enviado</Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'amount', header: 'Valor', size: 110, meta: { align: 'center' },
+      cell: ({ row }) => {
+        const v = row.original.amount ?? 0
+        return (
+          <span className={`block tabular-nums ${v > 0 && row.original.hasQuoteInBilling ? 'text-success-strong font-medium' : 'text-text-primary'}`}>
+            {brl(v)}
+          </span>
+        )
+      },
+    },
+    {
+      id: '__actions', header: '', size: 160,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+          {/* Primárias: visualizar + editar */}
+          <div className="flex items-center gap-0.5">
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => navigate(`/tasks/${row.original.id}`)}
+              aria-label="Visualizar"
+              title="Visualizar"
+            >
+              <Eye />
+            </Button>
+            {canCRUD && (
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => navigate(`/tasks/${row.original.id}/edit`)}
+                aria-label="Editar"
+                title="Editar"
+              >
+                <Pencil />
+              </Button>
+            )}
+          </div>
 
-export default TaskList;
+          {/* Secundárias: exportar + excluir (com separação visual) */}
+          <div className="flex items-center gap-0.5 border-l border-border-subtle pl-2">
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => handleGeneratePdf(row.original)}
+              loading={pdfLoadingId === row.original.id}
+              disabled={pdfLoadingId === row.original.id}
+              aria-label="Exportar PDF do orçamento"
+              title="Exportar PDF do orçamento"
+              className="text-text-secondary hover:text-[var(--danger-strong)]"
+            >
+              <PdfIcon />
+            </Button>
+            {canCRUD && (
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
+                aria-label="Excluir"
+                title="Excluir"
+                className="text-text-secondary hover:text-[var(--danger-strong)]"
+              >
+                <Trash2 />
+              </Button>
+            )}
+          </div>
+        </div>
+      ),
+    },
+  ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId])
+
+  const [filtersOpen, setFiltersOpen] = React.useState(false)
+
+  const chips: any[] = []
+  if (filters.id)           chips.push({ key: 'id',           label: 'ID',                 value: String(filters.id),                                                                                                        onRemove: () => setFilter('id', '') })
+  if (filters.code)         chips.push({ key: 'code',         label: 'Código',             value: String(filters.code),                                                                                                      onRemove: () => setFilter('code', '') })
+  if (filters.title)        chips.push({ key: 'title',        label: 'Título',             value: String(filters.title),                                                                                                     onRemove: () => { setSearch(''); setFilter('title', '') } })
+  if (filters.description)  chips.push({ key: 'description',  label: 'Descrição',          value: String(filters.description),                                                                                               onRemove: () => setFilter('description', '') })
+  if (filters.link)         chips.push({ key: 'link',         label: 'Link',               value: String(filters.link),                                                                                                      onRemove: () => setFilter('link', '') })
+  if (filters.flowType)     chips.push({ key: 'flowType',     label: 'Fluxo',              value: FLOW_LABEL[filters.flowType as string] || String(filters.flowType),                                                       onRemove: () => setFilter('flowType', '') })
+  if (filters.taskType)     chips.push({ key: 'taskType',     label: 'Tipo',               value: TASK_TYPE_OPTIONS.find(o => o.value === filters.taskType)?.label || String(filters.taskType),                             onRemove: () => setFilter('taskType', '') })
+  if (filters.environment)  chips.push({ key: 'env',          label: 'Ambiente',           value: String(filters.environment),                                                                                               onRemove: () => setFilter('environment', '') })
+  if (filters.requesterId)  chips.push({ key: 'requester',    label: 'Solicitante',        value: `#${filters.requesterId}`,                                                                                                 onRemove: () => setFilter('requesterId', '') })
+  if (filters.requesterName) chips.push({ key: 'requesterName', label: 'Nome solicitante', value: String(filters.requesterName),                                                                                            onRemove: () => setFilter('requesterName', '') })
+  if (filters.startDate)    chips.push({ key: 'startDate',    label: 'Criada a partir de', value: String(filters.startDate),                                                                                                 onRemove: () => setFilter('startDate', '') })
+  if (filters.endDate)      chips.push({ key: 'endDate',      label: 'Criada até',         value: String(filters.endDate),                                                                                                   onRemove: () => setFilter('endDate', '') })
+  if (filters.hasDelivery !== undefined && filters.hasDelivery !== '') chips.push({ key: 'hasDelivery', label: 'Entrega', value: filters.hasDelivery === 'true' || filters.hasDelivery === true ? 'Sim' : 'Não', onRemove: () => setFilter('hasDelivery', '') })
+  if (filters.hasQuoteInBilling !== undefined && filters.hasQuoteInBilling !== '') chips.push({ key: 'hasBilling', label: 'Faturamento', value: filters.hasQuoteInBilling === 'true' || filters.hasQuoteInBilling === true ? 'Sim' : 'Não', onRemove: () => setFilter('hasQuoteInBilling', '') })
+  if (filters.financialEmailSent !== undefined && filters.financialEmailSent !== '') chips.push({ key: 'emailSent', label: 'Email financeiro', value: filters.financialEmailSent === 'true' || filters.financialEmailSent === true ? 'Enviado' : 'Não enviado', onRemove: () => setFilter('financialEmailSent', '') })
+
+  const activeFilterCount = chips.length
+
+  return (
+    <div>
+      <PageHeader
+        title="Tarefas"
+        subtitle={pagination ? `${pagination.totalElements} tarefa${pagination.totalElements === 1 ? '' : 's'}` : undefined}
+        filters={
+          <>
+            <div className="w-[80px]">
+              <Input
+                placeholder="ID"
+                value={(filters.id as string) || ''}
+                onChange={(e) => setFilter('id', e.target.value)}
+                inputMode="numeric"
+              />
+            </div>
+            <div className="w-[140px]">
+              <Input
+                placeholder="Código"
+                value={(filters.code as string) || ''}
+                onChange={(e) => setFilter('code', e.target.value)}
+              />
+            </div>
+            <div className="w-full sm:w-[240px]">
+              <Input
+                leadingIcon={<Search />}
+                placeholder="Buscar por título..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select value={(filters.flowType as string) || '__all'} onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}>
+              <SelectTrigger className="w-[160px] h-8"><SelectValue placeholder="Fluxo: Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Fluxo: Todos</SelectItem>
+                <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
+                <SelectItem value="OPERACIONAL">Operacional</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="secondary" leadingIcon={<Filter />} onClick={() => setFiltersOpen(true)}>
+              Filtros
+              {activeFilterCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-accent-fg text-[10px] font-semibold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
+
+            {/* Estatísticas globais (todas as páginas) */}
+            <div className="hidden md:flex items-center gap-2 ml-2">
+              <StatChip
+                label="Sem entrega"
+                value={stats?.totalWithoutDelivery}
+                onClick={() => setFilter('hasDelivery', 'false')}
+                active={filters.hasDelivery === 'false'}
+              />
+              <StatChip
+                label="Sem fatura"
+                value={stats?.totalWithoutBilling}
+                onClick={() => setFilter('hasQuoteInBilling', 'false')}
+                active={filters.hasQuoteInBilling === 'false'}
+              />
+            </div>
+          </>
+        }
+        actions={
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => exportToExcel().catch(() => {})}>Tarefas + itens</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportTasksOnlyToExcel().catch(() => {})}>Só tarefas</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>
+          </>
+        }
+      />
+
+      <FilterChipsRow chips={chips} onClearAll={() => { setSearch(''); clearFilters() }} />
+
+      <DataTableBulkBar
+        selectedCount={selectedIds.length}
+        onClear={() => setSelection({})}
+        actions={canCRUD && (
+          <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ kind: 'bulk', ids: selectedIds })}>
+            Excluir
+          </Button>
+        )}
+      />
+
+      <div className="hidden lg:block">
+        <DataTable<Task>
+          data={tasks as any[]}
+          columns={columns}
+          rowKey={(r) => r.id}
+          loading={loading}
+          error={error}
+          selectable
+          selection={selection}
+          onSelectionChange={setSelection}
+          onRowClick={(r) => navigate(`/tasks/${r.id}`)}
+          pagination={pagination ? {
+            page: pagination.currentPage,
+            pageSize: pagination.pageSize,
+            total: pagination.totalElements,
+            onPageChange: setPage,
+            onPageSizeChange: setPageSize,
+          } : undefined}
+          empty={
+            <EmptyState
+              icon={<ListChecks />}
+              title="Nenhuma tarefa"
+              description={chips.length > 0 ? 'Ajuste os filtros para ver outras tarefas.' : 'Crie a primeira tarefa.'}
+              actions={<Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>}
+            />
+          }
+        />
+      </div>
+
+      {/* Mobile */}
+      <div className="lg:hidden space-y-2">
+        {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+        {!loading && tasks.length === 0 && (
+          <EmptyState icon={<ListChecks />} title="Nenhuma tarefa" description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie a primeira.'} actions={<Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova</Button>} />
+        )}
+        {!loading && tasks.map((t: any) => (
+          <div
+            key={t.id}
+            className="w-full rounded-lg border border-border-subtle bg-surface-1 p-4 transition-colors"
+          >
+            <button onClick={() => navigate(`/tasks/${t.id}`)} className="w-full text-left">
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-mono text-xs text-text-tertiary shrink-0">#{t.id}</span>
+                  <span className="font-mono text-xs text-text-secondary truncate">{t.code}</span>
+                </div>
+                <span className={`text-sm font-medium tabular-nums shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>
+              </div>
+              <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{t.title}</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {t.flowType && <FlowChip value={t.flowType} />}
+                <StatusPill on={!!t.hasDelivery}        onLabel="Entrega"  offLabel="Sem entrega" tone="info" />
+                <StatusPill on={!!t.hasQuoteInBilling}  onLabel="Faturado" offLabel="Sem fatura"  tone="success" />
+              </div>
+              {t.requesterName && (
+                <p className="text-xs text-text-tertiary mt-1.5">{t.requesterName}</p>
+              )}
+            </button>
+
+            <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-border-subtle">
+              <div className="flex items-center gap-0.5">
+                <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}`)} aria-label="Visualizar" title="Visualizar"><Eye /></Button>
+                {canCRUD && (
+                  <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
+                )}
+              </div>
+              <div className="flex items-center gap-0.5 border-l border-border-subtle pl-2">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={() => handleGeneratePdf(t)}
+                  loading={pdfLoadingId === t.id}
+                  disabled={pdfLoadingId === t.id}
+                  aria-label="Exportar PDF do orçamento"
+                  title="Exportar PDF do orçamento"
+                  className="text-text-secondary hover:text-[var(--danger-strong)]"
+                >
+                  <PdfIcon />
+                </Button>
+                {canCRUD && (
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => setConfirmDelete({ kind: 'one', ids: [t.id] })}
+                    aria-label="Excluir"
+                    title="Excluir"
+                    className="text-text-secondary hover:text-[var(--danger-strong)]"
+                  >
+                    <Trash2 />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Filtros</SheetTitle>
+            <SheetDescription>Refine sua busca por tarefas.</SheetDescription>
+          </SheetHeader>
+          <SheetBody className="space-y-6">
+
+            <FilterSection title="Identificação">
+              <div className="grid grid-cols-2 gap-3">
+                <FilterField label="ID">
+                  <Input
+                    placeholder="Ex: 444"
+                    value={(filters.id as string) || ''}
+                    onChange={(e) => setFilter('id', e.target.value)}
+                    inputMode="numeric"
+                  />
+                </FilterField>
+                <FilterField label="Código">
+                  <Input
+                    placeholder="Ex: N6E2U2"
+                    value={(filters.code as string) || ''}
+                    onChange={(e) => setFilter('code', e.target.value)}
+                  />
+                </FilterField>
+              </div>
+              <FilterField label="Link (URL)">
+                <Input
+                  placeholder="Trecho do link..."
+                  value={(filters.link as string) || ''}
+                  onChange={(e) => setFilter('link', e.target.value)}
+                />
+              </FilterField>
+            </FilterSection>
+
+            <FilterSection title="Conteúdo">
+              <FilterField label="Título">
+                <Input
+                  leadingIcon={<Search />}
+                  placeholder="Buscar por título..."
+                  value={(filters.title as string) || ''}
+                  onChange={(e) => { setSearch(e.target.value); setFilter('title', e.target.value) }}
+                />
+              </FilterField>
+              <FilterField label="Descrição">
+                <Input
+                  placeholder="Trecho na descrição..."
+                  value={(filters.description as string) || ''}
+                  onChange={(e) => setFilter('description', e.target.value)}
+                />
+              </FilterField>
+            </FilterSection>
+
+            <FilterSection title="Classificação">
+              <FilterField label="Fluxo">
+                <Select value={(filters.flowType as string) || '__all'} onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Todos os fluxos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos os fluxos</SelectItem>
+                    <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
+                    <SelectItem value="OPERACIONAL">Operacional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FilterField>
+              <FilterField label="Tipo">
+                <Select value={(filters.taskType as string) || '__all'} onValueChange={(v) => setFilter('taskType', v === '__all' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Todos os tipos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos os tipos</SelectItem>
+                    {TASK_TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </FilterField>
+              <FilterField label="Ambiente">
+                <Select value={(filters.environment as string) || '__all'} onValueChange={(v) => setFilter('environment', v === '__all' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Todos os ambientes" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos os ambientes</SelectItem>
+                    {ENV_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </FilterField>
+            </FilterSection>
+
+            <FilterSection title="Solicitante">
+              <div className="grid grid-cols-2 gap-3">
+                <FilterField label="ID do solicitante">
+                  <Input
+                    placeholder="Ex: 7"
+                    value={(filters.requesterId as string) || ''}
+                    onChange={(e) => setFilter('requesterId', e.target.value)}
+                    inputMode="numeric"
+                  />
+                </FilterField>
+                <FilterField label="Nome do solicitante">
+                  <Input
+                    placeholder="Buscar nome..."
+                    value={(filters.requesterName as string) || ''}
+                    onChange={(e) => setFilter('requesterName', e.target.value)}
+                  />
+                </FilterField>
+              </div>
+            </FilterSection>
+
+            <FilterSection title="Datas de criação">
+              <div className="grid grid-cols-2 gap-3">
+                <FilterField label="De">
+                  <Input
+                    type="date"
+                    value={(filters.startDate as string) || ''}
+                    onChange={(e) => setFilter('startDate', e.target.value)}
+                  />
+                </FilterField>
+                <FilterField label="Até">
+                  <Input
+                    type="date"
+                    value={(filters.endDate as string) || ''}
+                    onChange={(e) => setFilter('endDate', e.target.value)}
+                  />
+                </FilterField>
+              </div>
+            </FilterSection>
+
+            <FilterSection title="Vínculos">
+              <FilterField label="Possui entrega">
+                <TriStateToggle
+                  value={filters.hasDelivery as any}
+                  onChange={(v) => setFilter('hasDelivery', v)}
+                  onLabel="Com entrega"
+                  offLabel="Sem entrega"
+                />
+              </FilterField>
+              <FilterField label="Possui faturamento">
+                <TriStateToggle
+                  value={filters.hasQuoteInBilling as any}
+                  onChange={(v) => setFilter('hasQuoteInBilling', v)}
+                  onLabel="Faturado"
+                  offLabel="Sem fatura"
+                />
+              </FilterField>
+              <FilterField label="Email financeiro">
+                <TriStateToggle
+                  value={filters.financialEmailSent as any}
+                  onChange={(v) => setFilter('financialEmailSent', v)}
+                  onLabel="Enviado"
+                  offLabel="Não enviado"
+                />
+              </FilterField>
+            </FilterSection>
+
+          </SheetBody>
+          <SheetFooter>
+            <Button variant="ghost" onClick={() => { setSearch(''); clearFilters() }}>Limpar tudo</Button>
+            <Button onClick={() => setFiltersOpen(false)}>Aplicar</Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {confirmDelete?.kind === 'bulk' ? `${confirmDelete.ids.length} tarefas` : 'tarefa'}?</DialogTitle>
+            <DialogDescription>Subtarefas e anexos serão removidos. Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!confirmDelete) return
+                try {
+                  if (confirmDelete.kind === 'bulk') {
+                    await deleteBulkTasks(confirmDelete.ids)
+                  } else {
+                    await deleteTaskWithSubTasks(confirmDelete.ids[0])
+                  }
+                  setSelection({})
+                } catch (e: any) {
+                  toast.error(e.message || 'Erro ao excluir')
+                } finally {
+                  setConfirmDelete(null)
+                }
+              }}
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+export default TaskList
+
+interface StatChipProps {
+  label: string
+  value?: number
+  onClick?: () => void
+  active?: boolean
+}
+
+const StatChip: React.FC<StatChipProps> = ({ label, value, onClick, active }) => {
+  const isLoading = value === undefined
+  const hasIssues = (value ?? 0) > 0
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={isLoading}
+      title={`Filtrar tarefas: ${label}`}
+      className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs font-medium transition-colors ${
+        active
+          ? 'bg-danger-soft border-[var(--danger-strong)] text-[var(--danger-strong)] ring-1 ring-[var(--danger-strong)]/30'
+          : hasIssues
+            ? 'bg-danger-soft border-danger-border text-[var(--danger-strong)] hover:brightness-95'
+            : 'bg-surface-1 border-border-subtle text-text-secondary hover:bg-surface-2'
+      } ${isLoading ? 'opacity-60' : ''}`}
+    >
+      <span className="tabular-nums font-semibold text-sm">
+        {isLoading ? '—' : value!.toLocaleString('pt-BR')}
+      </span>
+      <span className="opacity-90">{label}</span>
+    </button>
+  )
+}
+
+const FilterSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section>
+    <h3 className="text-[11px] font-semibold text-text-tertiary uppercase tracking-wider mb-2.5">{title}</h3>
+    <div className="space-y-3">{children}</div>
+  </section>
+)
+
+const FilterField: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="space-y-1.5">
+    <label className="block text-xs font-medium text-text-secondary">{label}</label>
+    {children}
+  </div>
+)
+
+interface TriStateToggleProps {
+  value: string | boolean | undefined
+  onChange: (v: string) => void
+  onLabel: string
+  offLabel: string
+}
+
+const TriStateToggle: React.FC<TriStateToggleProps> = ({ value, onChange, onLabel, offLabel }) => {
+  const current = value === true || value === 'true' ? 'on'
+    : value === false || value === 'false' ? 'off'
+    : 'any'
+  const btnBase = 'flex-1 h-8 px-3 text-xs font-medium border transition-colors'
+  return (
+    <div className="inline-flex w-full rounded-md overflow-hidden border border-border-subtle">
+      <button
+        type="button"
+        onClick={() => onChange('')}
+        className={`${btnBase} border-r ${current === 'any' ? 'bg-accent-soft text-accent border-accent/30' : 'bg-surface-1 text-text-secondary hover:bg-surface-2'}`}
+      >
+        Qualquer
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('true')}
+        className={`${btnBase} border-r ${current === 'on' ? 'bg-success-soft text-[var(--success-strong)] border-success-border' : 'bg-surface-1 text-text-secondary hover:bg-surface-2'}`}
+      >
+        {onLabel}
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('false')}
+        className={`${btnBase} ${current === 'off' ? 'bg-warning-soft text-[var(--warning-strong)] border-warning-border' : 'bg-surface-1 text-text-secondary hover:bg-surface-2'}`}
+      >
+        {offLabel}
+      </button>
+    </div>
+  )
+}

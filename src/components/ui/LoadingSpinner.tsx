@@ -20,7 +20,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <div className={clsx('flex items-center justify-center', className)}>
             <svg
                 className={clsx(
-                    'animate-spin text-primary-600',
+                    'animate-spin text-accent',
                     sizes[size]
                 )}
                 fill="none"

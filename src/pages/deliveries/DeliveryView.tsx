@@ -111,9 +111,9 @@ const DeliveryView: React.FC = () => {
             APPROVED: 'text-emerald-700 bg-emerald-50 border-emerald-200',
             REJECTED: 'text-rose-700 bg-rose-50 border-rose-200',
             PRODUCTION: 'text-violet-700 bg-violet-50 border-violet-200',
-            CANCELLED: 'text-red-600 bg-red-50 border-red-200'
+            CANCELLED: 'text-[var(--danger-strong)] bg-red-50 border-red-200'
         };
-        return colors[status] || 'text-gray-700 bg-gray-50 border-gray-200';
+        return colors[status] || 'text-text-secondary bg-surface-app border-border-subtle';
     };
 
     const getStatusLabel = (status: string) => {
@@ -165,10 +165,10 @@ const DeliveryView: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
                 <Card className="p-8 max-w-md w-full text-center">
                     <LoadingSpinner size="lg" />
-                    <p className="mt-4 text-gray-600">Carregando entrega...</p>
+                    <p className="mt-4 text-text-secondary">Carregando entrega...</p>
                 </Card>
             </div>
         );
@@ -176,15 +176,15 @@ const DeliveryView: React.FC = () => {
 
     if (!deliveryGroup) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
                 <Card className="p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Truck className="w-8 h-8 text-red-600" />
+                    <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Truck className="w-8 h-8 text-[var(--danger-strong)]" />
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h2 className="text-xl font-semibold text-text-primary mb-2">
                         Entrega nao encontrada
                     </h2>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-text-secondary mb-6">
                         A entrega que voce esta procurando nao foi encontrada.
                     </p>
                     <Button onClick={() => navigate('/deliveries')} variant="primary" className="w-full">
@@ -201,8 +201,8 @@ const DeliveryView: React.FC = () => {
     const itemCount = items?.length || 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
-            <div className="w-full lg:w-[80%] mx-auto space-y-6">
+        <div className="min-h-screen bg-surface-app py-4 px-4 sm:px-6 lg:px-8">
+            <div className="w-full mx-auto space-y-6">
                 {/* Header com acoes */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <Button
@@ -235,7 +235,7 @@ const DeliveryView: React.FC = () => {
                     <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4 sm:py-5">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                             <div className="flex items-start gap-3 sm:gap-4">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
                                     <Truck className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -245,7 +245,7 @@ const DeliveryView: React.FC = () => {
                                     <div className="flex flex-wrap items-center gap-2 text-blue-100 text-sm mt-1">
                                         <span>Entrega #{delivery?.id}</span>
                                         <span className="hidden sm:inline">•</span>
-                                        <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-xs">
+                                        <span className="font-mono bg-surface-1/20 px-2 py-0.5 rounded text-xs">
                                             {deliveryGroup.taskId} - {deliveryGroup.taskCode}
                                         </span>
                                         <span className="hidden sm:inline">•</span>
@@ -257,13 +257,13 @@ const DeliveryView: React.FC = () => {
                     </div>
 
                     {/* Badges de Status */}
-                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b border-gray-200">
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-surface-app border-b border-border-subtle">
                         <div className="flex flex-wrap gap-2 sm:gap-3">
                             {delivery?.flowType && (
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                                     delivery.flowType === 'OPERACIONAL'
                                         ? 'bg-purple-100 text-purple-800'
-                                        : 'bg-blue-100 text-blue-800'
+                                        : 'bg-accent-soft text-accent'
                                 }`}>
                                     {getFlowTypeLabel(delivery.flowType)}
                                 </span>
@@ -274,7 +274,7 @@ const DeliveryView: React.FC = () => {
                                 </span>
                             )}
                             {delivery?.environment && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-soft text-[var(--success-strong)]">
                                     {getEnvironmentLabel(delivery.environment)}
                                 </span>
                             )}
@@ -284,8 +284,8 @@ const DeliveryView: React.FC = () => {
 
                 {/* Cronograma da Entrega */}
                 <Card className="p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-green-600" />
+                    <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-[var(--success-strong)]" />
                         Cronograma da Entrega
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -318,10 +318,10 @@ const DeliveryView: React.FC = () => {
 
                 {/* Itens de Entrega */}
                 <Card className="p-3 sm:p-6">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-3 sm:mb-4 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-accent" />
                         Itens de Entrega
-                        <span className="text-sm font-normal text-gray-500">
+                        <span className="text-sm font-normal text-text-tertiary">
                             ({itemCount})
                         </span>
                     </h2>
@@ -332,27 +332,27 @@ const DeliveryView: React.FC = () => {
                                 const isExpanded = expandedItems.has(item.id);
 
                                 return (
-                                    <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div key={item.id} className="border border-border-subtle rounded-lg overflow-hidden">
                                         {/* Header clicavel */}
                                         <div
-                                            className="bg-white p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                            className="bg-surface-1 p-3 sm:p-4 cursor-pointer hover:bg-surface-app transition-colors"
                                             onClick={() => toggleItem(item.id)}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                                     {isExpanded ? (
-                                                        <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                                        <ChevronDown className="w-5 h-5 text-text-tertiary flex-shrink-0" />
                                                     ) : (
-                                                        <ChevronRight className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                                        <ChevronRight className="w-5 h-5 text-text-tertiary flex-shrink-0" />
                                                     )}
-                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                        <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-soft rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <h4 className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                                                        <h4 className="font-medium text-text-primary text-sm sm:text-base truncate">
                                                             {isOperacional ? item.title : item.projectName}
                                                         </h4>
-                                                        <p className="text-xs sm:text-sm text-gray-500">Item #{item.id}</p>
+                                                        <p className="text-xs sm:text-sm text-text-tertiary">Item #{item.id}</p>
                                                     </div>
                                                 </div>
                                                 <div className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)} flex-shrink-0 ml-2`}>
@@ -363,17 +363,17 @@ const DeliveryView: React.FC = () => {
 
                                         {/* Conteudo expansivel */}
                                         {isExpanded && (
-                                            <div className="bg-gray-50 p-3 sm:p-4 border-t border-gray-200">
+                                            <div className="bg-surface-app p-3 sm:p-4 border-t border-border-subtle">
                                                 <div className="space-y-4">
                                                     {isOperacional ? (
                                                         <>
                                                             {/* Descricao do Item Operacional */}
                                                             {item.description && (
                                                                 <div>
-                                                                    <h5 className="text-sm font-semibold text-gray-900 mb-3">Descricao</h5>
-                                                                    <div className="bg-white border border-gray-200 rounded-lg p-3 prose prose-sm max-w-none">
+                                                                    <h5 className="text-sm font-semibold text-text-primary mb-3">Descricao</h5>
+                                                                    <div className="bg-surface-1 border border-border-subtle rounded-lg p-3 prose prose-sm max-w-none">
                                                                         <div
-                                                                            className="text-sm text-gray-700 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                                                            className="text-sm text-text-secondary [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
                                                                             dangerouslySetInnerHTML={{ __html: item.description }}
                                                                         />
                                                                     </div>
@@ -382,26 +382,26 @@ const DeliveryView: React.FC = () => {
 
                                                             {/* Datas */}
                                                             <div>
-                                                                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                                                    <Calendar className="w-4 h-4 text-blue-600" />
+                                                                <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                                                    <Calendar className="w-4 h-4 text-accent" />
                                                                     Cronograma
                                                                 </h5>
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
                                                                             <Play className="w-3 h-3" />
                                                                             Inicio:
                                                                         </span>
-                                                                        <span className="text-gray-900 font-medium">
+                                                                        <span className="text-text-primary font-medium">
                                                                             {item.startedAt ? formatDate(item.startedAt) : 'Nao informado'}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
                                                                             <Flag className="w-3 h-3" />
                                                                             Finalizacao:
                                                                         </span>
-                                                                        <span className="text-gray-900 font-medium">
+                                                                        <span className="text-text-primary font-medium">
                                                                             {item.finishedAt ? formatDate(item.finishedAt) : 'Nao informado'}
                                                                         </span>
                                                                     </div>
@@ -420,15 +420,15 @@ const DeliveryView: React.FC = () => {
                                                         <>
                                                             {/* Informacoes de Desenvolvimento */}
                                                             <div>
-                                                                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                                                    <GitBranch className="w-4 h-4 text-blue-600" />
+                                                                <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                                                    <GitBranch className="w-4 h-4 text-accent" />
                                                                     Informacoes de Desenvolvimento
                                                                 </h5>
 
                                                                 <div className="grid grid-cols-1 gap-3">
                                                                     {/* Pull Request */}
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-sm text-gray-600 block mb-2">Link da Entrega (Pull Request):</span>
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-sm text-text-secondary block mb-2">Link da Entrega (Pull Request):</span>
                                                                         <div className="flex items-center gap-2">
                                                                             {item.pullRequest ? (
                                                                                 <>
@@ -436,7 +436,7 @@ const DeliveryView: React.FC = () => {
                                                                                         href={item.pullRequest}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all bg-gray-50 px-2 py-1 rounded border flex-1"
+                                                                                        className="text-xs text-accent hover:text-accent hover:underline break-all bg-surface-app px-2 py-1 rounded border flex-1"
                                                                                     >
                                                                                         <ExternalLink className="w-3 h-3 inline mr-1" />
                                                                                         {item.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
@@ -448,8 +448,8 @@ const DeliveryView: React.FC = () => {
                                                                                         }}
                                                                                         className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                                                             copiedField === `pr-${item.id}`
-                                                                                                ? 'bg-green-100 text-green-600'
-                                                                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border'
+                                                                                                ? 'bg-success-soft text-[var(--success-strong)]'
+                                                                                                : 'bg-surface-2 text-text-tertiary hover:bg-surface-3 border'
                                                                                         }`}
                                                                                         title="Copiar link"
                                                                                     >
@@ -461,7 +461,7 @@ const DeliveryView: React.FC = () => {
                                                                                     </button>
                                                                                 </>
                                                                             ) : (
-                                                                                <div className="text-xs bg-gray-50 text-gray-500 px-2 py-1 rounded border flex-1">
+                                                                                <div className="text-xs bg-surface-app text-text-tertiary px-2 py-1 rounded border flex-1">
                                                                                     Nao informado
                                                                                 </div>
                                                                             )}
@@ -469,10 +469,10 @@ const DeliveryView: React.FC = () => {
                                                                     </div>
 
                                                                     {/* Branch */}
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-sm text-gray-600 block mb-2">Branch:</span>
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-sm text-text-secondary block mb-2">Branch:</span>
                                                                         <div className="flex items-center gap-2">
-                                                                            <code className="text-xs bg-gray-50 text-gray-800 px-2 py-1 rounded border font-mono flex-1">
+                                                                            <code className="text-xs bg-surface-app text-text-primary px-2 py-1 rounded border font-mono flex-1">
                                                                                 {item.branch || 'Nao informado'}
                                                                             </code>
                                                                             {item.branch && (
@@ -483,8 +483,8 @@ const DeliveryView: React.FC = () => {
                                                                                     }}
                                                                                     className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                                                         copiedField === `branch-${item.id}`
-                                                                                            ? 'bg-green-100 text-green-600'
-                                                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border'
+                                                                                            ? 'bg-success-soft text-[var(--success-strong)]'
+                                                                                            : 'bg-surface-2 text-text-tertiary hover:bg-surface-3 border'
                                                                                     }`}
                                                                                     title="Copiar branch"
                                                                                 >
@@ -499,10 +499,10 @@ const DeliveryView: React.FC = () => {
                                                                     </div>
 
                                                                     {/* Branch de Origem */}
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-sm text-gray-600 block mb-2">Branch de Origem:</span>
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-sm text-text-secondary block mb-2">Branch de Origem:</span>
                                                                         <div className="flex items-center gap-2">
-                                                                            <code className="text-xs bg-gray-50 text-gray-800 px-2 py-1 rounded border font-mono flex-1">
+                                                                            <code className="text-xs bg-surface-app text-text-primary px-2 py-1 rounded border font-mono flex-1">
                                                                                 {item.sourceBranch || 'Nao informado'}
                                                                             </code>
                                                                             {item.sourceBranch && (
@@ -513,8 +513,8 @@ const DeliveryView: React.FC = () => {
                                                                                     }}
                                                                                     className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                                                         copiedField === `sourceBranch-${item.id}`
-                                                                                            ? 'bg-green-100 text-green-600'
-                                                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border'
+                                                                                            ? 'bg-success-soft text-[var(--success-strong)]'
+                                                                                            : 'bg-surface-2 text-text-tertiary hover:bg-surface-3 border'
                                                                                     }`}
                                                                                     title="Copiar branch de origem"
                                                                                 >
@@ -533,13 +533,13 @@ const DeliveryView: React.FC = () => {
                                                             {/* Observacoes */}
                                                             {item.notes && (
                                                                 <div>
-                                                                    <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                                                        <StickyNote className="w-4 h-4 text-blue-600" />
+                                                                    <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                                                        <StickyNote className="w-4 h-4 text-accent" />
                                                                         Observacoes
                                                                     </h5>
                                                                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg prose prose-sm max-w-none">
                                                                         <div
-                                                                            className="text-sm text-gray-700 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                                                            className="text-sm text-text-secondary [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
                                                                             dangerouslySetInnerHTML={{ __html: item.notes }}
                                                                         />
                                                                     </div>
@@ -548,26 +548,26 @@ const DeliveryView: React.FC = () => {
 
                                                             {/* Datas */}
                                                             <div>
-                                                                <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                                                    <Calendar className="w-4 h-4 text-blue-600" />
+                                                                <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                                                    <Calendar className="w-4 h-4 text-accent" />
                                                                     Cronograma
                                                                 </h5>
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
                                                                             <Play className="w-3 h-3" />
                                                                             Inicio:
                                                                         </span>
-                                                                        <span className="text-gray-900 font-medium">
+                                                                        <span className="text-text-primary font-medium">
                                                                             {item.startedAt ? formatDate(item.startedAt) : 'Nao informado'}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                                                        <span className="text-gray-500 flex items-center gap-1 mb-1">
+                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
+                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
                                                                             <Flag className="w-3 h-3" />
                                                                             Finalizacao:
                                                                         </span>
-                                                                        <span className="text-gray-900 font-medium">
+                                                                        <span className="text-text-primary font-medium">
                                                                             {item.finishedAt ? formatDate(item.finishedAt) : 'Nao informado'}
                                                                         </span>
                                                                     </div>
@@ -592,13 +592,13 @@ const DeliveryView: React.FC = () => {
                         </div>
                     ) : (
                         <div className="text-center py-12">
-                            <div className="text-gray-400 mb-4">
+                            <div className="text-text-tertiary mb-4">
                                 <Package className="w-12 h-12 mx-auto" />
                             </div>
-                            <h4 className="text-lg font-medium text-gray-900 mb-2">
+                            <h4 className="text-lg font-medium text-text-primary mb-2">
                                 Nenhum item encontrado
                             </h4>
-                            <p className="text-gray-600">
+                            <p className="text-text-secondary">
                                 Esta entrega ainda nao possui itens cadastrados.
                             </p>
                         </div>
@@ -608,13 +608,13 @@ const DeliveryView: React.FC = () => {
                 {/* Observacoes Gerais da Entrega */}
                 {delivery?.notes && (
                     <Card className="p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                             <StickyNote className="w-5 h-5 text-amber-600" />
                             Observacoes Gerais da Entrega
                         </h2>
                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 prose prose-sm max-w-none">
                             <div
-                                className="text-gray-700 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                className="text-text-secondary [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
                                 dangerouslySetInnerHTML={{ __html: delivery.notes }}
                             />
                         </div>

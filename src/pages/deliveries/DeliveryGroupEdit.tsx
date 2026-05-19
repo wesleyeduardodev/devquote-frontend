@@ -172,15 +172,15 @@ const DeliveryGroupEdit: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
-            PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            DEVELOPMENT: 'bg-blue-100 text-blue-800 border-blue-200',
-            DELIVERED: 'bg-green-100 text-green-800 border-green-200',
+            PENDING: 'bg-warning-soft text-[var(--warning-strong)] border-yellow-200',
+            DEVELOPMENT: 'bg-accent-soft text-info-strong border-accent/20',
+            DELIVERED: 'bg-success-soft text-[var(--success-strong)] border-green-200',
             HOMOLOGATION: 'bg-purple-100 text-purple-800 border-purple-200',
             APPROVED: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-            REJECTED: 'bg-red-100 text-red-800 border-red-200',
+            REJECTED: 'bg-danger-soft text-[var(--danger-strong)] border-red-200',
             PRODUCTION: 'bg-teal-100 text-teal-800 border-teal-200'
         };
-        return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+        return colors[status] || 'bg-surface-2 text-text-primary border-border-subtle';
     };
 
     const getStatusLabel = (status: string) => {
@@ -202,7 +202,7 @@ const DeliveryGroupEdit: React.FC = () => {
                 <Card className="p-8">
                     <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <span className="ml-4 text-gray-600">Carregando...</span>
+                        <span className="ml-4 text-text-secondary">Carregando...</span>
                     </div>
                 </Card>
             </div>
@@ -213,8 +213,8 @@ const DeliveryGroupEdit: React.FC = () => {
         return (
             <div className="space-y-6">
                 <Card className="p-8 text-center">
-                    <div className="text-gray-500">
-                        <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <div className="text-text-tertiary">
+                        <Package className="w-12 h-12 mx-auto mb-4 text-text-tertiary/60" />
                         <h3 className="text-lg font-medium mb-2">Grupo não encontrado</h3>
                         <p>O grupo de entregas solicitado não foi encontrado.</p>
                     </div>
@@ -237,10 +237,10 @@ const DeliveryGroupEdit: React.FC = () => {
                         Voltar
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-text-primary">
                             Editar Grupo de Entregas
                         </h1>
-                        <p className="text-gray-600">
+                        <p className="text-text-secondary">
                             {deliveryGroup.taskName} ({deliveryGroup.taskCode}) - Tarefa #{deliveryGroup.taskId}
                         </p>
                     </div>
@@ -255,13 +255,13 @@ const DeliveryGroupEdit: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                <div className="bg-white rounded-lg shadow p-4 border border-yellow-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-yellow-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <Clock className="h-6 w-6 text-yellow-600" />
+                            <Clock className="h-6 w-6 text-[var(--warning-strong)]" />
                         </div>
                         <div className="ml-3">
-                            <div className="text-xs font-medium text-yellow-600">Pendente</div>
+                            <div className="text-xs font-medium text-[var(--warning-strong)]">Pendente</div>
                             <div className="text-lg font-bold text-yellow-700">
                                 {deliveryGroup.statusCounts?.pending || 0}
                             </div>
@@ -269,27 +269,27 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 border border-blue-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-accent/20">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <Activity className="h-6 w-6 text-blue-600" />
+                            <Activity className="h-6 w-6 text-accent" />
                         </div>
                         <div className="ml-3">
-                            <div className="text-xs font-medium text-blue-600">Desenvolvimento</div>
-                            <div className="text-lg font-bold text-blue-700">
+                            <div className="text-xs font-medium text-accent">Desenvolvimento</div>
+                            <div className="text-lg font-bold text-accent">
                                 {deliveryGroup.statusCounts?.development || 0}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 border border-green-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-green-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <Package className="h-6 w-6 text-green-600" />
+                            <Package className="h-6 w-6 text-[var(--success-strong)]" />
                         </div>
                         <div className="ml-3">
-                            <div className="text-xs font-medium text-green-600">Entregue</div>
+                            <div className="text-xs font-medium text-[var(--success-strong)]">Entregue</div>
                             <div className="text-lg font-bold text-green-700">
                                 {deliveryGroup.statusCounts?.delivered || 0}
                             </div>
@@ -297,7 +297,7 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 border border-purple-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-purple-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             <Play className="h-6 w-6 text-purple-600" />
@@ -311,7 +311,7 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 border border-emerald-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-emerald-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             <CheckCircle2 className="h-6 w-6 text-emerald-600" />
@@ -325,13 +325,13 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 border border-red-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-red-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
-                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                            <AlertTriangle className="h-6 w-6 text-[var(--danger-strong)]" />
                         </div>
                         <div className="ml-3">
-                            <div className="text-xs font-medium text-red-600">Rejeitado</div>
+                            <div className="text-xs font-medium text-[var(--danger-strong)]">Rejeitado</div>
                             <div className="text-lg font-bold text-red-700">
                                 {deliveryGroup.statusCounts?.rejected || 0}
                             </div>
@@ -339,7 +339,7 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 border border-teal-200">
+                <div className="bg-surface-1 rounded-lg shadow p-4 border border-teal-200">
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             <Truck className="h-6 w-6 text-teal-600" />
@@ -356,20 +356,20 @@ const DeliveryGroupEdit: React.FC = () => {
 
 
             <Card className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Truck className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+                    <Truck className="w-5 h-5 text-accent" />
                     Entregas do Grupo
                 </h2>
 
                 {deliveryGroup.deliveries && deliveryGroup.deliveries.length > 0 ? (
                     <div className="grid gap-4">
                         {deliveryGroup.deliveries.map((delivery) => (
-                            <div key={delivery.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                            <div key={delivery.id} className="border border-border-subtle rounded-lg p-4 hover:shadow-sm transition-shadow">
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-semibold text-gray-900">{delivery.projectName}</h3>
-                                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                            <h3 className="text-lg font-semibold text-text-primary">{delivery.projectName}</h3>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-info-strong">
                                                 ID #{delivery.id}
                                             </span>
                                             <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(delivery.status)}`}>
@@ -377,17 +377,17 @@ const DeliveryGroupEdit: React.FC = () => {
                                             </div>
                                         </div>
                                         
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-text-secondary">
                                             <div className="md:col-span-2">
-                                                <span className="font-medium text-blue-700">🔗 Link da Entrega (Pull Request):</span>
-                                                <div className="text-gray-900 mt-1">
+                                                <span className="font-medium text-accent">🔗 Link da Entrega (Pull Request):</span>
+                                                <div className="text-text-primary mt-1">
                                                     {delivery.pullRequest ? (
-                                                        <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
+                                                        <div className="bg-info-soft border border-accent/20 rounded-md p-2">
                                                             <a 
                                                                 href={delivery.pullRequest} 
                                                                 target="_blank" 
                                                                 rel="noopener noreferrer" 
-                                                                className="text-blue-700 hover:text-blue-800 hover:underline font-medium flex items-center gap-1"
+                                                                className="text-accent hover:text-info-strong hover:underline font-medium flex items-center gap-1"
                                                             >
                                                                 <span className="truncate">
                                                                     {delivery.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
@@ -398,29 +398,29 @@ const DeliveryGroupEdit: React.FC = () => {
                                                             </a>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-gray-500 italic">Link não informado</span>
+                                                        <span className="text-text-tertiary italic">Link não informado</span>
                                                     )}
                                                 </div>
                                             </div>
                                             <div>
                                                 <span className="font-medium">Branch:</span>
-                                                <div className="text-gray-900 mt-1 font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                                <div className="text-text-primary mt-1 font-mono text-xs bg-surface-2 px-2 py-1 rounded">
                                                     {delivery.branch || 'Não informado'}
                                                 </div>
                                             </div>
                                             <div>
                                                 <span className="font-medium">Branch Origem:</span>
-                                                <div className="text-gray-900 mt-1 font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                                <div className="text-text-primary mt-1 font-mono text-xs bg-surface-2 px-2 py-1 rounded">
                                                     {delivery.sourceBranch || 'Não informado'}
                                                 </div>
                                             </div>
                                             <div>
                                                 <span className="font-medium">Script de BD:</span>
-                                                <div className="text-gray-900 mt-1">
+                                                <div className="text-text-primary mt-1">
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                                         delivery.script 
-                                                            ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-gray-100 text-gray-600'
+                                                            ? 'bg-success-soft text-[var(--success-strong)]' 
+                                                            : 'bg-surface-2 text-text-secondary'
                                                     }`}>
                                                         {delivery.script ? '✓ Sim' : '✗ Não'}
                                                     </span>
@@ -430,7 +430,7 @@ const DeliveryGroupEdit: React.FC = () => {
 
                                         {delivery.notes && (
                                             <div className="mt-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r">
-                                                <p className="text-sm text-gray-700">{delivery.notes}</p>
+                                                <p className="text-sm text-text-secondary">{delivery.notes}</p>
                                             </div>
                                         )}
                                     </div>
@@ -449,7 +449,7 @@ const DeliveryGroupEdit: React.FC = () => {
                                             size="sm"
                                             variant="ghost"
                                             onClick={() => handleDeleteDelivery(delivery)}
-                                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            className="flex items-center gap-2 text-[var(--danger-strong)] hover:text-red-700 hover:bg-red-50"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                             Excluir
@@ -461,13 +461,13 @@ const DeliveryGroupEdit: React.FC = () => {
                     </div>
                 ) : (
                     <div className="text-center py-12">
-                        <div className="text-gray-400 mb-4">
+                        <div className="text-text-tertiary mb-4">
                             <Package className="w-12 h-12 mx-auto" />
                         </div>
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">
+                        <h4 className="text-lg font-medium text-text-primary mb-2">
                             Nenhuma entrega encontrada
                         </h4>
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-text-secondary mb-4">
                             Este grupo ainda não possui entregas cadastradas.
                         </p>
                         <Button onClick={handleAddDelivery} className="flex items-center gap-2">
@@ -481,7 +481,7 @@ const DeliveryGroupEdit: React.FC = () => {
             {/* Modal de Formulário */}
             {showDeliveryForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                    <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden">
                         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-white">
@@ -489,7 +489,7 @@ const DeliveryGroupEdit: React.FC = () => {
                                 </h2>
                                 <button
                                     onClick={handleCancelEdit}
-                                    className="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-2 transition-all"
+                                    className="text-white/80 hover:text-white hover:bg-surface-1/20 rounded-lg p-2 transition-all"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -521,25 +521,25 @@ const DeliveryGroupEdit: React.FC = () => {
             {/* Modal de Confirmação de Exclusão */}
             {showDeleteConfirm && deliveryToDelete && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                    <div className="bg-surface-1 rounded-xl shadow-2xl max-w-md w-full">
                         <div className="p-6">
                             <div className="flex items-center mb-4">
-                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                                    <Trash2 className="w-6 h-6 text-red-600" />
+                                <div className="w-12 h-12 bg-danger-soft rounded-full flex items-center justify-center mr-4">
+                                    <Trash2 className="w-6 h-6 text-[var(--danger-strong)]" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Excluir Entrega</h3>
-                                    <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                                    <h3 className="text-lg font-semibold text-text-primary">Excluir Entrega</h3>
+                                    <p className="text-sm text-text-secondary">Esta ação não pode ser desfeita</p>
                                 </div>
                             </div>
 
                             <div className="mb-6">
-                                <p className="text-gray-700">
+                                <p className="text-text-secondary">
                                     Deseja realmente excluir a entrega do projeto{' '}
                                     <strong>{deliveryToDelete.projectName}</strong>?
                                 </p>
-                                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                                    <div className="text-sm text-gray-600">
+                                <div className="mt-2 p-3 bg-surface-app rounded-lg">
+                                    <div className="text-sm text-text-secondary">
                                         <span className="font-medium">ID:</span> #{deliveryToDelete.id}
                                         <br />
                                         <span className="font-medium">Branch:</span> {deliveryToDelete.branch || 'Não informado'}

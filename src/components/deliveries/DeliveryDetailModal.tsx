@@ -116,7 +116,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
             case 'PENDING':
                 return 'bg-yellow-100 text-yellow-800';
             case 'DEVELOPMENT':
-                return 'bg-blue-100 text-blue-800';
+                return 'bg-accent-soft text-info-strong';
             case 'DELIVERED':
                 return 'bg-green-100 text-green-800';
             case 'HOMOLOGATION':
@@ -128,7 +128,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
             case 'PRODUCTION':
                 return 'bg-teal-100 text-teal-800';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-surface-2 text-text-primary';
         }
     };
 
@@ -196,12 +196,12 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <div className="flex items-center">
                         <div className="flex items-center gap-3 flex-1 min-w-0 pr-4">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
                                 <Package className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -216,7 +216,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         <div className="w-10 flex-shrink-0">
                             <button
                                 onClick={onClose}
-                                className="w-full h-10 text-white/80 hover:text-white hover:bg-white/20 rounded-lg flex items-center justify-center transition-all"
+                                className="w-full h-10 text-white/80 hover:text-white hover:bg-surface-1/20 rounded-lg flex items-center justify-center transition-all"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -230,12 +230,12 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                     {delivery.requesterName && (
                         <div className="border-b border-gray-100 px-6 py-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <User className="w-5 h-5 text-blue-600" />
+                                <div className="w-10 h-10 bg-accent-soft rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-accent" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">Solicitante</p>
-                                    <p className="text-lg font-semibold text-gray-900">{delivery.requesterName}</p>
+                                    <p className="text-xs text-text-tertiary uppercase tracking-wider font-medium">Solicitante</p>
+                                    <p className="text-lg font-semibold text-text-primary">{delivery.requesterName}</p>
                                 </div>
                             </div>
                         </div>
@@ -246,35 +246,35 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         {/* Tarefa */}
                         {(delivery.taskId || delivery.taskName) && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-accent" />
                                     Tarefa
                                 </h3>
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                                <div className="bg-info-soft border border-accent/20 rounded-lg p-4 space-y-2">
                                     {delivery.taskCode && (
                                         <div>
                                             <span className="text-sm font-medium text-blue-900">Código:</span>
-                                            <span className="text-sm text-blue-800 ml-2">{delivery.taskCode}</span>
+                                            <span className="text-sm text-info-strong ml-2">{delivery.taskCode}</span>
                                         </div>
                                     )}
                                     {delivery.taskName && (
                                         <div>
                                             <span className="text-sm font-medium text-blue-900">Nome:</span>
-                                            <span className="text-sm text-blue-800 ml-2">{delivery.taskName}</span>
+                                            <span className="text-sm text-info-strong ml-2">{delivery.taskName}</span>
                                         </div>
                                     )}
                                     <div>
                                         <span className="text-sm font-medium text-blue-900">Fluxo:</span>
-                                        <span className="text-sm text-blue-800 ml-2">{getFlowTypeLabel(delivery.flowType)}</span>
+                                        <span className="text-sm text-info-strong ml-2">{getFlowTypeLabel(delivery.flowType)}</span>
                                     </div>
                                     <div>
                                         <span className="text-sm font-medium text-blue-900">Tipo:</span>
-                                        <span className="text-sm text-blue-800 ml-2">{getTaskTypeLabel(delivery.taskType)}</span>
+                                        <span className="text-sm text-info-strong ml-2">{getTaskTypeLabel(delivery.taskType)}</span>
                                     </div>
                                     {delivery.environment && (
                                         <div>
                                             <span className="text-sm font-medium text-blue-900">Ambiente:</span>
-                                            <span className="text-sm text-blue-800 ml-2">{getEnvironmentLabel(delivery.environment)}</span>
+                                            <span className="text-sm text-info-strong ml-2">{getEnvironmentLabel(delivery.environment)}</span>
                                         </div>
                                     )}
                                 </div>
@@ -284,8 +284,8 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         {/* Projeto */}
                         {(delivery.projectId || delivery.projectName) && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Package className="w-5 h-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                    <Package className="w-5 h-5 text-accent" />
                                     Projeto
                                 </h3>
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
@@ -307,13 +307,13 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
                         {/* Status e Datas */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <Activity className="w-5 h-5 text-blue-600" />
+                            <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-accent" />
                                 Status e Cronograma
                             </h3>
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                            <div className="bg-surface-app rounded-lg p-4 space-y-4">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className="text-sm text-gray-500">Status:</span>
+                                    <span className="text-sm text-text-tertiary">Status:</span>
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(delivery.status)}`}>
                                         {delivery.status === 'APPROVED' && <CheckCircle2 className="w-3 h-3 mr-1" />}
                                         {delivery.status === 'DELIVERED' && <Package className="w-3 h-3 mr-1" />}
@@ -327,20 +327,20 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="flex items-center gap-2">
-                                        <Play className="w-4 h-4 text-gray-400" />
+                                        <Play className="w-4 h-4 text-text-tertiary" />
                                         <div>
-                                            <p className="text-xs text-gray-500">Data de Início</p>
-                                            <p className="text-sm font-medium text-gray-900">
+                                            <p className="text-xs text-text-tertiary">Data de Início</p>
+                                            <p className="text-sm font-medium text-text-primary">
                                                 {formatDateOnly(delivery.startedAt)}
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <Flag className="w-4 h-4 text-gray-400" />
+                                        <Flag className="w-4 h-4 text-text-tertiary" />
                                         <div>
-                                            <p className="text-xs text-gray-500">Data de Finalização</p>
-                                            <p className="text-sm font-medium text-gray-900">
+                                            <p className="text-xs text-text-tertiary">Data de Finalização</p>
+                                            <p className="text-sm font-medium text-text-primary">
                                                 {formatDateOnly(delivery.finishedAt)}
                                             </p>
                                         </div>
@@ -352,14 +352,14 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         {/* Observações Gerais da Entrega */}
                         {delivery.deliveryNotes && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
                                     <StickyNote className="w-5 h-5 text-amber-600" />
                                     Observações Gerais da Entrega
                                 </h3>
                                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                                     <div className="max-h-48 overflow-y-auto prose prose-sm max-w-none">
                                         <div
-                                            className="text-gray-700 break-words [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                            className="text-text-secondary break-words [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
                                             style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                                             dangerouslySetInnerHTML={{ __html: delivery.deliveryNotes }}
                                         />
@@ -370,18 +370,18 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
                         {/* Git e Pull Request */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <GitBranch className="w-5 h-5 text-blue-600" />
+                            <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                <GitBranch className="w-5 h-5 text-accent" />
                                 Informações do Git
                             </h3>
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                            <div className="bg-surface-app rounded-lg p-4 space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="flex items-center gap-2">
-                                        <GitMerge className="w-4 h-4 text-gray-400" />
+                                        <GitMerge className="w-4 h-4 text-text-tertiary" />
                                         <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Branch</p>
+                                            <p className="text-xs text-text-tertiary">Branch</p>
                                             <div className="flex items-center gap-2">
-                                                <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded text-gray-900 flex-1">
+                                                <code className="text-sm font-mono bg-surface-3 px-2 py-1 rounded text-text-primary flex-1">
                                                     {delivery.branch || '-'}
                                                 </code>
                                                 {delivery.branch && (
@@ -390,7 +390,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                                         className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                             copiedField === 'branch'
                                                                 ? 'bg-green-100 text-green-600'
-                                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                                : 'bg-surface-2 text-text-tertiary hover:bg-surface-3'
                                                         }`}
                                                         title="Copiar branch"
                                                     >
@@ -406,11 +406,11 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <GitBranch className="w-4 h-4 text-gray-400" />
+                                        <GitBranch className="w-4 h-4 text-text-tertiary" />
                                         <div className="flex-1">
-                                            <p className="text-xs text-gray-500">Branch de Origem</p>
+                                            <p className="text-xs text-text-tertiary">Branch de Origem</p>
                                             <div className="flex items-center gap-2">
-                                                <code className="text-sm font-mono bg-gray-200 px-2 py-1 rounded text-gray-900 flex-1">
+                                                <code className="text-sm font-mono bg-surface-3 px-2 py-1 rounded text-text-primary flex-1">
                                                     {delivery.sourceBranch || '-'}
                                                 </code>
                                                 {delivery.sourceBranch && (
@@ -419,7 +419,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                                         className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                             copiedField === 'sourceBranch'
                                                                 ? 'bg-green-100 text-green-600'
-                                                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                                : 'bg-surface-2 text-text-tertiary hover:bg-surface-3'
                                                         }`}
                                                         title="Copiar branch de origem"
                                                     >
@@ -436,7 +436,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                 </div>
 
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
+                                    <p className="text-sm text-text-tertiary mb-2 flex items-center gap-1">
                                         <ExternalLink className="w-3 h-3" />
                                         Link da Entrega
                                     </p>
@@ -447,12 +447,12 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                                     href={delivery.pullRequest}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-sm text-blue-600 hover:text-blue-800 underline break-all"
+                                                    className="text-sm text-accent hover:text-info-strong underline break-all"
                                                 >
                                                     {delivery.pullRequest}
                                                 </a>
                                             ) : (
-                                                <span className="text-sm text-gray-400">-</span>
+                                                <span className="text-sm text-text-tertiary">-</span>
                                             )}
                                         </div>
                                         {delivery.pullRequest && (
@@ -461,7 +461,7 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                                                 className={`flex items-center justify-center p-1.5 rounded transition-all ${
                                                     copiedField === 'pullRequest'
                                                         ? 'bg-green-100 text-green-600'
-                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                        : 'bg-surface-2 text-text-tertiary hover:bg-surface-3'
                                                 }`}
                                                 title="Copiar link da entrega"
                                             >
@@ -481,14 +481,14 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
                         {/* Observações do Item */}
                         {delivery.notes && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <StickyNote className="w-5 h-5 text-blue-600" />
+                                <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                    <StickyNote className="w-5 h-5 text-accent" />
                                     Observações do Item
                                 </h3>
-                            <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="bg-surface-app rounded-lg p-4">
                                 <div className="max-h-48 overflow-y-auto prose prose-sm max-w-none">
                                     <div
-                                        className="text-gray-700 break-words [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
+                                        className="text-text-secondary break-words [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
                                         style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                                         dangerouslySetInnerHTML={{ __html: delivery.notes }}
                                     />
@@ -499,21 +499,21 @@ const DeliveryDetailModal: React.FC<DeliveryDetailModalProps> = ({ delivery, isO
 
                         {/* Timestamps Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-blue-600" />
+                            <h3 className="text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-accent" />
                                 Informações de Registro
                             </h3>
-                            <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="bg-surface-app rounded-lg p-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Data de Criação</p>
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className="text-sm text-text-tertiary mb-1">Data de Criação</p>
+                                        <p className="text-sm font-medium text-text-primary">
                                             {formatDate(delivery.createdAt)}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-500 mb-1">Última Atualização</p>
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className="text-sm text-text-tertiary mb-1">Última Atualização</p>
+                                        <p className="text-sm font-medium text-text-primary">
                                             {formatDate(delivery.updatedAt)}
                                         </p>
                                     </div>
