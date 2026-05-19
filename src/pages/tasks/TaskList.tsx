@@ -65,18 +65,25 @@ const COLUMN_VISIBILITY_KEY = 'devquote.tasks.columns.v1'
 
 /** Configuração de quais colunas aparecem por default. Locked = não pode esconder. */
 const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; locked?: boolean }> = [
-  { id: 'id',          label: 'ID',                  defaultVisible: true  },
-  { id: 'code',        label: 'Código',              defaultVisible: true  },
-  { id: 'flowType',    label: 'Fluxo',               defaultVisible: true  },
-  { id: 'taskType',    label: 'Tipo',                defaultVisible: true  },
-  { id: 'environment', label: 'Ambiente',            defaultVisible: false },
-  { id: 'link',        label: 'Link',                defaultVisible: false },
-  { id: 'title',       label: 'Tarefa',              defaultVisible: true, locked: true },
-  { id: 'delivery',    label: 'Entrega',             defaultVisible: true  },
-  { id: 'billing',     label: 'Faturamento',         defaultVisible: true  },
-  { id: 'amount',      label: 'Valor',               defaultVisible: true  },
-  { id: 'createdAt',   label: 'Criada em',           defaultVisible: false },
-  { id: 'updatedAt',   label: 'Atualizada em',       defaultVisible: false },
+  { id: 'id',                 label: 'ID',                  defaultVisible: true  },
+  { id: 'code',               label: 'Código',              defaultVisible: true  },
+  { id: 'flowType',           label: 'Fluxo',               defaultVisible: true  },
+  { id: 'taskType',           label: 'Tipo',                defaultVisible: true  },
+  { id: 'priority',           label: 'Prioridade',          defaultVisible: false },
+  { id: 'environment',        label: 'Ambiente',            defaultVisible: false },
+  { id: 'title',              label: 'Tarefa',              defaultVisible: true, locked: true },
+  { id: 'requesterName',      label: 'Solicitante',         defaultVisible: false },
+  { id: 'systemModule',       label: 'Módulo do Sistema',   defaultVisible: false },
+  { id: 'serverOrigin',       label: 'Servidor',            defaultVisible: false },
+  { id: 'link',               label: 'Link da tarefa',      defaultVisible: false },
+  { id: 'meetingLink',        label: 'Link da reunião',     defaultVisible: false },
+  { id: 'delivery',           label: 'Entrega',             defaultVisible: true  },
+  { id: 'billing',            label: 'Faturamento',         defaultVisible: true  },
+  { id: 'amount',             label: 'Valor',               defaultVisible: true  },
+  { id: 'createdAt',          label: 'Criada em',           defaultVisible: false },
+  { id: 'createdByUserName',  label: 'Criada por',          defaultVisible: false },
+  { id: 'updatedAt',          label: 'Atualizada em',       defaultVisible: false },
+  { id: 'updatedByUserName',  label: 'Atualizada por',      defaultVisible: false },
 ]
 
 const DEFAULT_COLUMN_VISIBILITY: Record<string, boolean> = COLUMN_DEFS.reduce((acc, c) => {
@@ -103,6 +110,13 @@ const ENV_OPTIONS = [
   { value: 'HML', label: 'Homologação' },
   { value: 'PROD', label: 'Produção' },
 ]
+
+const PRIORITY_META: Record<string, { label: string; dot: string; text: string }> = {
+  LOW:    { label: 'Baixa',   dot: 'bg-emerald-500', text: 'text-[var(--success-strong)]' },
+  MEDIUM: { label: 'Média',   dot: 'bg-amber-500',   text: 'text-[var(--warning-strong)]' },
+  HIGH:   { label: 'Alta',    dot: 'bg-orange-500',  text: 'text-orange-600 dark:text-orange-300' },
+  URGENT: { label: 'Urgente', dot: 'bg-rose-500',    text: 'text-[var(--danger-strong)]' },
+}
 
 const STATUS_PILL_TONES = {
   info:    { on: 'bg-info-soft text-[var(--info-strong)] border-info-border',         off: 'bg-danger-soft text-[var(--danger-strong)] border-danger-border' },
@@ -285,6 +299,20 @@ const TaskList: React.FC = () => {
       ),
     },
     {
+      id: 'priority', accessorKey: 'priority', header: 'Prioridade', size: 130, enableSorting: false, meta: { align: 'center' },
+      cell: ({ row }) => {
+        const p = (row.original as any).priority as string | undefined
+        const meta = p ? PRIORITY_META[p] : undefined
+        if (!meta) return <span className="text-text-tertiary">—</span>
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2 h-6 rounded-full text-xs font-medium border bg-surface-2 border-border-subtle ${meta.text}`}>
+            <span className={`size-2 rounded-full ${meta.dot}`} />
+            {meta.label}
+          </span>
+        )
+      },
+    },
+    {
       id: 'environment', accessorKey: 'environment', header: 'Ambiente', size: 150, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
@@ -293,7 +321,57 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'link', accessorKey: 'link', header: 'Link', size: 220, enableSorting: false,
+      id: 'requesterName', accessorKey: 'requesterName', header: 'Solicitante', size: 170, enableSorting: false,
+      cell: ({ row }) => {
+        const name = (row.original as any).requesterName
+        if (!name) return <span className="text-text-tertiary">—</span>
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="size-6 rounded-full bg-accent-soft text-accent grid place-items-center text-[10px] font-semibold shrink-0">
+              {name[0]?.toUpperCase() || '?'}
+            </span>
+            <span className="text-sm text-text-primary truncate">{name}</span>
+          </div>
+        )
+      },
+    },
+    {
+      id: 'systemModule', accessorKey: 'systemModule', header: 'Módulo do Sistema', size: 160, enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-xs text-text-secondary truncate block">
+          {(row.original as any).systemModule || <span className="text-text-tertiary">—</span>}
+        </span>
+      ),
+    },
+    {
+      id: 'serverOrigin', accessorKey: 'serverOrigin', header: 'Servidor', size: 140, enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-xs text-text-secondary truncate block">
+          {(row.original as any).serverOrigin || <span className="text-text-tertiary">—</span>}
+        </span>
+      ),
+    },
+    {
+      id: 'meetingLink', accessorKey: 'meetingLink', header: 'Link da reunião', size: 220, enableSorting: false,
+      cell: ({ row }) => {
+        const link = (row.original as any).meetingLink
+        if (!link) return <span className="text-text-tertiary">—</span>
+        return (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-accent hover:underline truncate block"
+            title={link}
+          >
+            {link}
+          </a>
+        )
+      },
+    },
+    {
+      id: 'link', accessorKey: 'link', header: 'Link da tarefa', size: 220, enableSorting: false,
       cell: ({ row }) => {
         const link = (row.original as any).link
         if (!link) return <span className="text-text-tertiary">—</span>
@@ -360,11 +438,41 @@ const TaskList: React.FC = () => {
       },
     },
     {
+      id: 'createdByUserName', accessorKey: 'createdByUserName', header: 'Criada por', size: 150, enableSorting: false,
+      cell: ({ row }) => {
+        const name = (row.original as any).createdByUserName
+        if (!name) return <span className="text-text-tertiary">—</span>
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="size-6 rounded-full bg-surface-2 text-text-secondary grid place-items-center text-[10px] font-semibold shrink-0">
+              {name[0]?.toUpperCase() || '?'}
+            </span>
+            <span className="text-xs text-text-primary truncate">{name}</span>
+          </div>
+        )
+      },
+    },
+    {
       id: 'updatedAt', accessorKey: 'updatedAt', header: 'Atualizada em', size: 140, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => {
         const d = (row.original as any).updatedAt
         if (!d) return <span className="text-text-tertiary">—</span>
         return <span className="text-xs text-text-secondary tabular-nums">{new Date(d).toLocaleDateString('pt-BR')}</span>
+      },
+    },
+    {
+      id: 'updatedByUserName', accessorKey: 'updatedByUserName', header: 'Atualizada por', size: 160, enableSorting: false,
+      cell: ({ row }) => {
+        const name = (row.original as any).updatedByUserName
+        if (!name) return <span className="text-text-tertiary">—</span>
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="size-6 rounded-full bg-surface-2 text-text-secondary grid place-items-center text-[10px] font-semibold shrink-0">
+              {name[0]?.toUpperCase() || '?'}
+            </span>
+            <span className="text-xs text-text-primary truncate">{name}</span>
+          </div>
+        )
       },
     },
     {
