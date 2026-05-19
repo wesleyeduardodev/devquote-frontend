@@ -28,7 +28,9 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, Di
 import { Sheet, SheetContent, SheetHeader, SheetBody, SheetFooter, SheetTitle, SheetDescription } from '@/components/ui-v2/Sheet'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui-v2/Popover'
 import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
-import { TaskTypeLabel } from '@/components/tasks/TaskTypeLabel'
+import { TaskTypeLabel, TASK_TYPE_META } from '@/components/tasks/TaskTypeLabel'
+import { EnvLabel, ENV_META } from '@/components/tasks/EnvLabel'
+import { Monitor } from 'lucide-react'
 
 interface Task {
   id: number
@@ -272,9 +274,11 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'environment', accessorKey: 'environment', header: 'Ambiente', size: 130, enableSorting: false, meta: { align: 'center' },
+      id: 'environment', accessorKey: 'environment', header: 'Ambiente', size: 150, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
-        <span className="text-xs text-text-secondary">{(row.original as any).environment || '—'}</span>
+        <div className="flex justify-center">
+          <EnvLabel value={(row.original as any).environment} />
+        </div>
       ),
     },
     {
@@ -537,8 +541,12 @@ const TaskList: React.FC = () => {
                   <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all">Todos</SelectItem>
-                    <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
-                    <SelectItem value="OPERACIONAL">Operacional</SelectItem>
+                    <SelectItem value="DESENVOLVIMENTO">
+                      <span className="inline-flex items-center gap-1.5"><Monitor className="size-3.5 text-[var(--info-strong)]" />Desenvolvimento</span>
+                    </SelectItem>
+                    <SelectItem value="OPERACIONAL">
+                      <span className="inline-flex items-center gap-1.5"><Settings2 className="size-3.5 text-[rgb(124,58,237)] dark:text-[rgb(196,181,253)]" />Operacional</span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               ),
@@ -551,7 +559,18 @@ const TaskList: React.FC = () => {
                   <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all">Todos</SelectItem>
-                    {TASK_TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    {TASK_TYPE_OPTIONS.map((o) => {
+                      const meta = TASK_TYPE_META[o.value]
+                      const Icon = meta?.Icon
+                      return (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="inline-flex items-center gap-1.5">
+                            {Icon && <Icon className={`size-3.5 ${meta.iconClass}`} />}
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               ),
@@ -597,7 +616,18 @@ const TaskList: React.FC = () => {
                   <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all">Todos</SelectItem>
-                    {ENV_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    {ENV_OPTIONS.map((o) => {
+                      const meta = ENV_META[o.value]
+                      const Icon = meta?.Icon
+                      return (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="inline-flex items-center gap-1.5">
+                            {Icon && <Icon className={`size-3.5 ${meta.iconClass}`} />}
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               ),

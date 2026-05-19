@@ -8,6 +8,7 @@ import DataTable, { Column } from '@/components/ui/DataTable';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import TaskForm from '../../components/forms/TaskForm';
+import { PageHeader } from '@/components/ui-v2/PageHeader';
 import toast from 'react-hot-toast';
 
 interface Requester {
@@ -75,6 +76,8 @@ const TaskCreate = () => {
             navigate('/tasks');
         } catch (error) {
             console.error('Erro ao criar tarefa:', error);
+            // rethrow pra TaskForm capturar e exibir erro inline (sem resetar campos)
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -222,97 +225,60 @@ const TaskCreate = () => {
 
     return (
         <div className="w-full">
-                <div className="w-full space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center space-x-4">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleCancel}
-                            className="flex items-center p-2 sm:px-3 sm:py-2"
-                        >
-                            <ArrowLeft className="w-4 h-4 sm:mr-1" />
-                            <span className="hidden sm:inline">Voltar</span>
-                        </Button>
-                    </div>
+            <div className="w-full space-y-4">
+                <PageHeader
+                    title="Nova tarefa"
+                    subtitle="Preencha os dados abaixo para criar uma nova tarefa"
+                />
 
-                    {/* Card Principal */}
-                    <Card className="overflow-hidden">
-
-                        {/* Conteúdo do Card */}
-                        <div className="px-4 py-5 sm:px-6">
-                            {/* Seleção de Requester */}
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-text-secondary mb-2">
-                                    Solicitante <span className="text-red-500">*</span>
-                                </label>
-                                {selectedRequester ? (
-                                    <div className="border border-border-strong rounded-lg p-4 bg-surface-app">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                                <div className="font-medium text-text-primary">
-                                                    {selectedRequester.name}
-                                                </div>
-                                                {selectedRequester.phone && (
-                                                    <div className="text-sm text-text-secondary mt-1 flex items-center gap-1">
-                                                        <Phone className="w-4 h-4" />
-                                                        {selectedRequester.phone}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedRequester(null);
-                                                }}
-                                                className="ml-2 text-text-tertiary hover:text-text-secondary"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowRequesterModal(true)}
-                                        className={`w-full px-4 py-3 border border-dashed rounded-lg transition-colors ${
-                                            requesterError
-                                                ? 'border-red-300 text-[var(--danger-strong)] hover:border-red-400 hover:text-red-700 bg-red-50'
-                                                : 'border-border-strong text-text-secondary hover:border-gray-400 hover:text-text-secondary'
-                                        }`}
-                                    >
-                                        <Search className="w-4 h-4 mx-auto mb-1" />
-                                        Clique para selecionar um solicitante
-                                    </button>
-                                )}
-                                {requesterError && (
-                                    <p className="mt-2 text-sm text-[var(--danger-strong)]">
-                                        {requesterError}
-                                    </p>
-                                )}
-                            </div>
-
-                            <TaskForm
-                                onSubmit={(data: any, pendingFiles?: File[]) => {
-
-                                    if (!selectedRequester) {
-                                        setRequesterError('Por favor, selecione um solicitante');
-
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                        return Promise.reject(new Error('Requester not selected'));
-                                    }
-                                    return handleSubmit(data, pendingFiles);
-                                }}
-                                onCancel={handleCancel}
-                                loading={loading}
-                                initialData={selectedRequester ? {
-                                    requesterId: selectedRequester.id,
-                                    requesterName: selectedRequester.name
-                                } : undefined}
-                            />
+                {/* Solicitante (inline) */}
+                <div className={`rounded-lg border bg-surface-1 p-4 flex items-center justify-between gap-3 ${requesterError ? 'border-[var(--danger-border)]' : 'border-border-subtle'}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-9 rounded-full bg-accent-soft text-accent grid place-items-center font-semibold text-sm shrink-0">
+                            {selectedRequester?.name?.[0]?.toUpperCase() || '?'}
                         </div>
-                    </Card>
+                        <div className="min-w-0">
+                            <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+                                Solicitante <span className="text-[var(--danger-strong)]">*</span>
+                            </div>
+                            {selectedRequester ? (
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-sm font-medium text-text-primary truncate">{selectedRequester.name}</span>
+                                    {selectedRequester.phone && (
+                                        <span className="text-xs text-text-tertiary truncate">· {selectedRequester.phone}</span>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className={`text-sm mt-0.5 ${requesterError ? 'text-[var(--danger-strong)]' : 'text-text-tertiary'}`}>
+                                    {requesterError || 'Nenhum solicitante selecionado'}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <Button variant="secondary" size="sm" onClick={() => setShowRequesterModal(true)}>
+                        {selectedRequester ? 'Alterar' : 'Selecionar'}
+                    </Button>
                 </div>
+
+                <TaskForm
+                    onSubmit={(data: any, pendingFiles?: File[]) => {
+                        if (!selectedRequester) {
+                            const msg = 'Por favor, selecione um solicitante';
+                            setRequesterError(msg);
+                            toast.error(msg);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            return Promise.reject(new Error('Requester not selected'));
+                        }
+                        return handleSubmit(data, pendingFiles);
+                    }}
+                    onCancel={handleCancel}
+                    loading={loading}
+                    initialData={selectedRequester ? {
+                        requesterId: selectedRequester.id,
+                        requesterName: selectedRequester.name
+                    } : undefined}
+                />
+            </div>
 
                 {/* Modal de Seleção de Requester */}
                 {showRequesterModal && (

@@ -5,14 +5,14 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-interface TypeMeta {
+export interface TypeMeta {
   label: string
   Icon: React.ComponentType<{ className?: string }>
   /** classes do ícone (cor) */
   iconClass: string
 }
 
-const TASK_TYPE_META: Record<string, TypeMeta> = {
+export const TASK_TYPE_META: Record<string, TypeMeta> = {
   BUG:                   { label: 'Bug',                  Icon: Bug,         iconClass: 'text-[var(--success-strong)]' },
   ENHANCEMENT:           { label: 'Melhoria',             Icon: Flag,        iconClass: 'text-[var(--danger-strong)]' },
   NEW_FEATURE:           { label: 'Nova funcionalidade',  Icon: Sparkles,    iconClass: 'text-[var(--warning-strong)]' },

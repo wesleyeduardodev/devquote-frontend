@@ -201,27 +201,21 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-                <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                    Subtarefas
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-accent-soft text-info-strong">
-                        {watchSubTasks?.filter(st => !st?.excluded).length || 0}
+                <div className="flex items-center gap-2 text-sm text-text-secondary">
+                    <span className="font-medium text-text-primary">
+                        {watchSubTasks?.filter(st => !st?.excluded).length || 0} subtarefa{(watchSubTasks?.filter(st => !st?.excluded).length || 0) === 1 ? '' : 's'}
                     </span>
-                </h3>
-
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4">
                     {canViewValues && (
-                        <div className="text-sm text-text-secondary">
-                            <span className="font-medium">Total: </span>
-                            <span className="text-lg font-bold text-accent">
-                                {formatCurrency(calculateTotal())}
-                            </span>
-                        </div>
+                        <span className="text-text-tertiary">
+                            · Total <span className="font-semibold text-text-primary">{formatCurrency(calculateTotal())}</span>
+                        </span>
                     )}
+                </div>
+
+                <div className="flex items-center gap-2">
                     {visibleFields.length > 0 && (
                         <Button
                             type="button"
@@ -229,7 +223,6 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                             variant="secondary"
                             onClick={(e) => { e.preventDefault(); setAllCollapsed(anyExpanded); }}
                             onMouseDown={(e) => e.preventDefault()}
-                            className="flex items-center justify-center w-full sm:w-auto"
                         >
                             {anyExpanded ? (
                                 <><ChevronUp className="w-4 h-4 mr-1" />Colapsar todas</>
@@ -242,7 +235,6 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                         type="button"
                         size="sm"
                         onClick={addSubTask}
-                        className="flex items-center justify-center w-full sm:w-auto"
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <Plus className="w-4 h-4 mr-1" />
@@ -504,31 +496,7 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                 </SortableContext>
             </DndContext>
 
-            {/* Rodapé com Total e Botão - aparece apenas quando há subtarefas */}
-            {watchSubTasks?.filter(st => !st?.excluded).length > 0 && (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-border-subtle">
-                    <div className="text-sm text-text-secondary">
-                        {canViewValues && (
-                            <>
-                                <span className="font-medium">Total: </span>
-                                <span className="text-lg font-bold text-accent">
-                                    {formatCurrency(calculateTotal())}
-                                </span>
-                            </>
-                        )}
-                    </div>
-                    <Button
-                        type="button"
-                        size="sm"
-                        onClick={addSubTask}
-                        className="flex items-center justify-center w-full sm:w-auto"
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Adicionar Subtarefa
-                    </Button>
-                </div>
-            )}
+            {/* Rodapé duplicado removido — heading no topo já mostra total e botão Adicionar */}
 
             {watchSubTasks?.filter(st => !st?.excluded).length === 0 && (
                 <Card className="text-center py-8">

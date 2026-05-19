@@ -8,6 +8,7 @@ import { taskService } from '@/services/taskService';
 import DataTable, { Column } from '@/components/ui/DataTable';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { PageHeader } from '@/components/ui-v2/PageHeader';
 import TaskForm from '../../components/forms/TaskForm';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -114,6 +115,8 @@ const TaskEdit = () => {
 
             setTask(updatedTask);
         } catch (error) {
+            // rethrow pra TaskForm exibir o erro inline (sem resetar campos)
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -302,101 +305,55 @@ const TaskEdit = () => {
     return (
         <div className="w-full">
             <div className="w-full space-y-4">
-                {/* Header */}
-                <div className="flex items-center space-x-4">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCancel}
-                        className="flex items-center p-2 sm:px-3 sm:py-2"
-                    >
-                        <ArrowLeft className="w-4 h-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Voltar</span>
+                <PageHeader
+                    title={
+                        <span className="inline-flex items-center gap-2">
+                            Editar tarefa
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-accent-soft text-accent">
+                                #{(task as any)?.id}
+                            </span>
+                        </span>
+                    }
+                    subtitle={(task as any)?.title || 'Carregando…'}
+                />
+
+                {/* Solicitante (inline, compacto) */}
+                <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-9 rounded-full bg-accent-soft text-accent grid place-items-center font-semibold text-sm shrink-0">
+                            {selectedRequester?.name?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">Solicitante</div>
+                            {selectedRequester ? (
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-sm font-medium text-text-primary truncate">{selectedRequester.name}</span>
+                                    {selectedRequester.phone && (
+                                        <span className="text-xs text-text-tertiary truncate">· {selectedRequester.phone}</span>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-text-tertiary mt-0.5">Nenhum solicitante selecionado</p>
+                            )}
+                        </div>
+                    </div>
+                    <Button variant="secondary" size="sm" onClick={() => setShowRequesterModal(true)}>
+                        {selectedRequester ? 'Alterar' : 'Selecionar'}
                     </Button>
                 </div>
 
-                {/* Card Principal */}
-                <Card className="overflow-hidden">
-                    {/* Header do Card */}
-                    <div className="px-4 py-5 sm:px-6 border-b border-border-subtle">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 bg-accent-soft rounded-lg flex items-center justify-center">
-                                    <Edit3 className="w-5 h-5 text-accent" />
-                                </div>
-                            </div>
-                            <div className="ml-4 flex-1">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                    <h3 className="text-lg font-medium text-text-primary">
-                                        Editar Tarefa
-                                    </h3>
-                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent w-fit">
-                                        #{(task as any)?.id}
-                                    </span>
-                                </div>
-                                <p className="text-sm text-text-tertiary mt-1">
-                                    Atualize as informações da tarefa: {(task as any)?.title || 'Carregando...'}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Conteúdo do Card */}
-                    <div className="px-4 py-5 sm:px-6">
-                        {/* Solicitante Selecionado */}
-                        {selectedRequester ? (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-medium text-blue-900">Solicitante Selecionado</h4>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowRequesterModal(true)}
-                                        className="text-accent hover:text-blue-700 text-sm font-medium"
-                                        title="Alterar solicitante"
-                                    >
-                                        Alterar
-                                    </button>
-                                </div>
-                                <div className="space-y-1 text-sm text-accent">
-                                    <div><strong>Nome:</strong> {selectedRequester.name}</div>
-                                    {selectedRequester.phone && (
-                                        <div><strong>Telefone:</strong> {selectedRequester.phone}</div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-text-secondary mb-2">
-                                    Solicitante *
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowRequesterModal(true)}
-                                    className="w-full px-4 py-3 border border-dashed border-border-strong rounded-lg text-text-secondary hover:border-gray-400 hover:text-text-secondary transition-colors"
-                                >
-                                    <Search className="w-4 h-4 mx-auto mb-1" />
-                                    Clique para selecionar um solicitante
-                                </button>
-                            </div>
-                        )}
-
-                        {/* TaskForm com requester pré-selecionado */}
-                        <TaskForm
-                            initialData={{
-                                ...task,
-                                requesterId: selectedRequester?.id || (task as any)?.requesterId,
-                                requesterName: selectedRequester?.name || (task as any)?.requesterName
-                            }}
-                            onSubmit={handleSubmit}
-                            onCancel={handleCancel}
-                            loading={loading}
-                            taskId={(task as any)?.id}
-                            onFilesUploaded={() => {
-                                toast.success('Arquivos enviados com sucesso!');
-                            }}
-                        />
-                    </div>
-                </Card>
+                <TaskForm
+                    initialData={{
+                        ...task,
+                        requesterId: selectedRequester?.id || (task as any)?.requesterId,
+                        requesterName: selectedRequester?.name || (task as any)?.requesterName,
+                    }}
+                    onSubmit={handleSubmit}
+                    onCancel={handleCancel}
+                    loading={loading}
+                    taskId={(task as any)?.id}
+                    onFilesUploaded={() => { toast.success('Arquivos enviados com sucesso!') }}
+                />
 
                 {/* Informações Adicionais - Mobile */}
                 <div className="lg:hidden space-y-4">
