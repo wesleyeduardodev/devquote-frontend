@@ -1,413 +1,225 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, FolderOpen, Save, Trash2 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import {
-    AvailableTask,
-    AvailableProject,
-    CreateDeliveryData,
-    DeliveryItemFormData
-} from '../../types/delivery.types';
-import { deliveryService } from '../../services/deliveryService';
-import { deliveryItemService } from '../../services/deliveryItemService';
-import TaskSelectionModal from '../../components/deliveries/TaskSelectionModal';
-import ProjectSelectionModal from '../../components/deliveries/ProjectSelectionModal';
-import DeliveryItemForm from '../../components/deliveries/DeliveryItemForm';
-import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import RichTextEditor from '../../components/ui/RichTextEditor';
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Package, FolderOpen, X, Save } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
+import { AvailableTask, AvailableProject, CreateDeliveryData } from '@/types/delivery.types'
+import { deliveryService } from '@/services/deliveryService'
+import { Button } from '@/components/ui-v2/Button'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { FlowChip } from '@/components/tasks/FlowChip'
+import { TaskTypeLabel } from '@/components/tasks/TaskTypeLabel'
+import { EnvLabel } from '@/components/deliveries/EnvLabel'
+import TaskSelectionModal from '@/components/deliveries/TaskSelectionModal'
+import ProjectSelectionModal from '@/components/deliveries/ProjectSelectionModal'
+import RichTextEditor from '@/components/ui/RichTextEditor'
+import { cn } from '@/utils/cn'
+
+const Section: React.FC<{ title: string; required?: boolean; children: React.ReactNode }> = ({ title, required, children }) => (
+  <section className="border-t border-border-subtle pt-6 first:border-t-0 first:pt-0">
+    <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-4">
+      {title}
+      {required && <span className="text-[var(--danger-strong)] ml-1">*</span>}
+    </h2>
+    <div className="space-y-4">{children}</div>
+  </section>
+)
 
 const DeliveryCreate: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate()
 
-    const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null);
-    const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([]);
-    const [notes, setNotes] = useState<string>('');
-    const [isCreating, setIsCreating] = useState(false);
-    const [createdDeliveryId, setCreatedDeliveryId] = useState<number | null>(null);
-    const [deliveryItems, setDeliveryItems] = useState<any[]>([]);
+  const [selectedTask, setSelectedTask] = useState<AvailableTask | null>(null)
+  const [selectedProjects, setSelectedProjects] = useState<AvailableProject[]>([])
+  const [notes, setNotes] = useState<string>('')
+  const [isCreating, setIsCreating] = useState(false)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showProjectModal, setShowProjectModal] = useState(false)
+  const [taskError, setTaskError] = useState<string | null>(null)
 
-    const [showTaskModal, setShowTaskModal] = useState(false);
-    const [showProjectModal, setShowProjectModal] = useState(false);
+  const isOperacional = selectedTask?.flowType === 'OPERACIONAL'
 
-    const [itemsFormData, setItemsFormData] = useState<Map<number, DeliveryItemFormData>>(new Map());
+  const handleTaskSelect = (task: AvailableTask) => {
+    setSelectedTask(task)
+    setShowTaskModal(false)
+    setTaskError(null)
+    // Limpa projetos se trocar pra fluxo operacional
+    if (task.flowType === 'OPERACIONAL') setSelectedProjects([])
+    toast.success(`Tarefa "${task.code}" selecionada`)
+  }
 
-    const handleTaskSelect = (task: AvailableTask) => {
-        setSelectedTask(task);
-        setShowTaskModal(false);
-        toast.success(`Tarefa "${task.code}" selecionada`);
-    };
+  const handleProjectsSelect = (projects: AvailableProject[]) => {
+    setSelectedProjects(projects)
+    setShowProjectModal(false)
+    if (projects.length > 0) {
+      toast.success(`${projects.length} projeto${projects.length > 1 ? 's' : ''} selecionado${projects.length > 1 ? 's' : ''}`)
+    }
+  }
 
-    const handleProjectsSelect = (projects: AvailableProject[]) => {
-        setSelectedProjects(projects);
-        setShowProjectModal(false);
-        if (projects.length > 0) {
-            toast.success(`${projects.length} projeto${projects.length > 1 ? 's' : ''} selecionado${projects.length > 1 ? 's' : ''}`);
-        }
-    };
+  const handleSubmit = async () => {
+    if (!selectedTask) {
+      setTaskError('Selecione uma tarefa antes de continuar.')
+      toast.error('Selecione uma tarefa antes de continuar.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
 
-    const handleCreateDelivery = async () => {
-        if (!selectedTask) {
-            toast.error('Selecione uma tarefa primeiro');
-            return;
-        }
+    setIsCreating(true)
+    try {
+      const deliveryData: CreateDeliveryData = {
+        taskId: selectedTask.id,
+        status: 'PENDING',
+        notes: notes,
+        items: !isOperacional
+          ? selectedProjects.map((p) => ({ projectId: p.id, status: 'PENDING' as const }))
+          : [],
+      }
 
-        setIsCreating(true);
+      const created = await deliveryService.create(deliveryData)
+      toast.success('Entrega criada com sucesso!')
+      navigate(`/deliveries/${created.id}/edit`)
+    } catch (error: any) {
+      console.error('Erro ao criar entrega:', error)
+      toast.error(error?.response?.data?.detail || error?.message || 'Erro ao criar entrega.')
+    } finally {
+      setIsCreating(false)
+    }
+  }
 
-        try {
-            const deliveryData: CreateDeliveryData = {
-                taskId: selectedTask.id,
-                status: 'PENDING',
-                notes: notes,
-                items: selectedProjects.map(project => ({
-                    projectId: project.id,
-                    status: 'PENDING'
-                }))
-            };
+  return (
+    <div className="w-full">
+      <div className="w-full space-y-4">
+        <PageHeader
+          title="Nova entrega"
+          subtitle={selectedTask ? `Para tarefa ${selectedTask.code}` : 'Selecione uma tarefa para começar'}
+        />
 
-            const createdDelivery = await deliveryService.create(deliveryData);
-                
-            setCreatedDeliveryId(createdDelivery.id);
-
-            if (selectedProjects.length > 0) {
-                const items = await deliveryItemService.getByDeliveryId(createdDelivery.id);
-                setDeliveryItems(items);
-
-                const initialFormData = new Map<number, DeliveryItemFormData>();
-                items.forEach(item => {
-                    const project = selectedProjects.find(p => p.id === item.projectId);
-                    if (project) {
-                        initialFormData.set(project.id, {
-                            id: item.id,
-                            deliveryId: item.deliveryId,
-                            projectId: project.id,
-                            projectName: project.name,
-                            status: item.status,
-                            branch: item.branch || '',
-                            sourceBranch: item.sourceBranch || '',
-                            pullRequest: item.pullRequest || '',
-                            script: item.script || '',
-                            startedAt: item.startedAt || '',
-                            finishedAt: item.finishedAt || '',
-                            notes: item.notes || ''
-                        });
-                    }
-                });
-                setItemsFormData(initialFormData);
-            }
-
-            toast.success('Entrega criada com sucesso!');
-
-            if (selectedTask.flowType === 'OPERACIONAL') {
-                toast.success('Agora você pode adicionar os itens operacionais!');
-                navigate(`/deliveries/${createdDelivery.id}/edit`);
-                return;
-            }
-
-        } catch (error) {
-            console.error('Erro ao criar entrega:', error);
-            toast.error('Erro ao criar entrega. Tente novamente.');
-        } finally {
-            setIsCreating(false);
-        }
-    };
-
-    const handleSaveItemData = async (projectId: number, data: DeliveryItemFormData) => {
-        const item = deliveryItems.find(item => item.projectId === projectId);
-        if (!item) return;
-
-        try {
-            await deliveryItemService.update(item.id, {
-                deliveryId: item.deliveryId,
-                projectId: item.projectId,
-                status: data.status,
-                branch: data.branch,
-                sourceBranch: data.sourceBranch,
-                pullRequest: data.pullRequest,
-                script: data.script,
-                startedAt: data.startedAt,
-                finishedAt: data.finishedAt,
-                notes: data.notes
-            });
-
-            const newFormData = new Map(itemsFormData);
-            newFormData.set(projectId, {
-                ...data,
-                id: item.id,
-                deliveryId: item.deliveryId
-            });
-            setItemsFormData(newFormData);
-
-            toast.success(`Dados do projeto ${data.projectName} salvos com sucesso!`);
-
-        } catch (error) {
-            console.error('Erro ao salvar item:', error);
-            toast.error('Erro ao salvar dados do projeto. Tente novamente.');
-        }
-    };
-
-    const handleRemoveItem = async (projectId: number) => {
-        const item = deliveryItems.find(item => item.projectId === projectId);
-        if (!item) return;
-
-        try {
-            await deliveryItemService.delete(item.id);
-
-            setDeliveryItems(prev => prev.filter(i => i.id !== item.id));
-            setSelectedProjects(prev => prev.filter(p => p.id !== projectId));
-
-            setItemsFormData(prev => {
-                const newMap = new Map(prev);
-                newMap.delete(projectId);
-                return newMap;
-            });
-
-            toast.success('Item removido com sucesso!');
-        } catch (error) {
-            console.error('Erro ao remover item:', error);
-            toast.error('Erro ao remover item');
-        }
-    };
-
-    const handleFinish = () => {
-        toast.success('Entrega configurada com sucesso!');
-        navigate('/deliveries');
-    };
-
-    return (
-        <div className="w-full">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="flex items-center space-x-4">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate('/deliveries')}
-                        className="flex items-center p-2 sm:px-3 sm:py-2"
-                    >
-                        <ArrowLeft className="w-4 h-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Voltar</span>
-                    </Button>
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Nova Entrega</h1>
-                    </div>
-                </div>
-
-                <Card className="overflow-hidden">
-                    <div className="px-4 py-5 sm:px-6">
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-text-secondary mb-2">
-                                Tarefa <span className="text-red-500">*</span>
-                            </label>
-
-                            {selectedTask ? (
-                                <div className="border border-border-strong rounded-lg p-4 bg-surface-app">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Package className="h-5 w-5 text-accent" />
-                                                <h3 className="font-medium text-text-primary">{selectedTask.title}</h3>
-                                            </div>
-                                            <p className="text-sm text-text-secondary mb-1">{selectedTask.code}</p>
-                                            {selectedTask.flowType && (
-                                                <div className="mb-2">
-                                                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
-                                                        selectedTask.flowType === 'OPERACIONAL'
-                                                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                                            : 'bg-accent-soft text-accent border border-blue-200'
-                                                    }`}>
-                                                        {selectedTask.flowType === 'OPERACIONAL' ? '⚙️ Operacional' : '💻 Desenvolvimento'}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {selectedTask.requester && (
-                                                <p className="text-sm text-text-tertiary">
-                                                    Solicitante: {selectedTask.requester.name}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowTaskModal(true)}
-                                            className="ml-2"
-                                        >
-                                            Alterar
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={() => setShowTaskModal(true)}
-                                    className="w-full px-4 py-6 border-2 border-dashed border-border-strong rounded-lg transition-colors hover:border-gray-400 text-text-secondary hover:text-text-secondary"
-                                >
-                                    <Package className="mx-auto h-8 w-8 text-text-tertiary mb-2" />
-                                    <p>Clique para selecionar uma tarefa</p>
-                                </button>
-                            )}
-                        </div>
-
-                        {selectedTask?.flowType !== 'OPERACIONAL' && (
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-text-secondary mb-2">
-                                    Projetos/Repositórios
-                                </label>
-
-                                {selectedProjects.length > 0 ? (
-                                    <div className="border border-border-strong rounded-lg p-4 bg-surface-app">
-                                        <div className="space-y-2">
-                                            {selectedProjects.map(project => (
-                                                <div key={project.id} className="flex items-center gap-3">
-                                                    <FolderOpen className="h-4 w-4 text-[var(--success-strong)]" />
-                                                    <span className="text-sm font-medium text-text-primary">{project.name}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="pt-3 border-t border-border-subtle mt-3">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setShowProjectModal(true)}
-                                            >
-                                                Alterar Seleção
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowProjectModal(true)}
-                                        className="w-full px-4 py-6 border-2 border-dashed border-border-strong rounded-lg transition-colors hover:border-gray-400 text-text-secondary hover:text-text-secondary"
-                                    >
-                                        <FolderOpen className="mx-auto h-8 w-8 text-text-tertiary mb-2" />
-                                        <p>Clique para selecionar projetos (opcional)</p>
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="mb-6">
-                            <RichTextEditor
-                                label="Observações Gerais da Entrega"
-                                value={notes}
-                                onChange={setNotes}
-                                placeholder="Digite observações gerais sobre esta entrega. Você pode colar imagens diretamente..."
-                                minHeight="150px"
-                                entityType="DELIVERY"
-                                entityId={createdDeliveryId || undefined}
-                            />
-                        </div>
-
-                        {!createdDeliveryId && (
-                            <div className="pt-4 border-t border-border-subtle">
-                                <Button
-                                    onClick={handleCreateDelivery}
-                                    disabled={!selectedTask || isCreating}
-                                    className="w-full"
-                                >
-                                    {isCreating ? (
-                                        <>
-                                            <LoadingSpinner size="sm" className="mr-2" />
-                                            Criando Entrega...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4 mr-2" />
-                                            Criar Entrega
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                </Card>
-
-                {createdDeliveryId && selectedProjects.length > 0 && (
-                    <Card className="p-6">
-                        <h3 className="text-lg font-medium text-text-primary mb-4">
-                            Configurar Itens da Entrega
-                        </h3>
-                        <div className="space-y-6">
-                            {selectedProjects.map(project => {
-                                const formData = itemsFormData.get(project.id);
-                                if (!formData) return null;
-
-                                return (
-                                    <DeliveryItemForm
-                                        key={project.id}
-                                        project={project}
-                                        initialData={formData}
-                                        onSave={(data) => handleSaveItemData(project.id, data)}
-                                        customActions={
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleRemoveItem(project.id)}
-                                                className="text-[var(--danger-strong)] hover:text-red-700 hover:bg-red-50 border-red-200"
-                                            >
-                                                <Trash2 className="h-4 w-4 mr-2" />
-                                                Remover
-                                            </Button>
-                                        }
-                                    />
-                                );
-                            })}
-                        </div>
-                    </Card>
-                )}
-
-                {createdDeliveryId && selectedProjects.length === 0 && (
-                    <Card className="p-6 text-center">
-                        <div className="space-y-4">
-                            <Package className="mx-auto h-12 w-12 text-[var(--success-strong)]" />
-                            <div>
-                                <h3 className="font-medium text-text-primary">
-                                    Entrega criada com sucesso!
-                                </h3>
-                                <p className="text-sm text-text-secondary">
-                                    A entrega foi criada para a tarefa "{selectedTask?.code}" sem itens específicos.
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {createdDeliveryId && (
-                    <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate('/deliveries')}
-                            className="w-full sm:w-auto"
-                        >
-                            Ver Lista de Entregas
-                        </Button>
-                        
-                        <Button
-                            onClick={handleFinish}
-                            className="w-full sm:w-auto"
-                        >
-                            Finalizar
-                        </Button>
-                    </div>
-                )}
-
-                <TaskSelectionModal
-                    isOpen={showTaskModal}
-                    onClose={() => setShowTaskModal(false)}
-                    onTaskSelect={handleTaskSelect}
-                />
-
-                <ProjectSelectionModal
-                    isOpen={showProjectModal}
-                    onClose={() => setShowProjectModal(false)}
-                    onProjectsSelect={handleProjectsSelect}
-                    selectedTaskTitle={selectedTask?.title}
-                />
+        {/* Seletor de tarefa inline */}
+        <div className={cn(
+          'rounded-lg border bg-surface-1 p-4 flex items-center justify-between gap-3',
+          taskError ? 'border-[var(--danger-border)]' : 'border-border-subtle'
+        )}>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="size-9 rounded-full bg-accent-soft text-accent grid place-items-center shrink-0">
+              <Package className="size-4" />
             </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+                Tarefa <span className="text-[var(--danger-strong)]">*</span>
+              </div>
+              {selectedTask ? (
+                <div className="flex flex-col mt-0.5 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-medium text-text-primary truncate">{selectedTask.title}</span>
+                    <span className="font-mono text-xs text-text-tertiary shrink-0">· {selectedTask.code}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {selectedTask.flowType && <FlowChip value={selectedTask.flowType} />}
+                    {selectedTask.taskType && <TaskTypeLabel value={selectedTask.taskType} />}
+                    {selectedTask.environment && <EnvLabel value={selectedTask.environment} />}
+                    {selectedTask.requester?.name && (
+                      <span className="text-xs text-text-tertiary">· {selectedTask.requester.name}</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className={cn('text-sm mt-0.5', taskError ? 'text-[var(--danger-strong)]' : 'text-text-tertiary')}>
+                  {taskError || 'Nenhuma tarefa selecionada'}
+                </p>
+              )}
+            </div>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => setShowTaskModal(true)}>
+            {selectedTask ? 'Alterar' : 'Selecionar'}
+          </Button>
         </div>
-    );
-};
 
-export default DeliveryCreate;
+        {/* Formulário principal */}
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6 space-y-6">
+
+          {!isOperacional && (
+            <Section title="Projetos / Repositórios">
+              {selectedProjects.length > 0 ? (
+                <div className="rounded-md border border-border-subtle bg-surface-app/40 p-4 space-y-3">
+                  <div className="space-y-2">
+                    {selectedProjects.map((project) => (
+                      <div key={project.id} className="flex items-center gap-2">
+                        <FolderOpen className="size-4 text-[var(--success-strong)] shrink-0" />
+                        <span className="text-sm text-text-primary">{project.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProjects((prev) => prev.filter((p) => p.id !== project.id))}
+                          className="ml-auto p-1 rounded text-text-tertiary hover:text-[var(--danger-strong)] hover:bg-surface-2"
+                          aria-label={`Remover ${project.name}`}
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button variant="secondary" size="sm" onClick={() => setShowProjectModal(true)} disabled={!selectedTask}>
+                    Alterar seleção
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowProjectModal(true)}
+                  disabled={!selectedTask}
+                  className={cn(
+                    'w-full px-4 py-6 border-2 border-dashed rounded-md transition-colors text-center',
+                    selectedTask
+                      ? 'border-border-strong hover:border-accent text-text-secondary hover:text-accent'
+                      : 'border-border-subtle text-text-tertiary cursor-not-allowed opacity-60',
+                  )}
+                >
+                  <FolderOpen className="mx-auto size-6 mb-2" />
+                  <p className="text-sm">
+                    {selectedTask ? 'Selecionar projetos (opcional)' : 'Selecione uma tarefa primeiro'}
+                  </p>
+                </button>
+              )}
+            </Section>
+          )}
+
+          <Section title="Observações">
+            <RichTextEditor
+              value={notes}
+              onChange={setNotes}
+              placeholder="Digite observações gerais sobre esta entrega. Você pode colar imagens diretamente..."
+              minHeight="150px"
+              entityType="DELIVERY"
+            />
+          </Section>
+
+        </div>
+
+        {/* Sticky footer */}
+        <div className="sticky bottom-0 -mx-3 sm:-mx-4 lg:-mx-4 mt-6 px-3 sm:px-4 lg:px-4 py-3 bg-surface-app/95 backdrop-blur border-t border-border-subtle z-20">
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="secondary" onClick={() => navigate('/deliveries')} disabled={isCreating}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit} loading={isCreating} disabled={!selectedTask} leadingIcon={<Save />}>
+              Criar entrega
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Modais (antigos) */}
+      <TaskSelectionModal
+        isOpen={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        onTaskSelect={handleTaskSelect}
+      />
+      <ProjectSelectionModal
+        isOpen={showProjectModal}
+        onClose={() => setShowProjectModal(false)}
+        onProjectsSelect={handleProjectsSelect}
+        selectedTaskTitle={selectedTask?.title}
+      />
+    </div>
+  )
+}
+
+export default DeliveryCreate

@@ -26,6 +26,7 @@ export interface Delivery extends BaseEntity {
     taskName?: string;
     taskCode?: string;
     taskType?: string;
+    taskValue?: number;
     flowType?: string;
     environment?: string;
     status: DeliveryStatus;
@@ -43,6 +44,15 @@ export interface Delivery extends BaseEntity {
     notes?: string;
     items?: DeliveryItem[];
     operationalItems?: any[];
+}
+
+export interface DeliveryStatsSummary {
+    total: number;
+    totalPending: number;
+    totalInProgress: number;
+    totalRejected: number;
+    totalProduction: number;
+    totalWithoutItems: number;
 }
 
 export interface DeliveryStatusCount {
@@ -121,9 +131,10 @@ export interface DeliveryGroupResponse {
 }
 
 export interface DeliveryFilters {
+    id?: number | string;
     status?: DeliveryStatus | string;
     deliveryStatus?: DeliveryStatus | string;
-    taskId?: number;
+    taskId?: number | string;
     taskName?: string;
     taskCode?: string;
     flowType?: string;

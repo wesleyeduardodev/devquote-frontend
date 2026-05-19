@@ -22,7 +22,6 @@ import ProjectCreate from './pages/projects/ProjectCreate';
 import ProjectEdit from './pages/projects/ProjectEdit';
 import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
-import DeliveryGroupEdit from './pages/deliveries/DeliveryGroupEdit';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import DeliveryView from './pages/deliveries/DeliveryView';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
@@ -79,9 +78,8 @@ const AppShell: React.FC = () => {
                                 <Route path="/projects/:id/edit" element={<ProtectedRoute requiredProfile="ADMIN"><ProjectEdit/></ProtectedRoute>}/>
                                 <Route path="/deliveries" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryList/></ProtectedRoute>}/>
                                 <Route path="/deliveries/create" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryCreate/></ProtectedRoute>}/>
-                                <Route path="/deliveries/group/:taskId/edit" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryGroupEdit/></ProtectedRoute>}/>
                                 <Route path="/deliveries/:deliveryId/edit" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryEdit/></ProtectedRoute>}/>
-                                <Route path="/deliveries/task/:taskId" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryView/></ProtectedRoute>}/>
+                                <Route path="/deliveries/:id" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryView/></ProtectedRoute>}/>
                                 <Route path="/billing" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER']}><BillingMonthManagement/></ProtectedRoute>}/>
                                 <Route path="/profiles" element={<ProtectedRoute requiredProfile="ADMIN"><ProfileManagement/></ProtectedRoute>}/>
                                 <Route path="/notifications" element={<ProtectedRoute requiredProfile="ADMIN"><NotificationList/></ProtectedRoute>}/>

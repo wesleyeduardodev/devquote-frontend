@@ -7,6 +7,7 @@ import {
     DeliveryFilters,
     DeliveryGroupResponse,
     DeliveryStatusCount,
+    DeliveryStatsSummary,
     AvailableTask,
     DeliveryCreationState
 } from '../types/delivery.types';
@@ -295,6 +296,25 @@ export const deliveryService = {
             responseType: 'blob'
         });
         return { data: response.data, headers: response.headers };
+    },
+
+    getStats: async (): Promise<DeliveryStatsSummary> => {
+        const response = await api.get('/deliveries/stats');
+        return response.data;
+    },
+
+    getTotalAmount: async (filters?: DeliveryFilters): Promise<number> => {
+        const queryParams = new URLSearchParams();
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && value.toString().trim() !== '') {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+        const qs = queryParams.toString();
+        const response = await api.get(`/deliveries/total-amount${qs ? `?${qs}` : ''}`);
+        return Number(response.data?.totalAmount ?? 0);
     },
 
     getGlobalStatistics: async (flowType?: string): Promise<DeliveryStatusCount> => {

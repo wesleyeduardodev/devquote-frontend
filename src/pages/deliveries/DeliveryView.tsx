@@ -1,639 +1,416 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
-    ArrowLeft,
-    Calendar,
-    GitBranch,
-    Package,
-    Truck,
-    Check,
-    Play,
-    Flag,
-    Copy,
-    StickyNote,
-    FolderOpen,
-    ChevronRight,
-    ChevronDown,
-    ExternalLink,
-    Edit3,
-    AlertCircle,
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { deliveryService } from '@/services/deliveryService';
-import { DeliveryGroupResponse } from '@/types/delivery.types';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { DeliveryAttachmentList } from '@/components/deliveries/DeliveryAttachmentList';
-import { DeliveryOperationalAttachmentList } from '@/components/deliveries/DeliveryOperationalAttachmentList';
+  FileText, Calendar, GitBranch, Package, Truck, Check, Play, Flag,
+  Copy, StickyNote, FolderOpen, ChevronRight, ChevronDown, ExternalLink,
+  Edit3, ListChecks,
+} from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { deliveryService } from '@/services/deliveryService'
+import { Delivery, DeliveryItem } from '@/types/delivery.types'
+import { Button } from '@/components/ui-v2/Button'
+import { Skeleton } from '@/components/ui-v2/Skeleton'
+import { PageHeader } from '@/components/ui-v2/PageHeader'
+import { FlowChip } from '@/components/tasks/FlowChip'
+import { TaskTypeLabel } from '@/components/tasks/TaskTypeLabel'
+import { EnvLabel } from '@/components/deliveries/EnvLabel'
+import { DeliveryStatusBadge, STATUS_LABEL } from '@/components/deliveries/DeliveryStatusBadge'
+import { DeliveryAttachmentList } from '@/components/deliveries/DeliveryAttachmentList'
+import { DeliveryOperationalAttachmentList } from '@/components/deliveries/DeliveryOperationalAttachmentList'
+import { cn } from '@/utils/cn'
+
+const brl = (n: number | null | undefined) =>
+  (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return '—'
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+}
+
+const Section: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
+  <section className={cn('border-t border-border-subtle pt-6 first:border-t-0 first:pt-0', className)}>
+    <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-4">{title}</h2>
+    <div className="space-y-4">{children}</div>
+  </section>
+)
+
+const InfoField: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
+  <div className={className}>
+    <p className="text-xs text-text-tertiary mb-0.5">{label}</p>
+    <div className="text-sm text-text-primary">{children}</div>
+  </div>
+)
+
+const CopyButton: React.FC<{ value: string; field: string; copied: string | null; onCopy: (v: string, f: string) => void }> = ({ value, field, copied, onCopy }) => (
+  <button
+    onClick={() => onCopy(value, field)}
+    type="button"
+    className={cn(
+      'p-1.5 rounded transition-colors shrink-0',
+      copied === field ? 'bg-success-soft text-[var(--success-strong)]' : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2',
+    )}
+    title="Copiar"
+  >
+    {copied === field ? <Check className="size-4" /> : <Copy className="size-4" />}
+  </button>
+)
 
 const DeliveryView: React.FC = () => {
-    const { taskId } = useParams();
-    const navigate = useNavigate();
-    const { hasProfile } = useAuth();
-    const isAdmin = hasProfile('ADMIN');
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { hasProfile } = useAuth()
+  const canEdit = hasProfile('ADMIN') || hasProfile('MANAGER')
 
-    const [deliveryGroup, setDeliveryGroup] = useState<DeliveryGroupResponse | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-    const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [delivery, setDelivery] = useState<Delivery | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set())
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [attachmentsExpanded, setAttachmentsExpanded] = useState(false)
 
-    useEffect(() => {
-        const fetchDelivery = async () => {
-            if (!taskId) {
-                navigate('/deliveries');
-                return;
-            }
-
-            try {
-                setLoading(true);
-                const data = await deliveryService.getGroupDetailsByTaskId(Number(taskId));
-                setDeliveryGroup(data);
-            } catch (error) {
-                console.error('Erro ao carregar entrega:', error);
-                navigate('/deliveries');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDelivery();
-    }, [taskId, navigate]);
-
-    const handleCopy = async (content: string, fieldName: string) => {
-        if (!content || content === '-') return;
-
-        try {
-            await navigator.clipboard.writeText(content);
-            setCopiedField(fieldName);
-            setTimeout(() => setCopiedField(null), 2000);
-        } catch (err) {
-            console.error('Erro ao copiar:', err);
-            const textArea = document.createElement('textarea');
-            textArea.value = content;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            setCopiedField(fieldName);
-            setTimeout(() => setCopiedField(null), 2000);
-        }
-    };
-
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const toggleItem = (itemId: number) => {
-        const newExpanded = new Set(expandedItems);
-        if (newExpanded.has(itemId)) {
-            newExpanded.delete(itemId);
-        } else {
-            newExpanded.add(itemId);
-        }
-        setExpandedItems(newExpanded);
-    };
-
-    const getStatusColor = (status: string) => {
-        const colors: Record<string, string> = {
-            PENDING: 'text-yellow-700 bg-yellow-50 border-yellow-200',
-            DEVELOPMENT: 'text-blue-700 bg-blue-50 border-blue-200',
-            DELIVERED: 'text-green-700 bg-green-50 border-green-200',
-            HOMOLOGATION: 'text-amber-700 bg-amber-50 border-amber-200',
-            APPROVED: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-            REJECTED: 'text-rose-700 bg-rose-50 border-rose-200',
-            PRODUCTION: 'text-violet-700 bg-violet-50 border-violet-200',
-            CANCELLED: 'text-[var(--danger-strong)] bg-red-50 border-red-200'
-        };
-        return colors[status] || 'text-text-secondary bg-surface-app border-border-subtle';
-    };
-
-    const getStatusLabel = (status: string) => {
-        const labels: Record<string, string> = {
-            PENDING: 'Pendente',
-            DEVELOPMENT: 'Desenvolvimento',
-            DELIVERED: 'Entregue',
-            HOMOLOGATION: 'Homologacao',
-            APPROVED: 'Aprovado',
-            REJECTED: 'Rejeitado',
-            PRODUCTION: 'Producao',
-            CANCELLED: 'Cancelado'
-        };
-        return labels[status] || status;
-    };
-
-    const getFlowTypeLabel = (flowType?: string) => {
-        if (!flowType) return '-';
-        return flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional';
-    };
-
-    const getTaskTypeLabel = (taskType?: string) => {
-        if (!taskType) return '-';
-        const types: Record<string, string> = {
-            'BACKUP': 'Backup',
-            'DEPLOY': 'Deploy',
-            'LOGS': 'Logs',
-            'DATABASE_APPLICATION': 'Aplicacao de Banco',
-            'NEW_SERVER': 'Novo Servidor',
-            'MONITORING': 'Monitoramento',
-            'SUPPORT': 'Suporte',
-            'BUG': 'Bug',
-            'ENHANCEMENT': 'Melhoria',
-            'NEW_FEATURE': 'Nova Funcionalidade',
-            'CODE_REVIEW': 'Code Review'
-        };
-        return types[taskType] || taskType;
-    };
-
-    const getEnvironmentLabel = (environment?: string) => {
-        if (!environment) return '-';
-        const environments: Record<string, string> = {
-            'DESENVOLVIMENTO': 'Desenvolvimento',
-            'HOMOLOGACAO': 'Homologacao',
-            'PRODUCAO': 'Producao'
-        };
-        return environments[environment] || environment;
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
-                <Card className="p-8 max-w-md w-full text-center">
-                    <LoadingSpinner size="lg" />
-                    <p className="mt-4 text-text-secondary">Carregando entrega...</p>
-                </Card>
-            </div>
-        );
+  useEffect(() => {
+    const fetchDelivery = async () => {
+      if (!id) { navigate('/deliveries'); return }
+      try {
+        setLoading(true)
+        const data = await deliveryService.getById(Number(id))
+        setDelivery(data)
+      } catch (e) {
+        console.error('Erro ao carregar entrega:', e)
+        navigate('/deliveries')
+      } finally {
+        setLoading(false)
+      }
     }
+    fetchDelivery()
+  }, [id, navigate])
 
-    if (!deliveryGroup) {
-        return (
-            <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
-                <Card className="p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Truck className="w-8 h-8 text-[var(--danger-strong)]" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-text-primary mb-2">
-                        Entrega nao encontrada
-                    </h2>
-                    <p className="text-text-secondary mb-6">
-                        A entrega que voce esta procurando nao foi encontrada.
-                    </p>
-                    <Button onClick={() => navigate('/deliveries')} variant="primary" className="w-full">
-                        Voltar para Listagem
-                    </Button>
-                </Card>
-            </div>
-        );
-    }
+  const handleCopy = async (content: string, fieldName: string) => {
+    if (!content) return
+    try { await navigator.clipboard.writeText(content) } catch { /* ignore */ }
+    setCopiedField(fieldName)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
 
-    const delivery = deliveryGroup.deliveries?.[0];
-    const isOperacional = delivery?.flowType === 'OPERACIONAL';
-    const items = isOperacional ? delivery?.operationalItems : delivery?.items;
-    const itemCount = items?.length || 0;
+  const toggleItem = (itemId: number) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev)
+      if (next.has(itemId)) next.delete(itemId)
+      else next.add(itemId)
+      return next
+    })
+  }
 
+  if (loading) {
     return (
-        <div className="w-full">
-            <div className="w-full space-y-4">
-                {/* Header com acoes */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate('/deliveries')}
-                        className="flex items-center w-fit"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Voltar
-                    </Button>
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-1/3" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
+  }
 
-                    {isAdmin && delivery && (
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}
-                                className="flex items-center"
-                            >
-                                <Edit3 className="w-4 h-4 mr-2" />
-                                Editar
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Card do Cabecalho */}
-                <Card className="overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4 sm:py-5">
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                            <div className="flex items-start gap-3 sm:gap-4">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Truck className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h1 className="text-xl sm:text-2xl font-bold text-white truncate">
-                                        {deliveryGroup.taskName}
-                                    </h1>
-                                    <div className="flex flex-wrap items-center gap-2 text-blue-100 text-sm mt-1">
-                                        <span>Entrega #{delivery?.id}</span>
-                                        <span className="hidden sm:inline">•</span>
-                                        <span className="font-mono bg-surface-1/20 px-2 py-0.5 rounded text-xs">
-                                            {deliveryGroup.taskId} - {deliveryGroup.taskCode}
-                                        </span>
-                                        <span className="hidden sm:inline">•</span>
-                                        <span>{deliveryGroup.totalDeliveries} entregas</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Badges de Status */}
-                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-surface-app border-b border-border-subtle">
-                        <div className="flex flex-wrap gap-2 sm:gap-3">
-                            {delivery?.flowType && (
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                                    delivery.flowType === 'OPERACIONAL'
-                                        ? 'bg-purple-100 text-purple-800'
-                                        : 'bg-accent-soft text-accent'
-                                }`}>
-                                    {getFlowTypeLabel(delivery.flowType)}
-                                </span>
-                            )}
-                            {delivery?.taskType && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                                    {getTaskTypeLabel(delivery.taskType)}
-                                </span>
-                            )}
-                            {delivery?.environment && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-soft text-[var(--success-strong)]">
-                                    {getEnvironmentLabel(delivery.environment)}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </Card>
-
-                {/* Cronograma da Entrega */}
-                <Card className="p-6">
-                    <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-[var(--success-strong)]" />
-                        Cronograma da Entrega
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                            <p className="text-sm text-green-700 mb-1 flex items-center gap-1">
-                                <Play className="w-3 h-3" />
-                                Data Inicio
-                            </p>
-                            <p className="font-medium text-green-900">
-                                {delivery?.startedAt
-                                    ? formatDate(delivery.startedAt)
-                                    : 'Nao informado'
-                                }
-                            </p>
-                        </div>
-                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                            <p className="text-sm text-green-700 mb-1 flex items-center gap-1">
-                                <Flag className="w-3 h-3" />
-                                Data Fim
-                            </p>
-                            <p className="font-medium text-green-900">
-                                {delivery?.finishedAt
-                                    ? formatDate(delivery.finishedAt)
-                                    : 'Nao informado'
-                                }
-                            </p>
-                        </div>
-                    </div>
-                </Card>
-
-                {/* Itens de Entrega */}
-                <Card className="p-3 sm:p-6">
-                    <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-3 sm:mb-4 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-accent" />
-                        Itens de Entrega
-                        <span className="text-sm font-normal text-text-tertiary">
-                            ({itemCount})
-                        </span>
-                    </h2>
-
-                    {items && items.length > 0 ? (
-                        <div className="space-y-3">
-                            {items.map((item: any) => {
-                                const isExpanded = expandedItems.has(item.id);
-
-                                return (
-                                    <div key={item.id} className="border border-border-subtle rounded-lg overflow-hidden">
-                                        {/* Header clicavel */}
-                                        <div
-                                            className="bg-surface-1 p-3 sm:p-4 cursor-pointer hover:bg-surface-app transition-colors"
-                                            onClick={() => toggleItem(item.id)}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                                                    {isExpanded ? (
-                                                        <ChevronDown className="w-5 h-5 text-text-tertiary flex-shrink-0" />
-                                                    ) : (
-                                                        <ChevronRight className="w-5 h-5 text-text-tertiary flex-shrink-0" />
-                                                    )}
-                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-soft rounded-lg flex items-center justify-center flex-shrink-0">
-                                                        <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <h4 className="font-medium text-text-primary text-sm sm:text-base truncate">
-                                                            {isOperacional ? item.title : item.projectName}
-                                                        </h4>
-                                                        <p className="text-xs sm:text-sm text-text-tertiary">Item #{item.id}</p>
-                                                    </div>
-                                                </div>
-                                                <div className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.status)} flex-shrink-0 ml-2`}>
-                                                    {getStatusLabel(item.status)}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Conteudo expansivel */}
-                                        {isExpanded && (
-                                            <div className="bg-surface-app p-3 sm:p-4 border-t border-border-subtle">
-                                                <div className="space-y-4">
-                                                    {isOperacional ? (
-                                                        <>
-                                                            {/* Descricao do Item Operacional */}
-                                                            {item.description && (
-                                                                <div>
-                                                                    <h5 className="text-sm font-semibold text-text-primary mb-3">Descricao</h5>
-                                                                    <div className="bg-surface-1 border border-border-subtle rounded-lg p-3 prose prose-sm max-w-none">
-                                                                        <div
-                                                                            className="text-sm text-text-secondary [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
-                                                                            dangerouslySetInnerHTML={{ __html: item.description }}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Datas */}
-                                                            <div>
-                                                                <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                                                                    <Calendar className="w-4 h-4 text-accent" />
-                                                                    Cronograma
-                                                                </h5>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
-                                                                            <Play className="w-3 h-3" />
-                                                                            Inicio:
-                                                                        </span>
-                                                                        <span className="text-text-primary font-medium">
-                                                                            {item.startedAt ? formatDate(item.startedAt) : 'Nao informado'}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
-                                                                            <Flag className="w-3 h-3" />
-                                                                            Finalizacao:
-                                                                        </span>
-                                                                        <span className="text-text-primary font-medium">
-                                                                            {item.finishedAt ? formatDate(item.finishedAt) : 'Nao informado'}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Anexos Operacionais */}
-                                                            <DeliveryOperationalAttachmentList
-                                                                operationalItemId={item.id}
-                                                                readOnly={true}
-                                                                forceExpanded={false}
-                                                                className="border-t pt-4"
-                                                            />
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            {/* Informacoes de Desenvolvimento */}
-                                                            <div>
-                                                                <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                                                                    <GitBranch className="w-4 h-4 text-accent" />
-                                                                    Informacoes de Desenvolvimento
-                                                                </h5>
-
-                                                                <div className="grid grid-cols-1 gap-3">
-                                                                    {/* Pull Request */}
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-sm text-text-secondary block mb-2">Link da Entrega (Pull Request):</span>
-                                                                        <div className="flex items-center gap-2">
-                                                                            {item.pullRequest ? (
-                                                                                <>
-                                                                                    <a
-                                                                                        href={item.pullRequest}
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        className="text-xs text-accent hover:text-accent hover:underline break-all bg-surface-app px-2 py-1 rounded border flex-1"
-                                                                                    >
-                                                                                        <ExternalLink className="w-3 h-3 inline mr-1" />
-                                                                                        {item.pullRequest.replace(/^https?:\/\//, '').replace(/^www\./, '')}
-                                                                                    </a>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            handleCopy(item.pullRequest!, `pr-${item.id}`);
-                                                                                        }}
-                                                                                        className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                                                                            copiedField === `pr-${item.id}`
-                                                                                                ? 'bg-success-soft text-[var(--success-strong)]'
-                                                                                                : 'bg-surface-2 text-text-tertiary hover:bg-surface-3 border'
-                                                                                        }`}
-                                                                                        title="Copiar link"
-                                                                                    >
-                                                                                        {copiedField === `pr-${item.id}` ? (
-                                                                                            <Check className="w-3 h-3" />
-                                                                                        ) : (
-                                                                                            <Copy className="w-3 h-3" />
-                                                                                        )}
-                                                                                    </button>
-                                                                                </>
-                                                                            ) : (
-                                                                                <div className="text-xs bg-surface-app text-text-tertiary px-2 py-1 rounded border flex-1">
-                                                                                    Nao informado
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {/* Branch */}
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-sm text-text-secondary block mb-2">Branch:</span>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <code className="text-xs bg-surface-app text-text-primary px-2 py-1 rounded border font-mono flex-1">
-                                                                                {item.branch || 'Nao informado'}
-                                                                            </code>
-                                                                            {item.branch && (
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handleCopy(item.branch!, `branch-${item.id}`);
-                                                                                    }}
-                                                                                    className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                                                                        copiedField === `branch-${item.id}`
-                                                                                            ? 'bg-success-soft text-[var(--success-strong)]'
-                                                                                            : 'bg-surface-2 text-text-tertiary hover:bg-surface-3 border'
-                                                                                    }`}
-                                                                                    title="Copiar branch"
-                                                                                >
-                                                                                    {copiedField === `branch-${item.id}` ? (
-                                                                                        <Check className="w-3 h-3" />
-                                                                                    ) : (
-                                                                                        <Copy className="w-3 h-3" />
-                                                                                    )}
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {/* Branch de Origem */}
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-sm text-text-secondary block mb-2">Branch de Origem:</span>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <code className="text-xs bg-surface-app text-text-primary px-2 py-1 rounded border font-mono flex-1">
-                                                                                {item.sourceBranch || 'Nao informado'}
-                                                                            </code>
-                                                                            {item.sourceBranch && (
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handleCopy(item.sourceBranch!, `sourceBranch-${item.id}`);
-                                                                                    }}
-                                                                                    className={`flex items-center justify-center p-1.5 rounded transition-all ${
-                                                                                        copiedField === `sourceBranch-${item.id}`
-                                                                                            ? 'bg-success-soft text-[var(--success-strong)]'
-                                                                                            : 'bg-surface-2 text-text-tertiary hover:bg-surface-3 border'
-                                                                                    }`}
-                                                                                    title="Copiar branch de origem"
-                                                                                >
-                                                                                    {copiedField === `sourceBranch-${item.id}` ? (
-                                                                                        <Check className="w-3 h-3" />
-                                                                                    ) : (
-                                                                                        <Copy className="w-3 h-3" />
-                                                                                    )}
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Observacoes */}
-                                                            {item.notes && (
-                                                                <div>
-                                                                    <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                                                                        <StickyNote className="w-4 h-4 text-accent" />
-                                                                        Observacoes
-                                                                    </h5>
-                                                                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg prose prose-sm max-w-none">
-                                                                        <div
-                                                                            className="text-sm text-text-secondary [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
-                                                                            dangerouslySetInnerHTML={{ __html: item.notes }}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Datas */}
-                                                            <div>
-                                                                <h5 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                                                                    <Calendar className="w-4 h-4 text-accent" />
-                                                                    Cronograma
-                                                                </h5>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
-                                                                            <Play className="w-3 h-3" />
-                                                                            Inicio:
-                                                                        </span>
-                                                                        <span className="text-text-primary font-medium">
-                                                                            {item.startedAt ? formatDate(item.startedAt) : 'Nao informado'}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="bg-surface-1 p-3 rounded-lg border border-border-subtle">
-                                                                        <span className="text-text-tertiary flex items-center gap-1 mb-1">
-                                                                            <Flag className="w-3 h-3" />
-                                                                            Finalizacao:
-                                                                        </span>
-                                                                        <span className="text-text-primary font-medium">
-                                                                            {item.finishedAt ? formatDate(item.finishedAt) : 'Nao informado'}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Anexos do Item */}
-                                                            <DeliveryAttachmentList
-                                                                deliveryItemId={item.id}
-                                                                readOnly={true}
-                                                                forceExpanded={false}
-                                                                className="border-t pt-4"
-                                                            />
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12">
-                            <div className="text-text-tertiary mb-4">
-                                <Package className="w-12 h-12 mx-auto" />
-                            </div>
-                            <h4 className="text-lg font-medium text-text-primary mb-2">
-                                Nenhum item encontrado
-                            </h4>
-                            <p className="text-text-secondary">
-                                Esta entrega ainda nao possui itens cadastrados.
-                            </p>
-                        </div>
-                    )}
-                </Card>
-
-                {/* Observacoes Gerais da Entrega */}
-                {delivery?.notes && (
-                    <Card className="p-6">
-                        <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-                            <StickyNote className="w-5 h-5 text-amber-600" />
-                            Observacoes Gerais da Entrega
-                        </h2>
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 prose prose-sm max-w-none">
-                            <div
-                                className="text-text-secondary [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
-                                dangerouslySetInnerHTML={{ __html: delivery.notes }}
-                            />
-                        </div>
-                    </Card>
-                )}
-
-                {/* Anexos da Entrega */}
-                {delivery?.id && (
-                    <Card className="p-6">
-                        <DeliveryAttachmentList
-                            deliveryId={delivery.id}
-                            readOnly={true}
-                            forceExpanded={false}
-                        />
-                    </Card>
-                )}
-            </div>
+  if (!delivery) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="max-w-md w-full text-center rounded-lg border border-border-subtle bg-surface-1 p-8">
+          <div className="w-12 h-12 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4">
+            <Truck className="w-6 h-6 text-[var(--danger-strong)]" />
+          </div>
+          <h2 className="text-lg font-semibold text-text-primary mb-2">Entrega não encontrada</h2>
+          <p className="text-sm text-text-secondary mb-6">
+            A entrega que você está procurando não foi encontrada.
+          </p>
+          <Button onClick={() => navigate('/deliveries')} className="w-full">
+            Voltar para listagem
+          </Button>
         </div>
-    );
-};
+      </div>
+    )
+  }
 
-export default DeliveryView;
+  const isOperacional = delivery.flowType === 'OPERACIONAL'
+  const items = isOperacional ? delivery.operationalItems : delivery.items
+  const itemCount = items?.length || 0
+
+  return (
+    <div className="w-full">
+      <div className="w-full space-y-4">
+        <PageHeader
+          title={
+            <span className="inline-flex items-center gap-2">
+              Entrega
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-accent-soft text-accent">
+                #{delivery.id}
+              </span>
+            </span>
+          }
+          subtitle={
+            <span className="inline-flex items-center gap-2">
+              {delivery.taskCode && <span className="font-mono text-xs">{delivery.taskCode}</span>}
+              {delivery.taskCode && delivery.taskName && <span className="text-text-tertiary">·</span>}
+              {delivery.taskName && <span className="truncate">{delivery.taskName}</span>}
+            </span>
+          }
+          actions={
+            canEdit ? (
+              <Button variant="secondary" leadingIcon={<Edit3 />} onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}>
+                Editar
+              </Button>
+            ) : undefined
+          }
+        />
+
+        {/* Cabeçalho compacto: chips + valor à direita */}
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            {delivery.flowType && <FlowChip value={delivery.flowType} />}
+            {delivery.taskType && <TaskTypeLabel value={delivery.taskType} />}
+            {delivery.environment && <EnvLabel value={delivery.environment} />}
+            <DeliveryStatusBadge status={delivery.status} withTime={delivery.updatedAt} />
+          </div>
+          {delivery.taskValue !== undefined && delivery.taskValue !== null && (
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor</p>
+              <p className="text-lg font-semibold text-text-primary tabular-nums">{brl(delivery.taskValue)}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6 space-y-6">
+
+          <Section title="Tarefa">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <InfoField label="ID da tarefa">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/tasks/${delivery.taskId}`)}
+                  className="font-mono text-text-primary hover:underline"
+                >
+                  #{delivery.taskId}
+                </button>
+              </InfoField>
+              <InfoField label="Código">
+                <span className="font-mono">{delivery.taskCode || '—'}</span>
+              </InfoField>
+              <InfoField label="Título">
+                <span className="truncate block">{delivery.taskName || '—'}</span>
+              </InfoField>
+            </div>
+          </Section>
+
+          <Section title="Cronograma">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoField label="Data início">
+                <div className="flex items-center gap-2">
+                  <Play className="size-3.5 text-[var(--success-strong)]" />
+                  <span className="font-medium tabular-nums">{formatDate(delivery.startedAt)}</span>
+                </div>
+              </InfoField>
+              <InfoField label="Data fim">
+                <div className="flex items-center gap-2">
+                  <Flag className="size-3.5 text-[var(--success-strong)]" />
+                  <span className="font-medium tabular-nums">{formatDate(delivery.finishedAt)}</span>
+                </div>
+              </InfoField>
+            </div>
+          </Section>
+
+          {delivery.notes && (
+            <Section title="Observações">
+              <div className="rounded-md border border-warning-border bg-warning-soft p-4">
+                <div className="flex items-start gap-2">
+                  <StickyNote className="size-4 text-[var(--warning-strong)] shrink-0 mt-0.5" />
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-md flex-1"
+                    dangerouslySetInnerHTML={{ __html: delivery.notes }}
+                  />
+                </div>
+              </div>
+            </Section>
+          )}
+
+          <Section title={`Itens (${itemCount})`}>
+            {itemCount === 0 ? (
+              <div className="text-center py-8 rounded-md border border-dashed border-border-subtle">
+                <Package className="size-8 text-text-tertiary mx-auto mb-2" />
+                <p className="text-sm text-text-tertiary">Esta entrega ainda não possui itens cadastrados.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(items as any[]).map((item: any, idx: number) => {
+                  const isExpanded = expandedItems.has(item.id)
+                  return (
+                    <div key={item.id} className="border border-border-subtle rounded-md overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleItem(item.id)}
+                        className="w-full bg-surface-1 px-3 py-2.5 hover:bg-surface-2 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          {isExpanded
+                            ? <ChevronDown className="size-4 text-text-tertiary shrink-0" />
+                            : <ChevronRight className="size-4 text-text-tertiary shrink-0" />}
+                          <span className="size-6 shrink-0 grid place-items-center rounded-full bg-surface-2 text-xs font-semibold text-text-secondary">
+                            {idx + 1}
+                          </span>
+                          <FolderOpen className="size-4 text-accent shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text-primary truncate">
+                              {isOperacional ? item.title : item.projectName}
+                            </p>
+                            <p className="text-xs text-text-tertiary">Item #{item.id}</p>
+                          </div>
+                          <DeliveryStatusBadge status={item.status} />
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="bg-surface-app/40 px-3 py-3 border-t border-border-subtle space-y-4">
+                          {isOperacional ? (
+                            <>
+                              {item.description && (
+                                <InfoField label="Descrição">
+                                  <div
+                                    className="prose prose-sm dark:prose-invert max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: item.description }}
+                                  />
+                                </InfoField>
+                              )}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InfoField label="Início">
+                                  <span className="font-medium tabular-nums">{formatDate(item.startedAt)}</span>
+                                </InfoField>
+                                <InfoField label="Fim">
+                                  <span className="font-medium tabular-nums">{formatDate(item.finishedAt)}</span>
+                                </InfoField>
+                              </div>
+                              <DeliveryOperationalAttachmentList
+                                operationalItemId={item.id}
+                                readOnly={true}
+                                forceExpanded={false}
+                                className="border-t border-border-subtle pt-3"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-1 gap-3">
+                                <InfoField label="Pull Request">
+                                  {item.pullRequest ? (
+                                    <div className="flex items-center gap-2">
+                                      <GitBranch className="size-3.5 text-text-tertiary shrink-0" />
+                                      <a
+                                        href={item.pullRequest}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-accent hover:underline truncate flex-1 text-xs"
+                                      >
+                                        {item.pullRequest}
+                                      </a>
+                                      <ExternalLink className="size-3.5 text-text-tertiary shrink-0" />
+                                      <CopyButton value={item.pullRequest} field={`pr-${item.id}`} copied={copiedField} onCopy={handleCopy} />
+                                    </div>
+                                  ) : <span className="text-text-tertiary">—</span>}
+                                </InfoField>
+                                <InfoField label="Branch">
+                                  {item.branch ? (
+                                    <div className="flex items-center gap-2">
+                                      <code className="font-mono text-xs bg-surface-2 px-2 py-1 rounded flex-1 truncate">{item.branch}</code>
+                                      <CopyButton value={item.branch} field={`branch-${item.id}`} copied={copiedField} onCopy={handleCopy} />
+                                    </div>
+                                  ) : <span className="text-text-tertiary">—</span>}
+                                </InfoField>
+                                <InfoField label="Branch de origem">
+                                  {item.sourceBranch ? (
+                                    <div className="flex items-center gap-2">
+                                      <code className="font-mono text-xs bg-surface-2 px-2 py-1 rounded flex-1 truncate">{item.sourceBranch}</code>
+                                      <CopyButton value={item.sourceBranch} field={`sb-${item.id}`} copied={copiedField} onCopy={handleCopy} />
+                                    </div>
+                                  ) : <span className="text-text-tertiary">—</span>}
+                                </InfoField>
+                              </div>
+
+                              {item.notes && (
+                                <InfoField label="Observações">
+                                  <div
+                                    className="prose prose-sm dark:prose-invert max-w-none rounded-md border-l-2 border-warning-border bg-warning-soft/50 pl-3 py-2"
+                                    dangerouslySetInnerHTML={{ __html: item.notes }}
+                                  />
+                                </InfoField>
+                              )}
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InfoField label="Início">
+                                  <span className="font-medium tabular-nums">{formatDate(item.startedAt)}</span>
+                                </InfoField>
+                                <InfoField label="Fim">
+                                  <span className="font-medium tabular-nums">{formatDate(item.finishedAt)}</span>
+                                </InfoField>
+                              </div>
+
+                              <DeliveryAttachmentList
+                                deliveryItemId={item.id}
+                                readOnly={true}
+                                forceExpanded={false}
+                                className="border-t border-border-subtle pt-3"
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </Section>
+
+          <Section title="Anexos">
+            <button
+              type="button"
+              onClick={() => setAttachmentsExpanded(!attachmentsExpanded)}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-md border border-border-subtle hover:bg-surface-2 transition-colors"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
+                <Truck className="size-4 text-text-tertiary" />
+                Arquivos da entrega
+              </span>
+              {attachmentsExpanded
+                ? <ChevronDown className="size-4 text-text-tertiary" />
+                : <ChevronRight className="size-4 text-text-tertiary" />}
+            </button>
+            {attachmentsExpanded && (
+              <div className="mt-3 rounded-md border border-border-subtle p-4 bg-surface-app/40">
+                <DeliveryAttachmentList deliveryId={delivery.id} forceExpanded={true} readOnly={true} />
+              </div>
+            )}
+          </Section>
+
+          <Section title="Auditoria">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoField label="Criada em">
+                <div className="flex items-center gap-2">
+                  <Calendar className="size-3.5 text-text-tertiary" />
+                  <span className="font-medium tabular-nums">{formatDate(delivery.createdAt)}</span>
+                </div>
+              </InfoField>
+              <InfoField label="Última atualização">
+                <div className="flex items-center gap-2">
+                  <Calendar className="size-3.5 text-text-tertiary" />
+                  <span className="font-medium tabular-nums">{formatDate(delivery.updatedAt)}</span>
+                </div>
+              </InfoField>
+            </div>
+          </Section>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default DeliveryView
