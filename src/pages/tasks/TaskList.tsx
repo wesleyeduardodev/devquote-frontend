@@ -116,9 +116,9 @@ const TaskList: React.FC = () => {
   const navigate = useNavigate()
   const { hasAnyProfile } = useAuth() as any
   const {
-    tasks, pagination, loading, error, filters,
+    tasks, pagination, loading, error, filters, sorting,
     deleteTaskWithSubTasks, deleteBulkTasks,
-    setPage, setPageSize, setFilter, clearFilters,
+    setPage, setPageSize, setFilter, clearFilters, setSorting,
     exportToExcel, exportTasksOnlyToExcel,
   } = useTasks({ size: 25 })
 
@@ -182,6 +182,17 @@ const TaskList: React.FC = () => {
     return () => clearTimeout(t)
   }, [search])
 
+  // Adapter useTasks.sorting (field/direction) <-> TanStack SortingState (id/desc)
+  const tanstackSorting = React.useMemo(
+    () => (sorting || []).map((s: any) => ({ id: s.field, desc: s.direction === 'desc' })),
+    [sorting]
+  )
+  const handleSortingChange = React.useCallback((next: any) => {
+    if (!next || next.length === 0) return
+    const first = next[0]
+    setSorting(first.id, first.desc ? 'desc' : 'asc')
+  }, [setSorting])
+
   const selectedIds = React.useMemo(
     () => Object.keys(selection).filter((k) => selection[k]).map((k) => Number(k)),
     [selection]
@@ -195,7 +206,7 @@ const TaskList: React.FC = () => {
       cell: ({ row }) => <span className="font-mono text-[11px] text-text-tertiary">#{row.original.id}</span>,
     },
     {
-      id: 'code', accessorKey: 'code', header: 'Código', size: 110, meta: { align: 'center' },
+      id: 'code', accessorKey: 'code', header: 'Código', size: 110, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
           {row.original.code}
@@ -203,7 +214,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'flowType', accessorKey: 'flowType', header: 'Fluxo', size: 165, meta: { align: 'center' },
+      id: 'flowType', accessorKey: 'flowType', header: 'Fluxo', size: 165, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <FlowChip value={row.original.flowType} />
@@ -211,7 +222,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'taskType', accessorKey: 'taskType', header: 'Tipo', size: 180, meta: { align: 'center' },
+      id: 'taskType', accessorKey: 'taskType', header: 'Tipo', size: 180, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <TaskTypeLabel value={row.original.taskType} />
@@ -219,13 +230,13 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'environment', accessorKey: 'environment', header: 'Ambiente', size: 130, meta: { align: 'center' },
+      id: 'environment', accessorKey: 'environment', header: 'Ambiente', size: 130, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <span className="text-xs text-text-secondary">{(row.original as any).environment || '—'}</span>
       ),
     },
     {
-      id: 'link', accessorKey: 'link', header: 'Link', size: 220,
+      id: 'link', accessorKey: 'link', header: 'Link', size: 220, enableSorting: false,
       cell: ({ row }) => {
         const link = (row.original as any).link
         if (!link) return <span className="text-text-tertiary">—</span>
@@ -244,7 +255,7 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: 'title', accessorKey: 'title', header: 'Tarefa', meta: { wrap: true },
+      id: 'title', accessorKey: 'title', header: 'Tarefa', enableSorting: false, meta: { wrap: true },
       cell: ({ row }) => (
         <div className="flex flex-col min-w-0 py-1">
           <span className="text-text-primary font-medium leading-snug break-words">
@@ -257,7 +268,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'delivery', header: 'Entrega', size: 120, meta: { align: 'center' },
+      id: 'delivery', header: 'Entrega', size: 120, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <StatusPill on={!!row.original.hasDelivery} onLabel="Entrega" offLabel="Sem entrega" tone="info" />
@@ -265,7 +276,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'billing', header: 'Faturamento', size: 125, meta: { align: 'center' },
+      id: 'billing', header: 'Faturamento', size: 125, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <StatusPill on={!!row.original.hasQuoteInBilling} onLabel="Faturado" offLabel="Sem fatura" tone="success" />
@@ -273,7 +284,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      id: 'amount', accessorKey: 'amount', header: 'Valor', size: 100, meta: { align: 'center' },
+      id: 'amount', accessorKey: 'amount', header: 'Valor', size: 100, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => {
         const v = row.original.amount ?? 0
         return (
@@ -284,7 +295,7 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: 'createdAt', accessorKey: 'createdAt', header: 'Criada em', size: 130, meta: { align: 'center' },
+      id: 'createdAt', accessorKey: 'createdAt', header: 'Criada em', size: 130, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => {
         const d = (row.original as any).createdAt
         if (!d) return <span className="text-text-tertiary">—</span>
@@ -292,7 +303,7 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: 'updatedAt', accessorKey: 'updatedAt', header: 'Atualizada em', size: 140, meta: { align: 'center' },
+      id: 'updatedAt', accessorKey: 'updatedAt', header: 'Atualizada em', size: 140, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => {
         const d = (row.original as any).updatedAt
         if (!d) return <span className="text-text-tertiary">—</span>
@@ -300,7 +311,7 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 140,
+      id: '__actions', header: '', size: 140, enableSorting: false,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           {/* Primárias: visualizar + editar */}
@@ -453,6 +464,8 @@ const TaskList: React.FC = () => {
         <DataTable<Task>
           data={tasks as any[]}
           columns={columns}
+          sorting={tanstackSorting}
+          onSortingChange={handleSortingChange}
           columnFilters={{
             id: {
               type: 'number',

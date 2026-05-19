@@ -91,6 +91,8 @@ export function DataTable<T>({
     data,
     columns: finalColumns,
     getCoreRowModel: getCoreRowModel(),
+    enableSortingRemoval: false,
+    enableMultiSort: false,
     state: {
       sorting: sorting ?? [],
       rowSelection: selection ?? {},
