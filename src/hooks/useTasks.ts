@@ -142,20 +142,26 @@ export const useTasks = (initialParams?: UseTasksParams): UseTasksReturn => {
             const sort = params?.sort ?? sorting;
             const currentFilters = params?.filters ?? filters;
 
-            const convertDateFormat = (dateStr: string): string | undefined => {
+            // Normaliza datas pro formato ISO YYYY-MM-DD esperado pelo backend.
+            // Aceita: YYYY-MM-DD (input nativo de date) e DD/MM/YYYY (chip ou digitação).
+            const toIsoDate = (dateStr: string): string | undefined => {
                 if (!dateStr || dateStr.length !== 10) return undefined;
-                const [day, month, year] = dateStr.split('/');
-                return `${year}-${month}-${day}`;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr; // já ISO
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+                    const [day, month, year] = dateStr.split('/');
+                    return `${year}-${month}-${day}`;
+                }
+                return undefined;
             };
 
             const processedFilters = { ...currentFilters };
             if (currentFilters.startDate) {
-                const converted = convertDateFormat(currentFilters.startDate);
-                if (converted) processedFilters.startDate = converted;
+                const iso = toIsoDate(currentFilters.startDate);
+                if (iso) processedFilters.startDate = iso; else delete processedFilters.startDate;
             }
             if (currentFilters.endDate) {
-                const converted = convertDateFormat(currentFilters.endDate);
-                if (converted) processedFilters.endDate = converted;
+                const iso = toIsoDate(currentFilters.endDate);
+                if (iso) processedFilters.endDate = iso; else delete processedFilters.endDate;
             }
 
             const data = await taskService.getAllPaginated({

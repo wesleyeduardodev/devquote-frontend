@@ -50,6 +50,17 @@ interface Task {
 const brl = (n: number | null | undefined) =>
   (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
+// Formata ISO YYYY-MM-DD pra DD/MM/YYYY (display em chips). Aceita também já-formatado.
+const fmtDateBR = (s: string) => {
+  if (!s) return ''
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split('-')
+    return `${d}/${m}/${y}`
+  }
+  return s
+}
+
 const COLUMN_VISIBILITY_KEY = 'devquote.tasks.columns.v1'
 
 /** Configuração de quais colunas aparecem por default. Locked = não pode esconder. */
@@ -447,8 +458,8 @@ const TaskList: React.FC = () => {
   if (filters.environment)  chips.push({ key: 'env',          label: 'Ambiente',           value: String(filters.environment),                                                                                               onRemove: () => setFilter('environment', '') })
   if (filters.requesterId)  chips.push({ key: 'requester',    label: 'Solicitante',        value: `#${filters.requesterId}`,                                                                                                 onRemove: () => setFilter('requesterId', '') })
   if (filters.requesterName) chips.push({ key: 'requesterName', label: 'Nome solicitante', value: String(filters.requesterName),                                                                                            onRemove: () => setFilter('requesterName', '') })
-  if (filters.startDate)    chips.push({ key: 'startDate',    label: 'Criada a partir de', value: String(filters.startDate),                                                                                                 onRemove: () => setFilter('startDate', '') })
-  if (filters.endDate)      chips.push({ key: 'endDate',      label: 'Criada até',         value: String(filters.endDate),                                                                                                   onRemove: () => setFilter('endDate', '') })
+  if (filters.startDate)    chips.push({ key: 'startDate',    label: 'Criada a partir de', value: fmtDateBR(String(filters.startDate)),                                                                                     onRemove: () => setFilter('startDate', '') })
+  if (filters.endDate)      chips.push({ key: 'endDate',      label: 'Criada até',         value: fmtDateBR(String(filters.endDate)),                                                                                       onRemove: () => setFilter('endDate', '') })
   if (filters.hasDelivery !== undefined && filters.hasDelivery !== '') chips.push({ key: 'hasDelivery', label: 'Entrega', value: filters.hasDelivery === 'true' || filters.hasDelivery === true ? 'Sim' : 'Não', onRemove: () => setFilter('hasDelivery', '') })
   if (filters.hasQuoteInBilling !== undefined && filters.hasQuoteInBilling !== '') chips.push({ key: 'hasBilling', label: 'Faturamento', value: filters.hasQuoteInBilling === 'true' || filters.hasQuoteInBilling === true ? 'Sim' : 'Não', onRemove: () => setFilter('hasQuoteInBilling', '') })
 
@@ -643,12 +654,8 @@ const TaskList: React.FC = () => {
               onChange: (v) => setFilter('startDate', v),
               placeholder: '',
             },
-            updatedAt: {
-              type: 'date',
-              value: (filters.updatedAt as string) || '',
-              onChange: (v) => setFilter('updatedAt', v),
-              placeholder: '',
-            },
+            // updatedAt filtro inline removido — backend só suporta LIKE de string,
+            // não data. Pra filtrar por intervalo use Datas de criação no Sheet.
           }}
           rowKey={(r) => r.id}
           loading={loading}
