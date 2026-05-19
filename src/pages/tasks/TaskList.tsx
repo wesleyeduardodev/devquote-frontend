@@ -107,9 +107,9 @@ const TASK_TYPE_OPTIONS = [
 ]
 
 const ENV_OPTIONS = [
-  { value: 'DEV', label: 'Desenvolvimento' },
-  { value: 'HML', label: 'Homologação' },
-  { value: 'PROD', label: 'Produção' },
+  { value: 'DESENVOLVIMENTO', label: 'Desenvolvimento' },
+  { value: 'HOMOLOGACAO',     label: 'Homologação' },
+  { value: 'PRODUCAO',        label: 'Produção' },
 ]
 
 const PRIORITY_META: Record<string, { label: string; dot: string; text: string }> = {
@@ -1056,8 +1056,16 @@ const TaskList: React.FC = () => {
                   <SelectTrigger><SelectValue placeholder="Todos os fluxos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all">Todos os fluxos</SelectItem>
-                    <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
-                    <SelectItem value="OPERACIONAL">Operacional</SelectItem>
+                    <SelectItem value="DESENVOLVIMENTO">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Monitor className="size-3.5 text-[var(--info-strong)]" />Desenvolvimento
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="OPERACIONAL">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Settings2 className="size-3.5 text-[rgb(124,58,237)] dark:text-[rgb(196,181,253)]" />Operacional
+                      </span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </FilterField>
@@ -1066,7 +1074,18 @@ const TaskList: React.FC = () => {
                   <SelectTrigger><SelectValue placeholder="Todos os tipos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all">Todos os tipos</SelectItem>
-                    {TASK_TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    {TASK_TYPE_OPTIONS.map((o) => {
+                      const meta = TASK_TYPE_META[o.value]
+                      const Icon = meta?.Icon
+                      return (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="inline-flex items-center gap-1.5">
+                            {Icon && <Icon className={`size-3.5 ${meta.iconClass}`} />}
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               </FilterField>
@@ -1075,7 +1094,18 @@ const TaskList: React.FC = () => {
                   <SelectTrigger><SelectValue placeholder="Todos os ambientes" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all">Todos os ambientes</SelectItem>
-                    {ENV_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    {ENV_OPTIONS.map((o) => {
+                      const meta = ENV_META[o.value]
+                      const Icon = meta?.Icon
+                      return (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="inline-flex items-center gap-1.5">
+                            {Icon && <Icon className={`size-3.5 ${meta.iconClass}`} />}
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               </FilterField>
