@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, ListChecks, Mail, Eye,
-  Download, Search, Filter, Check, Minus, X
+  Download, Search, Filter, Check, X, Settings2, Lock
 } from 'lucide-react'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -26,6 +26,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-v2/Select'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 import { Sheet, SheetContent, SheetHeader, SheetBody, SheetFooter, SheetTitle, SheetDescription } from '@/components/ui-v2/Sheet'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui-v2/Popover'
 import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
 import { TaskTypeLabel } from '@/components/tasks/TaskTypeLabel'
 
@@ -46,6 +47,29 @@ interface Task {
 
 const brl = (n: number | null | undefined) =>
   (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+const COLUMN_VISIBILITY_KEY = 'devquote.tasks.columns.v1'
+
+/** Configuração de quais colunas aparecem por default. Locked = não pode esconder. */
+const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; locked?: boolean }> = [
+  { id: 'id',          label: 'ID',                  defaultVisible: true  },
+  { id: 'code',        label: 'Código',              defaultVisible: true  },
+  { id: 'flowType',    label: 'Fluxo',               defaultVisible: true  },
+  { id: 'taskType',    label: 'Tipo',                defaultVisible: true  },
+  { id: 'environment', label: 'Ambiente',            defaultVisible: false },
+  { id: 'link',        label: 'Link',                defaultVisible: false },
+  { id: 'title',       label: 'Tarefa',              defaultVisible: true, locked: true },
+  { id: 'delivery',    label: 'Entrega',             defaultVisible: true  },
+  { id: 'billing',     label: 'Faturamento',         defaultVisible: true  },
+  { id: 'amount',      label: 'Valor',               defaultVisible: true  },
+  { id: 'createdAt',   label: 'Criada em',           defaultVisible: false },
+  { id: 'updatedAt',   label: 'Atualizada em',       defaultVisible: false },
+]
+
+const DEFAULT_COLUMN_VISIBILITY: Record<string, boolean> = COLUMN_DEFS.reduce((acc, c) => {
+  acc[c.id] = c.defaultVisible
+  return acc
+}, {} as Record<string, boolean>)
 
 const TASK_TYPE_OPTIONS = [
   { value: 'BUG', label: 'Bug' },
@@ -103,6 +127,17 @@ const TaskList: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
   const [stats, setStats] = React.useState<{ total: number; totalWithoutDelivery: number; totalWithoutBilling: number } | null>(null)
+  const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return DEFAULT_COLUMN_VISIBILITY
+    try {
+      const saved = window.localStorage.getItem(COLUMN_VISIBILITY_KEY)
+      if (saved) return { ...DEFAULT_COLUMN_VISIBILITY, ...JSON.parse(saved) }
+    } catch {}
+    return DEFAULT_COLUMN_VISIBILITY
+  })
+  React.useEffect(() => {
+    try { window.localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(columnVisibility)) } catch {}
+  }, [columnVisibility])
 
   React.useEffect(() => {
     let cancelled = false
@@ -154,13 +189,13 @@ const TaskList: React.FC = () => {
 
   const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
 
-  const columns = React.useMemo<ColumnDef<Task, any>[]>(() => [
+  const allColumns = React.useMemo<ColumnDef<Task, any>[]>(() => [
     {
-      accessorKey: 'id', header: 'ID', size: 64, meta: { align: 'center' },
+      id: 'id', accessorKey: 'id', header: 'ID', size: 64, meta: { align: 'center' },
       cell: ({ row }) => <span className="font-mono text-[11px] text-text-tertiary">#{row.original.id}</span>,
     },
     {
-      accessorKey: 'code', header: 'Código', size: 110, meta: { align: 'center' },
+      id: 'code', accessorKey: 'code', header: 'Código', size: 110, meta: { align: 'center' },
       cell: ({ row }) => (
         <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
           {row.original.code}
@@ -168,7 +203,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      accessorKey: 'flowType', header: 'Fluxo', size: 165, meta: { align: 'center' },
+      id: 'flowType', accessorKey: 'flowType', header: 'Fluxo', size: 165, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <FlowChip value={row.original.flowType} />
@@ -176,7 +211,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      accessorKey: 'taskType', header: 'Tipo', size: 180, meta: { align: 'center' },
+      id: 'taskType', accessorKey: 'taskType', header: 'Tipo', size: 180, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <TaskTypeLabel value={row.original.taskType} />
@@ -184,7 +219,32 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      accessorKey: 'title', header: 'Tarefa', meta: { wrap: true },
+      id: 'environment', accessorKey: 'environment', header: 'Ambiente', size: 130, meta: { align: 'center' },
+      cell: ({ row }) => (
+        <span className="text-xs text-text-secondary">{(row.original as any).environment || '—'}</span>
+      ),
+    },
+    {
+      id: 'link', accessorKey: 'link', header: 'Link', size: 220,
+      cell: ({ row }) => {
+        const link = (row.original as any).link
+        if (!link) return <span className="text-text-tertiary">—</span>
+        return (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-accent hover:underline truncate block"
+            title={link}
+          >
+            {link}
+          </a>
+        )
+      },
+    },
+    {
+      id: 'title', accessorKey: 'title', header: 'Tarefa', meta: { wrap: true },
       cell: ({ row }) => (
         <div className="flex flex-col min-w-0 py-1">
           <span className="text-text-primary font-medium leading-snug break-words">
@@ -213,7 +273,7 @@ const TaskList: React.FC = () => {
       ),
     },
     {
-      accessorKey: 'amount', header: 'Valor', size: 100, meta: { align: 'center' },
+      id: 'amount', accessorKey: 'amount', header: 'Valor', size: 100, meta: { align: 'center' },
       cell: ({ row }) => {
         const v = row.original.amount ?? 0
         return (
@@ -221,6 +281,22 @@ const TaskList: React.FC = () => {
             {brl(v)}
           </span>
         )
+      },
+    },
+    {
+      id: 'createdAt', accessorKey: 'createdAt', header: 'Criada em', size: 130, meta: { align: 'center' },
+      cell: ({ row }) => {
+        const d = (row.original as any).createdAt
+        if (!d) return <span className="text-text-tertiary">—</span>
+        return <span className="text-xs text-text-secondary tabular-nums">{new Date(d).toLocaleDateString('pt-BR')}</span>
+      },
+    },
+    {
+      id: 'updatedAt', accessorKey: 'updatedAt', header: 'Atualizada em', size: 140, meta: { align: 'center' },
+      cell: ({ row }) => {
+        const d = (row.original as any).updatedAt
+        if (!d) return <span className="text-text-tertiary">—</span>
+        return <span className="text-xs text-text-secondary tabular-nums">{new Date(d).toLocaleDateString('pt-BR')}</span>
       },
     },
     {
@@ -283,6 +359,15 @@ const TaskList: React.FC = () => {
     },
   ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId])
 
+  /** Aplica visibilidade — mantém ordem do manifest. */
+  const columns = React.useMemo(() => {
+    const lookup = new Map(allColumns.map((c) => [c.id || (c as any).accessorKey, c]))
+    const visibleIds = COLUMN_DEFS.filter((d) => columnVisibility[d.id]).map((d) => d.id)
+    const ordered = visibleIds.map((id) => lookup.get(id)).filter(Boolean) as ColumnDef<Task, any>[]
+    const actionsCol = allColumns.find((c) => c.id === '__actions')
+    return actionsCol ? [...ordered, actionsCol] : ordered
+  }, [allColumns, columnVisibility])
+
   const [filtersOpen, setFiltersOpen] = React.useState(false)
 
   const chips: any[] = []
@@ -337,6 +422,7 @@ const TaskList: React.FC = () => {
         }
         actions={
           <>
+            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
@@ -438,6 +524,36 @@ const TaskList: React.FC = () => {
                   </SelectContent>
                 </Select>
               ),
+            },
+            environment: {
+              value: (filters.environment as string) || '',
+              onChange: (v) => setFilter('environment', v),
+              render: () => (
+                <Select value={(filters.environment as string) || '__all'} onValueChange={(v) => setFilter('environment', v === '__all' ? '' : v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all">Todos</SelectItem>
+                    {ENV_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ),
+            },
+            link: {
+              value: (filters.link as string) || '',
+              onChange: (v) => setFilter('link', v),
+              placeholder: 'URL...',
+            },
+            createdAt: {
+              type: 'date',
+              value: (filters.startDate as string) || '',
+              onChange: (v) => setFilter('startDate', v),
+              placeholder: '',
+            },
+            updatedAt: {
+              type: 'date',
+              value: (filters.updatedAt as string) || '',
+              onChange: (v) => setFilter('updatedAt', v),
+              placeholder: '',
             },
           }}
           rowKey={(r) => r.id}
@@ -719,6 +835,61 @@ const TaskList: React.FC = () => {
 }
 
 export default TaskList
+
+interface ColumnsMenuProps {
+  visibility: Record<string, boolean>
+  onChange: (next: Record<string, boolean>) => void
+}
+
+const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange }) => {
+  const setOne = (id: string, value: boolean) => onChange({ ...visibility, [id]: value })
+  const showAll = () => onChange(COLUMN_DEFS.reduce((acc, c) => { acc[c.id] = true; return acc }, {} as Record<string, boolean>))
+  const hideAll = () => onChange(COLUMN_DEFS.reduce((acc, c) => { acc[c.id] = !!c.locked; return acc }, {} as Record<string, boolean>))
+  const visibleCount = COLUMN_DEFS.filter((c) => visibility[c.id]).length
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="secondary" leadingIcon={<Settings2 />}>
+          Colunas
+          <span className="ml-1 text-text-tertiary tabular-nums">{visibleCount}/{COLUMN_DEFS.length}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[260px] p-0">
+        <div className="px-3 py-2 border-b border-border-subtle">
+          <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wide">Mostrar / ocultar colunas</p>
+        </div>
+        <ul className="max-h-[320px] overflow-y-auto py-1">
+          {COLUMN_DEFS.map((c) => {
+            const checked = !!visibility[c.id]
+            return (
+              <li key={c.id}>
+                <label
+                  className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-2 transition-colors ${c.locked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  title={c.locked ? 'Coluna obrigatória' : undefined}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={c.locked}
+                    onChange={(e) => !c.locked && setOne(c.id, e.target.checked)}
+                    className="size-4 rounded border-border-strong text-accent focus:ring-accent/30"
+                  />
+                  <span className={`flex-1 ${checked ? 'text-text-primary' : 'text-text-tertiary'}`}>{c.label}</span>
+                  {c.locked && <Lock className="size-3 text-text-tertiary" />}
+                </label>
+              </li>
+            )
+          })}
+        </ul>
+        <div className="flex gap-1 p-2 border-t border-border-subtle">
+          <Button size="sm" variant="ghost" className="flex-1" onClick={showAll}>Mostrar todas</Button>
+          <Button size="sm" variant="ghost" className="flex-1" onClick={hideAll}>Ocultar todas</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
 
 interface StatChipProps {
   label: string
