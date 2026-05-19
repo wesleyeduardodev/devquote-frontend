@@ -496,7 +496,30 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                 </SortableContext>
             </DndContext>
 
-            {/* Rodapé duplicado removido — heading no topo já mostra total e botão Adicionar */}
+            {/* Rodapé: total + adicionar (atalho pra evitar scroll quando lista é longa) */}
+            {watchSubTasks?.filter(st => !st?.excluded).length > 0 && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-border-subtle">
+                    <div className="text-sm text-text-secondary">
+                        {canViewValues && (
+                            <>
+                                <span className="text-text-tertiary">Total:</span>{' '}
+                                <span className="font-semibold text-text-primary tabular-nums">
+                                    {formatCurrency(calculateTotal())}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                    <Button
+                        type="button"
+                        size="sm"
+                        onClick={addSubTask}
+                        onMouseDown={(e) => e.preventDefault()}
+                    >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Adicionar Subtarefa
+                    </Button>
+                </div>
+            )}
 
             {watchSubTasks?.filter(st => !st?.excluded).length === 0 && (
                 <Card className="text-center py-8">
