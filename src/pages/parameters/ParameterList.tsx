@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Plus, Pencil, Trash2, MoreHorizontal, Settings, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Settings, AlertTriangle } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { useSystemParameters } from '@/hooks/useSystemParameters'
@@ -12,7 +12,6 @@ import { Skeleton } from '@/components/ui-v2/Skeleton'
 import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Search } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 import { SecretMask, isSensitiveParamName } from '@/components/parameters/SecretMask'
 import ParameterModal from './ParameterModal'
@@ -78,22 +77,20 @@ const ParameterList: React.FC = () => {
     { accessorKey: 'value', header: 'Valor', cell: ({ row }) => <SecretMask name={row.original.name} value={row.original.value} className="font-mono text-xs text-text-secondary" /> },
     { accessorKey: 'description', header: 'Descrição', cell: ({ row }) => <span className="text-text-secondary truncate">{row.original.description || '—'}</span> },
     {
-      id: '__actions', header: '', size: 80,
+      id: '__actions', header: 'Ações', size: 110, meta: { align: 'center' },
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(row.original.id)} aria-label="Editar"><Pencil /></Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setEditingId(row.original.id)}><Pencil />Editar</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}>
-                <Trash2 />Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(row.original.id)} aria-label="Editar" title="Editar"><Pencil /></Button>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
+            aria-label="Excluir"
+            title="Excluir"
+            className="text-text-secondary hover:text-[var(--danger-strong)]"
+          >
+            <Trash2 />
+          </Button>
         </div>
       ),
     },
@@ -165,21 +162,23 @@ const ParameterList: React.FC = () => {
           <EmptyState icon={<Settings />} title="Nenhum parâmetro" description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie o primeiro.'} actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo</Button>} />
         )}
         {!loading && systemParameters.map((p: any) => (
-          <button
-            key={p.id}
-            onClick={() => setEditingId(p.id)}
-            className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-sm text-text-primary truncate">{p.name}</span>
-              {isSensitiveParamName(p.name) && (
-                <Badge variant="warning" size="sm"><AlertTriangle className="size-3" /></Badge>
-              )}
+          <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+            <button onClick={() => setEditingId(p.id)} className="w-full text-left">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-mono text-sm text-text-primary truncate">{p.name}</span>
+                {isSensitiveParamName(p.name) && (
+                  <Badge variant="warning" size="sm"><AlertTriangle className="size-3" /></Badge>
+                )}
+              </div>
+              <div className="text-xs text-text-tertiary mb-1">{inferCategory(p.name)}</div>
+              <SecretMask name={p.name} value={p.value} className="text-xs font-mono text-text-secondary" />
+              {p.description && <div className="text-xs text-text-secondary mt-1 line-clamp-1">{p.description}</div>}
+            </button>
+            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(p.id)} aria-label="Editar" title="Editar"><Pencil /></Button>
+              <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ kind: 'one', ids: [p.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
             </div>
-            <div className="text-xs text-text-tertiary mb-1">{inferCategory(p.name)}</div>
-            <SecretMask name={p.name} value={p.value} className="text-xs font-mono text-text-secondary" />
-            {p.description && <div className="text-xs text-text-secondary mt-1 line-clamp-1">{p.description}</div>}
-          </button>
+          </div>
         ))}
       </div>
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, MoreHorizontal, FolderKanban, ExternalLink, Github } from 'lucide-react'
+import { Plus, Pencil, Trash2, FolderKanban, ExternalLink, Github } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { useProjects } from '@/hooks/useProjects'
@@ -13,7 +13,6 @@ import { Skeleton } from '@/components/ui-v2/Skeleton'
 import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Search } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 
 interface Project { id: number; name: string; repositoryUrl?: string }
@@ -71,25 +70,24 @@ const ProjectList: React.FC = () => {
     },
     {
       id: '__actions',
-      header: '',
-      size: 80,
+      header: 'Ações',
+      size: 110,
+      meta: { align: 'center' },
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/projects/${row.original.id}/edit`)} aria-label="Editar">
+        <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/projects/${row.original.id}/edit`)} aria-label="Editar" title="Editar">
             <Pencil />
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => navigate(`/projects/${row.original.id}/edit`)}><Pencil />Editar</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}>
-                <Trash2 />Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
+            aria-label="Excluir"
+            title="Excluir"
+            className="text-text-secondary hover:text-[var(--danger-strong)]"
+          >
+            <Trash2 />
+          </Button>
         </div>
       ),
     },
@@ -171,21 +169,23 @@ const ProjectList: React.FC = () => {
           />
         )}
         {!loading && projects.map((p: any) => (
-          <button
-            key={p.id}
-            onClick={() => navigate(`/projects/${p.id}/edit`)}
-            className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <span className="font-medium text-text-primary truncate">{p.name}</span>
-              <Badge size="sm">#{p.id}</Badge>
-            </div>
-            {p.repositoryUrl && (
-              <div className="flex items-center gap-1.5 text-xs text-text-secondary truncate">
-                <Github className="size-3 shrink-0" />{p.repositoryUrl.replace(/^https?:\/\//, '')}
+          <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+            <button onClick={() => navigate(`/projects/${p.id}/edit`)} className="w-full text-left">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <span className="font-medium text-text-primary truncate">{p.name}</span>
+                <Badge size="sm">#{p.id}</Badge>
               </div>
-            )}
-          </button>
+              {p.repositoryUrl && (
+                <div className="flex items-center gap-1.5 text-xs text-text-secondary truncate">
+                  <Github className="size-3 shrink-0" />{p.repositoryUrl.replace(/^https?:\/\//, '')}
+                </div>
+              )}
+            </button>
+            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/projects/${p.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
+              <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ kind: 'one', ids: [p.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
+            </div>
+          </div>
         ))}
       </div>
 

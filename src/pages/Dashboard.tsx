@@ -195,7 +195,8 @@ const TO_RECEIVE_STATUSES = ['PENDENTE', 'FATURADO', 'ATRASADO']
 
 const Dashboard: React.FC = () => {
   const { stats: dash, loading: dashLoading } = useDashboard()
-  const { user } = useAuth() as any
+  const { user, hasProfile } = useAuth() as any
+  const isAdmin = hasProfile ? hasProfile('ADMIN') : false
   const firstName = (user?.name || user?.username || 'Usuário').split(' ')[0]
 
   const [periods, setPeriods] = React.useState<any[]>([])
@@ -265,16 +266,16 @@ const Dashboard: React.FC = () => {
     return { segments, total: dlvStats.total ?? 0 }
   }, [dlvStats])
 
-  // Requer atenção — itens reais
+  // Requer atenção — itens reais (itens de faturamento só para ADMIN)
   const attentionItems = React.useMemo<AttentionItem[]>(() => {
     const items: AttentionItem[] = []
-    if (billing.overdueCount > 0) items.push({ icon: <Clock />, label: `${billing.overdueCount} fatura(s) atrasada(s)`, href: '/billing' })
+    if (isAdmin && billing.overdueCount > 0) items.push({ icon: <Clock />, label: `${billing.overdueCount} fatura(s) atrasada(s)`, href: '/billing' })
     if ((taskStats?.totalWithoutDelivery ?? 0) > 0) items.push({ icon: <Inbox />, label: `${taskStats!.totalWithoutDelivery} tarefa(s) sem entrega`, href: '/tasks' })
-    if ((taskStats?.totalWithoutBilling ?? 0) > 0) items.push({ icon: <Link2Off />, label: `${taskStats!.totalWithoutBilling} tarefa(s) sem faturamento`, href: '/billing' })
+    if (isAdmin && (taskStats?.totalWithoutBilling ?? 0) > 0) items.push({ icon: <Link2Off />, label: `${taskStats!.totalWithoutBilling} tarefa(s) sem faturamento`, href: '/billing' })
     if ((dlvStats?.totalWithoutItems ?? 0) > 0) items.push({ icon: <FileWarning />, label: `${dlvStats.totalWithoutItems} entrega(s) sem itens`, href: '/deliveries' })
     if ((dlvStats?.totalRejected ?? 0) > 0) items.push({ icon: <AlertTriangle />, label: `${dlvStats.totalRejected} entrega(s) rejeitada(s)`, href: '/deliveries' })
     return items
-  }, [billing, taskStats, dlvStats])
+  }, [isAdmin, billing, taskStats, dlvStats])
 
   return (
     <div className="space-y-6">
@@ -288,42 +289,85 @@ const Dashboard: React.FC = () => {
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          label="A receber"
-          value={brl(billing.toReceive)}
-          tone="info"
-          icon={<DollarSign />}
-          hint="Pendente + Faturado + Atrasado"
-          to="/billing"
-          loading={loading}
-        />
-        <KpiCard
-          label="Recebido"
-          value={brl(billing.received)}
-          tone="success"
-          icon={<CheckCircle2 />}
-          hint={`${brl(billing.total)} faturado no total`}
-          to="/billing"
-          loading={loading}
-        />
-        <KpiCard
-          label="Tarefas sem entrega"
-          value={(taskStats?.totalWithoutDelivery ?? 0).toLocaleString('pt-BR')}
-          tone={(taskStats?.totalWithoutDelivery ?? 0) > 0 ? 'danger' : 'neutral'}
-          icon={<Truck />}
-          hint="Aguardando criação de entrega"
-          to="/tasks"
-          loading={loading}
-        />
-        <KpiCard
-          label="Tarefas sem faturamento"
-          value={(taskStats?.totalWithoutBilling ?? 0).toLocaleString('pt-BR')}
-          tone={(taskStats?.totalWithoutBilling ?? 0) > 0 ? 'warning' : 'neutral'}
-          icon={<DollarSign />}
-          hint="Ainda não vinculadas a um período"
-          to="/billing"
-          loading={loading}
-        />
+        {isAdmin ? (
+          <>
+            <KpiCard
+              label="A receber"
+              value={brl(billing.toReceive)}
+              tone="info"
+              icon={<DollarSign />}
+              hint="Pendente + Faturado + Atrasado"
+              to="/billing"
+              loading={loading}
+            />
+            <KpiCard
+              label="Recebido"
+              value={brl(billing.received)}
+              tone="success"
+              icon={<CheckCircle2 />}
+              hint={`${brl(billing.total)} faturado no total`}
+              to="/billing"
+              loading={loading}
+            />
+            <KpiCard
+              label="Tarefas sem entrega"
+              value={(taskStats?.totalWithoutDelivery ?? 0).toLocaleString('pt-BR')}
+              tone={(taskStats?.totalWithoutDelivery ?? 0) > 0 ? 'danger' : 'neutral'}
+              icon={<Truck />}
+              hint="Aguardando criação de entrega"
+              to="/tasks"
+              loading={loading}
+            />
+            <KpiCard
+              label="Tarefas sem faturamento"
+              value={(taskStats?.totalWithoutBilling ?? 0).toLocaleString('pt-BR')}
+              tone={(taskStats?.totalWithoutBilling ?? 0) > 0 ? 'warning' : 'neutral'}
+              icon={<DollarSign />}
+              hint="Ainda não vinculadas a um período"
+              to="/billing"
+              loading={loading}
+            />
+          </>
+        ) : (
+          <>
+            <KpiCard
+              label="Tarefas sem entrega"
+              value={(taskStats?.totalWithoutDelivery ?? 0).toLocaleString('pt-BR')}
+              tone={(taskStats?.totalWithoutDelivery ?? 0) > 0 ? 'danger' : 'neutral'}
+              icon={<Truck />}
+              hint="Aguardando criação de entrega"
+              to="/tasks"
+              loading={loading}
+            />
+            <KpiCard
+              label="Entregas em produção"
+              value={(dlvStats?.totalProduction ?? 0).toLocaleString('pt-BR')}
+              tone="success"
+              icon={<CheckCircle2 />}
+              hint="Concluídas em produção"
+              to="/deliveries"
+              loading={loading}
+            />
+            <KpiCard
+              label="Entregas sem itens"
+              value={(dlvStats?.totalWithoutItems ?? 0).toLocaleString('pt-BR')}
+              tone={(dlvStats?.totalWithoutItems ?? 0) > 0 ? 'warning' : 'neutral'}
+              icon={<FileWarning />}
+              hint="Aguardando itens"
+              to="/deliveries"
+              loading={loading}
+            />
+            <KpiCard
+              label="Entregas rejeitadas"
+              value={(dlvStats?.totalRejected ?? 0).toLocaleString('pt-BR')}
+              tone={(dlvStats?.totalRejected ?? 0) > 0 ? 'danger' : 'neutral'}
+              icon={<AlertTriangle />}
+              hint="Requerem correção"
+              to="/deliveries"
+              loading={loading}
+            />
+          </>
+        )}
       </section>
 
       {/* Atenção */}
@@ -338,19 +382,21 @@ const Dashboard: React.FC = () => {
         )}
       </section>
 
-      {/* Trend + Activity */}
+      {/* Trend (só ADMIN) + Activity */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Faturamento por período</CardTitle>
-            <CardDescription>Valor total por mês de faturamento</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={trend} loading={loading} />
-          </CardContent>
-        </Card>
+        {isAdmin && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Faturamento por período</CardTitle>
+              <CardDescription>Valor total por mês de faturamento</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TrendChart data={trend} loading={loading} />
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
+        <Card className={isAdmin ? '' : 'lg:col-span-3'}>
           <CardHeader>
             <CardTitle>Atividade recente</CardTitle>
             <CardDescription>Últimos eventos no sistema</CardDescription>

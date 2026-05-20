@@ -185,7 +185,8 @@ const StatusPill: React.FC<{ status?: string }> = ({ status }) => {
 
 const DeliveryList: React.FC = () => {
   const navigate = useNavigate()
-  const { hasAnyProfile } = useAuth() as any
+  const { hasAnyProfile, hasProfile } = useAuth() as any
+  const isAdmin = hasProfile ? hasProfile('ADMIN') : true
   const {
     deliveries, pagination, loading, error, filters, sorting, stats, totalAmount,
     deleteBulk,
@@ -444,14 +445,17 @@ const DeliveryList: React.FC = () => {
     },
   ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId])
 
-  /** Aplica visibilidade — mantém ordem do manifest. */
+  /** Aplica visibilidade — mantém ordem do manifest. Valor é restrito a ADMIN. */
   const columns = React.useMemo(() => {
     const lookup = new Map(allColumns.map((c) => [c.id || (c as any).accessorKey, c]))
-    const visibleIds = COLUMN_DEFS.filter((d) => columnVisibility[d.id]).map((d) => d.id)
+    const visibleIds = COLUMN_DEFS
+      .filter((d) => columnVisibility[d.id])
+      .filter((d) => isAdmin || d.id !== 'taskValue')
+      .map((d) => d.id)
     const ordered = visibleIds.map((id) => lookup.get(id)).filter(Boolean) as ColumnDef<Delivery, any>[]
     const actionsCol = allColumns.find((c) => c.id === '__actions')
     return actionsCol ? [...ordered, actionsCol] : ordered
-  }, [allColumns, columnVisibility])
+  }, [allColumns, columnVisibility, isAdmin])
 
   const chips: any[] = []
   if (filters.id !== undefined && filters.id !== '')               chips.push({ key: 'id',          label: 'ID',          value: String(filters.id),                                                                                            onRemove: () => setFilter('id', '') })
@@ -523,7 +527,7 @@ const DeliveryList: React.FC = () => {
         }
         actions={
           <>
-            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} />
+            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={isAdmin ? COLUMN_DEFS : COLUMN_DEFS.filter((d) => d.id !== 'taskValue')} />
             <Button variant="secondary" leadingIcon={<RefreshCw className={syncing ? 'animate-spin' : ''} />} onClick={handleSync} loading={syncing}>
               Sincronizar
             </Button>
@@ -532,8 +536,8 @@ const DeliveryList: React.FC = () => {
                 <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => exportToExcel().catch(() => {})}>Tudo</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel().catch(() => {})}>Só entregas</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportToExcel(filters.flowType, isAdmin).catch(() => {})}>Tudo</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel(isAdmin).catch(() => {})}>Só entregas</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             {canCRUD && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
@@ -730,14 +734,16 @@ const DeliveryList: React.FC = () => {
                     <span className="font-medium text-text-primary tabular-nums">{totalRows.toLocaleString('pt-BR')}</span>
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-text-tertiary">{hasActiveFilters ? 'Soma filtrada:' : 'Soma total:'}</span>
-                  <span className="text-sm font-semibold text-text-primary tabular-nums">
-                    {totalAmount === null
-                      ? <span className="inline-block w-20 h-4 rounded bg-surface-2 animate-pulse" aria-label="Carregando…" />
-                      : brl(totalAmount)}
-                  </span>
-                </div>
+                {isAdmin && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-text-tertiary">{hasActiveFilters ? 'Soma filtrada:' : 'Soma total:'}</span>
+                    <span className="text-sm font-semibold text-text-primary tabular-nums">
+                      {totalAmount === null
+                        ? <span className="inline-block w-20 h-4 rounded bg-surface-2 animate-pulse" aria-label="Carregando…" />
+                        : brl(totalAmount)}
+                    </span>
+                  </div>
+                )}
               </div>
             )
           })()}
@@ -787,7 +793,7 @@ const DeliveryList: React.FC = () => {
                   <span className="font-mono text-xs text-text-secondary truncate">{d.taskCode}</span>
                 )}
               </div>
-              <span className="text-sm font-medium tabular-nums shrink-0 text-text-primary">{brl(d.taskValue)}</span>
+              {isAdmin && <span className="text-sm font-medium tabular-nums shrink-0 text-text-primary">{brl(d.taskValue)}</span>}
             </div>
             <button onClick={() => navigate(`/deliveries/${d.id}`)} className="w-full text-left">
               <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{d.taskName}</p>
@@ -1037,22 +1043,23 @@ export default DeliveryList
 interface ColumnsMenuProps {
   visibility: Record<string, boolean>
   onChange: (next: Record<string, boolean>) => void
+  defs?: typeof COLUMN_DEFS
 }
 
-const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange }) => {
+const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange, defs = COLUMN_DEFS }) => {
   const setOne = (id: string, value: boolean) => onChange({ ...visibility, [id]: value })
-  const showAll = () => onChange(COLUMN_DEFS.reduce((acc, c) => { acc[c.id] = true; return acc }, {} as Record<string, boolean>))
-  const hideAll = () => onChange(COLUMN_DEFS.reduce((acc, c) => { acc[c.id] = !!c.locked; return acc }, {} as Record<string, boolean>))
+  const showAll = () => onChange(defs.reduce((acc, c) => { acc[c.id] = true; return acc }, {} as Record<string, boolean>))
+  const hideAll = () => onChange(defs.reduce((acc, c) => { acc[c.id] = !!c.locked; return acc }, {} as Record<string, boolean>))
   const resetDefault = () => onChange({ ...DEFAULT_COLUMN_VISIBILITY })
-  const visibleCount = COLUMN_DEFS.filter((c) => visibility[c.id]).length
-  const isDefault = COLUMN_DEFS.every((c) => !!visibility[c.id] === c.defaultVisible)
+  const visibleCount = defs.filter((c) => visibility[c.id]).length
+  const isDefault = defs.every((c) => !!visibility[c.id] === c.defaultVisible)
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="secondary" leadingIcon={<Settings2 />}>
           Colunas
-          <span className="ml-1 text-text-tertiary tabular-nums">{visibleCount}/{COLUMN_DEFS.length}</span>
+          <span className="ml-1 text-text-tertiary tabular-nums">{visibleCount}/{defs.length}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[260px] p-0">
@@ -1060,7 +1067,7 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange }) => {
           <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wide">Mostrar / ocultar colunas</p>
         </div>
         <ul className="max-h-[320px] overflow-y-auto py-1">
-          {COLUMN_DEFS.map((c) => {
+          {defs.map((c) => {
             const checked = !!visibility[c.id]
             return (
               <li key={c.id}>

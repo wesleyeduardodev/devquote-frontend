@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, MoreHorizontal, Users, Mail, Phone } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Mail, Phone } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { useRequesters } from '@/hooks/useRequesters'
@@ -13,7 +13,6 @@ import { Skeleton } from '@/components/ui-v2/Skeleton'
 import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Search } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 
 interface Requester { id: number; name: string; email?: string; phone?: string }
@@ -72,27 +71,24 @@ const RequesterList: React.FC = () => {
     },
     {
       id: '__actions',
-      header: '',
-      size: 80,
+      header: 'Ações',
+      size: 110,
+      meta: { align: 'center' },
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/requesters/${row.original.id}/edit`)} aria-label="Editar">
+        <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/requesters/${row.original.id}/edit`)} aria-label="Editar" title="Editar">
             <Pencil />
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => navigate(`/requesters/${row.original.id}/edit`)}>
-                <Pencil />Editar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}>
-                <Trash2 />Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
+            aria-label="Excluir"
+            title="Excluir"
+            className="text-text-secondary hover:text-[var(--danger-strong)]"
+          >
+            <Trash2 />
+          </Button>
         </div>
       ),
     },
@@ -183,26 +179,28 @@ const RequesterList: React.FC = () => {
           />
         )}
         {!loading && requesters.map((r: any) => (
-          <button
-            key={r.id}
-            onClick={() => navigate(`/requesters/${r.id}/edit`)}
-            className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <span className="font-medium text-text-primary truncate">{r.name}</span>
-              <Badge size="sm">#{r.id}</Badge>
+          <div key={r.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+            <button onClick={() => navigate(`/requesters/${r.id}/edit`)} className="w-full text-left">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <span className="font-medium text-text-primary truncate">{r.name}</span>
+                <Badge size="sm">#{r.id}</Badge>
+              </div>
+              {r.email && (
+                <div className="flex items-center gap-1.5 text-xs text-text-secondary truncate">
+                  <Mail className="size-3 shrink-0" />{r.email}
+                </div>
+              )}
+              {r.phone && (
+                <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5">
+                  <Phone className="size-3 shrink-0" />{r.phone}
+                </div>
+              )}
+            </button>
+            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/requesters/${r.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
+              <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ kind: 'one', ids: [r.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
             </div>
-            {r.email && (
-              <div className="flex items-center gap-1.5 text-xs text-text-secondary truncate">
-                <Mail className="size-3 shrink-0" />{r.email}
-              </div>
-            )}
-            {r.phone && (
-              <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5">
-                <Phone className="size-3 shrink-0" />{r.phone}
-              </div>
-            )}
-          </button>
+          </div>
         ))}
       </div>
 

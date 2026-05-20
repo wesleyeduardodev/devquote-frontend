@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Plus, Pencil, Trash2, MoreHorizontal, Bell, Mail, MessageSquare, Smartphone } from 'lucide-react'
+import { Plus, Pencil, Trash2, Bell, Mail, MessageSquare, Smartphone } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { useNotificationConfigs, NotificationConfigType, NotificationType } from '@/hooks/useNotificationConfigs'
@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui-v2/Badge'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
 import { Skeleton } from '@/components/ui-v2/Skeleton'
 import { DataTable, DataTableBulkBar } from '@/components/ui-v2/DataTable'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui-v2/DropdownMenu'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 import NotificationModal from './NotificationModal'
 
@@ -104,23 +103,22 @@ const NotificationList: React.FC = () => {
     },
     {
       id: '__actions',
-      header: '',
-      size: 80,
+      header: 'Ações',
+      size: 110,
+      meta: { align: 'center' },
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-          <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(row.original.id)} aria-label="Editar"><Pencil /></Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon-sm" variant="ghost" aria-label="Mais ações"><MoreHorizontal /></Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setEditingId(row.original.id)}><Pencil />Editar</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="danger" onSelect={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}>
-                <Trash2 />Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(row.original.id)} aria-label="Editar" title="Editar"><Pencil /></Button>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setConfirmDelete({ kind: 'one', ids: [row.original.id] })}
+            aria-label="Excluir"
+            title="Excluir"
+            className="text-text-secondary hover:text-[var(--danger-strong)]"
+          >
+            <Trash2 />
+          </Button>
         </div>
       ),
     },
@@ -184,19 +182,21 @@ const NotificationList: React.FC = () => {
           const meta = CHANNEL_META[n.notificationType] || { label: n.notificationType, icon: Bell }
           const Icon = meta.icon
           return (
-            <button
-              key={n.id}
-              onClick={() => setEditingId(n.id)}
-              className="w-full text-left rounded-lg border border-border-subtle bg-surface-1 p-4 hover:bg-surface-2 transition-colors"
-            >
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <span className="font-medium text-text-primary truncate">{CONFIG_TYPE_LABELS[n.configType] || n.configType}</span>
-                <Badge variant="info" size="sm"><Icon className="size-3" />{meta.label}</Badge>
+            <div key={n.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+              <button onClick={() => setEditingId(n.id)} className="w-full text-left">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <span className="font-medium text-text-primary truncate">{CONFIG_TYPE_LABELS[n.configType] || n.configType}</span>
+                  <Badge variant="info" size="sm"><Icon className="size-3" />{meta.label}</Badge>
+                </div>
+                <div className="text-xs text-text-secondary truncate">
+                  {n.useRequesterContact ? <em>Contato do solicitante</em> : (n.primaryEmail || n.primaryPhone || '—')}
+                </div>
+              </button>
+              <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+                <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(n.id)} aria-label="Editar" title="Editar"><Pencil /></Button>
+                <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ kind: 'one', ids: [n.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
               </div>
-              <div className="text-xs text-text-secondary truncate">
-                {n.useRequesterContact ? <em>Contato do solicitante</em> : (n.primaryEmail || n.primaryPhone || '—')}
-              </div>
-            </button>
+            </div>
           )
         })}
       </div>
