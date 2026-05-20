@@ -50,9 +50,13 @@ export interface Delivery extends BaseEntity {
 export interface DeliveryStatsSummary {
     total: number;
     totalPending: number;
-    totalInProgress: number;
+    totalDevelopment: number;
+    totalDelivered: number;
+    totalHomologation: number;
+    totalApproved: number;
     totalRejected: number;
     totalProduction: number;
+    totalCancelled: number;
     totalWithoutItems: number;
 }
 
@@ -145,6 +149,7 @@ export interface DeliveryFilters {
     endDate?: string;
     createdAt?: string;
     updatedAt?: string;
+    hasItems?: string;
 }
 
 export interface DeliveryItemFilters {

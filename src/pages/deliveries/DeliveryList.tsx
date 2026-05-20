@@ -20,11 +20,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui-v2/DropdownMenu'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui-v2/Select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui-v2/Select'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 import { Sheet, SheetContent, SheetHeader, SheetBody, SheetFooter, SheetTitle, SheetDescription } from '@/components/ui-v2/Sheet'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui-v2/Popover'
-import { DeliveryStatusBadge, STATUS_LABEL } from '@/components/deliveries/DeliveryStatusBadge'
+import { STATUS_LABEL } from '@/components/deliveries/DeliveryStatusBadge'
 import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
 import { TaskTypeLabel, TASK_TYPE_META } from '@/components/tasks/TaskTypeLabel'
 import { EnvLabel, ENV_META } from '@/components/deliveries/EnvLabel'
@@ -72,6 +72,16 @@ const fmtDateTimeBR = (s?: string) => {
   const d = new Date(s)
   if (isNaN(d.getTime())) return '—'
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+// Formato compacto pras colunas estreitas da lista: 16/05/26 19:05
+const fmtDateTimeCompact = (s?: string) => {
+  if (!s) return '—'
+  const d = new Date(s)
+  if (isNaN(d.getTime())) return '—'
+  const date = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return `${date} ${time}`
 }
 
 const COLUMN_VISIBILITY_KEY = 'devquote.deliveries.columns.v2'
@@ -127,6 +137,49 @@ const STATUS_OPTIONS = [
   { value: 'PRODUCTION' },
   { value: 'CANCELLED' },
 ]
+
+const STATUS_PILL: Record<string, string> = {
+  PENDING:      'bg-warning-soft text-[var(--warning-strong)] border-warning-border',
+  DEVELOPMENT:  'bg-info-soft text-[var(--info-strong)] border-info-border',
+  DELIVERED:    'bg-success-soft text-[var(--success-strong)] border-success-border',
+  HOMOLOGATION: 'bg-warning-soft text-[var(--warning-strong)] border-warning-border',
+  APPROVED:     'bg-success-soft text-[var(--success-strong)] border-success-border',
+  REJECTED:     'bg-danger-soft text-[var(--danger-strong)] border-danger-border',
+  PRODUCTION:   'bg-[rgba(139,92,246,0.10)] text-[rgb(124,58,237)] border-[rgba(139,92,246,0.30)] dark:text-[rgb(196,181,253)]',
+  CANCELLED:    'bg-surface-2 text-text-tertiary border-border-subtle',
+}
+
+const STATUS_STAT_KEY: Record<string, string> = {
+  PENDING:      'totalPending',
+  DEVELOPMENT:  'totalDevelopment',
+  DELIVERED:    'totalDelivered',
+  HOMOLOGATION: 'totalHomologation',
+  APPROVED:     'totalApproved',
+  REJECTED:     'totalRejected',
+  PRODUCTION:   'totalProduction',
+  CANCELLED:    'totalCancelled',
+}
+
+const STATUS_DOT: Record<string, string> = {
+  PENDING:      'bg-[var(--warning-strong)]',
+  DEVELOPMENT:  'bg-[var(--info-strong)]',
+  DELIVERED:    'bg-[var(--success-strong)]',
+  HOMOLOGATION: 'bg-[var(--warning-strong)]',
+  APPROVED:     'bg-[var(--success-strong)]',
+  REJECTED:     'bg-[var(--danger-strong)]',
+  PRODUCTION:   'bg-[rgb(124,58,237)]',
+  CANCELLED:    'bg-text-tertiary',
+}
+
+const StatusPill: React.FC<{ status?: string }> = ({ status }) => {
+  if (!status) return <span className="text-text-tertiary">—</span>
+  const cls = STATUS_PILL[status] || 'bg-surface-2 text-text-secondary border-border-subtle'
+  return (
+    <span className={`inline-flex items-center justify-center h-6 px-2.5 rounded-full text-xs font-semibold border ${cls}`}>
+      {STATUS_LABEL[status] || status}
+    </span>
+  )
+}
 
 const DeliveryList: React.FC = () => {
   const navigate = useNavigate()
@@ -236,7 +289,7 @@ const DeliveryList: React.FC = () => {
       ),
     },
     {
-      id: 'taskName', accessorKey: 'taskName', header: 'Tarefa', size: 440, enableSorting: false, meta: { wrap: true },
+      id: 'taskName', accessorKey: 'taskName', header: 'Tarefa', size: 540, enableSorting: false, meta: { wrap: true },
       cell: ({ row }) => (
         <div className="flex flex-col min-w-0 py-1">
           <span className="text-text-primary font-medium leading-snug break-words">
@@ -252,24 +305,26 @@ const DeliveryList: React.FC = () => {
       ),
     },
     {
-      id: 'status', accessorKey: 'status', header: 'Status', size: 200, enableSorting: false,
+      id: 'status', accessorKey: 'status', header: 'Status', size: 130, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
-        <DeliveryStatusBadge status={row.original.status} withTime={row.original.updatedAt} />
+        <div className="flex justify-center">
+          <StatusPill status={row.original.status} />
+        </div>
       ),
     },
     {
-      id: 'startedAt', accessorKey: 'startedAt', header: 'Início', size: 140, enableSorting: false, meta: { align: 'center' },
+      id: 'startedAt', accessorKey: 'startedAt', header: 'Início', size: 115, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <span className="text-xs text-text-secondary tabular-nums">
-          {row.original.startedAt ? fmtDateTimeBR(row.original.startedAt) : <span className="text-text-tertiary">—</span>}
+          {row.original.startedAt ? fmtDateTimeCompact(row.original.startedAt) : <span className="text-text-tertiary">—</span>}
         </span>
       ),
     },
     {
-      id: 'finishedAt', accessorKey: 'finishedAt', header: 'Fim', size: 140, enableSorting: false, meta: { align: 'center' },
+      id: 'finishedAt', accessorKey: 'finishedAt', header: 'Fim', size: 115, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <span className="text-xs text-text-secondary tabular-nums">
-          {row.original.finishedAt ? fmtDateTimeBR(row.original.finishedAt) : <span className="text-text-tertiary">—</span>}
+          {row.original.finishedAt ? fmtDateTimeCompact(row.original.finishedAt) : <span className="text-text-tertiary">—</span>}
         </span>
       ),
     },
@@ -365,6 +420,7 @@ const DeliveryList: React.FC = () => {
   if (filters.status)                                              chips.push({ key: 'status',      label: 'Status',      value: STATUS_LABEL[filters.status as string] || String(filters.status),                                              onRemove: () => setFilter('status', '') })
   if (filters.startDate)                                           chips.push({ key: 'startDate',   label: 'Início ≥',    value: fmtDateBR(String(filters.startDate)),                                                                          onRemove: () => setFilter('startDate', '') })
   if (filters.endDate)                                             chips.push({ key: 'endDate',     label: 'Fim ≤',       value: fmtDateBR(String(filters.endDate)),                                                                            onRemove: () => setFilter('endDate', '') })
+  if (filters.hasItems === 'false')                                chips.push({ key: 'hasItems',    label: 'Itens',       value: 'Sem itens',                                                                                                   onRemove: () => setFilter('hasItems', '') })
 
   const activeFilterCount = chips.length
 
@@ -385,31 +441,39 @@ const DeliveryList: React.FC = () => {
             </Button>
 
             <div className="flex items-center gap-2 ml-1">
-              <StatChip
-                label="Pendentes"
-                value={stats?.totalPending}
-                onClick={() => setFilter('status', filters.status === 'PENDING' ? '' : 'PENDING')}
-                active={filters.status === 'PENDING'}
-              />
-              <StatChip
-                label="Em andamento"
-                value={stats?.totalInProgress}
-                onClick={() => setFilter('status', filters.status === 'DEVELOPMENT' ? '' : 'DEVELOPMENT')}
-                active={filters.status === 'DEVELOPMENT'}
-              />
-              <StatChip
-                label="Rejeitadas"
-                value={stats?.totalRejected}
-                onClick={() => setFilter('status', filters.status === 'REJECTED' ? '' : 'REJECTED')}
-                active={filters.status === 'REJECTED'}
-              />
-              <StatChip
-                label="Sem itens"
-                value={stats?.totalWithoutItems}
-                onClick={() => {}}
-                active={false}
-                disabled
-              />
+              <Select
+                value={filters.hasItems === 'false' ? '__noitems' : ((filters.status as string) || '__all')}
+                onValueChange={(v) => {
+                  if (v === '__all') { setFilter('status', ''); setFilter('hasItems', '') }
+                  else if (v === '__noitems') { setFilter('status', ''); setFilter('hasItems', 'false') }
+                  else { setFilter('hasItems', ''); setFilter('status', v) }
+                }}
+              >
+                <SelectTrigger className="h-8 w-[210px]"><SelectValue placeholder="Status: todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all">Status: todos</SelectItem>
+                  {STATUS_OPTIONS.map((o) => {
+                    const count = stats ? ((stats as any)[STATUS_STAT_KEY[o.value]] as number) : undefined
+                    return (
+                      <SelectItem key={o.value} value={o.value}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={`size-2 rounded-full ${STATUS_DOT[o.value]}`} />
+                          {STATUS_LABEL[o.value]}
+                          <span className="text-text-tertiary tabular-nums">· {count ?? 0}</span>
+                        </span>
+                      </SelectItem>
+                    )
+                  })}
+                  <SelectSeparator />
+                  <SelectItem value="__noitems">
+                    <span className="inline-flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-[var(--danger-strong)]" />
+                      Sem itens
+                      <span className="text-text-tertiary tabular-nums">· {stats?.totalWithoutItems ?? 0}</span>
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </>
         }
@@ -680,7 +744,7 @@ const DeliveryList: React.FC = () => {
               <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{d.taskName}</p>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {d.flowType && <FlowChip value={d.flowType} />}
-                <DeliveryStatusBadge status={d.status} withTime={d.updatedAt} />
+                <StatusPill status={d.status} />
               </div>
               {(d.startedAt || d.finishedAt) && (
                 <p className="text-xs text-text-tertiary mt-2">
@@ -970,39 +1034,6 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange }) => {
         </div>
       </PopoverContent>
     </Popover>
-  )
-}
-
-interface StatChipProps {
-  label: string
-  value?: number
-  onClick?: () => void
-  active?: boolean
-  disabled?: boolean
-}
-
-const StatChip: React.FC<StatChipProps> = ({ label, value, onClick, active, disabled }) => {
-  const isLoading = value === undefined
-  const hasIssues = (value ?? 0) > 0
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={isLoading || disabled}
-      title={`Filtrar entregas: ${label}`}
-      className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs font-medium transition-colors ${
-        active
-          ? 'bg-danger-soft border-[var(--danger-strong)] text-[var(--danger-strong)] ring-1 ring-[var(--danger-strong)]/30'
-          : hasIssues
-            ? 'bg-danger-soft border-danger-border text-[var(--danger-strong)] hover:brightness-95'
-            : 'bg-surface-1 border-border-subtle text-text-secondary hover:bg-surface-2'
-      } ${isLoading ? 'opacity-60' : ''} ${disabled ? 'cursor-default opacity-80' : ''}`}
-    >
-      <span className="tabular-nums font-semibold text-sm">
-        {isLoading ? '—' : value!.toLocaleString('pt-BR')}
-      </span>
-      <span className="opacity-90">{label}</span>
-    </button>
   )
 }
 
