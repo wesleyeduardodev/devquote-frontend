@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { Plus, Pencil, Trash2, Users, Shield, UserPlus, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Shield, UserPlus, Search, KeyRound } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import toast from 'react-hot-toast'
 
 import { useUserManagement } from '@/hooks/useUserManagement'
 import { useProfiles } from '@/hooks/useProfiles'
+import { userManagementService } from '@/services/userManagementService'
 import type { Profile, UserProfile, CreateProfileRequest, UpdateProfileRequest } from '@/types/profile'
 import { Button } from '@/components/ui-v2/Button'
 import { PageHeader } from '@/components/ui-v2/PageHeader'
@@ -14,10 +15,12 @@ import { Skeleton } from '@/components/ui-v2/Skeleton'
 import { Avatar } from '@/components/ui-v2/Avatar'
 import { Card } from '@/components/ui-v2/Card'
 import { StatusDot } from '@/components/ui-v2/StatusDot'
+import { Switch } from '@/components/ui-v2/Switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui-v2/Tabs'
 import { DataTable, DataTableBulkBar } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetBody, SheetFooter } from '@/components/ui-v2/Sheet'
 import ProfileModal from './ProfileModal'
 import UserAssignmentModal from './UserAssignmentModal'
 
@@ -36,6 +39,25 @@ const ProfileManagement: React.FC = () => {
 
   const [profileModal, setProfileModal] = React.useState<{ profile: Profile | null; isEditing: boolean } | null>(null)
   const [userAssignment, setUserAssignment] = React.useState<Profile | null>(null)
+  const [userSheet, setUserSheet] = React.useState<{ mode: 'create' } | { mode: 'edit'; user: UserProfile } | null>(null)
+  const [confirmResetUser, setConfirmResetUser] = React.useState<UserProfile | null>(null)
+  const [resetting, setResetting] = React.useState(false)
+  const [resetResult, setResetResult] = React.useState<{ user: UserProfile; password: string } | null>(null)
+  const [copied, setCopied] = React.useState(false)
+
+  const handleResetPassword = async (user: UserProfile) => {
+    try {
+      setResetting(true)
+      const newPassword = await userManagementService.resetPassword(user.id)
+      setConfirmResetUser(null)
+      setCopied(false)
+      setResetResult({ user, password: newPassword })
+    } catch (e: any) {
+      toast.error(e?.message || 'Falha ao redefinir senha')
+    } finally {
+      setResetting(false)
+    }
+  }
 
   React.useEffect(() => {
     const t = setTimeout(() => usersHook.setFilter('username', userSearch), 300)
@@ -97,9 +119,11 @@ const ProfileManagement: React.FC = () => {
       ),
     },
     {
-      id: '__actions', header: 'Ações', size: 90, meta: { align: 'center' },
+      id: '__actions', header: 'Ações', size: 130, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon-sm" variant="ghost" onClick={() => setUserSheet({ mode: 'edit', user: row.original })} aria-label="Editar" title="Editar"><Pencil /></Button>
+          <Button size="icon-sm" variant="ghost" onClick={() => setConfirmResetUser(row.original)} aria-label="Redefinir senha" title="Redefinir senha"><KeyRound /></Button>
           <Button
             size="icon-sm"
             variant="ghost"
@@ -190,7 +214,7 @@ const ProfileManagement: React.FC = () => {
         subtitle="Gerencie usuários do sistema e seus perfis de acesso"
         actions={
           tab === 'users' ? (
-            <Button leadingIcon={<Plus />} disabled>Novo usuário</Button>
+            <Button leadingIcon={<Plus />} onClick={() => setUserSheet({ mode: 'create' })}>Novo usuário</Button>
           ) : (
             <Button leadingIcon={<Plus />} onClick={() => setProfileModal({ profile: null, isEditing: false })}>Novo perfil</Button>
           )
@@ -275,6 +299,8 @@ const ProfileManagement: React.FC = () => {
                     </div>
                     <p className="text-xs text-text-tertiary truncate">{u.email}</p>
                   </div>
+                  <Button size="icon-sm" variant="ghost" onClick={() => setUserSheet({ mode: 'edit', user: u })} aria-label="Editar" title="Editar"><Pencil /></Button>
+                  <Button size="icon-sm" variant="ghost" onClick={() => setConfirmResetUser(u)} aria-label="Redefinir senha" title="Redefinir senha"><KeyRound /></Button>
                   <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDeleteUser({ ids: [u.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
                 </div>
                 {u.profiles?.length > 0 && (
@@ -416,7 +442,197 @@ const ProfileManagement: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Criar/editar usuário */}
+      <UserSheet
+        state={userSheet}
+        profiles={profilesHook.profiles}
+        onClose={() => setUserSheet(null)}
+        onSaved={() => usersHook.refetch()}
+      />
+
+      {/* Confirmar redefinição de senha */}
+      <Dialog open={!!confirmResetUser} onOpenChange={(o) => { if (!o) setConfirmResetUser(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Redefinir senha?</DialogTitle>
+            <DialogDescription>
+              {confirmResetUser && `A senha de ${confirmResetUser.name || confirmResetUser.username} será redefinida e o usuário receberá as instruções por e-mail.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmResetUser(null)}>Cancelar</Button>
+            <Button onClick={() => confirmResetUser && handleResetPassword(confirmResetUser)} loading={resetting} leadingIcon={<KeyRound />}>
+              Redefinir senha
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resultado: exibe a nova senha em tela */}
+      <Dialog open={!!resetResult} onOpenChange={(o) => { if (!o) setResetResult(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Senha redefinida</DialogTitle>
+            <DialogDescription>
+              {resetResult && `Nova senha de ${resetResult.user.name || resetResult.user.username}. Copie e repasse ao usuário — ela não será exibida novamente.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-surface-2 px-3 py-2.5">
+            <code className="flex-1 font-mono text-base tracking-wide text-text-primary select-all">{resetResult?.password}</code>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                if (!resetResult) return
+                try { await navigator.clipboard.writeText(resetResult.password); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch {}
+              }}
+            >
+              {copied ? 'Copiado!' : 'Copiar'}
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetResult(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  )
+}
+
+/* ===================== Sheet de criar/editar usuário ===================== */
+type UserSheetState = { mode: 'create' } | { mode: 'edit'; user: UserProfile } | null
+
+const UserSheet: React.FC<{
+  state: UserSheetState
+  profiles: Profile[]
+  onClose: () => void
+  onSaved: () => void
+}> = ({ state, profiles, onClose, onSaved }) => {
+  const isEdit = state?.mode === 'edit'
+  const editUser = state?.mode === 'edit' ? state.user : null
+
+  const [name, setName] = React.useState('')
+  const [username, setUsername] = React.useState('')
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
+  const [enabled, setEnabled] = React.useState(true)
+  const [profileCodes, setProfileCodes] = React.useState<string[]>([])
+  const [loading, setLoading] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!state) return
+    if (state.mode === 'edit') {
+      const u = state.user
+      setName(u.name || '')
+      setUsername(u.username || '')
+      setEmail(u.email || '')
+      setPassword('')
+      setEnabled(u.enabled)
+      setProfileCodes((u.profiles || []).map((p) => p.code))
+    } else {
+      setName('')
+      setUsername('')
+      setEmail('')
+      setPassword('')
+      setEnabled(true)
+      setProfileCodes([])
+    }
+  }, [state])
+
+  const toggleProfile = (code: string) => {
+    setProfileCodes((prev) => prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code])
+  }
+
+  const submit = async () => {
+    if (!name.trim() || !username.trim() || !email.trim()) {
+      toast.error('Preencha nome, usuário e e-mail.')
+      return
+    }
+    if (!isEdit && !password.trim()) {
+      toast.error('Defina uma senha inicial.')
+      return
+    }
+    try {
+      setLoading(true)
+      if (isEdit && editUser) {
+        await userManagementService.update(editUser.id, { name, username, email, enabled, profileCodes })
+        toast.success('Usuário atualizado')
+      } else {
+        await userManagementService.create({ name, username, email, password, profileCodes })
+        toast.success('Usuário criado')
+      }
+      onSaved()
+      onClose()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || e?.message || 'Falha ao salvar usuário')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Sheet open={!!state} onOpenChange={(o) => { if (!o) onClose() }}>
+      <SheetContent size="sm">
+        <SheetHeader>
+          <SheetTitle>{isEdit ? 'Editar usuário' : 'Novo usuário'}</SheetTitle>
+          <SheetDescription>{isEdit ? 'Atualize os dados e perfis de acesso do usuário.' : 'Cadastre um novo usuário e seus perfis de acesso.'}</SheetDescription>
+        </SheetHeader>
+        <SheetBody>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-text-secondary mb-1 block">Nome</label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-text-secondary mb-1 block">Usuário (login)</label>
+              <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="ex: wesley" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-text-secondary mb-1 block">E-mail</label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@exemplo.com" />
+            </div>
+            {!isEdit && (
+              <div>
+                <label className="text-xs font-medium text-text-secondary mb-1 block">Senha inicial</label>
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha de acesso" />
+              </div>
+            )}
+            {isEdit && (
+              <div className="flex items-center justify-between rounded-md border border-border-subtle p-3">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">Ativo</p>
+                  <p className="text-xs text-text-tertiary">Usuário pode acessar o sistema.</p>
+                </div>
+                <Switch checked={enabled} onCheckedChange={setEnabled} />
+              </div>
+            )}
+            <div>
+              <label className="text-xs font-medium text-text-secondary mb-1.5 block">Perfis de acesso</label>
+              <div className="space-y-1.5">
+                {profiles.map((p) => (
+                  <label key={p.id} className="flex items-center gap-2 rounded-md border border-border-subtle px-3 py-2 cursor-pointer hover:bg-surface-2 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={profileCodes.includes(p.code)}
+                      onChange={() => toggleProfile(p.code)}
+                      className="size-4 rounded border-border-strong text-accent focus:ring-accent/30"
+                    />
+                    <span className="text-sm text-text-primary flex-1">{p.name}</span>
+                    <Badge variant="neutral" size="sm">{p.code}</Badge>
+                  </label>
+                ))}
+                {profiles.length === 0 && <p className="text-xs text-text-tertiary">Nenhum perfil cadastrado.</p>}
+              </div>
+            </div>
+          </div>
+        </SheetBody>
+        <SheetFooter>
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button onClick={submit} loading={loading}>{isEdit ? 'Salvar alterações' : 'Criar usuário'}</Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 

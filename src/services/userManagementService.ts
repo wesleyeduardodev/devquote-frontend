@@ -139,7 +139,8 @@ export const userManagementService = {
         return response.data;
     },
 
-    resetPassword: async (id: number): Promise<void> => {
-        await api.post(`/admin/users/${id}/reset-password`);
+    resetPassword: async (id: number): Promise<string> => {
+        const response = await api.post(`/admin/users/${id}/reset-password`);
+        return response.data?.password ?? '';
     }
 };
