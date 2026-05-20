@@ -61,18 +61,18 @@ const fmtDateBR = (s: string) => {
   return s
 }
 
-const COLUMN_VISIBILITY_KEY = 'devquote.tasks.columns.v1'
+const COLUMN_VISIBILITY_KEY = 'devquote.tasks.columns.v2'
 
 /** Configuração de quais colunas aparecem por default. Locked = não pode esconder. */
 const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; locked?: boolean }> = [
-  { id: 'id',                 label: 'ID',                  defaultVisible: true  },
+  { id: 'id',                 label: 'ID',                  defaultVisible: false },
   { id: 'code',               label: 'Código',              defaultVisible: true  },
   { id: 'flowType',           label: 'Fluxo',               defaultVisible: true  },
   { id: 'taskType',           label: 'Tipo',                defaultVisible: true  },
   { id: 'priority',           label: 'Prioridade',          defaultVisible: false },
   { id: 'environment',        label: 'Ambiente',            defaultVisible: false },
   { id: 'title',              label: 'Tarefa',              defaultVisible: true, locked: true },
-  { id: 'requesterName',      label: 'Solicitante',         defaultVisible: false },
+  { id: 'requesterName',      label: 'Solicitante',         defaultVisible: true  },
   { id: 'systemModule',       label: 'Módulo do Sistema',   defaultVisible: false },
   { id: 'serverOrigin',       label: 'Servidor',            defaultVisible: false },
   { id: 'link',               label: 'Link da tarefa',      defaultVisible: false },
@@ -431,9 +431,6 @@ const TaskList: React.FC = () => {
           <span className="text-text-primary font-medium leading-snug break-words">
             {row.original.title}
           </span>
-          {row.original.requesterName && (
-            <span className="text-xs text-text-tertiary mt-0.5 truncate">{row.original.requesterName}</span>
-          )}
         </div>
       ),
     },

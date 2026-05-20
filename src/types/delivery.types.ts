@@ -26,6 +26,7 @@ export interface Delivery extends BaseEntity {
     taskName?: string;
     taskCode?: string;
     taskType?: string;
+    taskLink?: string;
     taskValue?: number;
     flowType?: string;
     environment?: string;

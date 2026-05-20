@@ -35,6 +35,7 @@ interface Delivery {
   taskName?: string
   taskCode?: string
   taskType?: string
+  taskLink?: string
   taskValue?: number
   flowType?: string
   environment?: string
@@ -73,19 +74,19 @@ const fmtDateTimeBR = (s?: string) => {
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-const COLUMN_VISIBILITY_KEY = 'devquote.deliveries.columns.v1'
+const COLUMN_VISIBILITY_KEY = 'devquote.deliveries.columns.v2'
 
 const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; locked?: boolean }> = [
-  { id: 'id',         label: 'ID',          defaultVisible: true },
-  { id: 'taskId',     label: 'Tarefa ID',   defaultVisible: true },
+  { id: 'id',         label: 'ID',          defaultVisible: false },
+  { id: 'taskId',     label: 'Tarefa ID',   defaultVisible: false },
   { id: 'taskCode',   label: 'Código',      defaultVisible: true },
   { id: 'flowType',   label: 'Fluxo',       defaultVisible: true },
   { id: 'taskType',   label: 'Tipo',        defaultVisible: true },
   { id: 'taskName',   label: 'Tarefa',      defaultVisible: true, locked: true },
   { id: 'taskValue',  label: 'Valor',       defaultVisible: true },
   { id: 'status',     label: 'Status',      defaultVisible: true },
-  { id: 'startedAt',  label: 'Início',      defaultVisible: false },
-  { id: 'finishedAt', label: 'Fim',         defaultVisible: false },
+  { id: 'startedAt',  label: 'Início',      defaultVisible: true },
+  { id: 'finishedAt', label: 'Fim',         defaultVisible: true },
   { id: 'environment',label: 'Ambiente',    defaultVisible: false },
   { id: 'createdAt',  label: 'Criada em',   defaultVisible: false },
   { id: 'updatedAt',  label: 'Atualizada em', defaultVisible: false },
@@ -195,14 +196,31 @@ const DeliveryList: React.FC = () => {
     },
     {
       id: 'taskCode', accessorKey: 'taskCode', header: 'Código', size: 130, enableSorting: false, meta: { align: 'center' },
-      cell: ({ row }) => (
-        <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
-          {row.original.taskCode}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const link = row.original.taskLink
+        if (link) {
+          return (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="font-mono text-xs font-medium text-accent hover:underline tracking-tight truncate block"
+              title={`Abrir link: ${link}`}
+            >
+              {row.original.taskCode}
+            </a>
+          )
+        }
+        return (
+          <span className="font-mono text-xs font-medium text-text-primary tracking-tight truncate block">
+            {row.original.taskCode}
+          </span>
+        )
+      },
     },
     {
-      id: 'flowType', accessorKey: 'flowType', header: 'Fluxo', size: 150, enableSorting: false, meta: { align: 'center' },
+      id: 'flowType', accessorKey: 'flowType', header: 'Fluxo', size: 110, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <FlowChip value={row.original.flowType} />
@@ -218,7 +236,7 @@ const DeliveryList: React.FC = () => {
       ),
     },
     {
-      id: 'taskName', accessorKey: 'taskName', header: 'Tarefa', size: 360, enableSorting: false, meta: { wrap: true },
+      id: 'taskName', accessorKey: 'taskName', header: 'Tarefa', size: 440, enableSorting: false, meta: { wrap: true },
       cell: ({ row }) => (
         <div className="flex flex-col min-w-0 py-1">
           <span className="text-text-primary font-medium leading-snug break-words">
@@ -641,7 +659,20 @@ const DeliveryList: React.FC = () => {
             <div className="flex items-start justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="font-mono text-xs text-text-tertiary shrink-0">#{d.id}</span>
-                <span className="font-mono text-xs text-text-secondary truncate">{d.taskCode}</span>
+                {d.taskLink ? (
+                  <a
+                    href={d.taskLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-mono text-xs font-medium text-accent hover:underline truncate"
+                    title={`Abrir link: ${d.taskLink}`}
+                  >
+                    {d.taskCode}
+                  </a>
+                ) : (
+                  <span className="font-mono text-xs text-text-secondary truncate">{d.taskCode}</span>
+                )}
               </div>
               <span className="text-sm font-medium tabular-nums shrink-0 text-text-primary">{brl(d.taskValue)}</span>
             </div>
