@@ -745,6 +745,11 @@ const TaskList: React.FC = () => {
               onChange: (v) => { setSearch(v); setFilter('title', v) },
               placeholder: 'Buscar título...',
             },
+            requesterName: {
+              value: (filters.requesterName as string) || '',
+              onChange: (v) => setFilter('requesterName', v),
+              placeholder: 'Solicitante...',
+            },
             delivery: {
               value: (filters.hasDelivery as string) || '',
               onChange: (v) => setFilter('hasDelivery', v),
