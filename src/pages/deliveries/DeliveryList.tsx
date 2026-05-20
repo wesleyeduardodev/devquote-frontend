@@ -10,6 +10,8 @@ import toast from 'react-hot-toast'
 import { useDeliveries } from '@/hooks/useDeliveries'
 import { useAuth } from '@/hooks/useAuth'
 import { gitSyncService } from '@/services/gitSyncService'
+import { reportService } from '@/services/reportService'
+import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import { Button } from '@/components/ui-v2/Button'
 import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
@@ -195,6 +197,7 @@ const DeliveryList: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
   const [syncing, setSyncing] = React.useState(false)
   const [filtersOpen, setFiltersOpen] = React.useState(false)
+  const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
 
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return DEFAULT_COLUMN_VISIBILITY
@@ -226,6 +229,35 @@ const DeliveryList: React.FC = () => {
       setSyncing(false)
     }
   }
+
+  const handleGeneratePdf = React.useCallback(async (d: Delivery) => {
+    setPdfLoadingId(d.id)
+    try {
+      const blob = await reportService.generateDeliveryPdf(d.id)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const now = new Date()
+      const ts = [
+        String(now.getDate()).padStart(2, '0'),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        now.getFullYear(),
+        String(now.getHours()).padStart(2, '0'),
+        String(now.getMinutes()).padStart(2, '0'),
+        String(now.getSeconds()).padStart(2, '0'),
+      ].join('-')
+      link.download = `entrega-${d.id}-${d.taskCode || ''}-${ts}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toast.success('PDF gerado com sucesso')
+    } catch {
+      toast.error('Erro ao gerar PDF')
+    } finally {
+      setPdfLoadingId(null)
+    }
+  }, [])
 
   // Adapter useDeliveries.sorting <-> TanStack
   const tanstackSorting = React.useMemo(
@@ -367,6 +399,18 @@ const DeliveryList: React.FC = () => {
               <Pencil />
             </Button>
           )}
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => handleGeneratePdf(row.original)}
+            loading={pdfLoadingId === row.original.id}
+            disabled={pdfLoadingId === row.original.id}
+            aria-label="Exportar PDF da entrega"
+            title="Exportar PDF da entrega"
+            className="text-text-secondary hover:text-[var(--danger-strong)]"
+          >
+            <PdfIcon />
+          </Button>
           {canCRUD && (
             <Button
               size="icon-sm"
@@ -398,7 +442,7 @@ const DeliveryList: React.FC = () => {
         </div>
       ),
     },
-  ], [navigate, canCRUD])
+  ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId])
 
   /** Aplica visibilidade — mantém ordem do manifest. */
   const columns = React.useMemo(() => {
@@ -764,6 +808,18 @@ const DeliveryList: React.FC = () => {
               {canCRUD && (
                 <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/deliveries/${d.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
               )}
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                onClick={() => handleGeneratePdf(d)}
+                loading={pdfLoadingId === d.id}
+                disabled={pdfLoadingId === d.id}
+                aria-label="Exportar PDF da entrega"
+                title="Exportar PDF da entrega"
+                className="text-text-secondary hover:text-[var(--danger-strong)]"
+              >
+                <PdfIcon />
+              </Button>
               {canCRUD && (
                 <Button
                   size="icon-sm"
