@@ -589,7 +589,12 @@ const DeliveryList: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="__all">Todos</SelectItem>
                     {STATUS_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{STATUS_LABEL[o.value]}</SelectItem>
+                      <SelectItem key={o.value} value={o.value}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={`size-2 rounded-full ${STATUS_DOT[o.value]}`} />
+                          {STATUS_LABEL[o.value]}
+                        </span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -903,7 +908,12 @@ const DeliveryList: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="__all">Todos os status</SelectItem>
                     {STATUS_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{STATUS_LABEL[o.value]}</SelectItem>
+                      <SelectItem key={o.value} value={o.value}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={`size-2 rounded-full ${STATUS_DOT[o.value]}`} />
+                          {STATUS_LABEL[o.value]}
+                        </span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
