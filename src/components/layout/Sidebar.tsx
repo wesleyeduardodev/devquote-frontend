@@ -4,15 +4,14 @@ import {
   LayoutDashboard, ListChecks, Truck, DollarSign,
   Users, FolderKanban, Shield, Bell, Settings,
   ChevronsLeft, ChevronsRight, Sun, Moon, Monitor,
-  Zap, Check, ChevronDown, LogOut, ListOrdered
+  Zap, LogOut, ListOrdered
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/hooks/useTheme'
 import { TooltipProvider, TooltipQuick } from '@/components/ui-v2/Tooltip'
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui-v2/DropdownMenu'
 
 type Profile = 'ADMIN' | 'MANAGER' | 'USER'
@@ -93,7 +92,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
       >
         <div className={cn('h-14 flex items-center px-3 border-b border-[var(--sidebar-border)] gap-2 shrink-0', collapsed && 'justify-center px-0')}>
           <BrandMark collapsed={collapsed} />
-          {!collapsed && <WorkspaceSwitcher />}
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3 px-2">
@@ -194,41 +192,6 @@ const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () =
     )
   }
   return inner
-}
-
-const WorkspaceSwitcher: React.FC = () => {
-  const host = typeof window !== 'undefined' ? window.location.hostname : ''
-  const tenants = [
-    { id: 'wesley', label: "Wesley's workspace", host: 'wesley.devquote.com.br' },
-    { id: 'joao',   label: "João's workspace",   host: 'joao.devquote.com.br' },
-    { id: 'local',  label: 'Local',              host: 'localhost' },
-  ]
-  const current = tenants.find((t) => host.endsWith(t.host)) || tenants.find((t) => t.id === 'local') || tenants[0]
-
-  const goTo = (host: string) => {
-    if (host === 'localhost') return
-    const url = `${window.location.protocol}//${host}${window.location.pathname}`
-    window.location.assign(url)
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex-1 min-w-0 flex items-center gap-1.5 px-2 h-8 rounded-md hover:bg-[var(--sidebar-hover)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
-        <span className="text-sm font-medium text-[var(--sidebar-text)] truncate flex-1">{current.label}</span>
-        <ChevronDown className="size-3.5 text-[var(--sidebar-text-dim)] shrink-0" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-[220px]">
-        <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {tenants.map((t) => (
-          <DropdownMenuItem key={t.id} onSelect={() => goTo(t.host)}>
-            <span className="flex-1">{t.label}</span>
-            {t.id === current.id && <Check className="size-4 text-accent" />}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
 }
 
 const ThemeToggle: React.FC<{ collapsed: boolean; theme: string; setTheme: (t: any) => void }> = ({ collapsed, theme, setTheme }) => (
