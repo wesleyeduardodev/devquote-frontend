@@ -1,11 +1,13 @@
 export interface PriorityTask {
   id: string
   name: string
+  description?: string | null
   url: string
   ordem?: number | null
   priority?: string | null
   type?: string | null
   tags?: string[]
+  existsInDevQuote?: boolean
 }
 
 export interface PriorityGroup {

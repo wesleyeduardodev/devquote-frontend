@@ -33,9 +33,22 @@ export function usePriorityBoard() {
     }
   }, [])
 
+  const markTaskCreated = React.useCallback((taskId: string) => {
+    setBoard((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        groups: prev.groups.map((g) => ({
+          ...g,
+          tasks: g.tasks.map((t) => (t.id === taskId ? { ...t, existsInDevQuote: true } : t)),
+        })),
+      }
+    })
+  }, [])
+
   React.useEffect(() => {
     fetchBoard()
   }, [fetchBoard])
 
-  return { board, loading, refreshing, refresh }
+  return { board, loading, refreshing, refresh, markTaskCreated }
 }
