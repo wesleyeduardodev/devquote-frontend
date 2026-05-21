@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   ListChecks, Truck, DollarSign, TrendingUp, CheckCircle2, AlertTriangle,
   ArrowRight, Activity as ActivityIcon, Inbox, FileWarning, Link2Off, Clock,
+  ListOrdered, ExternalLink,
 } from 'lucide-react'
 import { ResponsiveContainer, AreaChart, Area, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
 import { format } from 'date-fns'
@@ -13,6 +14,8 @@ import { useAuth } from '@/hooks/useAuth'
 import billingPeriodService from '@/services/billingPeriodService'
 import { taskService } from '@/services/taskService'
 import { deliveryService } from '@/services/deliveryService'
+import { priorityService } from '@/services/priorityService'
+import { PriorityBoard } from '@/types/priority.types'
 import { cn } from '@/utils/cn'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui-v2/Card'
 import { Skeleton } from '@/components/ui-v2/Skeleton'
@@ -203,6 +206,18 @@ const Dashboard: React.FC = () => {
   const [taskStats, setTaskStats] = React.useState<{ total: number; totalWithoutDelivery: number; totalWithoutBilling: number } | null>(null)
   const [dlvStats, setDlvStats] = React.useState<any | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [priorityBoard, setPriorityBoard] = React.useState<PriorityBoard | null>(null)
+
+  React.useEffect(() => {
+    let cancelled = false
+    priorityService.getBoard().then((b) => { if (!cancelled) setPriorityBoard(b) }).catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const primaryGroup = React.useMemo(
+    () => priorityBoard?.groups?.find((g) => g.primary) ?? null,
+    [priorityBoard],
+  )
 
   React.useEffect(() => {
     let cancelled = false
@@ -374,6 +389,38 @@ const Dashboard: React.FC = () => {
       <section>
         {loading ? <Skeleton className="h-20 w-full" /> : <AttentionCard items={attentionItems} />}
       </section>
+
+      {/* Minhas prioridades (ClickUp) */}
+      {priorityBoard?.configured && primaryGroup && primaryGroup.count > 0 && (
+        <section>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2"><ListOrdered className="size-4" /> Minhas prioridades</CardTitle>
+                <CardDescription>{primaryGroup.count} tarefa(s) em "{primaryGroup.status}"</CardDescription>
+              </div>
+              <Link to="/priorities" className="inline-flex items-center gap-1 text-sm text-accent hover:underline shrink-0">
+                Ver todas <ArrowRight className="size-4" />
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <ul className="divide-y divide-border-subtle">
+                {primaryGroup.tasks.slice(0, 5).map((t) => (
+                  <li key={t.id} className="flex items-center gap-3 py-2">
+                    <span className="shrink-0 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-surface-2 px-1.5 text-xs font-semibold tabular-nums text-text-secondary">
+                      {t.ordem != null ? t.ordem : '–'}
+                    </span>
+                    <a href={t.url} target="_blank" rel="noreferrer" className="flex-1 min-w-0 group inline-flex items-center gap-1.5 text-sm text-text-primary hover:text-accent" title={t.name}>
+                      <span className="truncate">{t.name}</span>
+                      <ExternalLink className="size-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* Pipeline de entregas */}
       <section>

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ListChecks, Truck, DollarSign,
   Users, FolderKanban, Shield, Bell, Settings,
   ChevronsLeft, ChevronsRight, Sun, Moon, Monitor,
-  Zap, Check, ChevronDown, LogOut
+  Zap, Check, ChevronDown, LogOut, ListOrdered
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
@@ -37,6 +37,7 @@ const SECTIONS: NavSection[] = [
       { to: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard, shortcut: 'G D' },
       { to: '/tasks',       label: 'Tarefas',      icon: ListChecks,      shortcut: 'G T' },
       { to: '/deliveries',  label: 'Entregas',     icon: Truck,           shortcut: 'G E' },
+      { to: '/priorities',  label: 'Prioridades',  icon: ListOrdered },
       { to: '/billing',     label: 'Faturamento',  icon: DollarSign,      shortcut: 'G F', profiles: ['ADMIN', 'MANAGER'] },
     ],
   },

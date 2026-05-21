@@ -25,6 +25,7 @@ import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
 import DeliveryView from './pages/deliveries/DeliveryView';
 import BillingMonthManagement from './pages/billing/BillingMonthManagement';
+import PrioritiesBoard from './pages/priorities/PrioritiesBoard';
 import ProfileManagement from './pages/profiles/ProfileManagement';
 import NotificationList from './pages/notifications/NotificationList';
 import ParameterList from './pages/parameters/ParameterList';
@@ -81,6 +82,7 @@ const AppShell: React.FC = () => {
                                 <Route path="/deliveries/:deliveryId/edit" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryEdit/></ProtectedRoute>}/>
                                 <Route path="/deliveries/:id" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryView/></ProtectedRoute>}/>
                                 <Route path="/billing" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER']}><BillingMonthManagement/></ProtectedRoute>}/>
+                                <Route path="/priorities" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><PrioritiesBoard/></ProtectedRoute>}/>
                                 <Route path="/profiles" element={<ProtectedRoute requiredProfile="ADMIN"><ProfileManagement/></ProtectedRoute>}/>
                                 <Route path="/notifications" element={<ProtectedRoute requiredProfile="ADMIN"><NotificationList/></ProtectedRoute>}/>
                                 <Route path="/parameters" element={<ProtectedRoute requiredProfile="ADMIN"><ParameterList/></ProtectedRoute>}/>
