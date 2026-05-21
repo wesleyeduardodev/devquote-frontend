@@ -281,8 +281,16 @@ const TaskForm: React.FC<TaskFormProps> = ({
         }
       }
 
+      // Fluxo DESENVOLVIMENTO: se o link não foi informado, monta a partir do código (tarefa do ClickUp).
+      const trimmedCode = (data.code || '').trim()
+      const derivedLink =
+        (!data.link || !data.link.trim()) && data.flowType === 'DESENVOLVIMENTO' && trimmedCode
+          ? `https://app.clickup.com/t/${trimmedCode}`
+          : data.link
+
       const formatted = {
         ...data,
+        link: derivedLink,
         requesterId: data.requesterId || initialData?.requesterId,
         amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
         subTasks: data.hasSubTasks

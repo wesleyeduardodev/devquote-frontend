@@ -158,6 +158,7 @@ export default function PrioritiesBoard() {
         code: createFor.id,
         title: createFor.name,
         description: createFor.description || '',
+        link: createFor.url || `https://app.clickup.com/t/${createFor.id}`,
         flowType,
         priority: mapPriority(createFor.priority),
         hasSubTasks: false,
