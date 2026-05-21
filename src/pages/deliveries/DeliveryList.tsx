@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, MoreHorizontal, Truck, Eye, Download, RefreshCw,
-  Filter, Search, Lock, Settings2, RotateCcw, Monitor,
+  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import toast from 'react-hot-toast'
@@ -199,6 +199,7 @@ const DeliveryList: React.FC = () => {
   const [syncing, setSyncing] = React.useState(false)
   const [filtersOpen, setFiltersOpen] = React.useState(false)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
+  const [generatingReport, setGeneratingReport] = React.useState(false)
 
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return DEFAULT_COLUMN_VISIBILITY
@@ -230,6 +231,43 @@ const DeliveryList: React.FC = () => {
       setSyncing(false)
     }
   }
+
+  const handleGenerateStatistics = React.useCallback(async () => {
+    setGeneratingReport(true)
+    try {
+      const parseDate = (dateStr?: string): string | null => {
+        if (!dateStr) return null
+        if (dateStr.includes('T')) return dateStr
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return `${dateStr}T00:00:00`
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          const [d, m, y] = dateStr.split('/')
+          return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T00:00:00`
+        }
+        return null
+      }
+      const request = {
+        dataInicio: parseDate(filters.startDate as string),
+        dataFim: parseDate(filters.endDate as string),
+        tipoTarefa: (filters.taskType as string) || null,
+        ambiente: (filters.environment as string) || null,
+      }
+      const blob = await reportService.generateOperationalPdf(request as any)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+      link.download = `estatisticas_operacionais_${ts}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toast.success('Relatório de estatísticas gerado')
+    } catch {
+      toast.error('Erro ao gerar relatório de estatísticas')
+    } finally {
+      setGeneratingReport(false)
+    }
+  }, [filters])
 
   const handleGeneratePdf = React.useCallback(async (d: Delivery) => {
     setPdfLoadingId(d.id)
@@ -533,11 +571,18 @@ const DeliveryList: React.FC = () => {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
+                <Button variant="secondary" leadingIcon={<Download />} loading={generatingReport}>Relatórios</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => exportToExcel(filters.flowType, isAdmin).catch(() => {})}>Tudo</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel(isAdmin).catch(() => {})}>Só entregas</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportToExcel('DESENVOLVIMENTO', isAdmin).catch(() => {})}><FileSpreadsheet />Desenvolvimento (Excel)</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportToExcel('OPERACIONAL', isAdmin).catch(() => {})}><FileSpreadsheet />Operacional (Excel)</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel(isAdmin).catch(() => {})}><FileSpreadsheet />Entregas (Excel)</DropdownMenuItem>
+                {canCRUD && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => handleGenerateStatistics()}><BarChart3 />Estatísticas (PDF)</DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             {canCRUD && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
