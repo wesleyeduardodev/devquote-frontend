@@ -219,6 +219,7 @@ const DeliveryList: React.FC = () => {
   )
 
   const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
+  const canViewValues = canCRUD
 
   const handleSync = async () => {
     try {
@@ -427,7 +428,7 @@ const DeliveryList: React.FC = () => {
       id: '__actions', header: '', size: 130, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-          {canCRUD && (
+          {isAdmin && (
             <Button
               size="icon-sm"
               variant="ghost"
@@ -450,7 +451,7 @@ const DeliveryList: React.FC = () => {
           >
             <PdfIcon />
           </Button>
-          {canCRUD && (
+          {isAdmin && (
             <Button
               size="icon-sm"
               variant="ghost"
@@ -481,19 +482,19 @@ const DeliveryList: React.FC = () => {
         </div>
       ),
     },
-  ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId])
+  ], [navigate, isAdmin, handleGeneratePdf, pdfLoadingId])
 
-  /** Aplica visibilidade — mantém ordem do manifest. Valor é restrito a ADMIN. */
+  /** Aplica visibilidade — Valor restrito a ADMIN+MANAGER. */
   const columns = React.useMemo(() => {
     const lookup = new Map(allColumns.map((c) => [c.id || (c as any).accessorKey, c]))
     const visibleIds = COLUMN_DEFS
       .filter((d) => columnVisibility[d.id])
-      .filter((d) => isAdmin || d.id !== 'taskValue')
+      .filter((d) => canViewValues || d.id !== 'taskValue')
       .map((d) => d.id)
     const ordered = visibleIds.map((id) => lookup.get(id)).filter(Boolean) as ColumnDef<Delivery, any>[]
     const actionsCol = allColumns.find((c) => c.id === '__actions')
     return actionsCol ? [...ordered, actionsCol] : ordered
-  }, [allColumns, columnVisibility, isAdmin])
+  }, [allColumns, columnVisibility, canViewValues])
 
   const chips: any[] = []
   if (filters.id !== undefined && filters.id !== '')               chips.push({ key: 'id',          label: 'ID',          value: String(filters.id),                                                                                            onRemove: () => setFilter('id', '') })
@@ -565,18 +566,20 @@ const DeliveryList: React.FC = () => {
         }
         actions={
           <>
-            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={isAdmin ? COLUMN_DEFS : COLUMN_DEFS.filter((d) => d.id !== 'taskValue')} />
-            <Button variant="secondary" leadingIcon={<RefreshCw className={syncing ? 'animate-spin' : ''} />} onClick={handleSync} loading={syncing}>
-              Sincronizar
-            </Button>
+            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={canViewValues ? COLUMN_DEFS : COLUMN_DEFS.filter((d) => d.id !== 'taskValue')} />
+            {isAdmin && (
+              <Button variant="secondary" leadingIcon={<RefreshCw className={syncing ? 'animate-spin' : ''} />} onClick={handleSync} loading={syncing}>
+                Sincronizar
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" leadingIcon={<Download />} loading={generatingReport}>Relatórios</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => exportToExcel('DESENVOLVIMENTO', isAdmin).catch(() => {})}><FileSpreadsheet />Desenvolvimento (Excel)</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => exportToExcel('OPERACIONAL', isAdmin).catch(() => {})}><FileSpreadsheet />Operacional (Excel)</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel(isAdmin).catch(() => {})}><FileSpreadsheet />Entregas (Excel)</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportToExcel('DESENVOLVIMENTO', canViewValues).catch(() => {})}><FileSpreadsheet />Desenvolvimento (Excel)</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportToExcel('OPERACIONAL', canViewValues).catch(() => {})}><FileSpreadsheet />Operacional (Excel)</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => exportDeliveriesOnlyToExcel(canViewValues).catch(() => {})}><FileSpreadsheet />Entregas (Excel)</DropdownMenuItem>
                 {canCRUD && (
                   <>
                     <DropdownMenuSeparator />
@@ -585,7 +588,7 @@ const DeliveryList: React.FC = () => {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            {canCRUD && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
+            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
           </>
         }
       />
@@ -595,7 +598,7 @@ const DeliveryList: React.FC = () => {
       <DataTableBulkBar
         selectedCount={selectedIds.length}
         onClear={() => setSelection({})}
-        actions={canCRUD && (
+        actions={isAdmin && (
           <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ kind: 'bulk', ids: selectedIds })}>
             Excluir
           </Button>
@@ -779,7 +782,7 @@ const DeliveryList: React.FC = () => {
                     <span className="font-medium text-text-primary tabular-nums">{totalRows.toLocaleString('pt-BR')}</span>
                   </span>
                 </div>
-                {isAdmin && (
+                {canViewValues && (
                   <div className="flex items-center gap-2">
                     <span className="text-text-tertiary">{hasActiveFilters ? 'Soma filtrada:' : 'Soma total:'}</span>
                     <span className="text-sm font-semibold text-text-primary tabular-nums">
@@ -811,7 +814,7 @@ const DeliveryList: React.FC = () => {
               icon={<Truck />}
               title="Nenhuma entrega"
               description="Crie a primeira."
-              actions={canCRUD ? <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova</Button> : undefined}
+              actions={isAdmin ? <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova</Button> : undefined}
             />
           )
         )}
@@ -838,7 +841,7 @@ const DeliveryList: React.FC = () => {
                   <span className="font-mono text-xs text-text-secondary truncate">{d.taskCode}</span>
                 )}
               </div>
-              {isAdmin && <span className="text-sm font-medium tabular-nums shrink-0 text-text-primary">{brl(d.taskValue)}</span>}
+              {canViewValues && <span className="text-sm font-medium tabular-nums shrink-0 text-text-primary">{brl(d.taskValue)}</span>}
             </div>
             <button onClick={() => navigate(`/deliveries/${d.id}`)} className="w-full text-left">
               <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{d.taskName}</p>
@@ -856,7 +859,7 @@ const DeliveryList: React.FC = () => {
             </button>
 
             <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
-              {canCRUD && (
+              {isAdmin && (
                 <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/deliveries/${d.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
               )}
               <Button
@@ -871,7 +874,7 @@ const DeliveryList: React.FC = () => {
               >
                 <PdfIcon />
               </Button>
-              {canCRUD && (
+              {isAdmin && (
                 <Button
                   size="icon-sm"
                   variant="ghost"

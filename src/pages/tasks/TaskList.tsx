@@ -287,6 +287,7 @@ const TaskList: React.FC = () => {
   )
 
   const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
+  const canViewValues = canCRUD
 
   const allColumns = React.useMemo<ColumnDef<Task, any>[]>(() => [
     {
@@ -526,7 +527,7 @@ const TaskList: React.FC = () => {
       id: '__actions', header: '', size: 170, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-          {canCRUD && (
+          {isAdmin && (
             <Button
               size="icon-sm"
               variant="ghost"
@@ -549,7 +550,7 @@ const TaskList: React.FC = () => {
           >
             <PdfIcon />
           </Button>
-          {canCRUD && (
+          {isAdmin && (
             <Button
               size="icon-sm"
               variant="ghost"
@@ -568,19 +569,23 @@ const TaskList: React.FC = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onSelect={() => handleSendFinancialEmail(row.original)}
-                disabled={emailLoadingId === row.original.id}
-              >
-                <Mail />Enviar e-mail financeiro
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => handleSendTaskEmail(row.original)}
-                disabled={emailLoadingId === row.original.id}
-              >
-                <Send />Enviar e-mail da tarefa
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem
+                    onSelect={() => handleSendFinancialEmail(row.original)}
+                    disabled={emailLoadingId === row.original.id}
+                  >
+                    <Mail />Enviar e-mail financeiro
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => handleSendTaskEmail(row.original)}
+                    disabled={emailLoadingId === row.original.id}
+                  >
+                    <Send />Enviar e-mail da tarefa
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onSelect={() => navigate(`/tasks/${row.original.id}`)}>
                 <Eye />Ver detalhes
               </DropdownMenuItem>
@@ -589,19 +594,20 @@ const TaskList: React.FC = () => {
         </div>
       ),
     },
-  ], [navigate, canCRUD, handleGeneratePdf, pdfLoadingId, emailLoadingId])
+  ], [navigate, isAdmin, handleGeneratePdf, pdfLoadingId, emailLoadingId])
 
-  /** Aplica visibilidade — mantém ordem do manifest. Valor é restrito a ADMIN. */
+  /** Aplica visibilidade — Valor restrito a ADMIN+MANAGER; Faturamento idem (oculto p/ USER). */
   const columns = React.useMemo(() => {
     const lookup = new Map(allColumns.map((c) => [c.id || (c as any).accessorKey, c]))
     const visibleIds = COLUMN_DEFS
       .filter((d) => columnVisibility[d.id])
-      .filter((d) => isAdmin || d.id !== 'amount')
+      .filter((d) => canViewValues || d.id !== 'amount')
+      .filter((d) => canViewValues || d.id !== 'billing')
       .map((d) => d.id)
     const ordered = visibleIds.map((id) => lookup.get(id)).filter(Boolean) as ColumnDef<Task, any>[]
     const actionsCol = allColumns.find((c) => c.id === '__actions')
     return actionsCol ? [...ordered, actionsCol] : ordered
-  }, [allColumns, columnVisibility, isAdmin])
+  }, [allColumns, columnVisibility, canViewValues])
 
   const [filtersOpen, setFiltersOpen] = React.useState(false)
 
@@ -639,25 +645,27 @@ const TaskList: React.FC = () => {
               )}
             </Button>
 
-            <div className="flex items-center gap-2 ml-1">
-              <StatChip
-                label="Sem entrega"
-                value={stats?.totalWithoutDelivery}
-                onClick={() => setFilter('hasDelivery', filters.hasDelivery === 'false' ? '' : 'false')}
-                active={filters.hasDelivery === 'false'}
-              />
-              <StatChip
-                label="Sem fatura"
-                value={stats?.totalWithoutBilling}
-                onClick={() => setFilter('hasQuoteInBilling', filters.hasQuoteInBilling === 'false' ? '' : 'false')}
-                active={filters.hasQuoteInBilling === 'false'}
-              />
-            </div>
+            {canViewValues && (
+              <div className="flex items-center gap-2 ml-1">
+                <StatChip
+                  label="Sem entrega"
+                  value={stats?.totalWithoutDelivery}
+                  onClick={() => setFilter('hasDelivery', filters.hasDelivery === 'false' ? '' : 'false')}
+                  active={filters.hasDelivery === 'false'}
+                />
+                <StatChip
+                  label="Sem fatura"
+                  value={stats?.totalWithoutBilling}
+                  onClick={() => setFilter('hasQuoteInBilling', filters.hasQuoteInBilling === 'false' ? '' : 'false')}
+                  active={filters.hasQuoteInBilling === 'false'}
+                />
+              </div>
+            )}
           </>
         }
         actions={
           <>
-            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={isAdmin ? COLUMN_DEFS : COLUMN_DEFS.filter((d) => d.id !== 'amount')} />
+            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={COLUMN_DEFS.filter((d) => canViewValues || (d.id !== 'amount' && d.id !== 'billing'))} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
@@ -667,7 +675,7 @@ const TaskList: React.FC = () => {
                 <DropdownMenuItem onSelect={() => exportTasksOnlyToExcel().catch(() => {})}>Só tarefas</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>
+            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>}
           </>
         }
       />
@@ -677,7 +685,7 @@ const TaskList: React.FC = () => {
       <DataTableBulkBar
         selectedCount={selectedIds.length}
         onClear={() => setSelection({})}
-        actions={canCRUD && (
+        actions={isAdmin && (
           <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ kind: 'bulk', ids: selectedIds })}>
             Excluir
           </Button>
@@ -845,7 +853,7 @@ const TaskList: React.FC = () => {
                     <Button variant="secondary" onClick={() => { setSearch(''); clearFilters() }}>
                       Limpar filtros
                     </Button>
-                    {canCRUD && (
+                    {isAdmin && (
                       <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>
                         Nova tarefa
                       </Button>
@@ -858,7 +866,7 @@ const TaskList: React.FC = () => {
                 icon={<ListChecks />}
                 title="Nenhuma tarefa"
                 description="Você ainda não tem tarefas cadastradas. Crie a primeira."
-                actions={canCRUD ? <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button> : undefined}
+                actions={isAdmin ? <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button> : undefined}
               />
             )
           }
@@ -874,7 +882,7 @@ const TaskList: React.FC = () => {
                     <span className="font-medium text-text-primary tabular-nums">{totalRows.toLocaleString('pt-BR')}</span>
                   </span>
                 </div>
-                {isAdmin && (
+                {canViewValues && (
                   <div className="flex items-center gap-2">
                     <span className="text-text-tertiary">
                       {hasActiveFilters ? 'Soma filtrada:' : 'Soma total:'}
@@ -912,7 +920,7 @@ const TaskList: React.FC = () => {
               icon={<ListChecks />}
               title="Nenhuma tarefa"
               description="Crie a primeira."
-              actions={canCRUD ? <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova</Button> : undefined}
+              actions={isAdmin ? <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova</Button> : undefined}
             />
           )
         )}
@@ -939,14 +947,14 @@ const TaskList: React.FC = () => {
                   <span className="font-mono text-xs text-text-secondary truncate">{t.code}</span>
                 )}
               </div>
-              {isAdmin && <span className={`text-sm font-medium tabular-nums shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>}
+              {canViewValues && <span className={`text-sm font-medium tabular-nums shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>}
             </div>
             <button onClick={() => navigate(`/tasks/${t.id}`)} className="w-full text-left">
               <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{t.title}</p>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {t.flowType && <FlowChip value={t.flowType} />}
                 <StatusPill on={!!t.hasDelivery}        onLabel="Entrega"  offLabel="Sem entrega" tone="info" />
-                <StatusPill on={!!t.hasQuoteInBilling}  onLabel="Faturado" offLabel="Sem fatura"  tone="success" />
+                {canViewValues && <StatusPill on={!!t.hasQuoteInBilling}  onLabel="Faturado" offLabel="Sem fatura"  tone="success" />}
               </div>
               {t.requesterName && (
                 <p className="text-xs text-text-tertiary mt-1.5">{t.requesterName}</p>
@@ -954,7 +962,7 @@ const TaskList: React.FC = () => {
             </button>
 
             <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
-              {canCRUD && (
+              {isAdmin && (
                 <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
               )}
               <Button
@@ -969,7 +977,7 @@ const TaskList: React.FC = () => {
               >
                 <PdfIcon />
               </Button>
-              {canCRUD && (
+              {isAdmin && (
                 <Button
                   size="icon-sm"
                   variant="ghost"
@@ -988,13 +996,17 @@ const TaskList: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => handleSendFinancialEmail(t)} disabled={emailLoadingId === t.id}>
-                    <Mail />Enviar e-mail financeiro
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => handleSendTaskEmail(t)} disabled={emailLoadingId === t.id}>
-                    <Send />Enviar e-mail da tarefa
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem onSelect={() => handleSendFinancialEmail(t)} disabled={emailLoadingId === t.id}>
+                        <Mail />Enviar e-mail financeiro
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleSendTaskEmail(t)} disabled={emailLoadingId === t.id}>
+                        <Send />Enviar e-mail da tarefa
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onSelect={() => navigate(`/tasks/${t.id}`)}>
                     <Eye />Ver detalhes
                   </DropdownMenuItem>

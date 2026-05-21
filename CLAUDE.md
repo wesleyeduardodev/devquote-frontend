@@ -62,11 +62,23 @@ Path alias: `@/` → `./src` (configurado em `vite.config.ts` e `tsconfig.json`)
 - **Componentes UI base já existem** em `components/ui-v2/` (novo) e `components/ui/` (legado). Reusar antes de criar.
 - **Permissões hoje são por perfil** via `useAuth`: `hasProfile('ADMIN')`, `hasAnyProfile([...])`, `isAdmin()`, `isManager()`, `isUser()`. Rotas protegidas por `<ProtectedRoute requiredProfile|requiredProfiles>`. (Os Guards granulares `ScreenGuard/ResourceGuard/FieldGuard` citados em docs antigos não existem mais.)
 
-## ⚠️ Regra crítica: visibilidade de valores monetários
+## ⚠️ Regra crítica: permissões por perfil (escrita vs valores)
 
-**Valores (amount/taskValue/somas) só aparecem para ADMIN na tela.** Padrão: `const isAdmin = hasProfile('ADMIN')` e gatear a renderização. Já aplicado em TaskList (coluna Valor + footer + card mobile + ColumnsMenu), DeliveryList (idem), TaskView/DeliveryView (chip Valor) e Dashboard (KPIs de dinheiro + gráfico de faturamento). **Ao adicionar qualquer exibição de valor numa tela acessível a USER, gatear por `isAdmin`.**
+Dois gates distintos, **não confundir**:
 
-O backend **também** reforça isso (`SecurityUtils.canViewMonetaryValues()` = ADMIN ou MANAGER): zera `amount`/`taskValue` nas respostas, `total-amount` e relatórios para USER. Ou seja, a tela usa `isAdmin` (mais estrito); a API libera para ADMIN+MANAGER (porque MANAGER acessa Faturamento).
+- **`isAdmin = hasProfile('ADMIN')`** → toda **escrita/gestão**. Criar/editar/excluir tarefa e entrega, e-mails de tarefa, botão Sincronizar, e toda a gestão de Faturamento (vincular/desvincular/e-mail/editar/excluir/anexos/marcar pago/novo período). MANAGER e USER são **read-only** nessas telas.
+- **`canViewValues = hasAnyProfile(['ADMIN','MANAGER'])`** (= "não-USER") → **valores monetários** (coluna Valor, somas/footer, KPIs e gráficos do Dashboard, chips de valor nas Views) **e** os elementos de faturamento na lista de Tarefas (chips "Sem entrega/Sem fatura" + coluna Faturamento). USER **nunca** vê valores.
+
+Aplicado em: TaskList, DeliveryList, TaskView, DeliveryView, Dashboard, BillingMonthManagement. **Ao adicionar exibição de valor, gatear por `canViewValues`; ao adicionar ação de escrita, gatear por `isAdmin`.**
+
+O backend reforça os dois: escrita em Task/Delivery/Billing exige `hasRole('ADMIN')` (`@PreAuthorize`); valores usam `SecurityUtils.canViewMonetaryValues()` (= ADMIN ou MANAGER) zerando `amount`/`taskValue`/`total-amount`/relatórios para USER. Por isso o front de **valores** usa ADMIN+MANAGER (alinhado ao backend), e o de **escrita** usa só ADMIN.
+
+| Ação | ADMIN | MANAGER | USER |
+|---|---|---|---|
+| Tarefas/Entregas — criar/editar/excluir, e-mails, Sincronizar | ✓ | ✗ | ✗ |
+| Faturamento — gestão (vincular/.../novo período) | ✓ | ✗ | — |
+| Faturamento — Ver tarefas do período | ✓ | ✓ | — |
+| Valores monetários (Dashboard/Tarefas/Entregas/Views/Faturamento/relatórios) | ✓ | ✓ | ✗ |
 
 ## ⚠️ Regra crítica: Dual Desktop ↔ Mobile (breakpoint `lg` = 1024px)
 

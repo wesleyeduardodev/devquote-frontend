@@ -66,8 +66,7 @@ const DeliveryEdit: React.FC = () => {
   const { hasProfile } = useAuth()
 
   const isAdmin = hasProfile('ADMIN')
-  const isManager = hasProfile('MANAGER')
-  const canEdit = isAdmin || isManager
+  const canEdit = isAdmin
   const canDelete = isAdmin
 
   const [loading, setLoading] = useState(true)

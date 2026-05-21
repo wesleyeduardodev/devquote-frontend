@@ -93,6 +93,7 @@ const TaskView: React.FC = () => {
   const navigate = useNavigate()
   const { hasProfile } = useAuth()
   const isAdmin = hasProfile('ADMIN')
+  const canViewValues = hasProfile('ADMIN') || hasProfile('MANAGER')
 
   const [task, setTask] = useState<Task | null>(null)
   const [loading, setLoading] = useState(true)
@@ -219,7 +220,7 @@ const TaskView: React.FC = () => {
               </span>
             )}
           </div>
-          {isAdmin && (
+          {canViewValues && (
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor total</p>
               <p className="text-lg font-semibold text-text-primary tabular-nums">{formatCurrency(total)}</p>
@@ -356,7 +357,7 @@ const TaskView: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      {isAdmin && s.amount !== undefined && s.amount > 0 && (
+                      {canViewValues && s.amount !== undefined && s.amount > 0 && (
                         <span className="text-sm font-semibold text-[var(--success-strong)] tabular-nums whitespace-nowrap">
                           {formatCurrency(s.amount)}
                         </span>

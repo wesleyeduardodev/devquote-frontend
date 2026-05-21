@@ -63,8 +63,8 @@ const DeliveryView: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { hasProfile } = useAuth()
-  const canEdit = hasProfile('ADMIN') || hasProfile('MANAGER')
-  const isAdmin = hasProfile('ADMIN')
+  const canEdit = hasProfile('ADMIN')
+  const canViewValues = hasProfile('ADMIN') || hasProfile('MANAGER')
 
   const [delivery, setDelivery] = useState<Delivery | null>(null)
   const [loading, setLoading] = useState(true)
@@ -174,7 +174,7 @@ const DeliveryView: React.FC = () => {
             {delivery.environment && <EnvLabel value={delivery.environment} />}
             <DeliveryStatusBadge status={delivery.status} withTime={delivery.updatedAt} />
           </div>
-          {isAdmin && delivery.taskValue !== undefined && delivery.taskValue !== null && (
+          {canViewValues && delivery.taskValue !== undefined && delivery.taskValue !== null && (
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor</p>
               <p className="text-lg font-semibold text-text-primary tabular-nums">{brl(delivery.taskValue)}</p>

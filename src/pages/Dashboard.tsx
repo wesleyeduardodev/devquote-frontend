@@ -196,7 +196,7 @@ const TO_RECEIVE_STATUSES = ['PENDENTE', 'FATURADO', 'ATRASADO']
 const Dashboard: React.FC = () => {
   const { stats: dash, loading: dashLoading } = useDashboard()
   const { user, hasProfile } = useAuth() as any
-  const isAdmin = hasProfile ? hasProfile('ADMIN') : false
+  const canViewValues = hasProfile ? (hasProfile('ADMIN') || hasProfile('MANAGER')) : false
   const firstName = (user?.name || user?.username || 'Usuário').split(' ')[0]
 
   const [periods, setPeriods] = React.useState<any[]>([])
@@ -269,13 +269,13 @@ const Dashboard: React.FC = () => {
   // Requer atenção — itens reais (itens de faturamento só para ADMIN)
   const attentionItems = React.useMemo<AttentionItem[]>(() => {
     const items: AttentionItem[] = []
-    if (isAdmin && billing.overdueCount > 0) items.push({ icon: <Clock />, label: `${billing.overdueCount} fatura(s) atrasada(s)`, href: '/billing' })
+    if (canViewValues && billing.overdueCount > 0) items.push({ icon: <Clock />, label: `${billing.overdueCount} fatura(s) atrasada(s)`, href: '/billing' })
     if ((taskStats?.totalWithoutDelivery ?? 0) > 0) items.push({ icon: <Inbox />, label: `${taskStats!.totalWithoutDelivery} tarefa(s) sem entrega`, href: '/tasks' })
-    if (isAdmin && (taskStats?.totalWithoutBilling ?? 0) > 0) items.push({ icon: <Link2Off />, label: `${taskStats!.totalWithoutBilling} tarefa(s) sem faturamento`, href: '/billing' })
+    if (canViewValues && (taskStats?.totalWithoutBilling ?? 0) > 0) items.push({ icon: <Link2Off />, label: `${taskStats!.totalWithoutBilling} tarefa(s) sem faturamento`, href: '/billing' })
     if ((dlvStats?.totalWithoutItems ?? 0) > 0) items.push({ icon: <FileWarning />, label: `${dlvStats.totalWithoutItems} entrega(s) sem itens`, href: '/deliveries' })
     if ((dlvStats?.totalRejected ?? 0) > 0) items.push({ icon: <AlertTriangle />, label: `${dlvStats.totalRejected} entrega(s) rejeitada(s)`, href: '/deliveries' })
     return items
-  }, [isAdmin, billing, taskStats, dlvStats])
+  }, [canViewValues, billing, taskStats, dlvStats])
 
   return (
     <div className="space-y-6">
@@ -289,7 +289,7 @@ const Dashboard: React.FC = () => {
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {isAdmin ? (
+        {canViewValues ? (
           <>
             <KpiCard
               label="A receber"
@@ -384,7 +384,7 @@ const Dashboard: React.FC = () => {
 
       {/* Trend (só ADMIN) + Activity */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {isAdmin && (
+        {canViewValues && (
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Faturamento por período</CardTitle>
@@ -396,7 +396,7 @@ const Dashboard: React.FC = () => {
           </Card>
         )}
 
-        <Card className={isAdmin ? '' : 'lg:col-span-3'}>
+        <Card className={canViewValues ? '' : 'lg:col-span-3'}>
           <CardHeader>
             <CardTitle>Atividade recente</CardTitle>
             <CardDescription>Últimos eventos no sistema</CardDescription>

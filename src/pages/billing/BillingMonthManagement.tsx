@@ -76,8 +76,8 @@ const StatusPill: React.FC<{ status: string }> = ({ status }) => {
 }
 
 const BillingMonthManagement: React.FC = () => {
-  const { hasAnyProfile } = useAuth() as any
-  const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
+  const { hasProfile } = useAuth() as any
+  const isAdmin = hasProfile ? hasProfile('ADMIN') : true
 
   const [periods, setPeriods] = React.useState<BillingPeriod[]>([])
   const [loading, setLoading] = React.useState(true)
@@ -218,13 +218,13 @@ const BillingMonthManagement: React.FC = () => {
         return (
           <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
             <Button size="icon-sm" variant="ghost" onClick={() => setViewTasksOf(p)} title="Ver tarefas"><Eye /></Button>
-            {canCRUD && (
+            {isAdmin && (
               <Button size="icon-sm" variant="ghost" onClick={() => setLinkTo(p)} title="Vincular tarefas" className="text-[var(--info-strong)]"><LinkIcon /></Button>
             )}
-            {canCRUD && (
+            {isAdmin && (
               <Button size="icon-sm" variant="ghost" onClick={() => setUnlinkFrom(p)} title="Desvincular tarefas" className="text-text-secondary hover:text-[var(--danger-strong)]"><Link2Off /></Button>
             )}
-            {canCRUD && (
+            {isAdmin && (
               <Button
                 size="icon-sm" variant="ghost"
                 onClick={() => setConfirmEmail(p)}
@@ -235,28 +235,30 @@ const BillingMonthManagement: React.FC = () => {
                 <Mail />
               </Button>
             )}
-            {canCRUD && (
+            {isAdmin && (
               <Button size="icon-sm" variant="ghost" onClick={() => setPeriodSheet({ mode: 'edit', period: p })} title="Editar"><Pencil /></Button>
             )}
-            {canCRUD && (
+            {isAdmin && (
               <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ ids: [p.id] })} title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon-sm" variant="ghost" title="Mais ações"><MoreHorizontal /></Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => setAttachmentsOf(p)}><Paperclip />Anexos</DropdownMenuItem>
-                {canCRUD && p.status !== 'PAGO' && (
-                  <DropdownMenuItem onSelect={() => handleMarkPaid(p)}><CheckCircle2 />Marcar como pago</DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon-sm" variant="ghost" title="Mais ações"><MoreHorizontal /></Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => setAttachmentsOf(p)}><Paperclip />Anexos</DropdownMenuItem>
+                  {p.status !== 'PAGO' && (
+                    <DropdownMenuItem onSelect={() => handleMarkPaid(p)}><CheckCircle2 />Marcar como pago</DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         )
       },
     },
-  ], [canCRUD, emailLoadingId])
+  ], [isAdmin, emailLoadingId])
 
   const chips: any[] = []
   if (filters.flowType) chips.push({ key: 'flow',   label: 'Fluxo',  value: filters.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional', onRemove: () => setFilters((f) => ({ ...f, flowType: undefined })) })
@@ -332,7 +334,7 @@ const BillingMonthManagement: React.FC = () => {
                 URL.revokeObjectURL(url)
               } catch { toast.error('Falha ao exportar') }
             }}>Exportar</Button>
-            {canCRUD && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo período</Button>}
+            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo período</Button>}
           </>
         }
       />
@@ -354,7 +356,7 @@ const BillingMonthManagement: React.FC = () => {
         <DataTableBulkBar
           selectedCount={selectedIds.length}
           onClear={() => setSelection({})}
-          actions={canCRUD && (
+          actions={isAdmin && (
             <Button size="sm" variant="danger" leadingIcon={<Trash2 />} onClick={() => setConfirmDelete({ ids: selectedIds })}>
               Excluir
             </Button>
@@ -376,7 +378,7 @@ const BillingMonthManagement: React.FC = () => {
                 icon={<DollarSign />}
                 title="Nenhum período"
                 description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie o primeiro período de faturamento.'}
-                actions={canCRUD && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo período</Button>}
+                actions={isAdmin && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo período</Button>}
               />
             }
           />
@@ -386,7 +388,7 @@ const BillingMonthManagement: React.FC = () => {
         <div className="lg:hidden space-y-2">
           {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
           {!loading && periods.length === 0 && (
-            <EmptyState icon={<DollarSign />} title="Nenhum período" description="Crie o primeiro." actions={canCRUD && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo</Button>} />
+            <EmptyState icon={<DollarSign />} title="Nenhum período" description="Crie o primeiro." actions={isAdmin && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo</Button>} />
           )}
           {!loading && periods.map((p) => (
             <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
@@ -406,22 +408,24 @@ const BillingMonthManagement: React.FC = () => {
               </button>
               <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
                 <Button size="icon-sm" variant="ghost" onClick={() => setViewTasksOf(p)} title="Ver tarefas"><Eye /></Button>
-                {canCRUD && <Button size="icon-sm" variant="ghost" onClick={() => setLinkTo(p)} title="Vincular" className="text-[var(--info-strong)]"><LinkIcon /></Button>}
-                {canCRUD && <Button size="icon-sm" variant="ghost" onClick={() => setUnlinkFrom(p)} title="Desvincular"><Link2Off /></Button>}
-                {canCRUD && <Button size="icon-sm" variant="ghost" onClick={() => setConfirmEmail(p)} title="E-mail"><Mail /></Button>}
-                {canCRUD && <Button size="icon-sm" variant="ghost" onClick={() => setPeriodSheet({ mode: 'edit', period: p })} title="Editar"><Pencil /></Button>}
-                {canCRUD && <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ ids: [p.id] })} title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon-sm" variant="ghost" title="Mais"><MoreHorizontal /></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setAttachmentsOf(p)}><Paperclip />Anexos</DropdownMenuItem>
-                    {canCRUD && p.status !== 'PAGO' && (
-                      <DropdownMenuItem onSelect={() => handleMarkPaid(p)}><CheckCircle2 />Marcar como pago</DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setLinkTo(p)} title="Vincular" className="text-[var(--info-strong)]"><LinkIcon /></Button>}
+                {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setUnlinkFrom(p)} title="Desvincular"><Link2Off /></Button>}
+                {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setConfirmEmail(p)} title="E-mail"><Mail /></Button>}
+                {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setPeriodSheet({ mode: 'edit', period: p })} title="Editar"><Pencil /></Button>}
+                {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ ids: [p.id] })} title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>}
+                {isAdmin && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="icon-sm" variant="ghost" title="Mais"><MoreHorizontal /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={() => setAttachmentsOf(p)}><Paperclip />Anexos</DropdownMenuItem>
+                      {p.status !== 'PAGO' && (
+                        <DropdownMenuItem onSelect={() => handleMarkPaid(p)}><CheckCircle2 />Marcar como pago</DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           ))}
@@ -455,7 +459,7 @@ const BillingMonthManagement: React.FC = () => {
           onClose={() => setAttachmentsOf(null)}
           billingPeriodId={attachmentsOf.id}
           billingPeriodTitle={`${MONTH_LABEL(attachmentsOf.month)} ${attachmentsOf.year}`}
-          isAdmin={canCRUD}
+          isAdmin={isAdmin}
         />
       )}
 
