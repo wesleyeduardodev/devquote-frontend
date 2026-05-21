@@ -96,19 +96,21 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3 px-2">
-          {SECTIONS.map((sec) => {
+          {SECTIONS.map((sec, secIdx) => {
             const visibleItems = sec.items.filter(isAllowed)
             if (visibleItems.length === 0) return null
             return (
-              <div key={sec.title} className="mb-4">
-                {!collapsed && (
+              <div key={sec.title} className={cn(collapsed ? 'mb-2' : 'mb-4')}>
+                {!collapsed ? (
                   <div className="px-2 mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--sidebar-text-dim)]">
                     {sec.title}
                   </div>
+                ) : (
+                  secIdx > 0 && <div className="mx-auto mb-2 h-px w-6 bg-[var(--sidebar-border)]" aria-hidden />
                 )}
-                <ul className="space-y-0.5">
+                <ul className={cn(collapsed ? 'space-y-1.5' : 'space-y-0.5')}>
                   {visibleItems.map((item) => (
-                    <li key={item.to}>
+                    <li key={item.to} className={cn(collapsed && 'flex justify-center')}>
                       <NavItemEl item={item} collapsed={collapsed} onNavigate={onCloseMobile} />
                     </li>
                   ))}
@@ -161,9 +163,8 @@ const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () =
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'group relative flex items-center gap-2.5 rounded-md text-sm font-medium',
-          'h-8 px-2 transition-colors',
-          collapsed && 'justify-center px-0 w-full',
+          'group relative flex items-center gap-2.5 rounded-md text-sm font-medium transition-colors',
+          collapsed ? 'justify-center size-9' : 'h-8 px-2',
           isActive
             ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)]'
             : 'text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)]'
@@ -172,7 +173,7 @@ const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () =
     >
       {({ isActive }) => (
         <>
-          {isActive && (
+          {isActive && !collapsed && (
             <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[var(--sidebar-active-bar)]" aria-hidden />
           )}
           <Icon className="size-4 shrink-0" />
@@ -233,8 +234,8 @@ const ThemeToggle: React.FC<{ collapsed: boolean; theme: string; setTheme: (t: a
   <DropdownMenu>
     <DropdownMenuTrigger
       className={cn(
-        'flex items-center gap-2 rounded-md text-sm text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)] h-8 transition-colors',
-        collapsed ? 'w-8 justify-center' : 'w-full px-2'
+        'flex items-center gap-2 rounded-md text-sm text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)] transition-colors',
+        collapsed ? 'size-9 justify-center' : 'w-full px-2 h-8'
       )}
     >
       {theme === 'dark' ? <Moon className="size-4" /> : theme === 'dim' ? <Moon className="size-4 opacity-70" /> : theme === 'system' ? <Monitor className="size-4" /> : <Sun className="size-4" />}
@@ -261,11 +262,11 @@ const FooterIconButton: React.FC<{
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-2 rounded-md text-sm h-8 transition-colors',
+        'flex items-center gap-2 rounded-md text-sm transition-colors',
         danger
           ? 'text-[var(--sidebar-text-muted)] hover:bg-danger-soft hover:text-[var(--danger-strong)]'
           : 'text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)]',
-        collapsed ? 'w-8 justify-center' : 'w-full px-2'
+        collapsed ? 'size-9 justify-center' : 'w-full px-2 h-8'
       )}
     >
       <span className="[&_svg]:size-4">{icon}</span>
