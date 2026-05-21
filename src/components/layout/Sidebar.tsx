@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ListChecks, Truck, DollarSign,
   Users, FolderKanban, Shield, Bell, Settings,
   ChevronsLeft, ChevronsRight, Sun, Moon, Monitor,
-  Zap, Check, ChevronDown
+  Zap, Check, ChevronDown, LogOut
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
@@ -66,12 +66,17 @@ export interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onCloseMobile }) => {
-  const { hasAnyProfile } = useAuth() as any
+  const { hasAnyProfile, logout } = useAuth() as any
   const { theme, setTheme } = useTheme()
+  const navigate = useNavigate()
 
   const isAllowed = (item: NavItem) => {
     if (!item.profiles || item.profiles.length === 0) return true
     return hasAnyProfile ? hasAnyProfile(item.profiles) : true
+  }
+
+  const handleLogout = async () => {
+    try { await logout?.() } finally { navigate('/login') }
   }
 
   return (
@@ -115,6 +120,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
 
         <div className={cn('shrink-0 border-t border-[var(--sidebar-border)] p-2 flex flex-col gap-1', collapsed && 'items-center')}>
           <ThemeToggle collapsed={collapsed} theme={theme} setTheme={setTheme} />
+          <FooterIconButton
+            collapsed={collapsed}
+            onClick={handleLogout}
+            icon={<LogOut />}
+            label="Sair da conta"
+            danger
+          />
           <FooterIconButton
             collapsed={collapsed}
             onClick={onToggleCollapsed}
@@ -166,7 +178,7 @@ const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () =
           <Icon className="size-4 shrink-0" />
           {!collapsed && <span className="truncate flex-1">{item.label}</span>}
           {!collapsed && item.shortcut && (
-            <kbd className="font-mono text-[10px] text-[var(--sidebar-text-dim)] opacity-0 group-hover:opacity-100 transition-opacity">{item.shortcut}</kbd>
+            <kbd className="font-mono text-[10px] leading-none px-1.5 py-1 rounded border border-[var(--sidebar-border)] text-[var(--sidebar-text-dim)] opacity-0 group-hover:opacity-100 transition-opacity">{item.shortcut}</kbd>
           )}
         </>
       )}
@@ -243,19 +255,23 @@ const FooterIconButton: React.FC<{
   icon: React.ReactNode
   label: string
   shortcut?: string
-}> = ({ collapsed, onClick, icon, label, shortcut }) => {
+  danger?: boolean
+}> = ({ collapsed, onClick, icon, label, shortcut, danger }) => {
   const btn = (
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-2 rounded-md text-sm text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)] h-8 transition-colors',
+        'flex items-center gap-2 rounded-md text-sm h-8 transition-colors',
+        danger
+          ? 'text-[var(--sidebar-text-muted)] hover:bg-danger-soft hover:text-[var(--danger-strong)]'
+          : 'text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)]',
         collapsed ? 'w-8 justify-center' : 'w-full px-2'
       )}
     >
       <span className="[&_svg]:size-4">{icon}</span>
       {!collapsed && <span className="flex-1 text-left">{label}</span>}
       {!collapsed && shortcut && (
-        <kbd className="font-mono text-[10px] text-[var(--sidebar-text-dim)]">{shortcut}</kbd>
+        <kbd className="font-mono text-[10px] leading-none px-1.5 py-1 rounded border border-[var(--sidebar-border)] bg-[var(--sidebar-hover)] text-[var(--sidebar-text-dim)]">{shortcut}</kbd>
       )}
     </button>
   )
