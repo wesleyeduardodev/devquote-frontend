@@ -7,7 +7,15 @@ React 18.2 · TypeScript 5.5 · Vite 5 · React Router 6.30 · Tailwind 3.4 · R
 
 **Design system (redesign concluído — 2026-05-18):** Radix UI + cmdk + class-variance-authority + tailwind-merge + @tanstack/react-table + recharts + date-fns + react-hotkeys-hook. Tokens semânticos em `src/styles/tokens.css` com tema light/dark (atributo `data-theme`). Componentes base novos em `src/components/ui-v2/` (Button, Input, Badge, Card, Sheet, Dialog, DropdownMenu, Tooltip, Popover, Tabs, Checkbox, Switch, Select, Avatar, Skeleton, StatusDot, EmptyState, PageHeader, FormPage, Separator, DataTable). Utilitário `cn()` em `src/utils/cn.ts` (clsx + tailwind-merge).
 
-**Telas migradas (100% dos fluxos principais):** Login, Dashboard, NotFound, UserSettings, Solicitantes (List/Create/Edit), Projetos (List/Create/Edit), Notificações (List), Parâmetros (List + SecretMask), Tarefas (List/Create/Edit/View), Entregas (List/Create/View — Edit e GroupEdit com migração visual mínima mantendo lógica), Faturamento, Perfis (2 abas: Usuários + Perfis).
+**Telas migradas (100% v2):** Login, Dashboard, NotFound, UserSettings, Solicitantes (List/Create/Edit), Projetos (List/Create/Edit), Notificações (List), Parâmetros (List + SecretMask), Tarefas (List/Create/Edit/View), Entregas (List/Create/Edit/View), Faturamento, Perfis & Usuários (2 abas: Usuários + Perfis).
+
+**Padrão de telas:** consolidado em `REDESIGN-PATTERN.md` (raiz do front). Listagens usam DataTable v2 com `COLUMN_DEFS` + ColumnsMenu (visibilidade versionada em `localStorage devquote.{módulo}.columns.v2`), Sheet de filtros, chips de filtros ativos, footer com soma, cards mobile. **Ações inline** (ícones visíveis: Editar/Excluir/PDF/etc.) em vez de menu `⋯` nas telas com poucas colunas.
+
+**Entregas — modelo 1:1:** cada Tarefa tem **uma** Entrega (`@OneToOne` no backend). O conceito antigo de "grupo de entregas" foi **eliminado** (DeliveryGroupEdit removido). Rotas: `/deliveries`, `/deliveries/create`, `/deliveries/:id` (ver), `/deliveries/:id/edit`. A lista usa `GET /deliveries` paginado (não mais `grouped-by-task`).
+
+**Faturamento:** status em **PT-BR** (`PENDENTE/FATURADO/PAGO/ATRASADO/CANCELADO`) com ícone+cor; KPIs somam por status; filtros Fluxo/Ano/Mês/Status; ações inline (Ver/Vincular/Desvincular/E-mail/Editar/Excluir).
+
+**Dashboard:** usa dados **reais** (`/billing-periods`, `/tasks/stats`, `/deliveries/stats`). O `DashboardServiceImpl` antigo (fake, `Math.random()`) foi aposentado — `/dashboard/stats` só serve `recentActivities`.
 
 **Modais existentes integrados sem reescrita:** LinkTasksToBillingModal, UnlinkTasksFromBillingModal, ViewTasksModal, BillingPeriodAttachmentModal, NotificationModal, ParameterModal, ProfileModal, UserAssignmentModal, TaskSelectionModal, ProjectSelectionModal, DeliveryItemForm, DeliveryOperationalItemForm, TaskForm. Têm erros TS pré-existentes mas funcionam — não foram tocados pra evitar regressão.
 
@@ -51,8 +59,14 @@ Path alias: `@/` → `./src` (configurado em `vite.config.ts` e `tsconfig.json`)
 - **Formulários com React Hook Form + Yup.**
 - **Tipos por módulo em `types/<modulo>.types.ts`.** Enums devem espelhar o backend (ver gotcha abaixo).
 - **Rotas novas:** declarar em `App.tsx` dentro de `<Layout>` e envolver com `<ProtectedRoute requiredProfile=... requiredProfiles=[...]>`.
-- **Componentes UI base já existem** em `components/ui/` (Button, Input, Select, Modal, DataTable, FileUpload, RichTextEditor, etc). Reusar antes de criar.
-- **Permissões em camadas:** `ProtectedRoute` (perfil) > `ScreenGuard` (tela) > `ResourceGuard` (operação) > `FieldGuard` (campo).
+- **Componentes UI base já existem** em `components/ui-v2/` (novo) e `components/ui/` (legado). Reusar antes de criar.
+- **Permissões hoje são por perfil** via `useAuth`: `hasProfile('ADMIN')`, `hasAnyProfile([...])`, `isAdmin()`, `isManager()`, `isUser()`. Rotas protegidas por `<ProtectedRoute requiredProfile|requiredProfiles>`. (Os Guards granulares `ScreenGuard/ResourceGuard/FieldGuard` citados em docs antigos não existem mais.)
+
+## ⚠️ Regra crítica: visibilidade de valores monetários
+
+**Valores (amount/taskValue/somas) só aparecem para ADMIN na tela.** Padrão: `const isAdmin = hasProfile('ADMIN')` e gatear a renderização. Já aplicado em TaskList (coluna Valor + footer + card mobile + ColumnsMenu), DeliveryList (idem), TaskView/DeliveryView (chip Valor) e Dashboard (KPIs de dinheiro + gráfico de faturamento). **Ao adicionar qualquer exibição de valor numa tela acessível a USER, gatear por `isAdmin`.**
+
+O backend **também** reforça isso (`SecurityUtils.canViewMonetaryValues()` = ADMIN ou MANAGER): zera `amount`/`taskValue` nas respostas, `total-amount` e relatórios para USER. Ou seja, a tela usa `isAdmin` (mais estrito); a API libera para ADMIN+MANAGER (porque MANAGER acessa Faturamento).
 
 ## ⚠️ Regra crítica: Dual Desktop ↔ Mobile (breakpoint `lg` = 1024px)
 
@@ -77,7 +91,10 @@ TaskType:       'BUG' | 'ENHANCEMENT' | 'NEW_FEATURE' | 'BACKUP' | 'DEPLOY'
 TaskPriority:   'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 DeliveryStatus: 'PENDING' | 'DEVELOPMENT' | 'DELIVERED' | 'HOMOLOGATION'
                 | 'APPROVED' | 'REJECTED' | 'PRODUCTION' | 'CANCELLED'
+BillingStatus (PT-BR!): 'PENDENTE' | 'FATURADO' | 'PAGO' | 'ATRASADO' | 'CANCELADO'
 ```
+
+⚠️ **Atenção:** o status de Faturamento (`BillingPeriod.status`) é **string PT-BR** no backend (não enum em inglês). Comparar/filtrar sempre com esses valores.
 
 Trocou enum no backend? Atualize `types/*.types.ts` antes de qualquer outra coisa.
 
@@ -91,11 +108,12 @@ Trocou enum no backend? Atualize `types/*.types.ts` antes de qualquer outra cois
 
 ## Gotchas
 
-- **Permissões granulares não são validadas no backend hoje** — só perfil. Tela protegida no front **não impede** chamada direta à API. Se for sensível, garantir o lock também no backend.
+- **Acesso de tela é só por perfil (`ProtectedRoute`)** — telas granulares por operação não são validadas no backend. Para dados **monetários** há reforço no backend (ver regra de valores acima). Para outros dados sensíveis, garantir o lock também no backend.
 - **JWT 24h sem refresh.** Token vence → user volta pro login.
 - **`VITE_API_URL` é injetada em build time** (ARG do Dockerfile). Cada tag de imagem é fixa para um endpoint.
-- **`TaskList.tsx` e `BillingMonthManagement.tsx` têm 1200+ linhas.** Ao alterar, evitar piorar; refactor em componentes menores é bem-vindo se o escopo do PR permitir.
-- **`eslint --max-warnings 0`** — qualquer warning quebra o CI. Rodar `npm run lint` antes do push.
+- **`TaskList.tsx` é grande (~1300 linhas)** — contém ColumnsMenu/StatChip/FilterSection inline. Ao alterar, evitar piorar; refactor é bem-vindo se o escopo do PR permitir. (`BillingMonthManagement.tsx` foi reescrito e hoje tem ~600 linhas.)
+- **Editor (TipTap) com autolink desligado** (`Link.configure({ autolink:false, linkOnPaste:false })` em `RichTextEditor`) — colar SQL/código não vira link.
+- **`eslint --max-warnings 0`** — qualquer warning quebra o CI. (No ambiente local pode faltar `@typescript-eslint` em `node_modules`; o CI tem.) Há ~66 erros TS pré-existentes em arquivos legados; `vite build` passa mesmo assim.
 
 ## `.env` (local)
 
