@@ -247,7 +247,7 @@ export function DeliveryAttachmentList({
                 className="hidden"
                 id={`file-input-${targetId}-${isDeliveryAttachment ? 'delivery' : 'item'}`}
                 disabled={isUploading}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mov,.zip,.rar,.7z"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.sql,.jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mov,.zip,.rar,.7z"
               />
               <label
                 htmlFor={`file-input-${targetId}-${isDeliveryAttachment ? 'delivery' : 'item'}`}

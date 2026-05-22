@@ -35,7 +35,7 @@ export function LocalFileUpload({
 
     const fileName = file.name.toLowerCase();
     const fileExtension = fileName.split('.').pop();
-    const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
+    const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'sql', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
 
     if (fileExtension && allowedExtensions.includes(fileExtension)) {
       return true;
@@ -206,7 +206,7 @@ export function LocalFileUpload({
                 onChange={handleFileInput}
                 className="hidden"
                 id="local-file-input"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mov,.zip,.rar,.7z"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.sql,.jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mov,.zip,.rar,.7z"
               />
               <label
                 htmlFor="local-file-input"

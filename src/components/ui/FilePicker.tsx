@@ -88,7 +88,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
         const fileExtension = fileName.split('.').pop();
         
 
-        const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
+        const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'sql', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
 
         if (fileExtension && allowedExtensions.includes(fileExtension)) {
 
@@ -269,7 +269,7 @@ const FilePicker: React.FC<FilePickerProps> = ({
                     type="file"
                     multiple
                     className="hidden"
-                    accept={allowedTypes.join(',')}
+                    accept={[...allowedTypes, '.sql'].join(',')}
                     onChange={handleFileSelect}
                     disabled={disabled}
                 />

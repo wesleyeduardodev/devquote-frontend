@@ -72,7 +72,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
         const fileName = file.name.toLowerCase();
         const fileExtension = fileName.split('.').pop();
-        const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
+        const allowedExtensions = ['json', 'ppt', 'pptx', 'xls', 'xlsx', 'doc', 'docx', 'pdf', 'txt', 'csv', 'sql', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mp3', 'wav', 'zip', 'rar', '7z'];
         
         console.log('🚨 FileUpload.tsx validating:', { fileName: file.name, fileType: file.type, fileExtension });
 
@@ -260,7 +260,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept={allowedTypes.join(',')}
+                    accept={[...allowedTypes, '.sql'].join(',')}
                     onChange={handleFileSelect}
                     className="hidden"
                     disabled={disabled}
