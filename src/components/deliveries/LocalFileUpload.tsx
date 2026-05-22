@@ -206,7 +206,7 @@ export function LocalFileUpload({
                 onChange={handleFileInput}
                 className="hidden"
                 id="local-file-input"
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.sql,.jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mov,.zip,.rar,.7z"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.sql,.json,.jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mov,.zip,.rar,.7z"
               />
               <label
                 htmlFor="local-file-input"
