@@ -17,6 +17,9 @@ import {
 } from '@/components/ui-v2/Select'
 import { TASK_TYPE_META } from '@/components/tasks/TaskTypeLabel'
 import { ENV_META } from '@/components/tasks/EnvLabel'
+import { moduleService } from '@/services/moduleService'
+import { serverService } from '@/services/serverService'
+import { Combobox } from '@/components/ui-v2/Combobox'
 import SubTaskForm from './SubTaskForm'
 import FilePicker from '../ui/FilePicker'
 import AttachmentList from '../ui/AttachmentList'
@@ -36,8 +39,8 @@ interface TaskData {
   hasSubTasks?: boolean
   amount?: string
   taskType?: string
-  serverOrigin?: string
-  systemModule?: string
+  serverId?: string
+  moduleId?: string
   priority?: string
   subTasks?: any[]
 }
@@ -69,8 +72,8 @@ const createSchema = (isEdit: boolean) => yup.object({
   hasSubTasks: yup.boolean().optional(),
   amount: yup.string().optional(),
   taskType: yup.string().optional(),
-  serverOrigin: yup.string().max(100, 'Máximo 100 caracteres').optional(),
-  systemModule: yup.string().max(100, 'Máximo 100 caracteres').optional(),
+  serverId: yup.string().optional(),
+  moduleId: yup.string().optional(),
   priority: yup.string().required('Prioridade é obrigatória'),
   subTasks: yup.array().optional(),
 })
@@ -161,7 +164,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
   const isEdit = !!initialData?.id
 
   const methods = useForm<TaskData>({
-    resolver: yupResolver(createSchema(isEdit)),
+    resolver: yupResolver(createSchema(isEdit)) as any,
     defaultValues: {
       title: initialData?.title || '',
       description: initialData?.description || '',
@@ -173,8 +176,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
       hasSubTasks: initialData?.hasSubTasks !== undefined ? initialData.hasSubTasks : false,
       amount: initialData?.amount || '',
       taskType: initialData?.taskType || '',
-      serverOrigin: initialData?.serverOrigin || '',
-      systemModule: initialData?.systemModule || '',
+      serverId: initialData?.serverId != null ? String(initialData.serverId) : '',
+      moduleId: initialData?.moduleId != null ? String(initialData.moduleId) : '',
       priority: initialData?.priority || 'MEDIUM',
       subTasks: initialData?.subTasks
         ? [...initialData.subTasks].sort((a: any, b: any) => {
@@ -215,8 +218,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
         hasSubTasks: initialData?.hasSubTasks !== undefined ? initialData.hasSubTasks : false,
         amount: initialData?.amount || '',
         taskType: initialData?.taskType || '',
-        serverOrigin: initialData?.serverOrigin || '',
-        systemModule: initialData?.systemModule || '',
+        serverId: initialData?.serverId != null ? String(initialData.serverId) : '',
+        moduleId: initialData?.moduleId != null ? String(initialData.moduleId) : '',
         priority: initialData?.priority || 'MEDIUM',
         subTasks: initialData?.subTasks
           ? [...initialData.subTasks].sort((a: any, b: any) => {
@@ -234,6 +237,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
   }, [initialData, reset])
 
   const [subTaskError, setSubTaskError] = useState<string | null>(null)
+  const [modules, setModules] = useState<{ id: number; name: string }[]>([])
+  const [servers, setServers] = useState<{ id: number; name: string }[]>([])
+
+  useEffect(() => {
+    moduleService.getAll().then((r: any) => setModules((r?.content ?? r ?? []).map((m: any) => ({ id: m.id, name: m.name })))).catch(() => {})
+    serverService.getAll().then((r: any) => setServers((r?.content ?? r ?? []).map((s: any) => ({ id: s.id, name: s.name })))).catch(() => {})
+  }, [])
   const [formError, setFormError] = useState<string | null>(null)
   const [attachmentRefresh, setAttachmentRefresh] = useState(0)
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -292,6 +302,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
         ...data,
         link: derivedLink,
         requesterId: data.requesterId || initialData?.requesterId,
+        moduleId: data.moduleId ? Number(data.moduleId) : null,
+        serverId: data.serverId ? Number(data.serverId) : null,
         amount: data.hasSubTasks ? undefined : (isAdmin ? parseFloat(data.amount || '0') : null),
         subTasks: data.hasSubTasks
           ? (data.subTasks || []).map((st: any, idx: number) => ({
@@ -530,19 +542,37 @@ const TaskForm: React.FC<TaskFormProps> = ({
                   )
                 }}
               />
-              <Input
-                {...register('systemModule')}
-                label="Módulo do Sistema"
-                placeholder="Ex: Autenticação, Relatórios…"
-                error={errors.systemModule?.message}
-                maxLength={100}
+              <Controller
+                control={control}
+                name="moduleId"
+                render={({ field }) => (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-1.5">Módulo do Sistema</label>
+                    <Combobox
+                      value={field.value ? String(field.value) : ''}
+                      onChange={field.onChange}
+                      placeholder="Selecione…"
+                      searchPlaceholder="Buscar módulo…"
+                      options={[{ value: '', label: 'Nenhum' }, ...modules.map((m) => ({ value: String(m.id), label: m.name }))]}
+                    />
+                  </div>
+                )}
               />
-              <Input
-                {...register('serverOrigin')}
-                label="Servidor"
-                placeholder="Ex: prod-app-01"
-                error={errors.serverOrigin?.message}
-                maxLength={100}
+              <Controller
+                control={control}
+                name="serverId"
+                render={({ field }) => (
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-1.5">Servidor</label>
+                    <Combobox
+                      value={field.value ? String(field.value) : ''}
+                      onChange={field.onChange}
+                      placeholder="Selecione…"
+                      searchPlaceholder="Buscar servidor…"
+                      options={[{ value: '', label: 'Nenhum' }, ...servers.map((s) => ({ value: String(s.id), label: s.name }))]}
+                    />
+                  </div>
+                )}
               />
             </div>
           </FormSection>

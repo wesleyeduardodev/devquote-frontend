@@ -36,8 +36,11 @@ interface Task {
   taskType?: string
   flowType?: 'DESENVOLVIMENTO' | 'OPERACIONAL'
   environment?: 'DESENVOLVIMENTO' | 'HOMOLOGACAO' | 'PRODUCAO'
-  serverOrigin?: string
-  systemModule?: string
+  moduleId?: number
+  moduleName?: string
+  serverId?: number
+  serverName?: string
+  serverLink?: string
   requesterName?: string
   requesterId?: number
   link?: string
@@ -249,17 +252,24 @@ const TaskView: React.FC = () => {
             )}
           </Section>
 
-          {(task.systemModule || task.serverOrigin) && (
+          {(task.moduleName || task.serverName) && (
             <Section title="Operacional">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {task.systemModule && (
+                {task.moduleName && (
                   <InfoField label="Módulo do Sistema">
-                    <span className="font-medium">{task.systemModule}</span>
+                    <span className="font-medium">{task.moduleName}</span>
                   </InfoField>
                 )}
-                {task.serverOrigin && (
+                {task.serverName && (
                   <InfoField label="Servidor">
-                    <span className="font-medium">{task.serverOrigin}</span>
+                    {task.serverLink ? (
+                      <a href={task.serverLink} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline inline-flex items-center gap-1">
+                        {task.serverName}
+                        <ExternalLink className="size-3.5" />
+                      </a>
+                    ) : (
+                      <span className="font-medium">{task.serverName}</span>
+                    )}
                   </InfoField>
                 )}
               </div>

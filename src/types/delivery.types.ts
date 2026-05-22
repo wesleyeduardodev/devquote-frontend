@@ -150,6 +150,8 @@ export interface DeliveryFilters {
     createdAt?: string;
     updatedAt?: string;
     hasItems?: string;
+    moduleId?: number | string;
+    serverId?: number | string;
 }
 
 export interface DeliveryItemFilters {

@@ -11,6 +11,9 @@ import { useDeliveries } from '@/hooks/useDeliveries'
 import { useAuth } from '@/hooks/useAuth'
 import { gitSyncService } from '@/services/gitSyncService'
 import { reportService } from '@/services/reportService'
+import { moduleService } from '@/services/moduleService'
+import { serverService } from '@/services/serverService'
+import { Combobox } from '@/components/ui-v2/Combobox'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import { Button } from '@/components/ui-v2/Button'
 import { PageHeader } from '@/components/ui-v2/PageHeader'
@@ -100,6 +103,8 @@ const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; l
   { id: 'startedAt',  label: 'Início',      defaultVisible: true },
   { id: 'finishedAt', label: 'Fim',         defaultVisible: true },
   { id: 'environment',label: 'Ambiente',    defaultVisible: false },
+  { id: 'moduleName', label: 'Módulo',      defaultVisible: false },
+  { id: 'serverName', label: 'Servidor',    defaultVisible: false },
   { id: 'createdAt',  label: 'Criada em',   defaultVisible: false },
   { id: 'updatedAt',  label: 'Atualizada em', defaultVisible: false },
 ]
@@ -200,6 +205,13 @@ const DeliveryList: React.FC = () => {
   const [filtersOpen, setFiltersOpen] = React.useState(false)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
   const [generatingReport, setGeneratingReport] = React.useState(false)
+  const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
+  const [servers, setServers] = React.useState<{ id: number; name: string }[]>([])
+
+  React.useEffect(() => {
+    moduleService.getAll().then((r: any) => setModules((r?.content ?? r ?? []).map((m: any) => ({ id: m.id, name: m.name })))).catch(() => {})
+    serverService.getAll().then((r: any) => setServers((r?.content ?? r ?? []).map((s: any) => ({ id: s.id, name: s.name })))).catch(() => {})
+  }, [])
 
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return DEFAULT_COLUMN_VISIBILITY
@@ -409,6 +421,22 @@ const DeliveryList: React.FC = () => {
       ),
     },
     {
+      id: 'moduleName', accessorKey: 'moduleName', header: 'Módulo', size: 150, enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-xs text-text-secondary truncate block">
+          {(row.original as any).moduleName || <span className="text-text-tertiary">—</span>}
+        </span>
+      ),
+    },
+    {
+      id: 'serverName', accessorKey: 'serverName', header: 'Servidor', size: 140, enableSorting: false,
+      cell: ({ row }) => (
+        <span className="text-xs text-text-secondary truncate block">
+          {(row.original as any).serverName || <span className="text-text-tertiary">—</span>}
+        </span>
+      ),
+    },
+    {
       id: 'createdAt', accessorKey: 'createdAt', header: 'Criada em', size: 130, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => {
         const d = row.original.createdAt
@@ -505,6 +533,8 @@ const DeliveryList: React.FC = () => {
   if (filters.taskType)                                            chips.push({ key: 'taskType',    label: 'Tipo',        value: TASK_TYPE_OPTIONS.find(o => o.value === filters.taskType)?.label || String(filters.taskType),                  onRemove: () => setFilter('taskType', '') })
   if (filters.environment)                                         chips.push({ key: 'environment', label: 'Ambiente',    value: ENV_META[filters.environment as string]?.label || String(filters.environment),                                 onRemove: () => setFilter('environment', '') })
   if (filters.status)                                              chips.push({ key: 'status',      label: 'Status',      value: STATUS_LABEL[filters.status as string] || String(filters.status),                                              onRemove: () => setFilter('status', '') })
+  if (filters.moduleId)                                            chips.push({ key: 'moduleId',    label: 'Módulo',      value: modules.find(m => String(m.id) === String(filters.moduleId))?.name || String(filters.moduleId),                onRemove: () => setFilter('moduleId', '') })
+  if (filters.serverId)                                            chips.push({ key: 'serverId',    label: 'Servidor',    value: servers.find(s => String(s.id) === String(filters.serverId))?.name || String(filters.serverId),                onRemove: () => setFilter('serverId', '') })
   if (filters.startDate)                                           chips.push({ key: 'startDate',   label: 'Início ≥',    value: fmtDateBR(String(filters.startDate)),                                                                          onRemove: () => setFilter('startDate', '') })
   if (filters.endDate)                                             chips.push({ key: 'endDate',     label: 'Fim ≤',       value: fmtDateBR(String(filters.endDate)),                                                                            onRemove: () => setFilter('endDate', '') })
   if (filters.hasItems === 'false')                                chips.push({ key: 'hasItems',    label: 'Itens',       value: 'Sem itens',                                                                                                   onRemove: () => setFilter('hasItems', '') })
@@ -1027,6 +1057,24 @@ const DeliveryList: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </FilterField>
+              <FilterField label="Módulo">
+                <Combobox
+                  value={(filters.moduleId as string) || ''}
+                  onChange={(v) => setFilter('moduleId', v)}
+                  placeholder="Todos os módulos"
+                  searchPlaceholder="Buscar módulo…"
+                  options={[{ value: '', label: 'Todos os módulos' }, ...modules.map((m) => ({ value: String(m.id), label: m.name }))]}
+                />
+              </FilterField>
+              <FilterField label="Servidor">
+                <Combobox
+                  value={(filters.serverId as string) || ''}
+                  onChange={(v) => setFilter('serverId', v)}
+                  placeholder="Todos os servidores"
+                  searchPlaceholder="Buscar servidor…"
+                  options={[{ value: '', label: 'Todos os servidores' }, ...servers.map((s) => ({ value: String(s.id), label: s.name }))]}
+                />
               </FilterField>
             </FilterSection>
 

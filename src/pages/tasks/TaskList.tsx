@@ -30,6 +30,9 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui-v2/Popo
 import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
 import { TaskTypeLabel, TASK_TYPE_META } from '@/components/tasks/TaskTypeLabel'
 import { EnvLabel, ENV_META } from '@/components/tasks/EnvLabel'
+import { moduleService } from '@/services/moduleService'
+import { serverService } from '@/services/serverService'
+import { Combobox } from '@/components/ui-v2/Combobox'
 import { Monitor } from 'lucide-react'
 
 interface Task {
@@ -73,8 +76,8 @@ const COLUMN_DEFS: Array<{ id: string; label: string; defaultVisible: boolean; l
   { id: 'environment',        label: 'Ambiente',            defaultVisible: false },
   { id: 'title',              label: 'Tarefa',              defaultVisible: true, locked: true },
   { id: 'requesterName',      label: 'Solicitante',         defaultVisible: true  },
-  { id: 'systemModule',       label: 'Módulo do Sistema',   defaultVisible: false },
-  { id: 'serverOrigin',       label: 'Servidor',            defaultVisible: false },
+  { id: 'moduleName',         label: 'Módulo do Sistema',   defaultVisible: false },
+  { id: 'serverName',         label: 'Servidor',            defaultVisible: false },
   { id: 'link',               label: 'Link da tarefa',      defaultVisible: false },
   { id: 'meetingLink',        label: 'Link da reunião',     defaultVisible: false },
   { id: 'delivery',           label: 'Entrega',             defaultVisible: true  },
@@ -373,18 +376,18 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: 'systemModule', accessorKey: 'systemModule', header: 'Módulo do Sistema', size: 160, enableSorting: false,
+      id: 'moduleName', accessorKey: 'moduleName', header: 'Módulo do Sistema', size: 160, enableSorting: false,
       cell: ({ row }) => (
         <span className="text-xs text-text-secondary truncate block">
-          {(row.original as any).systemModule || <span className="text-text-tertiary">—</span>}
+          {(row.original as any).moduleName || <span className="text-text-tertiary">—</span>}
         </span>
       ),
     },
     {
-      id: 'serverOrigin', accessorKey: 'serverOrigin', header: 'Servidor', size: 140, enableSorting: false,
+      id: 'serverName', accessorKey: 'serverName', header: 'Servidor', size: 140, enableSorting: false,
       cell: ({ row }) => (
         <span className="text-xs text-text-secondary truncate block">
-          {(row.original as any).serverOrigin || <span className="text-text-tertiary">—</span>}
+          {(row.original as any).serverName || <span className="text-text-tertiary">—</span>}
         </span>
       ),
     },
@@ -610,6 +613,13 @@ const TaskList: React.FC = () => {
   }, [allColumns, columnVisibility, canViewValues])
 
   const [filtersOpen, setFiltersOpen] = React.useState(false)
+  const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
+  const [servers, setServers] = React.useState<{ id: number; name: string }[]>([])
+
+  React.useEffect(() => {
+    moduleService.getAll().then((r: any) => setModules((r?.content ?? r ?? []).map((m: any) => ({ id: m.id, name: m.name })))).catch(() => {})
+    serverService.getAll().then((r: any) => setServers((r?.content ?? r ?? []).map((s: any) => ({ id: s.id, name: s.name })))).catch(() => {})
+  }, [])
 
   const chips: any[] = []
   if (filters.id)           chips.push({ key: 'id',           label: 'ID',                 value: String(filters.id),                                                                                                        onRemove: () => setFilter('id', '') })
@@ -620,6 +630,8 @@ const TaskList: React.FC = () => {
   if (filters.flowType)     chips.push({ key: 'flowType',     label: 'Fluxo',              value: FLOW_LABEL[filters.flowType as string] || String(filters.flowType),                                                       onRemove: () => setFilter('flowType', '') })
   if (filters.taskType)     chips.push({ key: 'taskType',     label: 'Tipo',               value: TASK_TYPE_OPTIONS.find(o => o.value === filters.taskType)?.label || String(filters.taskType),                             onRemove: () => setFilter('taskType', '') })
   if (filters.environment)  chips.push({ key: 'env',          label: 'Ambiente',           value: String(filters.environment),                                                                                               onRemove: () => setFilter('environment', '') })
+  if (filters.moduleId)     chips.push({ key: 'moduleId',     label: 'Módulo',             value: modules.find(m => String(m.id) === String(filters.moduleId))?.name || String(filters.moduleId),                          onRemove: () => setFilter('moduleId', '') })
+  if (filters.serverId)     chips.push({ key: 'serverId',     label: 'Servidor',           value: servers.find(s => String(s.id) === String(filters.serverId))?.name || String(filters.serverId),                          onRemove: () => setFilter('serverId', '') })
   if (filters.requesterId)  chips.push({ key: 'requester',    label: 'Solicitante',        value: `#${filters.requesterId}`,                                                                                                 onRemove: () => setFilter('requesterId', '') })
   if (filters.requesterName) chips.push({ key: 'requesterName', label: 'Nome solicitante', value: String(filters.requesterName),                                                                                            onRemove: () => setFilter('requesterName', '') })
   if (filters.startDate)    chips.push({ key: 'startDate',    label: 'Criada a partir de', value: fmtDateBR(String(filters.startDate)),                                                                                     onRemove: () => setFilter('startDate', '') })
@@ -1128,6 +1140,24 @@ const TaskList: React.FC = () => {
                     })}
                   </SelectContent>
                 </Select>
+              </FilterField>
+              <FilterField label="Módulo">
+                <Combobox
+                  value={(filters.moduleId as string) || ''}
+                  onChange={(v) => setFilter('moduleId', v)}
+                  placeholder="Todos os módulos"
+                  searchPlaceholder="Buscar módulo…"
+                  options={[{ value: '', label: 'Todos os módulos' }, ...modules.map((m) => ({ value: String(m.id), label: m.name }))]}
+                />
+              </FilterField>
+              <FilterField label="Servidor">
+                <Combobox
+                  value={(filters.serverId as string) || ''}
+                  onChange={(v) => setFilter('serverId', v)}
+                  placeholder="Todos os servidores"
+                  searchPlaceholder="Buscar servidor…"
+                  options={[{ value: '', label: 'Todos os servidores' }, ...servers.map((s) => ({ value: String(s.id), label: s.name }))]}
+                />
               </FilterField>
             </FilterSection>
 

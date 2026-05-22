@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ListChecks, Truck, DollarSign,
   Users, FolderKanban, Shield, Bell, Settings,
   ChevronsLeft, ChevronsRight, Sun, Moon, Monitor,
-  Zap, LogOut, ListOrdered
+  Zap, LogOut, ListOrdered, Boxes, Server
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
@@ -45,6 +45,8 @@ const SECTIONS: NavSection[] = [
     items: [
       { to: '/requesters', label: 'Solicitantes', icon: Users,         profiles: ['ADMIN'] },
       { to: '/projects',   label: 'Projetos',     icon: FolderKanban,  profiles: ['ADMIN'] },
+      { to: '/modules',    label: 'Módulos',      icon: Boxes,         profiles: ['ADMIN'] },
+      { to: '/servers',    label: 'Servidores',   icon: Server,        profiles: ['ADMIN'] },
     ],
   },
   {

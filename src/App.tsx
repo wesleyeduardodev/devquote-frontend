@@ -20,6 +20,12 @@ import TaskView from './pages/tasks/TaskView';
 import ProjectList from './pages/projects/ProjectList';
 import ProjectCreate from './pages/projects/ProjectCreate';
 import ProjectEdit from './pages/projects/ProjectEdit';
+import ModuleList from './pages/modules/ModuleList';
+import ModuleCreate from './pages/modules/ModuleCreate';
+import ModuleEdit from './pages/modules/ModuleEdit';
+import ServerList from './pages/servers/ServerList';
+import ServerCreate from './pages/servers/ServerCreate';
+import ServerEdit from './pages/servers/ServerEdit';
 import DeliveryList from './pages/deliveries/DeliveryList';
 import DeliveryCreate from './pages/deliveries/DeliveryCreate';
 import DeliveryEdit from './pages/deliveries/DeliveryEdit';
@@ -77,6 +83,12 @@ const AppShell: React.FC = () => {
                                 <Route path="/projects" element={<ProtectedRoute requiredProfile="ADMIN"><ProjectList/></ProtectedRoute>}/>
                                 <Route path="/projects/create" element={<ProtectedRoute requiredProfile="ADMIN"><ProjectCreate/></ProtectedRoute>}/>
                                 <Route path="/projects/:id/edit" element={<ProtectedRoute requiredProfile="ADMIN"><ProjectEdit/></ProtectedRoute>}/>
+                                <Route path="/modules" element={<ProtectedRoute requiredProfile="ADMIN"><ModuleList/></ProtectedRoute>}/>
+                                <Route path="/modules/create" element={<ProtectedRoute requiredProfile="ADMIN"><ModuleCreate/></ProtectedRoute>}/>
+                                <Route path="/modules/:id/edit" element={<ProtectedRoute requiredProfile="ADMIN"><ModuleEdit/></ProtectedRoute>}/>
+                                <Route path="/servers" element={<ProtectedRoute requiredProfile="ADMIN"><ServerList/></ProtectedRoute>}/>
+                                <Route path="/servers/create" element={<ProtectedRoute requiredProfile="ADMIN"><ServerCreate/></ProtectedRoute>}/>
+                                <Route path="/servers/:id/edit" element={<ProtectedRoute requiredProfile="ADMIN"><ServerEdit/></ProtectedRoute>}/>
                                 <Route path="/deliveries" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryList/></ProtectedRoute>}/>
                                 <Route path="/deliveries/create" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryCreate/></ProtectedRoute>}/>
                                 <Route path="/deliveries/:deliveryId/edit" element={<ProtectedRoute requiredProfiles={['ADMIN','MANAGER','USER']}><DeliveryEdit/></ProtectedRoute>}/>

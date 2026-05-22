@@ -7,11 +7,13 @@ React 18.2 · TypeScript 5.5 · Vite 5 · React Router 6.30 · Tailwind 3.4 · R
 
 **Design system (redesign concluído — 2026-05-18):** Radix UI + cmdk + class-variance-authority + tailwind-merge + @tanstack/react-table + recharts + date-fns + react-hotkeys-hook. Tokens semânticos em `src/styles/tokens.css` com tema light/dark (atributo `data-theme`). Componentes base novos em `src/components/ui-v2/` (Button, Input, Badge, Card, Sheet, Dialog, DropdownMenu, Tooltip, Popover, Tabs, Checkbox, Switch, Select, Avatar, Skeleton, StatusDot, EmptyState, PageHeader, FormPage, Separator, DataTable). Utilitário `cn()` em `src/utils/cn.ts` (clsx + tailwind-merge).
 
-**Telas migradas (100% v2):** Login, Dashboard, NotFound, UserSettings, Solicitantes (List/Create/Edit), Projetos (List/Create/Edit), Notificações (List), Parâmetros (List + SecretMask), Tarefas (List/Create/Edit/View), Entregas (List/Create/Edit/View), Faturamento, Perfis & Usuários (2 abas: Usuários + Perfis).
+**Telas migradas (100% v2):** Login, Dashboard, NotFound, UserSettings, Solicitantes (List/Create/Edit), Projetos (List/Create/Edit), **Módulos (List/Create/Edit)**, **Servidores (List/Create/Edit)**, Notificações (List), Parâmetros (List + SecretMask), Tarefas (List/Create/Edit/View), Entregas (List/Create/Edit/View), Faturamento, **Prioridades (board ClickUp)**, Perfis & Usuários (2 abas: Usuários + Perfis).
 
 **Padrão de telas:** consolidado em `REDESIGN-PATTERN.md` (raiz do front). Listagens usam DataTable v2 com `COLUMN_DEFS` + ColumnsMenu (visibilidade versionada em `localStorage devquote.{módulo}.columns.v2`), Sheet de filtros, chips de filtros ativos, footer com soma, cards mobile. **Ações inline** (ícones visíveis: Editar/Excluir/PDF/etc.) em vez de menu `⋯` nas telas com poucas colunas.
 
 **Entregas — modelo 1:1:** cada Tarefa tem **uma** Entrega (`@OneToOne` no backend). O conceito antigo de "grupo de entregas" foi **eliminado** (DeliveryGroupEdit removido). Rotas: `/deliveries`, `/deliveries/create`, `/deliveries/:id` (ver), `/deliveries/:id/edit`. A lista usa `GET /deliveries` paginado (não mais `grouped-by-task`).
+
+**Módulo & Servidor — cadastros (FK na Tarefa):** os antigos campos livres `systemModule`/`serverOrigin` da Tarefa viraram **cadastros** (`/modules` só nome; `/servers` nome + link). A Tarefa referencia por FK (`moduleId`/`serverId`); o form usa selects (`moduleService.getAll()`/`serverService.getAll()`). As respostas trazem `moduleName`/`serverName`/`serverLink`. Listas de Tarefas e Entregas têm colunas (opcionais no ColumnsMenu) e filtro por Módulo/Servidor. As colunas antigas continuam órfãs no banco — não usar mais `systemModule`/`serverOrigin` no front.
 
 **Faturamento:** status em **PT-BR** (`PENDENTE/FATURADO/PAGO/ATRASADO/CANCELADO`) com ícone+cor; KPIs somam por status; filtros Fluxo/Ano/Mês/Status; ações inline (Ver/Vincular/Desvincular/E-mail/Editar/Excluir).
 
