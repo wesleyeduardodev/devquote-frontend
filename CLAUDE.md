@@ -128,6 +128,7 @@ Trocou enum no backend? Atualize `types/*.types.ts` antes de qualquer outra cois
 - **`TaskList.tsx` é grande (~1300 linhas)** — contém ColumnsMenu/StatChip/FilterSection inline. Ao alterar, evitar piorar; refactor é bem-vindo se o escopo do PR permitir. (`BillingMonthManagement.tsx` foi reescrito e hoje tem ~600 linhas.)
 - **Editor (TipTap) com autolink desligado** (`Link.configure({ autolink:false, linkOnPaste:false })` em `RichTextEditor`) — colar SQL/código não vira link.
 - **`eslint --max-warnings 0`** — qualquer warning quebra o CI. (No ambiente local pode faltar `@typescript-eslint` em `node_modules`; o CI tem.) Há ~66 erros TS pré-existentes em arquivos legados; `vite build` passa mesmo assim.
+- **Allowlist de tipos de anexo está espalhada** — validação JS (`allowedExtensions`/`allowedTypes`) em `components/ui/FileUpload.tsx`, `components/ui/FilePicker.tsx` e `components/deliveries/LocalFileUpload.tsx`; e o atributo `accept=` (filtro da janela do SO) em `LocalFileUpload`, `deliveries/DeliveryAttachmentList.tsx` (entrega + item dev) e `deliveries/DeliveryOperationalAttachmentList.tsx` (item operacional). **Adicionar um tipo = mexer em todos** (validação **e** `accept`) + nos 5 services do backend. Hoje inclui `sql` e `json`. Faturamento (`BillingPeriodAttachmentModal`) tem `accept` próprio, à parte.
 
 ## `.env` (local)
 
