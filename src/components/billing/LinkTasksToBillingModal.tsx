@@ -56,7 +56,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
     const [pagination, setPagination] = useState<PaginationInfo | null>(null);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
-    const [pageSize, setPageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(50);
     const [sorting, setSorting] = useState([{ field: 'id', direction: 'desc' as const }]);
     const [filters, setFilters] = useState<Record<string, string>>({});
 

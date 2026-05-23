@@ -2,6 +2,7 @@ import * as React from 'react'
 import {
   Plus, Pencil, Trash2, MoreHorizontal, DollarSign, Download, Link as LinkIcon, Link2Off,
   Eye, Mail, Paperclip, CheckCircle2, FileText, Clock, AlertCircle, XCircle, Monitor, Settings2,
+  Search,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { toast } from 'react-hot-toast'
@@ -94,6 +95,16 @@ const BillingMonthManagement: React.FC = () => {
   const [confirmEmail, setConfirmEmail] = React.useState<BillingPeriod | null>(null)
   const [emailLoadingId, setEmailLoadingId] = React.useState<number | null>(null)
 
+  // Busca de tarefa por código -> período
+  const [lookupCode, setLookupCode] = React.useState('')
+  const [lookupLoading, setLookupLoading] = React.useState(false)
+  const [lookupOpen, setLookupOpen] = React.useState(false)
+  const [lookupResult, setLookupResult] = React.useState<{
+    taskId: number; taskCode: string; taskTitle: string;
+    billingPeriodId: number; month: number; year: number; status: string; paymentDate?: string;
+  } | null>(null)
+  const [lookupNotFound, setLookupNotFound] = React.useState<string | null>(null)
+
   const selectedIds = React.useMemo(
     () => Object.keys(selection).filter((k) => selection[k]).map((k) => Number(k)),
     [selection]
@@ -149,6 +160,30 @@ const BillingMonthManagement: React.FC = () => {
     } finally {
       setEmailLoadingId(null)
       setConfirmEmail(null)
+    }
+  }
+
+  const handleLookupByCode = async () => {
+    const code = lookupCode.trim()
+    if (!code) {
+      toast.error('Informe o código da tarefa')
+      return
+    }
+    setLookupLoading(true)
+    setLookupResult(null)
+    setLookupNotFound(null)
+    try {
+      const found = await billingPeriodService.findByTaskCode(code)
+      if (found) {
+        setLookupResult(found)
+      } else {
+        setLookupNotFound(code)
+      }
+      setLookupOpen(true)
+    } catch (e: any) {
+      toast.error(e?.message || 'Falha ao buscar período da tarefa')
+    } finally {
+      setLookupLoading(false)
     }
   }
 
@@ -350,6 +385,33 @@ const BillingMonthManagement: React.FC = () => {
         <BillingKpiCard label="Cancelado" value={brl(kpis.cancelled)} tone="neutral" hint={`${kpis.cancelledCount} cancelado(s)`} />
       </section>
 
+      {/* Busca rápida: em qual período está uma tarefa? */}
+      <section className="rounded-lg border border-border-subtle bg-surface-1 p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex-1 min-w-0">
+            <label className="text-xs font-medium text-text-secondary block mb-1">
+              Buscar tarefa por código
+            </label>
+            <p className="text-xs text-text-tertiary">
+              Informe o código da tarefa para ver em qual período de faturamento ela está vinculada.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 sm:w-auto w-full">
+            <Input
+              value={lookupCode}
+              onChange={(e) => setLookupCode(e.target.value)}
+              placeholder="Código da tarefa"
+              leadingIcon={<Search />}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleLookupByCode() }}
+              className="sm:w-64"
+            />
+            <Button onClick={handleLookupByCode} loading={lookupLoading} leadingIcon={<Search />}>
+              Buscar
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <div>
         <FilterChipsRow chips={chips} onClearAll={() => setFilters({})} />
 
@@ -480,6 +542,86 @@ const BillingMonthManagement: React.FC = () => {
           <DialogFooter>
             <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
             <Button variant="danger" onClick={() => confirmDelete && handleDelete(confirmDelete.ids)}>Excluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resultado da busca por código */}
+      <Dialog open={lookupOpen} onOpenChange={(o) => { if (!o) { setLookupOpen(false); setLookupResult(null); setLookupNotFound(null) } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {lookupResult ? 'Tarefa encontrada' : 'Tarefa não vinculada'}
+            </DialogTitle>
+            <DialogDescription>
+              {lookupResult
+                ? 'Esta tarefa está vinculada ao período abaixo.'
+                : `Nenhum período de faturamento contém a tarefa "${lookupNotFound}". A tarefa pode não existir ou ainda não foi vinculada.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {lookupResult && (
+            <div className="space-y-3 py-2">
+              <div className="rounded-md border border-border-subtle bg-surface-2 p-3">
+                <div className="text-xs text-text-tertiary mb-1">Tarefa</div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-text-primary truncate">{lookupResult.taskTitle}</span>
+                  <span className="font-mono text-xs text-text-secondary shrink-0">{lookupResult.taskCode}</span>
+                </div>
+                <div className="text-xs text-text-tertiary mt-1">#{lookupResult.taskId}</div>
+              </div>
+
+              <div className="rounded-md border border-border-subtle bg-surface-2 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-tertiary">Período</span>
+                  <span className="text-sm font-medium text-text-primary">
+                    {MONTH_LABEL(lookupResult.month)} {lookupResult.year}
+                    <span className="text-xs text-text-tertiary ml-2">#{lookupResult.billingPeriodId}</span>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-tertiary">Status</span>
+                  <StatusPill status={lookupResult.status} />
+                </div>
+                {lookupResult.paymentDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-tertiary">Pagamento</span>
+                    <span className="text-sm text-text-secondary tabular-nums">
+                      {format(new Date(lookupResult.paymentDate), 'dd/MM/yyyy', { locale: ptBR })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            {lookupResult && (
+              <Button
+                variant="secondary"
+                leadingIcon={<Eye />}
+                onClick={() => {
+                  const period = periods.find((p) => p.id === lookupResult.billingPeriodId)
+                  if (period) {
+                    setViewTasksOf(period)
+                  } else {
+                    setViewTasksOf({
+                      id: lookupResult.billingPeriodId,
+                      month: lookupResult.month,
+                      year: lookupResult.year,
+                      status: lookupResult.status,
+                      paymentDate: lookupResult.paymentDate,
+                    } as BillingPeriod)
+                  }
+                  setLookupOpen(false)
+                }}
+              >
+                Ver tarefas do período
+              </Button>
+            )}
+            <Button onClick={() => { setLookupOpen(false); setLookupResult(null); setLookupNotFound(null) }}>
+              Fechar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
