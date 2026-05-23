@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Offline — DevQuote</title>
+  <meta name="theme-color" content="#0F1115" />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(180deg, #0F1115 0%, #1A1D23 100%);
+      color: #E5E7EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+    }
+    .card {
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #5B6BEE, #3F4FCC);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(79, 94, 230, 0.3);
+    }
+    .icon svg { color: #fff; }
+    h1 { margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 700; color: #F3F4F6; }
+    p { margin: 0 0 2rem; font-size: 0.95rem; color: #9CA3AF; line-height: 1.5; }
+    button {
+      font: inherit;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #fff;
+      background: #4F5EE6;
+      border: 0;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #3F4FCC; }
+    .tip { margin-top: 2rem; font-size: 0.8rem; color: #6B7280; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon" aria-hidden="true">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22"/>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+    </div>
+    <h1>Sem conexão</h1>
+    <p>Não foi possível alcançar o servidor. Verifique sua internet e tente novamente.</p>
+    <button onclick="location.reload()">Tentar de novo</button>
+    <div class="tip">As páginas que você já visitou continuam acessíveis.</div>
+  </div>
+</body>
+</html>

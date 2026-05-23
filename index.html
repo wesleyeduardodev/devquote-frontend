@@ -2,10 +2,56 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Sistema de Controle de Orçamento - Gerencie solicitantes e orçamentos" />
-  <title>Budget Control - Sistema de Controle de Orçamento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <title>DevQuote</title>
+  <meta name="description" content="Gestão de tarefas, entregas e faturamento para times de desenvolvimento." />
+
+  <!-- Theme colors (light/dark) -->
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0F1115" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
+
+  <!-- Favicon / PWA icons -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/icon-source.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- iOS / Safari PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DevQuote" />
+
+  <!-- Windows tile -->
+  <meta name="application-name" content="DevQuote" />
+  <meta name="msapplication-TileColor" content="#4F5EE6" />
+
+  <!-- Open Graph (compartilhamento) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="DevQuote" />
+  <meta property="og:description" content="Gestão de tarefas, entregas e faturamento para times de desenvolvimento." />
+  <meta property="og:image" content="/pwa-512x512.png" />
+
+  <!-- Evitar flash de tema (light/dark/dim/system) antes do React montar -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('devquote.theme')
+        var resolved
+        if (saved === 'light' || saved === 'dark' || saved === 'dim') {
+          resolved = saved
+        } else {
+          resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-theme', resolved)
+        if (resolved === 'dark' || resolved === 'dim') {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {}
+    })()
+  </script>
 </head>
 <body>
 <div id="root"></div>

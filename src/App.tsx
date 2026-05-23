@@ -37,6 +37,7 @@ import NotificationList from './pages/notifications/NotificationList';
 import ParameterList from './pages/parameters/ParameterList';
 import {UserSettings} from './pages/UserSettings';
 import NotFound from './pages/NotFound';
+import PWAManager from './components/pwa/PWAManager';
 
 const RedirectIfAuthenticated: React.FC<{children: React.ReactNode}> = ({children}) => {
     const {isAuthenticated, isLoading} = useAuth();
@@ -117,6 +118,7 @@ const App: React.FC = () => {
                 <Router future={{v7_startTransition: true, v7_relativeSplatPath: true}}>
                     <AuthProvider>
                         <AppShell/>
+                        <PWAManager/>
                         <Toaster
                             position="top-right"
                             gutter={8}
