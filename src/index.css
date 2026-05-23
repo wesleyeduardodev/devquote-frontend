@@ -18,10 +18,14 @@
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Evita pull-to-refresh acidental dentro de modais/sheets */
+    overscroll-behavior-y: contain;
   }
 
   *, ::before, ::after {
     border-color: var(--border-subtle);
+    /* Sem retângulo cinza padrão ao tocar — botões usam :active próprio */
+    -webkit-tap-highlight-color: transparent;
   }
 
   :focus-visible {
@@ -33,6 +37,56 @@
   ::selection {
     background-color: var(--accent-soft);
     color: var(--text-primary);
+  }
+
+  /* ============= Inputs: background/cor do tema por padrão =============
+   * Sem isso, inputs sem `bg-*` no Tailwind herdam estilo do user agent
+   * (que em alguns temas do Chrome/Edge sai cinza escuro, principalmente
+   * quando o navegador marca o campo como "autofill candidate").
+   * Especificidade baixa (@layer base) → qualquer classe Tailwind sobrescreve.
+   */
+  input,
+  textarea,
+  select {
+    background-color: var(--surface-1);
+    color: var(--text-primary);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
+  }
+
+  /* ============= Mobile: anti-zoom iOS Safari =============
+   * Inputs com font-size < 16px disparam zoom automático ao focar no iOS.
+   * Em ≤1024px (tablet/mobile) forçamos 16px. Desktop mantém o text-sm (13px).
+   */
+  @media (max-width: 1024px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
+  /* ============= Autofill: respeitar tokens do tema =============
+   * Chrome/Edge pintam inputs autopreenchidos com background amarelo/cinza
+   * (no dark mode às vezes sai azul). Aqui forçamos a cor do tema usando
+   * o truque do box-shadow inset (não dá pra setar background-color direto
+   * no :-webkit-autofill, é bloqueado por segurança).
+   */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--surface-1) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary);
+    border-color: var(--border-strong) !important;
+    /* Evita o "flash" amarelo ao carregar a página */
+    transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
   }
 }
 
@@ -62,13 +116,15 @@
   background-clip: padding-box;
 }
 
-/* ============= Mobile tap highlights ============= */
-.mobile-tap-highlight {
-  -webkit-tap-highlight-color: rgba(79, 94, 230, 0.10);
+/* Mobile: scrollbar nativa é fininha e some sozinha — esconder a custom de 10px que rouba espaço útil */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
-.mobile-scroll {
-  -webkit-overflow-scrolling: touch;
-}
+
+/* Utilitário pra forçar área tocável ≥44px (usar em ícones soltos quando necessário) */
 @media (max-width: 768px) {
   .mobile-touch-target {
     min-height: 44px;

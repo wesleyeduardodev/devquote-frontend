@@ -372,10 +372,10 @@ const SubTaskForm: React.FC<SubTaskFormProps> = ({ taskId }) => {
                                         control={control}
                                         render={({ field }) => (
                                             <RichTextEditor
-                                                label="Descricao"
+                                                label="Descrição"
                                                 value={field.value || ''}
                                                 onChange={field.onChange}
-                                                placeholder="Descreva a subtarefa em detalhes (opcional). Voce pode colar imagens diretamente..."
+                                                placeholder="Descreva a subtarefa em detalhes (opcional). Você pode colar imagens diretamente..."
                                                 error={errors.subTasks?.[index]?.description?.message}
                                                 minHeight="150px"
                                                 entityType="SUBTASK"

@@ -5,22 +5,23 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-fast ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-app disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-fast ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-app disabled:pointer-events-none disabled:opacity-50 select-none',
   {
     variants: {
       variant: {
         primary:   'bg-accent text-accent-fg hover:bg-accent-hover active:bg-accent-active',
-        secondary: 'bg-surface-1 text-text-primary border border-border-strong hover:bg-surface-2',
-        ghost:     'bg-transparent text-text-primary hover:bg-surface-2',
-        danger:    'bg-[var(--danger-strong)] text-white hover:opacity-90',
-        link:      'bg-transparent text-text-link underline-offset-4 hover:underline p-0 h-auto',
+        secondary: 'bg-surface-1 text-text-primary border border-border-strong hover:bg-surface-2 active:bg-surface-3',
+        ghost:     'bg-transparent text-text-primary hover:bg-surface-2 active:bg-surface-3',
+        danger:    'bg-[var(--danger-strong)] text-white hover:opacity-90 active:opacity-80',
+        link:      'bg-transparent text-text-link underline-offset-4 hover:underline p-0 h-auto active:opacity-70',
       },
+      // sm:* = desktop (≥640px) volta ao compacto original; mobile fica maior pra touch (≥40px)
       size: {
-        sm: 'h-7  px-2.5 text-xs gap-1.5 [&_svg]:size-3.5',
-        md: 'h-8  px-3   text-sm        [&_svg]:size-4',
-        lg: 'h-10 px-4   text-sm        [&_svg]:size-4',
-        icon: 'h-8 w-8 p-0               [&_svg]:size-4',
-        'icon-sm': 'h-7 w-7 p-0          [&_svg]:size-3.5',
+        sm:        'h-9  sm:h-7  px-2.5 text-xs gap-1.5 [&_svg]:size-3.5',
+        md:        'h-10 sm:h-8  px-3   text-sm         [&_svg]:size-4',
+        lg:        'h-11 sm:h-10 px-4   text-sm         [&_svg]:size-4',
+        icon:      'h-10 w-10 sm:h-8 sm:w-8 p-0 [&_svg]:size-4',
+        'icon-sm': 'h-10 w-10 sm:h-7 sm:w-7 p-0 [&_svg]:size-4 sm:[&_svg]:size-3.5',
       },
     },
     defaultVariants: {

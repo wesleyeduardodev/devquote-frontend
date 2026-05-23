@@ -40,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   React.useEffect(() => { setMobileOpen(false) }, [location.pathname])
 
   return (
-    <div className="h-screen bg-surface-app text-text-primary flex overflow-hidden">
+    <div className="h-dvh bg-surface-app text-text-primary flex overflow-hidden">
       {/* Sidebar desktop */}
       <div className="hidden lg:flex h-full">
         <Sidebar

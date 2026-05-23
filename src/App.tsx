@@ -43,7 +43,7 @@ const RedirectIfAuthenticated: React.FC<{children: React.ReactNode}> = ({childre
     const {isAuthenticated, isLoading} = useAuth();
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-surface-app flex items-center justify-center">
+            <div className="min-h-dvh bg-surface-app flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-2 border-accent border-t-transparent mx-auto"></div>
                     <p className="mt-4 text-text-secondary text-sm">Carregando...</p>

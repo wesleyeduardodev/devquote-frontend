@@ -41,12 +41,12 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-app lg:grid lg:grid-cols-2">
+    <div className="min-h-dvh bg-surface-app lg:grid lg:grid-cols-2">
       {/* ---- Painel de marca (WMelo Tech) — só desktop ---- */}
       <BrandPanel />
 
       {/* ---- Coluna do formulário ---- */}
-      <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10 sm:px-8">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:px-8">
         <div className="w-full max-w-sm">
           {/* Logo DevQuote */}
           <div className="text-center mb-8">

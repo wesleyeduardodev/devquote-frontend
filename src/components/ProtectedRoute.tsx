@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-dvh bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <LoadingSpinner size="lg" className="mx-auto" />
                     <p className="mt-4 text-gray-600">Verificando autenticação...</p>
