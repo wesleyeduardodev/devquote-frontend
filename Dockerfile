@@ -1,5 +1,5 @@
 
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 ARG VITE_API_URL=http://localhost:8080/api
 ENV VITE_API_URL=$VITE_API_URL
