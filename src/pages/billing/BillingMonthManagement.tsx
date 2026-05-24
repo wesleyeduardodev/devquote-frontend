@@ -114,10 +114,7 @@ const BillingMonthManagement: React.FC = () => {
     try {
       setLoading(true)
       const data = await billingPeriodService.findAllWithFilters(filters as any)
-      const sorted = [...data].sort((a, b) =>
-        a.year !== b.year ? b.year - a.year : b.month - a.month
-      )
-      setPeriods(sorted)
+      setPeriods(data)
     } catch (e: any) {
       toast.error(e?.message || 'Erro ao carregar')
     } finally {
