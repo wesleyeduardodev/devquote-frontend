@@ -37,8 +37,12 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-                navigateFallback: '/offline.html',
-                navigateFallbackDenylist: [/^\/api\//],
+                // SPA fallback: qualquer navegação não cacheada cai no index.html
+                // (React Router resolve o routing client-side). Antes estava
+                // apontando pro /offline.html, o que fazia F5 em /tasks, /billing
+                // etc. mostrar "Sem conexão" mesmo com rede OK.
+                navigateFallback: '/index.html',
+                navigateFallbackDenylist: [/^\/api\//, /^\/offline\.html$/],
                 cleanupOutdatedCaches: true,
                 clientsClaim: true,
                 runtimeCaching: [
