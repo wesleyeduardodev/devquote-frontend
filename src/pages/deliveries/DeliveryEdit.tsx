@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { Plus, Trash2, Package, Save, Eye } from 'lucide-react'
+import { Plus, Trash2, Package, Save, Eye, GitPullRequest } from 'lucide-react'
 import {
   DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core'
@@ -83,6 +83,20 @@ const DeliveryEdit: React.FC = () => {
   const [environment, setEnvironment] = useState<string>('')
   const [originalEnvironment, setOriginalEnvironment] = useState<string>('')
   const [savingEnvironment, setSavingEnvironment] = useState(false)
+  const [syncingPr, setSyncingPr] = useState(false)
+
+  const handleSyncPullRequests = async () => {
+    if (!delivery) return
+    setSyncingPr(true)
+    try {
+      const result = await deliveryService.syncPullRequests(delivery.id)
+      toast.success(result.message)
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || e?.message || 'Falha ao sincronizar PRs no ClickUp')
+    } finally {
+      setSyncingPr(false)
+    }
+  }
 
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [confirmDeleteItem, setConfirmDeleteItem] = useState<DeliveryItem | null>(null)
@@ -398,9 +412,20 @@ const DeliveryEdit: React.FC = () => {
             </span>
           }
           actions={
-            <Button variant="secondary" leadingIcon={<Eye />} onClick={() => navigate(`/deliveries/${delivery.id}`)}>
-              Visualizar
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                leadingIcon={<GitPullRequest />}
+                onClick={handleSyncPullRequests}
+                loading={syncingPr}
+                title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
+              >
+                Atualizar Branch
+              </Button>
+              <Button variant="secondary" leadingIcon={<Eye />} onClick={() => navigate(`/deliveries/${delivery.id}`)}>
+                Visualizar
+              </Button>
+            </div>
           }
         />
 

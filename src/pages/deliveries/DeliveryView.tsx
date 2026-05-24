@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   FileText, Calendar, GitBranch, Package, Truck, Check, Play, Flag,
   Copy, StickyNote, FolderOpen, ChevronRight, ChevronDown, ExternalLink,
-  Edit3, ListChecks,
+  Edit3, ListChecks, GitPullRequest,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { deliveryService } from '@/services/deliveryService'
 import { Delivery, DeliveryItem } from '@/types/delivery.types'
@@ -71,6 +72,20 @@ const DeliveryView: React.FC = () => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set())
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [attachmentsExpanded, setAttachmentsExpanded] = useState(false)
+  const [syncingPr, setSyncingPr] = useState(false)
+
+  const handleSyncPullRequests = async () => {
+    if (!delivery) return
+    setSyncingPr(true)
+    try {
+      const result = await deliveryService.syncPullRequests(delivery.id)
+      toast.success(result.message)
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || e?.message || 'Falha ao sincronizar PRs no ClickUp')
+    } finally {
+      setSyncingPr(false)
+    }
+  }
 
   useEffect(() => {
     const fetchDelivery = async () => {
@@ -158,11 +173,22 @@ const DeliveryView: React.FC = () => {
             </span>
           }
           actions={
-            canEdit ? (
-              <Button variant="secondary" leadingIcon={<Edit3 />} onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}>
-                Editar
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                leadingIcon={<GitPullRequest />}
+                onClick={handleSyncPullRequests}
+                loading={syncingPr}
+                title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
+              >
+                Atualizar Branch
               </Button>
-            ) : undefined
+              {canEdit && (
+                <Button variant="secondary" leadingIcon={<Edit3 />} onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}>
+                  Editar
+                </Button>
+              )}
+            </div>
           }
         />
 

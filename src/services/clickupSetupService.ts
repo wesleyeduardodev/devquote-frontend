@@ -29,6 +29,7 @@ export interface ClickUpFieldsResponse {
   suggestedDeveloperFieldId?: string | null
   suggestedDeveloperOptionId?: string | null
   suggestedOrderFieldId?: string | null
+  suggestedBranchFieldId?: string | null
 }
 
 export interface ClickUpSaveRequest {
@@ -37,6 +38,7 @@ export interface ClickUpSaveRequest {
   developerFieldId: string
   developerOptionId: string
   orderFieldId?: string | null
+  branchFieldId?: string | null
 }
 
 const HEADER = 'X-ClickUp-Token'

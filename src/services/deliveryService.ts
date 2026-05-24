@@ -344,5 +344,15 @@ export const deliveryService = {
 
         const response = await api.post(`/deliveries/${id}/send-delivery-email`, payload);
         return response.data;
+    },
+
+    syncPullRequests: async (deliveryId: number): Promise<{
+        branchUpdated: boolean
+        descriptionUpdated: boolean
+        pullRequestCount: number
+        message: string
+    }> => {
+        const response = await api.post(`/clickup-sync/deliveries/${deliveryId}/pull-requests`)
+        return response.data
     }
 };

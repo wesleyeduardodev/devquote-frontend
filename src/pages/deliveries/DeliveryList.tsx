@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, MoreHorizontal, Truck, Eye, Download, RefreshCw,
-  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet,
+  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet, GitPullRequest,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import toast from 'react-hot-toast'
@@ -13,6 +13,7 @@ import { gitSyncService } from '@/services/gitSyncService'
 import { reportService } from '@/services/reportService'
 import { moduleService } from '@/services/moduleService'
 import { serverService } from '@/services/serverService'
+import { deliveryService } from '@/services/deliveryService'
 import { Combobox } from '@/components/ui-v2/Combobox'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import { Button } from '@/components/ui-v2/Button'
@@ -204,6 +205,7 @@ const DeliveryList: React.FC = () => {
   const [syncing, setSyncing] = React.useState(false)
   const [filtersOpen, setFiltersOpen] = React.useState(false)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
+  const [syncPrLoadingId, setSyncPrLoadingId] = React.useState<number | null>(null)
   const [generatingReport, setGeneratingReport] = React.useState(false)
   const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
   const [servers, setServers] = React.useState<{ id: number; name: string }[]>([])
@@ -308,6 +310,18 @@ const DeliveryList: React.FC = () => {
       toast.error('Erro ao gerar PDF')
     } finally {
       setPdfLoadingId(null)
+    }
+  }, [])
+
+  const handleSyncPullRequests = React.useCallback(async (d: Delivery) => {
+    setSyncPrLoadingId(d.id)
+    try {
+      const result = await deliveryService.syncPullRequests(d.id)
+      toast.success(result.message)
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || e?.message || 'Falha ao sincronizar PRs no ClickUp')
+    } finally {
+      setSyncPrLoadingId(null)
     }
   }, [])
 
@@ -453,7 +467,7 @@ const DeliveryList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 130, enableSorting: false, meta: { align: 'center' },
+      id: '__actions', header: '', size: 160, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           {isAdmin && (
@@ -467,6 +481,17 @@ const DeliveryList: React.FC = () => {
               <Pencil />
             </Button>
           )}
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => handleSyncPullRequests(row.original)}
+            loading={syncPrLoadingId === row.original.id}
+            disabled={syncPrLoadingId === row.original.id}
+            aria-label="Atualizar Branch no ClickUp"
+            title="Atualizar Branch no ClickUp (sincroniza PRs dos items)"
+          >
+            <GitPullRequest />
+          </Button>
           <Button
             size="icon-sm"
             variant="ghost"

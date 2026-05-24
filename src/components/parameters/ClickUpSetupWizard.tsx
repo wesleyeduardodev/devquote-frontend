@@ -58,6 +58,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
   const [developerFieldId, setDeveloperFieldId] = React.useState<string>('')
   const [developerOptionId, setDeveloperOptionId] = React.useState<string>('')
   const [orderFieldId, setOrderFieldId] = React.useState<string>('')
+  const [branchFieldId, setBranchFieldId] = React.useState<string>('')
 
   // Reset ao abrir/fechar
   React.useEffect(() => {
@@ -78,6 +79,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
     setDeveloperFieldId('')
     setDeveloperOptionId('')
     setOrderFieldId('')
+    setBranchFieldId('')
   }, [open])
 
   // Helpers
@@ -176,6 +178,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
       setDeveloperFieldId(f.suggestedDeveloperFieldId || '')
       setDeveloperOptionId(f.suggestedDeveloperOptionId || '')
       setOrderFieldId(f.suggestedOrderFieldId || '')
+      setBranchFieldId(f.suggestedBranchFieldId || '')
       setStep(5)
     } catch (e: any) {
       apiError(e, 'Falha ao listar campos da lista')
@@ -207,6 +210,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
         developerFieldId,
         developerOptionId,
         orderFieldId: orderFieldId || null,
+        branchFieldId: branchFieldId || null,
       })
       toast.success('Configuração do ClickUp salva!')
       onSaved?.()
@@ -223,6 +227,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
   const selectedDeveloperField = fields?.all.find((f) => f.id === developerFieldId)
   const selectedDeveloperOption = selectedDeveloperField?.options?.find((o) => o.id === developerOptionId)
   const selectedOrderField = fields?.all.find((f) => f.id === orderFieldId)
+  const selectedBranchField = fields?.all.find((f) => f.id === branchFieldId)
   const selectedList = lists.find((l) => l.id === listId)
 
   return (
@@ -389,6 +394,21 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
                   Se a sua lista tem um campo numérico pra priorização, selecione aqui.
                 </p>
               </Field>
+
+              <Field label="Campo Branch (opcional — text)">
+                <Select value={branchFieldId || '__none'} onValueChange={(v) => setBranchFieldId(v === '__none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">— Sem campo Branch —</SelectItem>
+                    {fields.all.filter((f) => f.type === 'text' || f.type === 'short_text').map((f) => (
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-text-tertiary">
+                  Quando preenchido, o sync grava os PRs (URLs separadas por <code>;</code>) nesse campo e adiciona um bloco no fim da descrição da task.
+                </p>
+              </Field>
             </div>
           )}
 
@@ -407,6 +427,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
                   <Summary k="CLICKUP_DEVELOPER_FIELD_ID" v={developerFieldId} hint={selectedDeveloperField?.name} />
                   <Summary k="CLICKUP_DEVELOPER_OPTION_ID" v={developerOptionId} hint={selectedDeveloperOption?.name} />
                   {orderFieldId && <Summary k="CLICKUP_ORDER_FIELD_ID" v={orderFieldId} hint={selectedOrderField?.name} />}
+                  {branchFieldId && <Summary k="CLICKUP_BRANCH_FIELD_ID" v={branchFieldId} hint={selectedBranchField?.name} />}
                 </ul>
               </div>
 

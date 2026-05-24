@@ -269,6 +269,7 @@ const ParameterList: React.FC = () => {
                 <li>• CLICKUP_DEVELOPER_FIELD_ID</li>
                 <li>• CLICKUP_DEVELOPER_OPTION_ID</li>
                 <li>• CLICKUP_ORDER_FIELD_ID</li>
+                <li>• CLICKUP_BRANCH_FIELD_ID</li>
               </ul>
             </div>
             <div>
