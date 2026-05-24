@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Plus, Pencil, Trash2, Settings, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Settings, AlertTriangle, Plug } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { useSystemParameters } from '@/hooks/useSystemParameters'
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui-v2/Input'
 import { Search } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 import { SecretMask, isSensitiveParamName } from '@/components/parameters/SecretMask'
+import ClickUpSetupWizard from '@/components/parameters/ClickUpSetupWizard'
 import ParameterModal from './ParameterModal'
 
 interface SystemParameter {
@@ -46,6 +47,7 @@ const ParameterList: React.FC = () => {
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
   const [editingId, setEditingId] = React.useState<number | 'new' | null>(null)
+  const [clickupWizardOpen, setClickupWizardOpen] = React.useState(false)
 
   React.useEffect(() => {
     const t = setTimeout(() => setFilter('name', search), 300)
@@ -134,7 +136,14 @@ const ParameterList: React.FC = () => {
             />
           </div>
         }
-        actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo parâmetro</Button>}
+        actions={isAdmin?.() && (
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" leadingIcon={<Plug />} onClick={() => setClickupWizardOpen(true)}>
+              Configurar ClickUp
+            </Button>
+            <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo parâmetro</Button>
+          </div>
+        )}
       />
 
       <FilterChipsRow chips={chips} onClearAll={() => { setSearch(''); clearFilters() }} />
@@ -209,6 +218,15 @@ const ParameterList: React.FC = () => {
           parameter={editingId === 'new' ? null : (systemParameters.find((p: any) => p.id === editingId) as any)}
         />
       )}
+
+      <ClickUpSetupWizard
+        open={clickupWizardOpen}
+        onOpenChange={setClickupWizardOpen}
+        onSaved={() => {
+          // Recarrega a lista após salvar pra mostrar os parâmetros novos/atualizados
+          setPage(0)
+        }}
+      />
 
       <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
         <DialogContent>
