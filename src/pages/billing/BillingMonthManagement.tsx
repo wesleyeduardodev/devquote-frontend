@@ -208,12 +208,9 @@ const BillingMonthManagement: React.FC = () => {
     {
       id: 'period', header: 'Período', size: 200, enableSorting: false,
       cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="text-text-primary font-medium">
-            {MONTH_LABEL(row.original.month)} {row.original.year}
-          </span>
-          <span className="text-xs text-text-tertiary">#{row.original.id}</span>
-        </div>
+        <span className="text-text-primary font-medium">
+          {MONTH_LABEL(row.original.month)} {row.original.year}
+        </span>
       ),
     },
     {
@@ -455,9 +452,8 @@ const BillingMonthManagement: React.FC = () => {
           {!loading && periods.map((p) => (
             <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
               <button onClick={() => setViewTasksOf(p)} className="w-full text-left">
-                <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="mb-1.5">
                   <span className="font-medium text-text-primary">{MONTH_LABEL(p.month)} {p.year}</span>
-                  <span className="font-mono text-xs text-text-tertiary">#{p.id}</span>
                 </div>
                 <div className="flex items-center justify-between mb-1.5">
                   <StatusPill status={p.status} />
