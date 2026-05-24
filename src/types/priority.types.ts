@@ -17,9 +17,16 @@ export interface PriorityGroup {
   tasks: PriorityTask[]
 }
 
+export interface PriorityCurrentUser {
+  id?: string | null
+  username?: string | null
+  email?: string | null
+}
+
 export interface PriorityBoard {
   provider: string
   configured: boolean
   fetchedAt: string
   groups: PriorityGroup[]
+  currentUser?: PriorityCurrentUser | null
 }

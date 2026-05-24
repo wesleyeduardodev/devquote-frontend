@@ -125,7 +125,7 @@ const GroupSection: React.FC<{ group: PriorityGroup; defaultOpen: boolean; isAdm
 }
 
 export default function PrioritiesBoard() {
-  const { board, loading, refreshing, refresh, markTaskCreated } = usePriorityBoard()
+  const { board, loading, refreshing, refresh, markTaskCreated, includeAssignee, setIncludeAssignee } = usePriorityBoard()
   const { hasProfile } = useAuth() as any
   const isAdmin = hasProfile ? hasProfile('ADMIN') : false
 
@@ -184,16 +184,36 @@ export default function PrioritiesBoard() {
     <div>
       <PageHeader
         title="Prioridades"
-        subtitle={board?.fetchedAt ? fmtUpdated(board.fetchedAt) : undefined}
+        subtitle={
+          board?.currentUser?.username || board?.fetchedAt
+            ? [
+                board?.currentUser?.username ? `Conectado como ${board.currentUser.username}` : null,
+                board?.fetchedAt ? fmtUpdated(board.fetchedAt) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')
+            : undefined
+        }
         actions={
-          <Button
-            variant="secondary"
-            leadingIcon={<RefreshCw className={refreshing ? 'animate-spin' : ''} />}
-            onClick={refresh}
-            loading={refreshing}
-          >
-            Atualizar
-          </Button>
+          <div className="flex items-center gap-3">
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none" title="Quando ativo, traz tarefas onde você é Desenvolvedor OU Responsável (assignee). Desligado, só onde é Desenvolvedor.">
+              <input
+                type="checkbox"
+                checked={includeAssignee}
+                onChange={(e) => setIncludeAssignee(e.target.checked)}
+                className="size-4 rounded border-border-strong text-accent focus:ring-accent"
+              />
+              <span className="text-sm text-text-secondary">Incluir como responsável</span>
+            </label>
+            <Button
+              variant="secondary"
+              leadingIcon={<RefreshCw className={refreshing ? 'animate-spin' : ''} />}
+              onClick={refresh}
+              loading={refreshing}
+            >
+              Atualizar
+            </Button>
+          </div>
         }
       />
 
