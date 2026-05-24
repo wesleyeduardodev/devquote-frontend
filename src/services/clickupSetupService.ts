@@ -75,4 +75,8 @@ export const clickupSetupService = {
   save: async (payload: ClickUpSaveRequest): Promise<void> => {
     await api.post('/integrations/clickup/setup/save', payload)
   },
+
+  reset: async (): Promise<void> => {
+    await api.delete('/integrations/clickup/setup/reset')
+  },
 }

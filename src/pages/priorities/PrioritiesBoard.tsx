@@ -1,6 +1,9 @@
 import * as React from 'react'
 import toast from 'react-hot-toast'
-import { RefreshCw, ChevronDown, ChevronRight, Flag, ExternalLink, ClipboardList, Plug, FilePlus2, CheckCircle2 } from 'lucide-react'
+import {
+  RefreshCw, ChevronDown, ChevronRight, Flag, ExternalLink, ClipboardList, Plug, FilePlus2,
+  CheckCircle2, Star, EyeOff, Eye, GripVertical,
+} from 'lucide-react'
 import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { Button } from '@/components/ui-v2/Button'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
@@ -14,8 +17,17 @@ import { usePriorityBoard } from '@/hooks/usePriorityBoard'
 import { useAuth } from '@/hooks/useAuth'
 import { taskService } from '@/services/taskService'
 import { requesterService } from '@/services/requesterService'
+import { priorityService } from '@/services/priorityService'
 import { PriorityGroup, PriorityTask } from '@/types/priority.types'
 import { cn } from '@/utils/cn'
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   urgent: { label: 'Urgente', color: '#e5484d' },
@@ -96,21 +108,101 @@ const TaskRow: React.FC<RowProps> = ({ task, isAdmin, onCreate }) => (
   </li>
 )
 
-const GroupSection: React.FC<{ group: PriorityGroup; defaultOpen: boolean; isAdmin: boolean; onCreate: (t: PriorityTask) => void }> = ({ group, defaultOpen, isAdmin, onCreate }) => {
+interface GroupSectionProps {
+  group: PriorityGroup
+  defaultOpen: boolean
+  isAdmin: boolean
+  onCreate: (t: PriorityTask) => void
+  onMarkPrimary?: (status: string) => void
+  onToggleHidden?: (status: string, hidden: boolean) => void
+}
+
+const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin, onCreate, onMarkPrimary, onToggleHidden }) => {
   const [open, setOpen] = React.useState(defaultOpen)
+
+  // Sortable só pra ADMIN — não-admin não pode reordenar
+  const sortable = useSortable({ id: group.status, disabled: !isAdmin })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  }
+
   return (
-    <div className={cn('rounded-xl border bg-surface-1 overflow-hidden', group.primary ? 'border-accent/40 shadow-sm' : 'border-border-subtle')}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-2 transition-colors"
-      >
-        {open ? <ChevronDown className="size-4 text-text-tertiary" /> : <ChevronRight className="size-4 text-text-tertiary" />}
-        <PriorityStatusBadge status={group.status} />
-        <span className="text-sm font-medium text-text-secondary tabular-nums">{group.count}</span>
-        {group.primary && (
-          <span className="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Principal</span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'rounded-xl border bg-surface-1 overflow-hidden',
+        group.primary ? 'border-accent/40 shadow-sm' : 'border-border-subtle',
+        group.hidden && 'opacity-70',
+        isDragging && 'shadow-xl ring-2 ring-accent/30',
+      )}
+    >
+      <div className="flex items-center gap-1 px-2 py-1.5 hover:bg-surface-2 transition-colors">
+        {/* Drag handle (só admin) */}
+        {isAdmin && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="inline-flex h-8 w-6 items-center justify-center text-text-tertiary hover:text-text-primary cursor-grab active:cursor-grabbing touch-none"
+            aria-label="Arrastar pra reordenar"
+            title="Arrastar pra reordenar"
+          >
+            <GripVertical className="size-4" />
+          </button>
         )}
-      </button>
+
+        {/* Expand/collapse + status badge + count */}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex-1 flex items-center gap-3 py-2 text-left"
+        >
+          {open ? <ChevronDown className="size-4 text-text-tertiary" /> : <ChevronRight className="size-4 text-text-tertiary" />}
+          <PriorityStatusBadge status={group.status} />
+          <span className="text-sm font-medium text-text-secondary tabular-nums">{group.count}</span>
+          {group.primary && (
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Principal</span>
+          )}
+          {group.hidden && (
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-medium text-text-tertiary">oculto</span>
+          )}
+        </button>
+
+        {/* Botões de ação (admin) */}
+        {isAdmin && (
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={(e) => { e.stopPropagation(); onMarkPrimary?.(group.status) }}
+              disabled={group.primary}
+              className={cn(
+                'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                group.primary
+                  ? 'text-accent'
+                  : 'text-text-tertiary hover:text-accent hover:bg-surface-2'
+              )}
+              title={group.primary ? 'Este é o status Principal' : 'Marcar como Principal (badge de destaque)'}
+              aria-label="Marcar como Principal"
+            >
+              <Star className={cn('size-4', group.primary && 'fill-current')} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleHidden?.(group.status, !group.hidden) }}
+              className={cn(
+                'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+                'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
+              )}
+              title={group.hidden ? 'Mostrar este status no board' : 'Ocultar este status do board'}
+              aria-label={group.hidden ? 'Restaurar' : 'Ocultar'}
+            >
+              {group.hidden ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+            </button>
+          </div>
+        )}
+      </div>
+
       {open && (
         group.tasks.length > 0 ? (
           <ul className="divide-y divide-border-subtle border-t border-border-subtle">
@@ -134,6 +226,66 @@ export default function PrioritiesBoard() {
   const [flowType, setFlowType] = React.useState<string>('')
   const [requesterId, setRequesterId] = React.useState<string>('')
   const [submitting, setSubmitting] = React.useState(false)
+
+  // Estado local dos grupos — sincronizado com board.groups mas mutável pra updates otimistas
+  const [groups, setGroups] = React.useState<PriorityGroup[]>([])
+  React.useEffect(() => {
+    setGroups(board?.groups || [])
+  }, [board?.groups])
+
+  // Mostrar/esconder os ocultos no board
+  const [showHidden, setShowHidden] = React.useState(false)
+
+  // dnd-kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const hiddenCount = groups.filter((g) => g.hidden).length
+  const visibleGroups = showHidden ? groups : groups.filter((g) => !g.hidden)
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = groups.findIndex((g) => g.status === active.id)
+    const newIndex = groups.findIndex((g) => g.status === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    const next = arrayMove(groups, oldIndex, newIndex)
+    setGroups(next) // otimista
+    try {
+      await priorityService.updatePreferences({ orderedStatuses: next.map((g) => g.status) })
+      toast.success('Ordem do board atualizada')
+    } catch {
+      toast.error('Falha ao salvar ordem — restaurando')
+      setGroups(board?.groups || [])
+    }
+  }
+
+  const handleMarkPrimary = async (status: string) => {
+    const prev = groups
+    setGroups((gs) => gs.map((g) => ({ ...g, primary: g.status === status })))
+    try {
+      await priorityService.updatePreferences({ primaryStatus: status })
+      toast.success(`"${status}" marcado como Principal`)
+    } catch {
+      toast.error('Falha ao salvar — restaurando')
+      setGroups(prev)
+    }
+  }
+
+  const handleToggleHidden = async (status: string, hidden: boolean) => {
+    const prev = groups
+    setGroups((gs) => gs.map((g) => g.status === status ? { ...g, hidden } : g))
+    const newHidden = (groups.filter((g) => g.status === status ? hidden : g.hidden)).map((g) => g.status)
+    try {
+      await priorityService.updatePreferences({ hiddenStatuses: newHidden })
+      toast.success(hidden ? `"${status}" ocultado` : `"${status}" restaurado`)
+    } catch {
+      toast.error('Falha ao salvar — restaurando')
+      setGroups(prev)
+    }
+  }
 
   React.useEffect(() => {
     if (!isAdmin) return
@@ -234,11 +386,36 @@ export default function PrioritiesBoard() {
           description="Não há tarefas atribuídas a você nos status configurados."
         />
       ) : (
-        <div className="space-y-3">
-          {board.groups.map((g) => (
-            <GroupSection key={g.status} group={g} defaultOpen={g.primary} isAdmin={isAdmin} onCreate={openCreate} />
-          ))}
-        </div>
+        <>
+          {hiddenCount > 0 && (
+            <div className="mb-2 flex items-center justify-end">
+              <button
+                onClick={() => setShowHidden((v) => !v)}
+                className="inline-flex items-center gap-1.5 text-xs text-text-tertiary hover:text-text-primary transition-colors"
+              >
+                {showHidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                {showHidden ? `Esconder ${hiddenCount} oculto${hiddenCount > 1 ? 's' : ''}` : `Ver ${hiddenCount} oculto${hiddenCount > 1 ? 's' : ''}`}
+              </button>
+            </div>
+          )}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={visibleGroups.map((g) => g.status)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {visibleGroups.map((g) => (
+                  <GroupSection
+                    key={g.status}
+                    group={g}
+                    defaultOpen={g.primary}
+                    isAdmin={isAdmin}
+                    onCreate={openCreate}
+                    onMarkPrimary={handleMarkPrimary}
+                    onToggleHidden={handleToggleHidden}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </>
       )}
 
       {/* Modal: criar tarefa no DevQuote a partir do ClickUp */}

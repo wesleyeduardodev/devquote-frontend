@@ -410,23 +410,9 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
                 </ul>
               </div>
 
-              <div>
-                <p className="text-sm text-text-secondary mb-2">
-                  <strong className="text-text-primary">Opcionais com defaults</strong>{' '}
-                  <span className="text-text-tertiary">(só cria se não existir; preserva customizações)</span>
-                </p>
-                <ul className="rounded-md border border-border-subtle bg-surface-app/40 p-3 space-y-1.5 text-sm font-mono">
-                  <Summary k="TASK_BOARD_PROVIDER" v="CLICKUP" />
-                  <Summary k="CLICKUP_PRIMARY_STATUS" v="a iniciar - dev interno" />
-                  <Summary k="CLICKUP_PRIORITY_STATUSES" v="a iniciar - dev interno,em progresso,..." hint="8 status" />
-                  <Summary k="CLICKUP_BOARD_ASSIGNEE_USER_ID" v="(vazio)" hint="auto-detect via token" />
-                  <Summary k="CLICKUP_HIDDEN_STATUSES" v="complete,concluído" hint="esconde finalizados" />
-                </ul>
-              </div>
-
               <p className="text-xs text-text-tertiary">
                 Após salvar, o cache do board é invalidado automaticamente. Pode abrir <code>/priorities</code> em seguida.
-                Você pode ajustar qualquer um desses parâmetros depois em <code>/parameters</code>.
+                A ordem dos grupos, status principal e status ocultos você ajusta direto no board (sem voltar aqui).
               </p>
             </div>
           )}

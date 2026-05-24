@@ -11,4 +11,12 @@ export const priorityService = {
     const response = await api.post('/priorities/board/refresh', null, { params: { includeAssignee } })
     return response.data
   },
+
+  updatePreferences: async (prefs: {
+    orderedStatuses?: string[]
+    primaryStatus?: string
+    hiddenStatuses?: string[]
+  }): Promise<void> => {
+    await api.put('/priorities/board/preferences', prefs)
+  },
 }

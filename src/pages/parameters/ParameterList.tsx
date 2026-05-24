@@ -1,6 +1,8 @@
 import * as React from 'react'
-import { Plus, Pencil, Trash2, Settings, AlertTriangle, Plug } from 'lucide-react'
+import { Plus, Pencil, Trash2, Settings, AlertTriangle, Plug, RotateCcw } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
+import { clickupSetupService } from '@/services/clickupSetupService'
 
 import { useSystemParameters } from '@/hooks/useSystemParameters'
 import { useAuth } from '@/hooks/useAuth'
@@ -41,6 +43,7 @@ const ParameterList: React.FC = () => {
     systemParameters, pagination, loading, error, filters,
     deleteSystemParameter, deleteBulkSystemParameters,
     setPage, setPageSize, setFilter, clearFilters,
+    fetchSystemParameters,
   } = useSystemParameters({ size: 25 })
 
   const [search, setSearch] = React.useState((filters.name as string) || '')
@@ -48,6 +51,22 @@ const ParameterList: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
   const [editingId, setEditingId] = React.useState<number | 'new' | null>(null)
   const [clickupWizardOpen, setClickupWizardOpen] = React.useState(false)
+  const [clickupResetOpen, setClickupResetOpen] = React.useState(false)
+  const [resetting, setResetting] = React.useState(false)
+
+  const handleResetClickUp = async () => {
+    setResetting(true)
+    try {
+      await clickupSetupService.reset()
+      toast.success('Configuração do ClickUp resetada. Use "Configurar ClickUp" pra começar do zero.')
+      setClickupResetOpen(false)
+      await fetchSystemParameters()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Falha ao resetar configuração')
+    } finally {
+      setResetting(false)
+    }
+  }
 
   React.useEffect(() => {
     const t = setTimeout(() => setFilter('name', search), 300)
@@ -138,6 +157,9 @@ const ParameterList: React.FC = () => {
         }
         actions={isAdmin?.() && (
           <div className="flex items-center gap-2">
+            <Button variant="ghost" leadingIcon={<RotateCcw />} onClick={() => setClickupResetOpen(true)} title="Apaga os 6 parâmetros do núcleo ClickUp (token, list, dev, etc.) pra reconfigurar do zero">
+              Resetar ClickUp
+            </Button>
             <Button variant="secondary" leadingIcon={<Plug />} onClick={() => setClickupWizardOpen(true)}>
               Configurar ClickUp
             </Button>
@@ -224,9 +246,48 @@ const ParameterList: React.FC = () => {
         onOpenChange={setClickupWizardOpen}
         onSaved={() => {
           // Recarrega a lista após salvar pra mostrar os parâmetros novos/atualizados
-          setPage(0)
+          fetchSystemParameters()
         }}
       />
+
+      <Dialog open={clickupResetOpen} onOpenChange={(o) => { if (!o) setClickupResetOpen(false) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resetar configuração do ClickUp?</DialogTitle>
+            <DialogDescription>
+              Todos os parâmetros relacionados à integração ClickUp serão apagados.
+              O sistema volta ao estado de tenant novo — você precisará rodar "Configurar ClickUp" pra reativar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-text-secondary mb-1">Núcleo da integração</p>
+              <ul className="text-xs font-mono text-text-secondary space-y-0.5 rounded-md border border-border-subtle bg-surface-app/40 p-3">
+                <li>• CLICKUP_INTEGRATION_ENABLED</li>
+                <li>• CLICKUP_TOKEN</li>
+                <li>• CLICKUP_BOARD_LIST_ID</li>
+                <li>• CLICKUP_DEVELOPER_FIELD_ID</li>
+                <li>• CLICKUP_DEVELOPER_OPTION_ID</li>
+                <li>• CLICKUP_ORDER_FIELD_ID</li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-text-secondary mb-1">Preferências do board</p>
+              <ul className="text-xs font-mono text-text-secondary space-y-0.5 rounded-md border border-border-subtle bg-surface-app/40 p-3">
+                <li>• TASK_BOARD_PROVIDER</li>
+                <li>• CLICKUP_PRIMARY_STATUS</li>
+                <li>• CLICKUP_PRIORITY_STATUSES</li>
+                <li>• CLICKUP_BOARD_ASSIGNEE_USER_ID</li>
+                <li>• CLICKUP_HIDDEN_STATUSES</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setClickupResetOpen(false)} disabled={resetting}>Cancelar</Button>
+            <Button variant="danger" onClick={handleResetClickUp} loading={resetting}>Resetar tudo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
         <DialogContent>

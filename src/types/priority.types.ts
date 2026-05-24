@@ -13,6 +13,8 @@ export interface PriorityTask {
 export interface PriorityGroup {
   status: string
   primary: boolean
+  /** Status marcado como oculto via CLICKUP_HIDDEN_STATUSES. Front decide se mostra ou não. */
+  hidden?: boolean
   count: number
   tasks: PriorityTask[]
 }
