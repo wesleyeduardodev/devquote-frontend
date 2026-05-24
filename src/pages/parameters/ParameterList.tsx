@@ -62,10 +62,12 @@ const ParameterList: React.FC = () => {
     {
       accessorKey: 'name',
       header: 'Nome',
+      size: 260,
+      meta: { wrap: true },
       cell: ({ row }) => (
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-text-primary">{row.original.name}</span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-sm text-text-primary break-all">{row.original.name}</span>
             {isSensitiveParamName(row.original.name) && (
               <Badge variant="warning" size="sm"><AlertTriangle className="size-3" />Sensível</Badge>
             )}
@@ -74,8 +76,26 @@ const ParameterList: React.FC = () => {
         </div>
       ),
     },
-    { accessorKey: 'value', header: 'Valor', cell: ({ row }) => <SecretMask name={row.original.name} value={row.original.value} className="font-mono text-xs text-text-secondary" /> },
-    { accessorKey: 'description', header: 'Descrição', cell: ({ row }) => <span className="text-text-secondary truncate">{row.original.description || '—'}</span> },
+    {
+      accessorKey: 'value',
+      header: 'Valor',
+      meta: { wrap: true },
+      cell: ({ row }) => (
+        <SecretMask
+          name={row.original.name}
+          value={row.original.value}
+          className="font-mono text-xs text-text-secondary break-all whitespace-pre-wrap"
+        />
+      ),
+    },
+    {
+      accessorKey: 'description',
+      header: 'Descrição',
+      meta: { wrap: true },
+      cell: ({ row }) => (
+        <span className="text-text-secondary break-words">{row.original.description || '—'}</span>
+      ),
+    },
     {
       id: '__actions', header: 'Ações', size: 110, meta: { align: 'center' },
       cell: ({ row }) => (
