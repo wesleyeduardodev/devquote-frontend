@@ -47,9 +47,6 @@ interface CrudItem {
     id: string | number;
 }
 
-/**
- * Hook genérico para fazer chamadas de API com estados de loading e erro
- */
 export const useApi = <T = any>(
     apiFunction: (...args: any[]) => Promise<T>,
     options: ApiOptions<T> = {}
