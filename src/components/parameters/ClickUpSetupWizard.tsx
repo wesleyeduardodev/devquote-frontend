@@ -345,7 +345,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
                   </SelectContent>
                 </Select>
                 <p className="mt-1 text-xs text-text-tertiary">
-                  Esta é a lista cujas tarefas vão aparecer na tela /priorities.
+                  Esta é a lista cujas tarefas vão aparecer na tela "Tarefas ClickUp".
                 </p>
               </Field>
             </div>
@@ -432,7 +432,7 @@ export const ClickUpSetupWizard: React.FC<Props> = ({ open, onOpenChange, onSave
               </div>
 
               <p className="text-xs text-text-tertiary">
-                Após salvar, o cache do board é invalidado automaticamente. Pode abrir <code>/priorities</code> em seguida.
+                Após salvar, o cache do board é invalidado automaticamente. Pode abrir a tela "Tarefas ClickUp" em seguida.
                 A ordem dos grupos, status principal e status ocultos você ajusta direto no board (sem voltar aqui).
               </p>
             </div>

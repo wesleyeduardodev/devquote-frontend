@@ -335,7 +335,7 @@ export default function PrioritiesBoard() {
   return (
     <div>
       <PageHeader
-        title="Prioridades"
+        title="Tarefas ClickUp"
         subtitle={
           board?.currentUser?.username || board?.fetchedAt
             ? [
@@ -377,7 +377,7 @@ export default function PrioritiesBoard() {
         <EmptyState
           icon={<Plug />}
           title="Integração não configurada"
-          description="Configure as chaves do board (ClickUp) na tela de Parâmetros para ver suas prioridades aqui."
+          description="Configure as chaves do board (ClickUp) na tela de Parâmetros para ver suas tarefas ClickUp aqui."
         />
       ) : board.groups.every((g) => g.count === 0) ? (
         <EmptyState

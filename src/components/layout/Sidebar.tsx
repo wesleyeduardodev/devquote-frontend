@@ -36,7 +36,7 @@ const SECTIONS: NavSection[] = [
       { to: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard, shortcut: 'G D' },
       { to: '/tasks',       label: 'Tarefas',      icon: ListChecks,      shortcut: 'G T' },
       { to: '/deliveries',  label: 'Entregas',     icon: Truck,           shortcut: 'G E' },
-      { to: '/priorities',  label: 'Prioridades',  icon: ListOrdered },
+      { to: '/priorities',  label: 'ClickUp',  icon: ListOrdered },
       { to: '/billing',     label: 'Faturamento',  icon: DollarSign,      shortcut: 'G F', profiles: ['ADMIN', 'MANAGER'] },
     ],
   },

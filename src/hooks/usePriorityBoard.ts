@@ -40,9 +40,9 @@ export function usePriorityBoard() {
     try {
       const data = await priorityService.refresh(includeAssignee)
       setBoard(data)
-      toast.success('Prioridades atualizadas')
+      toast.success('Tarefas ClickUp atualizadas')
     } catch {
-      toast.error('Erro ao atualizar prioridades')
+      toast.error('Erro ao atualizar tarefas ClickUp')
     } finally {
       setRefreshing(false)
     }

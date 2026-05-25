@@ -396,7 +396,7 @@ const Dashboard: React.FC = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2">
               <div>
-                <CardTitle className="flex items-center gap-2"><ListOrdered className="size-4" /> Minhas prioridades</CardTitle>
+                <CardTitle className="flex items-center gap-2"><ListOrdered className="size-4" /> Minhas tarefas ClickUp</CardTitle>
                 <CardDescription>{primaryGroup.count} tarefa(s) em "{primaryGroup.status}"</CardDescription>
               </div>
               <Link to="/priorities" className="inline-flex items-center gap-1 text-sm text-accent hover:underline shrink-0">
