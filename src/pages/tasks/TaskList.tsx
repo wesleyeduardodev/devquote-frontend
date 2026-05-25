@@ -30,6 +30,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui-v2/Popo
 import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
 import { TaskTypeLabel, TASK_TYPE_META } from '@/components/tasks/TaskTypeLabel'
 import { EnvLabel, ENV_META } from '@/components/tasks/EnvLabel'
+import { TaskQuickViewModal } from '@/components/tasks/TaskQuickViewModal'
 import { moduleService } from '@/services/moduleService'
 import { serverService } from '@/services/serverService'
 import { Combobox } from '@/components/ui-v2/Combobox'
@@ -159,6 +160,7 @@ const TaskList: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
   const [emailLoadingId, setEmailLoadingId] = React.useState<number | null>(null)
+  const [quickViewId, setQuickViewId] = React.useState<number | null>(null)
 
   const handleSendFinancialEmail = React.useCallback(async (task: Task) => {
     setEmailLoadingId(task.id)
@@ -527,9 +529,18 @@ const TaskList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 170, enableSorting: false, meta: { align: 'center' },
+      id: '__actions', header: '', size: 200, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setQuickViewId(row.original.id)}
+            aria-label="Visualização rápida"
+            title="Visualização rápida"
+          >
+            <Eye />
+          </Button>
           {isAdmin && (
             <Button
               size="icon-sm"
@@ -974,6 +985,7 @@ const TaskList: React.FC = () => {
             </button>
 
             <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              <Button size="icon-sm" variant="ghost" onClick={() => setQuickViewId(t.id)} aria-label="Visualização rápida" title="Visualização rápida"><Eye /></Button>
               {isAdmin && (
                 <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
               )}
@@ -1258,6 +1270,12 @@ const TaskList: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TaskQuickViewModal
+        open={quickViewId !== null}
+        taskId={quickViewId}
+        onClose={() => setQuickViewId(null)}
+      />
     </div>
   )
 }

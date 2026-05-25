@@ -34,6 +34,7 @@ import { STATUS_LABEL } from '@/components/deliveries/DeliveryStatusBadge'
 import { FlowChip, FLOW_LABEL } from '@/components/tasks/FlowChip'
 import { TaskTypeLabel, TASK_TYPE_META } from '@/components/tasks/TaskTypeLabel'
 import { EnvLabel, ENV_META } from '@/components/deliveries/EnvLabel'
+import { DeliveryQuickViewModal } from '@/components/deliveries/DeliveryQuickViewModal'
 
 interface Delivery {
   id: number
@@ -206,6 +207,7 @@ const DeliveryList: React.FC = () => {
   const [filtersOpen, setFiltersOpen] = React.useState(false)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
   const [syncPrLoadingId, setSyncPrLoadingId] = React.useState<number | null>(null)
+  const [quickViewId, setQuickViewId] = React.useState<number | null>(null)
   const [generatingReport, setGeneratingReport] = React.useState(false)
   const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
   const [servers, setServers] = React.useState<{ id: number; name: string }[]>([])
@@ -467,9 +469,18 @@ const DeliveryList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 160, enableSorting: false, meta: { align: 'center' },
+      id: '__actions', header: '', size: 190, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setQuickViewId(row.original.id)}
+            aria-label="Visualização rápida"
+            title="Visualização rápida"
+          >
+            <Eye />
+          </Button>
           {isAdmin && (
             <Button
               size="icon-sm"
@@ -914,6 +925,7 @@ const DeliveryList: React.FC = () => {
             </button>
 
             <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              <Button size="icon-sm" variant="ghost" onClick={() => setQuickViewId(d.id)} aria-label="Visualização rápida" title="Visualização rápida"><Eye /></Button>
               {isAdmin && (
                 <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/deliveries/${d.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
               )}
@@ -1155,6 +1167,12 @@ const DeliveryList: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DeliveryQuickViewModal
+        open={quickViewId !== null}
+        deliveryId={quickViewId}
+        onClose={() => setQuickViewId(null)}
+      />
     </div>
   )
 }
