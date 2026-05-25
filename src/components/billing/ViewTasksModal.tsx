@@ -40,6 +40,8 @@ interface BillingPeriod {
 
 interface Props {
     flowType?: string;
+    moduleId?: number;
+    taskType?: string;
     isOpen: boolean;
     onClose: () => void;
     billingPeriod: BillingPeriod | null;
@@ -49,7 +51,9 @@ const ViewTasksModal: React.FC<Props> = ({
     isOpen,
     onClose,
     billingPeriod,
-    flowType
+    flowType,
+    moduleId,
+    taskType
 }) => {
 
     const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
@@ -81,7 +85,12 @@ const ViewTasksModal: React.FC<Props> = ({
         try {
 
             const filterFlowType = flowType && flowType !== 'TODOS' && flowType !== '' ? flowType : undefined;
-            const response = await billingPeriodService.findTaskLinksByBillingPeriod(billingPeriod.id, filterFlowType);
+            const response = await billingPeriodService.findTaskLinksByBillingPeriod(
+                billingPeriod.id,
+                filterFlowType,
+                moduleId,
+                taskType
+            );
 
             const sortedResponse = response.sort((a, b) => (b?.task?.id || 0) - (a?.task?.id || 0));
             setLinkedTasks(sortedResponse);
@@ -91,7 +100,7 @@ const ViewTasksModal: React.FC<Props> = ({
         } finally {
             setLoading(false);
         }
-    }, [billingPeriod?.id, flowType]);
+    }, [billingPeriod?.id, flowType, moduleId, taskType]);
 
     useEffect(() => {
         if (isOpen && billingPeriod) {

@@ -40,6 +40,8 @@ interface Props {
     billingPeriod: BillingPeriod | null;
     onTasksUnlinked: () => void;
     flowType?: string;
+    moduleId?: number;
+    taskType?: string;
 }
 
 const UnlinkTasksFromBillingModal: React.FC<Props> = ({
@@ -47,7 +49,9 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
     onClose,
     billingPeriod,
     onTasksUnlinked,
-    flowType
+    flowType,
+    moduleId,
+    taskType
 }) => {
 
     const [linkedTasks, setLinkedTasks] = useState<BillingPeriodTask[]>([]);
@@ -86,7 +90,9 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
                 size: pageSize,
                 sortBy: sortField === 'task.id' ? 'task.id' : sortField,
                 sortDirection: sortDirection,
-                flowType: filterFlowType
+                flowType: filterFlowType,
+                moduleId,
+                taskType
             });
 
             setLinkedTasks(response.content || []);
@@ -104,7 +110,7 @@ const UnlinkTasksFromBillingModal: React.FC<Props> = ({
         } finally {
             setLoading(false);
         }
-    }, [billingPeriod?.id, currentPage, pageSize, sortField, sortDirection, flowType]);
+    }, [billingPeriod?.id, currentPage, pageSize, sortField, sortDirection, flowType, moduleId, taskType]);
 
     const handleUnlinkTasks = useCallback(async () => {
         if (!billingPeriod?.id || selectedTasks.length === 0) return;

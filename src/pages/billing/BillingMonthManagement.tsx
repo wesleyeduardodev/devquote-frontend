@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale'
 
 import { useAuth } from '@/hooks/useAuth'
 import billingPeriodService from '@/services/billingPeriodService'
+import { moduleService } from '@/services/moduleService'
 import { Button } from '@/components/ui-v2/Button'
 import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
@@ -44,8 +45,25 @@ interface BillingPeriod {
 const brl = (n: number | null | undefined) =>
   (n ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-const MONTH_LABEL = (m: number) =>
+const MONTH_NAME = (m: number) =>
   format(new Date(2000, (m || 1) - 1, 1), 'MMMM', { locale: ptBR }).replace(/^./, (c) => c.toUpperCase())
+
+const MONTH_LABEL = (m: number) => `${m} - ${MONTH_NAME(m)}`
+
+const TASK_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'BUG', label: 'Bug' },
+  { value: 'ENHANCEMENT', label: 'Melhoria' },
+  { value: 'NEW_FEATURE', label: 'Nova funcionalidade' },
+  { value: 'BACKUP', label: 'Backup' },
+  { value: 'DEPLOY', label: 'Deploy' },
+  { value: 'LOGS', label: 'Logs' },
+  { value: 'NOVO_SERVIDOR', label: 'Novo servidor' },
+  { value: 'MONITORING', label: 'Monitoramento' },
+  { value: 'SUPPORT', label: 'Suporte' },
+  { value: 'CODE_REVIEW', label: 'Code Review' },
+]
+
+interface ModuleOption { id: number; name: string }
 
 interface StatusMeta {
   label: string
@@ -82,8 +100,10 @@ const BillingMonthManagement: React.FC = () => {
 
   const [periods, setPeriods] = React.useState<BillingPeriod[]>([])
   const [loading, setLoading] = React.useState(true)
-  const [filters, setFilters] = React.useState<{ year?: number; month?: number; status?: string; flowType?: string }>({})
+  const [filters, setFilters] = React.useState<{ year?: number; month?: number; status?: string; flowType?: string; moduleId?: number; taskType?: string }>({})
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})
+  const [availableYears, setAvailableYears] = React.useState<number[]>([])
+  const [modules, setModules] = React.useState<ModuleOption[]>([])
 
   // Modal/sheet states
   const [periodSheet, setPeriodSheet] = React.useState<{ mode: 'create' } | { mode: 'edit'; period: BillingPeriod } | null>(null)
@@ -123,6 +143,27 @@ const BillingMonthManagement: React.FC = () => {
   }, [filters])
 
   React.useEffect(() => { fetchPeriods() }, [fetchPeriods])
+
+  React.useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        const [years, modulesData] = await Promise.all([
+          billingPeriodService.getAvailableYears(),
+          moduleService.getAll(),
+        ])
+        if (!alive) return
+        setAvailableYears(Array.isArray(years) ? years : [])
+        const list: ModuleOption[] = (modulesData?.content ?? modulesData ?? [])
+          .map((m: any) => ({ id: m.id, name: m.name }))
+          .sort((a: ModuleOption, b: ModuleOption) => a.name.localeCompare(b.name, 'pt-BR'))
+        setModules(list)
+      } catch {
+        // Silencioso — filtros caem em fallback (anos vazios usam o atual; módulos some)
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   // KPIs — soma por status (valores PT-BR do backend)
   const kpis = React.useMemo(() => {
@@ -297,6 +338,8 @@ const BillingMonthManagement: React.FC = () => {
   if (filters.year)     chips.push({ key: 'year',   label: 'Ano',    value: String(filters.year),                                                     onRemove: () => setFilters((f) => ({ ...f, year: undefined })) })
   if (filters.month)    chips.push({ key: 'month',  label: 'Mês',    value: MONTH_LABEL(filters.month),                                               onRemove: () => setFilters((f) => ({ ...f, month: undefined })) })
   if (filters.status)   chips.push({ key: 'status', label: 'Status', value: STATUS_META[filters.status]?.label || filters.status,                    onRemove: () => setFilters((f) => ({ ...f, status: undefined })) })
+  if (filters.moduleId) chips.push({ key: 'module', label: 'Módulo', value: modules.find((m) => m.id === filters.moduleId)?.name || `#${filters.moduleId}`, onRemove: () => setFilters((f) => ({ ...f, moduleId: undefined })) })
+  if (filters.taskType) chips.push({ key: 'taskType', label: 'Tipo', value: TASK_TYPE_OPTIONS.find((o) => o.value === filters.taskType)?.label || filters.taskType, onRemove: () => setFilters((f) => ({ ...f, taskType: undefined })) })
 
   const setFilter = (key: string, value: any) => setFilters((f) => ({ ...f, [key]: value }))
 
@@ -323,14 +366,13 @@ const BillingMonthManagement: React.FC = () => {
               <SelectTrigger className="w-[120px] h-8"><SelectValue placeholder="Ano" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos anos</SelectItem>
-                {Array.from({ length: 6 }).map((_, i) => {
-                  const y = new Date().getFullYear() - i
-                  return <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                })}
+                {availableYears.map((y) => (
+                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={String(filters.month || '__all')} onValueChange={(v) => setFilter('month', v === '__all' ? undefined : Number(v))}>
-              <SelectTrigger className="w-[130px] h-8"><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectTrigger className="w-[150px] h-8"><SelectValue placeholder="Mês" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos meses</SelectItem>
                 {Array.from({ length: 12 }).map((_, i) => <SelectItem key={i + 1} value={String(i + 1)}>{MONTH_LABEL(i + 1)}</SelectItem>)}
@@ -349,6 +391,24 @@ const BillingMonthManagement: React.FC = () => {
                     </SelectItem>
                   )
                 })}
+              </SelectContent>
+            </Select>
+            <Select value={String(filters.moduleId || '__all')} onValueChange={(v) => setFilter('moduleId', v === '__all' ? undefined : Number(v))}>
+              <SelectTrigger className="w-[180px] h-8"><SelectValue placeholder="Módulo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Todos módulos</SelectItem>
+                {modules.map((m) => (
+                  <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filters.taskType || '__all'} onValueChange={(v) => setFilter('taskType', v === '__all' ? undefined : v)}>
+              <SelectTrigger className="w-[180px] h-8"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Todos tipos</SelectItem>
+                {TASK_TYPE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </>
@@ -504,12 +564,16 @@ const BillingMonthManagement: React.FC = () => {
         billingPeriod={unlinkFrom as any}
         onTasksUnlinked={() => { fetchPeriods(); setUnlinkFrom(null) }}
         flowType={filters.flowType}
+        moduleId={filters.moduleId}
+        taskType={filters.taskType}
       />
       <ViewTasksModal
         isOpen={!!viewTasksOf}
         onClose={() => setViewTasksOf(null)}
         billingPeriod={viewTasksOf as any}
         flowType={filters.flowType}
+        moduleId={filters.moduleId}
+        taskType={filters.taskType}
       />
       {attachmentsOf && (
         <BillingPeriodAttachmentModal

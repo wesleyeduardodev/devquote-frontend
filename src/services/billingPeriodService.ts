@@ -25,18 +25,27 @@ const billingPeriodService = {
     month?: number;
     status?: string;
     flowType?: string;
+    moduleId?: number;
+    taskType?: string;
   }): Promise<BillingPeriod[]> => {
     const queryParams = new URLSearchParams();
     if (params.year) queryParams.append('year', params.year.toString());
     if (params.month) queryParams.append('month', params.month.toString());
     if (params.status) queryParams.append('status', params.status);
     if (params.flowType && params.flowType !== 'TODOS') queryParams.append('flowType', params.flowType);
+    if (params.moduleId) queryParams.append('moduleId', params.moduleId.toString());
+    if (params.taskType) queryParams.append('taskType', params.taskType);
 
     const url = queryParams.toString()
       ? `/billing-periods?${queryParams.toString()}`
       : '/billing-periods';
 
     const res = await api.get(url);
+    return res.data;
+  },
+
+  getAvailableYears: async (): Promise<number[]> => {
+    const res = await api.get('/billing-periods/available-years');
     return res.data;
   },
 
@@ -93,6 +102,8 @@ const billingPeriodService = {
     year?: number;
     status?: string;
     flowType?: string;
+    moduleId?: number;
+    taskType?: string;
   }): Promise<Blob> => {
     const response = await api.get('/billing-periods/export/excel', {
       params,
@@ -127,10 +138,21 @@ const billingPeriodService = {
     return true;
   },
 
-  findTaskLinksByBillingPeriod: async (billingPeriodId: number, flowType?: string): Promise<BillingPeriodTask[]> => {
+  findTaskLinksByBillingPeriod: async (
+    billingPeriodId: number,
+    flowType?: string,
+    moduleId?: number,
+    taskType?: string
+  ): Promise<BillingPeriodTask[]> => {
     const params = new URLSearchParams();
     if (flowType && flowType !== 'TODOS') {
       params.append('flowType', flowType);
+    }
+    if (moduleId) {
+      params.append('moduleId', moduleId.toString());
+    }
+    if (taskType) {
+      params.append('taskType', taskType);
     }
     const url = params.toString()
       ? `/billing-period-tasks/billing-period/${billingPeriodId}?${params.toString()}`
@@ -140,8 +162,8 @@ const billingPeriodService = {
   },
 
   findTaskLinksPaginated: async (
-    billingPeriodId: number, 
-    params: BillingPeriodTaskPaginatedParams
+    billingPeriodId: number,
+    params: BillingPeriodTaskPaginatedParams & { moduleId?: number; taskType?: string }
   ): Promise<PaginatedResponse<BillingPeriodTask>> => {
     const res = await api.get(`/billing-period-tasks/billing-period/${billingPeriodId}/paginated`, { params });
     return res.data;
