@@ -492,17 +492,19 @@ const DeliveryList: React.FC = () => {
               <Pencil />
             </Button>
           )}
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            onClick={() => handleSyncPullRequests(row.original)}
-            loading={syncPrLoadingId === row.original.id}
-            disabled={syncPrLoadingId === row.original.id}
-            aria-label="Atualizar Branch no ClickUp"
-            title="Atualizar Branch no ClickUp (sincroniza PRs dos items)"
-          >
-            <GitPullRequest />
-          </Button>
+          {isAdmin && (
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => handleSyncPullRequests(row.original)}
+              loading={syncPrLoadingId === row.original.id}
+              disabled={syncPrLoadingId === row.original.id}
+              aria-label="Atualizar Branch no ClickUp"
+              title="Atualizar Branch no ClickUp (sincroniza PRs dos items)"
+            >
+              <GitPullRequest />
+            </Button>
+          )}
           <Button
             size="icon-sm"
             variant="ghost"

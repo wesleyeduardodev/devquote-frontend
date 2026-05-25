@@ -174,15 +174,17 @@ const DeliveryView: React.FC = () => {
           }
           actions={
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                leadingIcon={<GitPullRequest />}
-                onClick={handleSyncPullRequests}
-                loading={syncingPr}
-                title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
-              >
-                Atualizar Branch
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="secondary"
+                  leadingIcon={<GitPullRequest />}
+                  onClick={handleSyncPullRequests}
+                  loading={syncingPr}
+                  title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
+                >
+                  Atualizar Branch
+                </Button>
+              )}
               {canEdit && (
                 <Button variant="secondary" leadingIcon={<Edit3 />} onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}>
                   Editar
