@@ -81,8 +81,9 @@ const TaskRow: React.FC<RowProps> = ({ task, isAdmin, onCreate }) => (
       target="_blank"
       rel="noreferrer"
       className="flex-1 min-w-0 group inline-flex items-center gap-1.5 text-sm text-text-primary hover:text-accent"
-      title={task.name}
+      title={`${task.id} - ${task.name}`}
     >
+      <span className="font-mono text-xs font-semibold text-accent bg-accent-soft px-1.5 py-0.5 rounded shrink-0">{task.id}</span>
       <span className="truncate">{task.name}</span>
       <ExternalLink className="size-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
     </a>
