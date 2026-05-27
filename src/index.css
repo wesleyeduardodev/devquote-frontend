@@ -34,9 +34,16 @@
     border-radius: var(--radius-sm);
   }
 
+  /* Seleção de texto: usa o accent cheio + cor de texto contrastada.
+     Antes usava --accent-soft (light ~#EEF1FF e dark com 14% opacidade),
+     que ficava praticamente invisível em qualquer tema. */
   ::selection {
-    background-color: var(--accent-soft);
-    color: var(--text-primary);
+    background-color: var(--accent);
+    color: var(--accent-fg);
+  }
+  ::-moz-selection {
+    background-color: var(--accent);
+    color: var(--accent-fg);
   }
 
   /* ============= Inputs: background/cor do tema por padrão =============
