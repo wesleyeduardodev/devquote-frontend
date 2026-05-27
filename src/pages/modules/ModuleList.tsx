@@ -23,7 +23,7 @@ const ModuleList: React.FC = () => {
     modules, pagination, loading, error, filters,
     deleteModule, deleteBulkModules,
     setPage, setPageSize, setFilter, clearFilters,
-  } = useModules({ size: 25 })
+  } = useModules({ size: 100 })
 
   const [search, setSearch] = React.useState((filters.name as string) || '')
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})

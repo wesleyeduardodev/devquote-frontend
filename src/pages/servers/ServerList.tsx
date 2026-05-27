@@ -23,7 +23,7 @@ const ServerList: React.FC = () => {
     servers, pagination, loading, error, filters,
     deleteServer, deleteBulkServers,
     setPage, setPageSize, setFilter, clearFilters,
-  } = useServers({ size: 25 })
+  } = useServers({ size: 100 })
 
   const [search, setSearch] = React.useState((filters.name as string) || '')
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})
