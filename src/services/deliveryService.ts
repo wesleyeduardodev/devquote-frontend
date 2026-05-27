@@ -348,7 +348,7 @@ export const deliveryService = {
 
     syncPullRequests: async (deliveryId: number): Promise<{
         branchUpdated: boolean
-        descriptionUpdated: boolean
+        commentUpdated: boolean
         pullRequestCount: number
         message: string
     }> => {
