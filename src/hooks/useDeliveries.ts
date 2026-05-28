@@ -153,12 +153,13 @@ export const useDeliveries = (initialParams?: UseDeliveriesParams): UseDeliverie
 
     const refreshStats = useCallback(async (): Promise<void> => {
         try {
-            const data = await deliveryService.getStats();
+            const flowType = filters.flowType ? String(filters.flowType) : undefined;
+            const data = await deliveryService.getStats(flowType);
             setStats(data);
         } catch (err) {
             console.error('Erro ao carregar estatísticas:', err);
         }
-    }, []);
+    }, [filters.flowType]);
 
     const deleteBulk = useCallback(async (ids: number[]): Promise<void> => {
         try {

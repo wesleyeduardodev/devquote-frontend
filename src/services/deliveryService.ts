@@ -298,8 +298,12 @@ export const deliveryService = {
         return { data: response.data, headers: response.headers };
     },
 
-    getStats: async (): Promise<DeliveryStatsSummary> => {
-        const response = await api.get('/deliveries/stats');
+    getStats: async (flowType?: string): Promise<DeliveryStatsSummary> => {
+        const params: any = {};
+        if (flowType && flowType.toString().trim() !== '') {
+            params.flowType = flowType;
+        }
+        const response = await api.get('/deliveries/stats', { params });
         return response.data;
     },
 
@@ -353,6 +357,16 @@ export const deliveryService = {
         message: string
     }> => {
         const response = await api.post(`/clickup-sync/deliveries/${deliveryId}/pull-requests`)
+        return response.data
+    },
+
+    syncStatus: async (deliveryId: number): Promise<{
+        success: boolean
+        deliveryId: number
+        synced: boolean
+        message: string
+    }> => {
+        const response = await api.post(`/clickup-sync/sync/${deliveryId}`)
         return response.data
     }
 };

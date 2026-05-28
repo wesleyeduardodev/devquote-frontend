@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   FileText, Calendar, GitBranch, Package, Truck, Check, Play, Flag,
   Copy, StickyNote, FolderOpen, ChevronRight, ChevronDown, ExternalLink,
-  Edit3, ListChecks, GitPullRequest,
+  Edit3, ListChecks, GitPullRequest, RefreshCw,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -73,6 +73,7 @@ const DeliveryView: React.FC = () => {
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [attachmentsExpanded, setAttachmentsExpanded] = useState(false)
   const [syncingPr, setSyncingPr] = useState(false)
+  const [syncingStatus, setSyncingStatus] = useState(false)
 
   const handleSyncPullRequests = async () => {
     if (!delivery) return
@@ -84,6 +85,19 @@ const DeliveryView: React.FC = () => {
       toast.error(e?.response?.data?.message || e?.message || 'Falha ao sincronizar PRs no ClickUp')
     } finally {
       setSyncingPr(false)
+    }
+  }
+
+  const handleSyncStatus = async () => {
+    if (!delivery) return
+    setSyncingStatus(true)
+    try {
+      const result = await deliveryService.syncStatus(delivery.id)
+      toast.success(result.message)
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || e?.message || 'Falha ao sincronizar status no ClickUp')
+    } finally {
+      setSyncingStatus(false)
     }
   }
 
@@ -183,6 +197,17 @@ const DeliveryView: React.FC = () => {
                   title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
                 >
                   Atualizar Branch
+                </Button>
+              )}
+              {canEdit && (
+                <Button
+                  variant="secondary"
+                  leadingIcon={<RefreshCw />}
+                  onClick={handleSyncStatus}
+                  loading={syncingStatus}
+                  title="Sincroniza o status da entrega pro ClickUp"
+                >
+                  Atualizar Status
                 </Button>
               )}
               {canEdit && (

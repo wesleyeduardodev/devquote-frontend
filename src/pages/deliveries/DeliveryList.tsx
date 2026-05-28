@@ -1,15 +1,14 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Pencil, Trash2, MoreHorizontal, Truck, Eye, Download, RefreshCw,
-  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet, GitPullRequest,
+  Plus, Pencil, Trash2, MoreHorizontal, Truck, Eye, Download,
+  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import toast from 'react-hot-toast'
 
 import { useDeliveries } from '@/hooks/useDeliveries'
 import { useAuth } from '@/hooks/useAuth'
-import { gitSyncService } from '@/services/gitSyncService'
 import { reportService } from '@/services/reportService'
 import { moduleService } from '@/services/moduleService'
 import { serverService } from '@/services/serverService'
@@ -203,10 +202,8 @@ const DeliveryList: React.FC = () => {
 
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})
   const [confirmDelete, setConfirmDelete] = React.useState<{ kind: 'one' | 'bulk'; ids: number[] } | null>(null)
-  const [syncing, setSyncing] = React.useState(false)
   const [filtersOpen, setFiltersOpen] = React.useState(false)
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
-  const [syncPrLoadingId, setSyncPrLoadingId] = React.useState<number | null>(null)
   const [quickViewId, setQuickViewId] = React.useState<number | null>(null)
   const [generatingReport, setGeneratingReport] = React.useState(false)
   const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
@@ -236,18 +233,6 @@ const DeliveryList: React.FC = () => {
 
   const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
   const canViewValues = canCRUD
-
-  const handleSync = async () => {
-    try {
-      setSyncing(true)
-      const result = await gitSyncService.syncMergedPullRequests()
-      toast.success(result?.message || 'Sincronização concluída')
-    } catch (e: any) {
-      toast.error(e?.message || 'Falha ao sincronizar')
-    } finally {
-      setSyncing(false)
-    }
-  }
 
   const handleGenerateStatistics = React.useCallback(async () => {
     setGeneratingReport(true)
@@ -312,18 +297,6 @@ const DeliveryList: React.FC = () => {
       toast.error('Erro ao gerar PDF')
     } finally {
       setPdfLoadingId(null)
-    }
-  }, [])
-
-  const handleSyncPullRequests = React.useCallback(async (d: Delivery) => {
-    setSyncPrLoadingId(d.id)
-    try {
-      const result = await deliveryService.syncPullRequests(d.id)
-      toast.success(result.message)
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || e?.message || 'Falha ao sincronizar PRs no ClickUp')
-    } finally {
-      setSyncPrLoadingId(null)
     }
   }, [])
 
@@ -469,7 +442,7 @@ const DeliveryList: React.FC = () => {
       },
     },
     {
-      id: '__actions', header: '', size: 190, enableSorting: false, meta: { align: 'center' },
+      id: '__actions', header: '', size: 160, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           <Button
@@ -490,19 +463,6 @@ const DeliveryList: React.FC = () => {
               title="Editar"
             >
               <Pencil />
-            </Button>
-          )}
-          {isAdmin && (
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => handleSyncPullRequests(row.original)}
-              loading={syncPrLoadingId === row.original.id}
-              disabled={syncPrLoadingId === row.original.id}
-              aria-label="Atualizar Branch no ClickUp"
-              title="Atualizar Branch no ClickUp (sincroniza PRs dos items)"
-            >
-              <GitPullRequest />
             </Button>
           )}
           <Button
@@ -597,6 +557,28 @@ const DeliveryList: React.FC = () => {
 
             <div className="flex items-center gap-2 ml-1">
               <Select
+                value={(filters.flowType as string) || '__all'}
+                onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}
+              >
+                <SelectTrigger className="h-8 w-[200px]"><SelectValue placeholder="Fluxo: todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all">Fluxo: todos</SelectItem>
+                  <SelectItem value="DESENVOLVIMENTO">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Monitor className="size-3.5 text-[var(--info-strong)]" />
+                      Desenvolvimento
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="OPERACIONAL">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Settings2 className="size-3.5 text-[rgb(124,58,237)] dark:text-[rgb(196,181,253)]" />
+                      Operacional
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
                 value={filters.hasItems === 'false' ? '__noitems' : ((filters.status as string) || '__all')}
                 onValueChange={(v) => {
                   if (v === '__all') { setFilter('status', ''); setFilter('hasItems', '') }
@@ -635,11 +617,6 @@ const DeliveryList: React.FC = () => {
         actions={
           <>
             <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={canViewValues ? COLUMN_DEFS : COLUMN_DEFS.filter((d) => d.id !== 'taskValue')} />
-            {isAdmin && (
-              <Button variant="secondary" leadingIcon={<RefreshCw className={syncing ? 'animate-spin' : ''} />} onClick={handleSync} loading={syncing}>
-                Sincronizar
-              </Button>
-            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" leadingIcon={<Download />} loading={generatingReport}>Relatórios</Button>
