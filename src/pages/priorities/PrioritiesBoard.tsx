@@ -31,8 +31,9 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 
 const FILTER_MODES: { value: BoardFilterMode; label: string; title: string }[] = [
+  { value: 'DEV_OR_ASSIGNEE', label: 'Tudo que me envolve', title: 'Tarefas onde você é Desenvolvedor OU Responsável (união de todas)' },
   { value: 'DEV_NOT_ASSIGNEE', label: 'Dev, não responsável', title: 'Tarefas onde você é o Desenvolvedor e o Responsável é outra pessoa' },
-  { value: 'DEV_AND_ASSIGNEE', label: 'Dev + responsável', title: 'Tarefas onde você é Desenvolvedor e Responsável ao mesmo tempo' },
+  { value: 'DEV_AND_ASSIGNEE', label: 'Dev e responsável', title: 'Tarefas onde você é Desenvolvedor e Responsável ao mesmo tempo' },
   { value: 'ASSIGNEE_NOT_DEV', label: 'Responsável, não dev', title: 'Tarefas onde você é o Responsável mas quem desenvolve é outra pessoa' },
 ]
 
@@ -375,7 +376,7 @@ export default function PrioritiesBoard() {
             : undefined
         }
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <div className="inline-flex items-center rounded-md border border-border-strong bg-surface-1 p-0.5" role="group" aria-label="Filtro do board">
               {FILTER_MODES.map((m) => (
                 <button

@@ -2,12 +2,12 @@ import api from './api'
 import { PriorityBoard, BoardFilterMode } from '../types/priority.types'
 
 export const priorityService = {
-  getBoard: async (mode: BoardFilterMode = 'DEV_AND_ASSIGNEE'): Promise<PriorityBoard> => {
+  getBoard: async (mode: BoardFilterMode = 'DEV_OR_ASSIGNEE'): Promise<PriorityBoard> => {
     const response = await api.get('/priorities/board', { params: { mode } })
     return response.data
   },
 
-  refresh: async (mode: BoardFilterMode = 'DEV_AND_ASSIGNEE'): Promise<PriorityBoard> => {
+  refresh: async (mode: BoardFilterMode = 'DEV_OR_ASSIGNEE'): Promise<PriorityBoard> => {
     const response = await api.post('/priorities/board/refresh', null, { params: { mode } })
     return response.data
   },

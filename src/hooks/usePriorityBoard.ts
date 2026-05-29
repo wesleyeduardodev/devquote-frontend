@@ -3,13 +3,13 @@ import toast from 'react-hot-toast'
 import { priorityService } from '@/services/priorityService'
 import { PriorityBoard, BoardFilterMode } from '@/types/priority.types'
 
-const FILTER_MODE_KEY = 'devquote.priorities.filterMode'
+const FILTER_MODE_KEY = 'devquote.priorities.filterMode.v2'
 
 function readMode(): BoardFilterMode {
-  if (typeof window === 'undefined') return 'DEV_AND_ASSIGNEE'
+  if (typeof window === 'undefined') return 'DEV_OR_ASSIGNEE'
   const raw = window.localStorage.getItem(FILTER_MODE_KEY)
-  if (raw === 'DEV_NOT_ASSIGNEE' || raw === 'DEV_AND_ASSIGNEE' || raw === 'ASSIGNEE_NOT_DEV') return raw
-  return 'DEV_AND_ASSIGNEE' // default: sou Desenvolvedor E Responsável
+  if (raw === 'DEV_OR_ASSIGNEE' || raw === 'DEV_NOT_ASSIGNEE' || raw === 'DEV_AND_ASSIGNEE' || raw === 'ASSIGNEE_NOT_DEV') return raw
+  return 'DEV_OR_ASSIGNEE' // default: tudo que me envolve (dev OU responsável)
 }
 
 export function usePriorityBoard() {

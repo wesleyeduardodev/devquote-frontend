@@ -1,8 +1,9 @@
 /**
- * Modo de filtragem do board (espelha o enum BoardFilterMode do backend).
- * Partição exclusiva por Desenvolvedor × Responsável: cada tarefa cai em 1 modo.
+ * Modo de filtragem do board (espelha o enum BoardFilterMode do backend), pelos papéis
+ * Desenvolvedor × Responsável. DEV_OR_ASSIGNEE é a união (tudo que me envolve); os outros
+ * 3 são a partição exclusiva.
  */
-export type BoardFilterMode = 'DEV_NOT_ASSIGNEE' | 'DEV_AND_ASSIGNEE' | 'ASSIGNEE_NOT_DEV'
+export type BoardFilterMode = 'DEV_OR_ASSIGNEE' | 'DEV_NOT_ASSIGNEE' | 'DEV_AND_ASSIGNEE' | 'ASSIGNEE_NOT_DEV'
 
 export interface PriorityTask {
   id: string
