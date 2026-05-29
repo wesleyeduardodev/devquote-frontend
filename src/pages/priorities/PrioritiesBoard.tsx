@@ -19,7 +19,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { taskService } from '@/services/taskService'
 import { requesterService } from '@/services/requesterService'
 import { priorityService } from '@/services/priorityService'
-import { PriorityGroup, PriorityTask } from '@/types/priority.types'
+import { BoardFilterMode, PriorityGroup, PriorityTask } from '@/types/priority.types'
 import { cn } from '@/utils/cn'
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
@@ -29,6 +29,12 @@ import {
   arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+
+const FILTER_MODES: { value: BoardFilterMode; label: string; title: string }[] = [
+  { value: 'DEV_NOT_ASSIGNEE', label: 'Dev, não responsável', title: 'Tarefas onde você é o Desenvolvedor e o Responsável é outra pessoa' },
+  { value: 'DEV_AND_ASSIGNEE', label: 'Dev + responsável', title: 'Tarefas onde você é Desenvolvedor e Responsável ao mesmo tempo' },
+  { value: 'ASSIGNEE_NOT_DEV', label: 'Responsável, não dev', title: 'Tarefas onde você é o Responsável mas quem desenvolve é outra pessoa' },
+]
 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   urgent: { label: 'Urgente', color: '#e5484d' },
@@ -238,7 +244,7 @@ const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin
 }
 
 export default function PrioritiesBoard() {
-  const { board, loading, refreshing, refresh, markTaskCreated, includeAssignee, setIncludeAssignee } = usePriorityBoard()
+  const { board, loading, refreshing, refresh, markTaskCreated, mode, setMode } = usePriorityBoard()
   const { hasProfile } = useAuth() as any
   const isAdmin = hasProfile ? hasProfile('ADMIN') : false
 
@@ -370,15 +376,23 @@ export default function PrioritiesBoard() {
         }
         actions={
           <div className="flex items-center gap-3">
-            <label className="inline-flex items-center gap-2 cursor-pointer select-none" title="Quando ativo, traz tarefas onde você é Desenvolvedor OU Responsável (assignee). Desligado, só onde é Desenvolvedor.">
-              <input
-                type="checkbox"
-                checked={includeAssignee}
-                onChange={(e) => setIncludeAssignee(e.target.checked)}
-                className="size-4 rounded border-border-strong text-accent focus:ring-accent"
-              />
-              <span className="text-sm text-text-secondary">Incluir como responsável</span>
-            </label>
+            <div className="inline-flex items-center rounded-md border border-border-strong bg-surface-1 p-0.5" role="group" aria-label="Filtro do board">
+              {FILTER_MODES.map((m) => (
+                <button
+                  key={m.value}
+                  onClick={() => setMode(m.value)}
+                  title={m.title}
+                  className={cn(
+                    'h-7 rounded px-2.5 text-xs font-medium transition-colors',
+                    mode === m.value
+                      ? 'bg-accent text-accent-fg'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-2',
+                  )}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
             <Button
               variant="secondary"
               leadingIcon={<RefreshCw className={refreshing ? 'animate-spin' : ''} />}
