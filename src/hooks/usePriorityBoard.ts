@@ -48,14 +48,14 @@ export function usePriorityBoard() {
     }
   }, [includeAssignee])
 
-  const markTaskCreated = React.useCallback((taskId: string) => {
+  const markTaskCreated = React.useCallback((taskId: string, devQuoteTaskId?: number) => {
     setBoard((prev) => {
       if (!prev) return prev
       return {
         ...prev,
         groups: prev.groups.map((g) => ({
           ...g,
-          tasks: g.tasks.map((t) => (t.id === taskId ? { ...t, existsInDevQuote: true } : t)),
+          tasks: g.tasks.map((t) => (t.id === taskId ? { ...t, existsInDevQuote: true, devQuoteTaskId: devQuoteTaskId ?? t.devQuoteTaskId } : t)),
         })),
       }
     })

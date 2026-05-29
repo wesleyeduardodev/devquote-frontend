@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Calendar, ExternalLink, Link as LinkIcon, Maximize2, Truck, Video,
+  Calendar, Edit3, ExternalLink, Link as LinkIcon, Maximize2, Truck, Video,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -94,7 +94,8 @@ interface Props {
 export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) => {
   const navigate = useNavigate()
   const { hasProfile } = useAuth()
-  const canViewValues = hasProfile('ADMIN') || hasProfile('MANAGER')
+  const isAdmin = hasProfile('ADMIN')
+  const canViewValues = isAdmin || hasProfile('MANAGER')
 
   const [task, setTask] = React.useState<TaskFull | null>(null)
   const [loading, setLoading] = React.useState(false)
@@ -299,6 +300,16 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
 
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>Fechar</Button>
+          {isAdmin && (
+            <Button
+              variant="secondary"
+              leadingIcon={<Edit3 />}
+              onClick={() => { if (taskId) { onClose(); navigate(`/tasks/${taskId}/edit`) } }}
+              disabled={!taskId}
+            >
+              Editar
+            </Button>
+          )}
           <Button
             leadingIcon={<Maximize2 />}
             onClick={() => { if (taskId) { onClose(); navigate(`/tasks/${taskId}`) } }}

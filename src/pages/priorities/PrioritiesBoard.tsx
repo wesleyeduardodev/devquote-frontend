@@ -13,6 +13,7 @@ import {
 } from '@/components/ui-v2/Dialog'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui-v2/Select'
 import { PriorityStatusBadge } from '@/components/priorities/PriorityStatusBadge'
+import { TaskQuickViewModal } from '@/components/tasks/TaskQuickViewModal'
 import { usePriorityBoard } from '@/hooks/usePriorityBoard'
 import { useAuth } from '@/hooks/useAuth'
 import { taskService } from '@/services/taskService'
@@ -69,9 +70,10 @@ interface RowProps {
   task: PriorityTask
   isAdmin: boolean
   onCreate: (t: PriorityTask) => void
+  onView: (taskId: number) => void
 }
 
-const TaskRow: React.FC<RowProps> = ({ task, isAdmin, onCreate }) => (
+const TaskRow: React.FC<RowProps> = ({ task, isAdmin, onCreate, onView }) => (
   <li className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2 transition-colors">
     <span className="shrink-0 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-surface-2 px-1.5 text-xs font-semibold tabular-nums text-text-secondary">
       {task.ordem != null ? task.ordem : '–'}
@@ -96,12 +98,29 @@ const TaskRow: React.FC<RowProps> = ({ task, isAdmin, onCreate }) => (
     )}
     <span className="shrink-0 w-16 text-right"><PriorityFlag priority={task.priority} /></span>
     <span className="shrink-0 w-28 flex justify-end">
-      {task.existsInDevQuote ? (
+      {task.devQuoteTaskId != null ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={<Eye />}
+          onClick={() => onView(task.devQuoteTaskId as number)}
+          title="Ver tarefa no DevQuote"
+          className="text-[var(--info-strong)] border-[var(--info-border)] hover:bg-[var(--info-soft)]"
+        >
+          Ver tarefa
+        </Button>
+      ) : task.existsInDevQuote ? (
         <span className="inline-flex items-center gap-1 text-xs text-success-strong" title="Tarefa já cadastrada no DevQuote">
           <CheckCircle2 className="size-3.5" /> Já cadastrada
         </span>
       ) : isAdmin ? (
-        <Button size="sm" variant="secondary" leadingIcon={<FilePlus2 />} onClick={() => onCreate(task)}>
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={<FilePlus2 />}
+          onClick={() => onCreate(task)}
+          className="text-[var(--success-strong)] border-[var(--success-border)] hover:bg-[var(--success-soft)]"
+        >
           Criar tarefa
         </Button>
       ) : null}
@@ -114,11 +133,12 @@ interface GroupSectionProps {
   defaultOpen: boolean
   isAdmin: boolean
   onCreate: (t: PriorityTask) => void
+  onView: (taskId: number) => void
   onMarkPrimary?: (status: string) => void
   onToggleHidden?: (status: string, hidden: boolean) => void
 }
 
-const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin, onCreate, onMarkPrimary, onToggleHidden }) => {
+const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin, onCreate, onView, onMarkPrimary, onToggleHidden }) => {
   const [open, setOpen] = React.useState(defaultOpen)
 
   // Sortable só pra ADMIN — não-admin não pode reordenar
@@ -207,7 +227,7 @@ const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin
       {open && (
         group.tasks.length > 0 ? (
           <ul className="divide-y divide-border-subtle border-t border-border-subtle">
-            {group.tasks.map((t) => <TaskRow key={t.id} task={t} isAdmin={isAdmin} onCreate={onCreate} />)}
+            {group.tasks.map((t) => <TaskRow key={t.id} task={t} isAdmin={isAdmin} onCreate={onCreate} onView={onView} />)}
           </ul>
         ) : (
           <p className="px-4 py-4 text-sm text-text-tertiary border-t border-border-subtle">Nenhuma tarefa neste status.</p>
@@ -223,6 +243,7 @@ export default function PrioritiesBoard() {
   const isAdmin = hasProfile ? hasProfile('ADMIN') : false
 
   const [requesters, setRequesters] = React.useState<{ id: number; name: string }[]>([])
+  const [viewTaskId, setViewTaskId] = React.useState<number | null>(null)
   const [createFor, setCreateFor] = React.useState<PriorityTask | null>(null)
   const [flowType, setFlowType] = React.useState<string>('')
   const [requesterId, setRequesterId] = React.useState<string>('')
@@ -306,7 +327,7 @@ export default function PrioritiesBoard() {
     if (!createFor || !flowType || !requesterId) return
     setSubmitting(true)
     try {
-      await taskService.createWithSubTasks({
+      const created = await taskService.createWithSubTasks({
         requesterId: Number(requesterId),
         code: createFor.id,
         title: createFor.name,
@@ -318,7 +339,7 @@ export default function PrioritiesBoard() {
         subTasks: [],
       })
       toast.success('Tarefa criada com entrega')
-      markTaskCreated(createFor.id)
+      markTaskCreated(createFor.id, created?.id)
       setCreateFor(null)
     } catch (e: any) {
       if (e?.apiError?.errorCode === 'DUPLICATE_TASK_CODE') {
@@ -409,6 +430,7 @@ export default function PrioritiesBoard() {
                     defaultOpen={g.primary}
                     isAdmin={isAdmin}
                     onCreate={openCreate}
+                    onView={setViewTaskId}
                     onMarkPrimary={handleMarkPrimary}
                     onToggleHidden={handleToggleHidden}
                   />
@@ -470,6 +492,13 @@ export default function PrioritiesBoard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal: visualização rápida da tarefa já cadastrada no DevQuote */}
+      <TaskQuickViewModal
+        taskId={viewTaskId}
+        open={viewTaskId != null}
+        onClose={() => setViewTaskId(null)}
+      />
     </div>
   )
 }

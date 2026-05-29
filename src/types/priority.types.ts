@@ -8,6 +8,8 @@ export interface PriorityTask {
   type?: string | null
   tags?: string[]
   existsInDevQuote?: boolean
+  /** Id interno da Task no DevQuote quando já cadastrada; permite abrir o modal de visualização. */
+  devQuoteTaskId?: number | null
 }
 
 export interface PriorityGroup {
