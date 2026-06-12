@@ -14,6 +14,11 @@ export const gitSyncService = {
         return response.data;
     },
 
+    syncDevelopmentPullRequests: async (): Promise<GitSyncResponse> => {
+        const response = await api.post<GitSyncResponse>('git-sync/sync/development');
+        return response.data;
+    },
+
     checkDeliveryItemPullRequest: async (deliveryItemId: number): Promise<GitSyncResponse> => {
         const response = await api.post<GitSyncResponse>(`git-sync/check/${deliveryItemId}`);
         return response.data;

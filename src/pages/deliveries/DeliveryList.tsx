@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, MoreHorizontal, Truck, Eye, Download,
-  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet,
+  Filter, Search, Lock, Settings2, RotateCcw, Monitor, BarChart3, FileSpreadsheet, GitPullRequest,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import toast from 'react-hot-toast'
@@ -13,6 +13,7 @@ import { reportService } from '@/services/reportService'
 import { moduleService } from '@/services/moduleService'
 import { serverService } from '@/services/serverService'
 import { deliveryService } from '@/services/deliveryService'
+import { gitSyncService } from '@/services/gitSyncService'
 import { Combobox } from '@/components/ui-v2/Combobox'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import { Button } from '@/components/ui-v2/Button'
@@ -197,7 +198,7 @@ const DeliveryList: React.FC = () => {
     deliveries, pagination, loading, error, filters, sorting, stats, totalAmount,
     deleteBulk,
     setPage, setPageSize, setFilter, clearFilters, setSorting,
-    exportToExcel, exportDeliveriesOnlyToExcel,
+    exportToExcel, exportDeliveriesOnlyToExcel, fetchDeliveries,
   } = useDeliveries({ size: 100 })
 
   const [selection, setSelection] = React.useState<Record<string, boolean>>({})
@@ -206,6 +207,7 @@ const DeliveryList: React.FC = () => {
   const [pdfLoadingId, setPdfLoadingId] = React.useState<number | null>(null)
   const [quickViewId, setQuickViewId] = React.useState<number | null>(null)
   const [generatingReport, setGeneratingReport] = React.useState(false)
+  const [forcingPrJob, setForcingPrJob] = React.useState(false)
   const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
   const [servers, setServers] = React.useState<{ id: number; name: string }[]>([])
 
@@ -233,6 +235,19 @@ const DeliveryList: React.FC = () => {
 
   const canCRUD = hasAnyProfile ? hasAnyProfile(['ADMIN', 'MANAGER']) : true
   const canViewValues = canCRUD
+
+  const handleForcePrJob = React.useCallback(async () => {
+    setForcingPrJob(true)
+    try {
+      const result = await gitSyncService.syncDevelopmentPullRequests()
+      toast.success(result.message || 'Verificação de PRs mergeados executada')
+      await fetchDeliveries()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || e?.message || 'Falha ao executar verificação de PRs')
+    } finally {
+      setForcingPrJob(false)
+    }
+  }, [fetchDeliveries])
 
   const handleGenerateStatistics = React.useCallback(async () => {
     setGeneratingReport(true)
@@ -633,6 +648,17 @@ const DeliveryList: React.FC = () => {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                leadingIcon={<GitPullRequest />}
+                onClick={handleForcePrJob}
+                loading={forcingPrJob}
+                title="Verifica os PRs das entregas de Desenvolvimento e marca como Produção os que foram mergeados (mesma rotina do job diário; não sincroniza com o ClickUp)"
+              >
+                Verificar PRs
+              </Button>
+            )}
             {isAdmin && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
           </>
         }
