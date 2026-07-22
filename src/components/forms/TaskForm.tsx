@@ -79,14 +79,14 @@ const createSchema = (isEdit: boolean) => yup.object({
 })
 
 // ---- Opções dos selects (sem emojis — apps profissionais usam ícones ou label puro) ----
-const DEV_TASK_TYPES = [
+export const DEV_TASK_TYPES = [
   { value: '', label: 'Selecione…' },
   { value: 'BUG', label: 'Bug' },
   { value: 'ENHANCEMENT', label: 'Melhoria' },
   { value: 'NEW_FEATURE', label: 'Nova funcionalidade' },
 ]
 
-const OPS_TASK_TYPES = [
+export const OPS_TASK_TYPES = [
   { value: '', label: 'Selecione…' },
   { value: 'BACKUP', label: 'Backup' },
   { value: 'DEPLOY', label: 'Deploy' },
@@ -98,14 +98,14 @@ const OPS_TASK_TYPES = [
   { value: 'CODE_REVIEW', label: 'Code Review' },
 ]
 
-const ENV_OPTIONS = [
+export const ENV_OPTIONS = [
   { value: '', label: 'Selecione…' },
   { value: 'DESENVOLVIMENTO', label: 'Desenvolvimento' },
   { value: 'HOMOLOGACAO',     label: 'Homologação' },
   { value: 'PRODUCAO',        label: 'Produção' },
 ]
 
-const PRIORITY_OPTIONS = [
+export const PRIORITY_OPTIONS = [
   { value: 'LOW',    label: 'Baixa',   dot: 'bg-emerald-500' },
   { value: 'MEDIUM', label: 'Média',   dot: 'bg-amber-500' },
   { value: 'HIGH',   label: 'Alta',    dot: 'bg-orange-500' },

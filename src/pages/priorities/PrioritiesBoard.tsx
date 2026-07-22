@@ -19,6 +19,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { taskService } from '@/services/taskService'
 import { requesterService } from '@/services/requesterService'
 import { priorityService } from '@/services/priorityService'
+import { moduleService } from '@/services/moduleService'
+import { serverService } from '@/services/serverService'
+import { DEV_TASK_TYPES, OPS_TASK_TYPES, ENV_OPTIONS, PRIORITY_OPTIONS } from '@/components/forms/TaskForm'
 import { BoardFilterMode, PriorityGroup, PriorityTask } from '@/types/priority.types'
 import { cn } from '@/utils/cn'
 import {
@@ -250,10 +253,17 @@ export default function PrioritiesBoard() {
   const isAdmin = hasProfile ? hasProfile('ADMIN') : false
 
   const [requesters, setRequesters] = React.useState<{ id: number; name: string }[]>([])
+  const [modules, setModules] = React.useState<{ id: number; name: string }[]>([])
+  const [servers, setServers] = React.useState<{ id: number; name: string }[]>([])
   const [viewTaskId, setViewTaskId] = React.useState<number | null>(null)
   const [createFor, setCreateFor] = React.useState<PriorityTask | null>(null)
   const [flowType, setFlowType] = React.useState<string>('')
   const [requesterId, setRequesterId] = React.useState<string>('')
+  const [priority, setPriority] = React.useState<string>('MEDIUM')
+  const [taskType, setTaskType] = React.useState<string>('')
+  const [environment, setEnvironment] = React.useState<string>('')
+  const [moduleId, setModuleId] = React.useState<string>('')
+  const [serverId, setServerId] = React.useState<string>('')
   const [submitting, setSubmitting] = React.useState(false)
 
   // Estado local dos grupos — sincronizado com board.groups mas mutável pra updates otimistas
@@ -322,12 +332,23 @@ export default function PrioritiesBoard() {
       .getAllPaginated({ page: 0, size: 500, sort: [{ field: 'name', direction: 'asc' }] })
       .then((res: any) => setRequesters((res?.content ?? res ?? []).map((r: any) => ({ id: r.id, name: r.name }))))
       .catch(() => {})
+    moduleService.getAll()
+      .then((r: any) => setModules((r?.content ?? r ?? []).map((m: any) => ({ id: m.id, name: m.name }))))
+      .catch(() => {})
+    serverService.getAll()
+      .then((r: any) => setServers((r?.content ?? r ?? []).map((s: any) => ({ id: s.id, name: s.name }))))
+      .catch(() => {})
   }, [isAdmin])
 
   const openCreate = (t: PriorityTask) => {
     setCreateFor(t)
     setFlowType('')
     setRequesterId('')
+    setPriority(mapPriority(t.priority))
+    setTaskType('')
+    setEnvironment('')
+    setModuleId('')
+    setServerId('')
   }
 
   const confirmCreate = async () => {
@@ -341,7 +362,11 @@ export default function PrioritiesBoard() {
         description: createFor.description || '',
         link: createFor.url || `https://app.clickup.com/t/${createFor.id}`,
         flowType,
-        priority: mapPriority(createFor.priority),
+        priority,
+        taskType: taskType || undefined,
+        environment: environment || undefined,
+        moduleId: moduleId ? Number(moduleId) : undefined,
+        serverId: serverId ? Number(serverId) : undefined,
         hasSubTasks: false,
         subTasks: [],
       })
@@ -462,7 +487,7 @@ export default function PrioritiesBoard() {
           <DialogHeader>
             <DialogTitle>Criar tarefa no DevQuote</DialogTitle>
             <DialogDescription>
-              Será criada a tarefa (e a entrega) a partir desta tarefa do ClickUp. Informe o fluxo e o solicitante.
+              Será criada a tarefa (e a entrega) a partir desta tarefa do ClickUp. Fluxo e solicitante são obrigatórios; os demais campos são opcionais.
             </DialogDescription>
           </DialogHeader>
 
@@ -471,12 +496,12 @@ export default function PrioritiesBoard() {
               <div className="rounded-lg border border-border-subtle bg-surface-2 p-3">
                 <p className="text-xs text-text-tertiary">Código: <span className="font-mono text-text-secondary">{createFor.id}</span></p>
                 <p className="mt-1 text-sm text-text-primary">{createFor.name}</p>
-                <p className="mt-1 text-xs text-text-tertiary">Prioridade: {PRIORITY_META[(createFor.priority || '').toLowerCase()]?.label || 'Médio (padrão)'}</p>
+                <p className="mt-1 text-xs text-text-tertiary">Prioridade no ClickUp: {PRIORITY_META[(createFor.priority || '').toLowerCase()]?.label || 'não definida (usando Média)'}</p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-text-secondary mb-1.5">Fluxo *</label>
-                <Select value={flowType} onValueChange={setFlowType}>
+                <Select value={flowType} onValueChange={(v) => { setFlowType(v); setTaskType('') }}>
                   <SelectTrigger><SelectValue placeholder="Selecione o fluxo…">{flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : flowType === 'OPERACIONAL' ? 'Operacional' : ''}</SelectValue></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="DESENVOLVIMENTO">Desenvolvimento</SelectItem>
@@ -495,6 +520,77 @@ export default function PrioritiesBoard() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-text-secondary mb-1.5">Prioridade</label>
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger><SelectValue>{PRIORITY_OPTIONS.find((o) => o.value === priority)?.label || ''}</SelectValue></SelectTrigger>
+                    <SelectContent>
+                      {PRIORITY_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          <span className="inline-flex items-center gap-2">
+                            <span className={cn('size-2 rounded-full', o.dot)} />
+                            {o.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-text-secondary mb-1.5">Tipo de Tarefa</label>
+                  <Select value={taskType} onValueChange={(v) => setTaskType(v === '__none' ? '' : v)} disabled={!flowType}>
+                    <SelectTrigger><SelectValue placeholder={flowType ? 'Selecione…' : 'Escolha o fluxo antes'}>{(flowType === 'OPERACIONAL' ? OPS_TASK_TYPES : DEV_TASK_TYPES).find((o) => o.value === taskType)?.label || ''}</SelectValue></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Nenhum</SelectItem>
+                      {(flowType === 'OPERACIONAL' ? OPS_TASK_TYPES : DEV_TASK_TYPES).filter((o) => o.value).map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-text-secondary mb-1.5">Ambiente</label>
+                  <Select value={environment} onValueChange={(v) => setEnvironment(v === '__none' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Selecione…">{ENV_OPTIONS.find((o) => o.value === environment)?.label || ''}</SelectValue></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Nenhum</SelectItem>
+                      {ENV_OPTIONS.filter((o) => o.value).map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-text-secondary mb-1.5">Módulo do Sistema</label>
+                  <Select value={moduleId} onValueChange={(v) => setModuleId(v === '__none' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Nenhum">{modules.find((m) => String(m.id) === moduleId)?.name || ''}</SelectValue></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Nenhum</SelectItem>
+                      {modules.map((m) => (
+                        <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-text-secondary mb-1.5">Servidor</label>
+                  <Select value={serverId} onValueChange={(v) => setServerId(v === '__none' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Nenhum">{servers.find((s) => String(s.id) === serverId)?.name || ''}</SelectValue></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Nenhum</SelectItem>
+                      {servers.map((s) => (
+                        <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
