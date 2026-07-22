@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { toast } from 'react-hot-toast'
-import { format } from 'date-fns'
+import { format, parseISO, startOfDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { useAuth } from '@/hooks/useAuth'
@@ -274,9 +274,9 @@ const BillingMonthManagement: React.FC = () => {
       id: 'paymentDate', accessorKey: 'paymentDate', header: 'Pagamento', size: 120, enableSorting: false, meta: { align: 'center' },
       cell: ({ row }) => {
         if (!row.original.paymentDate) return <span className="text-text-tertiary">—</span>
-        const date = new Date(row.original.paymentDate)
+        const date = parseISO(row.original.paymentDate)
         if (isNaN(date.getTime())) return <span className="text-text-tertiary">—</span>
-        const isPast = date.getTime() < Date.now() && row.original.status !== 'PAGO' && row.original.status !== 'CANCELADO'
+        const isPast = date.getTime() < startOfDay(new Date()).getTime() && row.original.status !== 'PAGO' && row.original.status !== 'CANCELADO'
         return (
           <span className={isPast ? 'text-[var(--danger-strong)] tabular-nums' : 'text-text-secondary tabular-nums'}>
             {format(date, 'dd/MM/yyyy', { locale: ptBR })}
@@ -521,7 +521,7 @@ const BillingMonthManagement: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-xs text-text-tertiary">
                   <span>{p.taskCount ?? 0} tarefa(s)</span>
-                  {p.paymentDate && <span>vence {format(new Date(p.paymentDate), 'dd/MM/yyyy')}</span>}
+                  {p.paymentDate && <span>vence {format(parseISO(p.paymentDate), 'dd/MM/yyyy')}</span>}
                 </div>
               </button>
               <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
@@ -647,7 +647,7 @@ const BillingMonthManagement: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-tertiary">Pagamento</span>
                     <span className="text-sm text-text-secondary tabular-nums">
-                      {format(new Date(lookupResult.paymentDate), 'dd/MM/yyyy', { locale: ptBR })}
+                      {format(parseISO(lookupResult.paymentDate), 'dd/MM/yyyy', { locale: ptBR })}
                     </span>
                   </div>
                 )}
