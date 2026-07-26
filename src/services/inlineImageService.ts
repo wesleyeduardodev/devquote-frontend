@@ -8,7 +8,8 @@ export type InlineImageEntityType =
     | 'DELIVERY'
     | 'DELIVERY_DEVELOPMENT_ITEM'
     | 'DELIVERY_OPERATIONAL_ITEM'
-    | 'BILLING_PERIOD';
+    | 'BILLING_PERIOD'
+    | 'BILLING_NOTE';
 
 export interface InlineImageResponse {
     url: string;

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   Plus, Pencil, Trash2, MoreHorizontal, DollarSign, Download, Link as LinkIcon, Link2Off,
   Eye, Mail, Paperclip, CheckCircle2, FileText, Clock, AlertCircle, XCircle, Monitor, Settings2,
-  Search,
+  Search, StickyNote,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { toast } from 'react-hot-toast'
@@ -11,7 +11,9 @@ import { ptBR } from 'date-fns/locale'
 
 import { useAuth } from '@/hooks/useAuth'
 import billingPeriodService from '@/services/billingPeriodService'
+import billingNoteService from '@/services/billingNoteService'
 import { moduleService } from '@/services/moduleService'
+import { BillingNoteCounts } from '@/types/billingNote.types'
 import { Button } from '@/components/ui-v2/Button'
 import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
@@ -28,6 +30,7 @@ import LinkTasksToBillingModal from '@/components/billing/LinkTasksToBillingModa
 import UnlinkTasksFromBillingModal from '@/components/billing/UnlinkTasksFromBillingModal'
 import ViewTasksModal from '@/components/billing/ViewTasksModal'
 import BillingPeriodAttachmentModal from '@/components/billing/BillingPeriodAttachmentModal'
+import BillingNotesSheet from '@/components/billing/BillingNotesSheet'
 
 interface BillingPeriod {
   id: number
@@ -94,6 +97,26 @@ const StatusPill: React.FC<{ status: string }> = ({ status }) => {
   )
 }
 
+/** Botão de anotações com contador — usado na linha da tabela e no card mobile. */
+const NotesButton: React.FC<{ count: number; onClick: () => void; title: string }> = ({ count, onClick, title }) => (
+  <span className="relative inline-flex">
+    <Button
+      size="icon-sm"
+      variant="ghost"
+      onClick={onClick}
+      title={title}
+      className={count > 0 ? 'text-[var(--warning-strong)]' : undefined}
+    >
+      <StickyNote />
+    </Button>
+    {count > 0 && (
+      <span className="pointer-events-none absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 rounded-full bg-accent text-accent-fg text-[10px] font-semibold leading-[15px] text-center">
+        {count > 9 ? '9+' : count}
+      </span>
+    )}
+  </span>
+)
+
 const BillingMonthManagement: React.FC = () => {
   const { hasProfile } = useAuth() as any
   const isAdmin = hasProfile ? hasProfile('ADMIN') : true
@@ -111,6 +134,8 @@ const BillingMonthManagement: React.FC = () => {
   const [unlinkFrom, setUnlinkFrom] = React.useState<BillingPeriod | null>(null)
   const [viewTasksOf, setViewTasksOf] = React.useState<BillingPeriod | null>(null)
   const [attachmentsOf, setAttachmentsOf] = React.useState<BillingPeriod | null>(null)
+  const [notesOf, setNotesOf] = React.useState<{ periodId: number | null; label?: string } | null>(null)
+  const [noteCounts, setNoteCounts] = React.useState<BillingNoteCounts>({})
   const [confirmDelete, setConfirmDelete] = React.useState<{ ids: number[] } | null>(null)
   const [confirmEmail, setConfirmEmail] = React.useState<BillingPeriod | null>(null)
   const [emailLoadingId, setEmailLoadingId] = React.useState<number | null>(null)
@@ -143,6 +168,21 @@ const BillingMonthManagement: React.FC = () => {
   }, [filters])
 
   React.useEffect(() => { fetchPeriods() }, [fetchPeriods])
+
+  const fetchNoteCounts = React.useCallback(async () => {
+    try {
+      setNoteCounts(await billingNoteService.getCounts())
+    } catch {
+      // Silencioso — sem contagem os botões de anotação seguem funcionando
+    }
+  }, [])
+
+  React.useEffect(() => { fetchNoteCounts() }, [fetchNoteCounts])
+
+  const noteCountOf = React.useCallback(
+    (periodId: number | null) => noteCounts[periodId == null ? 'general' : String(periodId)] ?? 0,
+    [noteCounts]
+  )
 
   React.useEffect(() => {
     let alive = true
@@ -297,17 +337,11 @@ const BillingMonthManagement: React.FC = () => {
             {isAdmin && (
               <Button size="icon-sm" variant="ghost" onClick={() => setUnlinkFrom(p)} title="Desvincular tarefas" className="text-text-secondary hover:text-[var(--danger-strong)]"><Link2Off /></Button>
             )}
-            {isAdmin && (
-              <Button
-                size="icon-sm" variant="ghost"
-                onClick={() => setConfirmEmail(p)}
-                loading={emailLoadingId === p.id}
-                disabled={emailLoadingId === p.id}
-                title="Enviar e-mail de faturamento"
-              >
-                <Mail />
-              </Button>
-            )}
+            <NotesButton
+              count={noteCountOf(p.id)}
+              onClick={() => setNotesOf({ periodId: p.id, label: `${MONTH_LABEL(p.month)} ${p.year}` })}
+              title="Anotações do período"
+            />
             {isAdmin && (
               <Button size="icon-sm" variant="ghost" onClick={() => setPeriodSheet({ mode: 'edit', period: p })} title="Editar"><Pencil /></Button>
             )}
@@ -320,6 +354,7 @@ const BillingMonthManagement: React.FC = () => {
                   <Button size="icon-sm" variant="ghost" title="Mais ações"><MoreHorizontal /></Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => setConfirmEmail(p)}><Mail />Enviar e-mail de faturamento</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => setAttachmentsOf(p)}><Paperclip />Anexos</DropdownMenuItem>
                   {p.status !== 'PAGO' && (
                     <DropdownMenuItem onSelect={() => handleMarkPaid(p)}><CheckCircle2 />Marcar como pago</DropdownMenuItem>
@@ -331,7 +366,7 @@ const BillingMonthManagement: React.FC = () => {
         )
       },
     },
-  ], [isAdmin, emailLoadingId])
+  ], [isAdmin, noteCountOf])
 
   const chips: any[] = []
   if (filters.flowType) chips.push({ key: 'flow',   label: 'Fluxo',  value: filters.flowType === 'DESENVOLVIMENTO' ? 'Desenvolvimento' : 'Operacional', onRemove: () => setFilters((f) => ({ ...f, flowType: undefined })) })
@@ -415,6 +450,14 @@ const BillingMonthManagement: React.FC = () => {
         }
         actions={
           <>
+            <Button
+              variant="secondary"
+              leadingIcon={<StickyNote />}
+              onClick={() => setNotesOf({ periodId: null })}
+              title="Anotações gerais de faturamento"
+            >
+              Anotações{noteCountOf(null) > 0 ? ` (${noteCountOf(null)})` : ''}
+            </Button>
             <Button variant="secondary" leadingIcon={<Download />} onClick={async () => {
               try {
                 const blob = await billingPeriodService.exportToExcel(filters)
@@ -528,7 +571,11 @@ const BillingMonthManagement: React.FC = () => {
                 <Button size="icon-sm" variant="ghost" onClick={() => setViewTasksOf(p)} title="Ver tarefas"><Eye /></Button>
                 {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setLinkTo(p)} title="Vincular" className="text-[var(--info-strong)]"><LinkIcon /></Button>}
                 {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setUnlinkFrom(p)} title="Desvincular"><Link2Off /></Button>}
-                {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setConfirmEmail(p)} title="E-mail"><Mail /></Button>}
+                <NotesButton
+                  count={noteCountOf(p.id)}
+                  onClick={() => setNotesOf({ periodId: p.id, label: `${MONTH_LABEL(p.month)} ${p.year}` })}
+                  title="Anotações do período"
+                />
                 {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setPeriodSheet({ mode: 'edit', period: p })} title="Editar"><Pencil /></Button>}
                 {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ ids: [p.id] })} title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>}
                 {isAdmin && (
@@ -537,6 +584,7 @@ const BillingMonthManagement: React.FC = () => {
                       <Button size="icon-sm" variant="ghost" title="Mais"><MoreHorizontal /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={() => setConfirmEmail(p)}><Mail />Enviar e-mail de faturamento</DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => setAttachmentsOf(p)}><Paperclip />Anexos</DropdownMenuItem>
                       {p.status !== 'PAGO' && (
                         <DropdownMenuItem onSelect={() => handleMarkPaid(p)}><CheckCircle2 />Marcar como pago</DropdownMenuItem>
@@ -584,6 +632,16 @@ const BillingMonthManagement: React.FC = () => {
           isAdmin={isAdmin}
         />
       )}
+
+      {/* Anotações (gerais e por período) */}
+      <BillingNotesSheet
+        open={!!notesOf}
+        onClose={() => setNotesOf(null)}
+        billingPeriodId={notesOf?.periodId ?? null}
+        scopeLabel={notesOf?.label}
+        isAdmin={isAdmin}
+        onChanged={fetchNoteCounts}
+      />
 
       {/* Create/Edit sheet */}
       <PeriodSheet
