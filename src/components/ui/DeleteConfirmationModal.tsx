@@ -65,7 +65,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
                             {itemName ? (
                                 <p className="text-sm text-text-secondary">
                                     Tem certeza que deseja excluir{' '}
-                                    <span className="font-semibold text-text-primary">"{itemName}"</span>?
+                                    <span className="font-semibold text-text-primary break-words">"{itemName}"</span>?
                                 </p>
                             ) : (
                                 <p className="text-sm text-text-secondary">

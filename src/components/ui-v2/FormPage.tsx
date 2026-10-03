@@ -16,26 +16,26 @@ interface FormPageProps {
 export const FormPage: React.FC<FormPageProps> = ({ title, subtitle, backTo, backLabel = 'Voltar', icon, children }) => {
   const navigate = useNavigate()
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-4">
+    <div className="max-w-6xl mx-auto min-w-0">
+      <div className="mb-3 sm:mb-4">
         <Button variant="ghost" size="sm" leadingIcon={<ArrowLeft />} onClick={() => backTo ? navigate(backTo) : navigate(-1)}>
           {backLabel}
         </Button>
       </div>
 
       <Card className="overflow-hidden">
-        <div className="px-6 py-5 border-b border-border-subtle flex items-start gap-3">
+        <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-border-subtle flex items-start gap-3">
           {icon && (
             <div className="h-10 w-10 rounded-lg bg-accent-soft text-accent grid place-items-center shrink-0 [&_svg]:size-5">
               {icon}
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-text-primary leading-tight">{title}</h1>
+            <h1 className="text-lg font-semibold text-text-primary leading-tight break-words">{title}</h1>
             {subtitle && <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>}
           </div>
         </div>
-        <div className="px-6 py-5">
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
           {children}
         </div>
       </Card>

@@ -117,7 +117,7 @@ export const PWAManager: React.FC = () => {
     <div
       role="dialog"
       aria-labelledby="pwa-install-title"
-      className="fixed z-50 bottom-4 right-4 left-4 sm:left-auto sm:max-w-sm bg-surface-1 border border-border-strong rounded-xl shadow-xl p-4"
+      className="fixed z-50 bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 left-4 sm:left-auto sm:max-w-sm bg-surface-1 border border-border-strong rounded-xl shadow-xl p-4"
       style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
     >
       <button

@@ -79,7 +79,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 )
 
 const InfoField: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
-  <div className={className}>
+  <div className={cn('min-w-0', className)}>
     <p className="text-xs text-text-tertiary mb-0.5">{label}</p>
     <div className="text-sm text-text-primary">{children}</div>
   </div>
@@ -137,8 +137,8 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
             {loading
               ? 'Carregando…'
               : (
-                <span className="inline-flex items-center gap-2">
-                  {task?.code && <span className="font-mono text-xs">{task.code}</span>}
+                <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  {task?.code && <span className="font-mono text-xs break-all">{task.code}</span>}
                   {task?.code && task?.requesterName && <span className="text-text-tertiary">·</span>}
                   {task?.requesterName && <span>{task.requesterName}</span>}
                 </span>
@@ -157,8 +157,8 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
         {!loading && task && (
           <div className="space-y-4">
             {/* Chips + valor */}
-            <div className="rounded-lg border border-border-subtle bg-surface-app/60 p-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="rounded-lg border border-border-subtle bg-surface-app/60 p-3 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
                 {task.flowType && <FlowChip value={task.flowType} />}
                 {task.taskType && <TaskTypeLabel value={task.taskType} />}
                 {task.environment && <EnvLabel value={task.environment} />}
@@ -176,9 +176,9 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
                 )}
               </div>
               {canViewValues && (
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor total</p>
-                  <p className="text-base font-semibold text-text-primary tabular-nums">{brl(total)}</p>
+                  <p className="text-base font-semibold text-text-primary tabular-nums whitespace-nowrap">{brl(total)}</p>
                 </div>
               )}
             </div>
@@ -190,7 +190,7 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
               <InfoField label="Descrição">
                 {task.description ? (
                   <div
-                    className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-md"
+                    className="prose prose-sm dark:prose-invert max-w-none break-words prose-img:max-w-full prose-img:h-auto prose-img:rounded-md prose-pre:overflow-x-auto prose-table:block prose-table:overflow-x-auto"
                     dangerouslySetInnerHTML={{ __html: task.description }}
                   />
                 ) : (
@@ -226,7 +226,7 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
                   <InfoField label="Link da tarefa">
                     <div className="flex items-center gap-2 min-w-0">
                       <LinkIcon className="size-3.5 text-text-tertiary shrink-0" />
-                      <a href={task.link} target="_blank" rel="noreferrer" className="text-accent hover:underline truncate flex-1">{task.link}</a>
+                      <a href={task.link} target="_blank" rel="noreferrer" className="text-accent hover:underline truncate flex-1 min-w-0">{task.link}</a>
                       <ExternalLink className="size-3.5 text-text-tertiary shrink-0" />
                     </div>
                   </InfoField>
@@ -235,7 +235,7 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
                   <InfoField label="Link da reunião">
                     <div className="flex items-center gap-2 min-w-0">
                       <Video className="size-3.5 text-text-tertiary shrink-0" />
-                      <a href={task.meetingLink} target="_blank" rel="noreferrer" className="text-accent hover:underline truncate flex-1">{task.meetingLink}</a>
+                      <a href={task.meetingLink} target="_blank" rel="noreferrer" className="text-accent hover:underline truncate flex-1 min-w-0">{task.meetingLink}</a>
                       <ExternalLink className="size-3.5 text-text-tertiary shrink-0" />
                     </div>
                   </InfoField>
@@ -280,14 +280,14 @@ export const TaskQuickViewModal: React.FC<Props> = ({ taskId, open, onClose }) =
             <Section title="Auditoria">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <InfoField label="Criada em">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                     <Calendar className="size-3.5 text-text-tertiary" />
                     <span className="font-medium tabular-nums">{formatDate(task.createdAt)}</span>
                     {task.createdByUserName && <span className="text-text-tertiary text-xs">· por {task.createdByUserName}</span>}
                   </div>
                 </InfoField>
                 <InfoField label="Última atualização">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                     <Calendar className="size-3.5 text-text-tertiary" />
                     <span className="font-medium tabular-nums">{formatDate(task.updatedAt)}</span>
                     {task.updatedByUserName && <span className="text-text-tertiary text-xs">· por {task.updatedByUserName}</span>}

@@ -129,10 +129,10 @@ const CommandPalette: React.FC<{ open: boolean; onOpenChange: (o: boolean) => vo
         <Dialog.Overlay className="fixed inset-0 z-50 bg-surface-inverse/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed left-1/2 top-[20%] z-50 w-[92vw] max-w-xl -translate-x-1/2 rounded-xl border border-border-subtle bg-surface-1 shadow-xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+          className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] sm:top-[20%] z-50 w-[calc(100vw-1.5rem)] max-w-xl -translate-x-1/2 rounded-xl border border-border-subtle bg-surface-1 shadow-xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
         >
           <Dialog.Title className="sr-only">Buscar e navegar</Dialog.Title>
-          <Command shouldFilter={false} className="flex flex-col max-h-[60vh]">
+          <Command shouldFilter={false} className="flex flex-col max-h-[70dvh] sm:max-h-[60vh]">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border-subtle">
               <Search className="size-4 text-text-tertiary" />
               <Command.Input
@@ -206,7 +206,7 @@ const CommandPalette: React.FC<{ open: boolean; onOpenChange: (o: boolean) => vo
               )}
             </Command.List>
 
-            <div className="border-t border-border-subtle px-3 py-2 flex items-center justify-between text-[11px] text-text-tertiary">
+            <div className="hidden sm:flex border-t border-border-subtle px-3 py-2 items-center justify-between text-[11px] text-text-tertiary">
               <div className="flex items-center gap-2">
                 <kbd className="font-mono">↑↓</kbd> navegar
                 <kbd className="font-mono">↵</kbd> selecionar

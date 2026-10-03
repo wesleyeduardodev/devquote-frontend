@@ -131,7 +131,7 @@ export function DataTable<T>({
   const isRefetching = !!loading && hasData
 
   return (
-    <div className={cn('rounded-lg border border-border-subtle bg-surface-1 overflow-hidden relative', className)}>
+    <div className={cn('rounded-lg border border-border-subtle bg-surface-1 overflow-hidden relative max-w-full min-w-0', className)}>
       {/* Top loading bar — visível em qualquer fetch (initial ou refetch). Estilo GitHub/Vercel. */}
       {loading && (
         <div
@@ -141,7 +141,8 @@ export function DataTable<T>({
           <div className="absolute inset-y-0 left-0 w-1/3 bg-accent rounded-r-full animate-loading-bar" />
         </div>
       )}
-      <div className="overflow-x-auto">
+      {/* Scroll horizontal contido na tabela — nunca empurra a página para os lados. */}
+      <div className="overflow-x-auto overscroll-x-contain max-w-full">
         <table className={cn('min-w-full text-sm table-fixed', isRefetching && 'opacity-70 transition-opacity')}>
 
           <thead className={cn('bg-surface-app/60 border-b border-border-strong', stickyHeader && 'sticky top-0 z-10')}>
@@ -285,7 +286,7 @@ const PaginationBar: React.FC<{ pagination: NonNullable<DataTableProps<any>['pag
   const end = Math.min(total, (page + 1) * pageSize)
 
   return (
-    <div className="flex items-center justify-between gap-3 px-3 py-2 border-t border-border-subtle text-sm text-text-secondary">
+    <div className="flex items-center justify-center sm:justify-between gap-3 px-3 py-2 border-t border-border-subtle text-sm text-text-secondary">
       <div className="hidden sm:block text-xs">
         Mostrando <span className="font-medium text-text-primary tabular-nums">{start}</span>–<span className="font-medium text-text-primary tabular-nums">{end}</span> de <span className="font-medium text-text-primary tabular-nums">{total}</span>
       </div>
@@ -294,26 +295,26 @@ const PaginationBar: React.FC<{ pagination: NonNullable<DataTableProps<any>['pag
         <button
           onClick={() => onPageChange(0)}
           disabled={page === 0}
-          className="h-7 w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-9 w-9 sm:h-7 sm:w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Primeira"
         ><ChevronsLeft className="size-3.5" /></button>
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 0}
-          className="h-7 w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-9 w-9 sm:h-7 sm:w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Anterior"
         ><ChevronLeft className="size-3.5" /></button>
-        <span className="text-xs px-2 tabular-nums">{page + 1} / {totalPages}</span>
+        <span className="text-xs px-2 tabular-nums whitespace-nowrap">{page + 1} / {totalPages}</span>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages - 1}
-          className="h-7 w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-9 w-9 sm:h-7 sm:w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Próxima"
         ><ChevronRight className="size-3.5" /></button>
         <button
           onClick={() => onPageChange(totalPages - 1)}
           disabled={page >= totalPages - 1}
-          className="h-7 w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-9 w-9 sm:h-7 sm:w-7 grid place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Última"
         ><ChevronsRight className="size-3.5" /></button>
       </div>

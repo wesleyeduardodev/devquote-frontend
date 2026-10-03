@@ -65,7 +65,7 @@ const Modal: React.FC<ModalProps> = ({
 
             <div
                 className={clsx(
-                    'relative bg-surface-1 rounded-t-lg sm:rounded-xl shadow-xl mx-2 sm:mx-4 w-full max-h-[90vh] overflow-hidden border border-border-subtle',
+                    'relative bg-surface-1 rounded-t-lg sm:rounded-xl shadow-xl mx-2 sm:mx-4 w-full max-h-[90dvh] overflow-hidden border border-border-subtle',
                     sizes[size],
                     className
                 )}
@@ -89,7 +89,7 @@ const Modal: React.FC<ModalProps> = ({
                     </div>
                 )}
 
-                <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90dvh-80px)] pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-6">
                     {children}
                 </div>
             </div>

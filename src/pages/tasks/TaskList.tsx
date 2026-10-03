@@ -2,7 +2,8 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Pencil, Trash2, ListChecks, Mail, Eye, Send,
-  Download, Search, Filter, Check, X, Settings2, Lock, MoreHorizontal, RotateCcw
+  Download, Search, Filter, Check, X, Settings2, Lock, MoreHorizontal, RotateCcw,
+  ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { PdfIcon } from '@/components/ui-v2/icons/PdfIcon'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -669,7 +670,7 @@ const TaskList: React.FC = () => {
             </Button>
 
             {canViewValues && (
-              <div className="flex items-center gap-2 ml-1">
+              <div className="flex items-center gap-2 lg:ml-1">
                 <StatChip
                   label="Sem entrega"
                   value={stats?.totalWithoutDelivery}
@@ -688,7 +689,10 @@ const TaskList: React.FC = () => {
         }
         actions={
           <>
-            <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={COLUMN_DEFS.filter((d) => canViewValues || (d.id !== 'amount' && d.id !== 'billing'))} />
+            {/* Colunas só existem na tabela (lg+); no mobile a lista vira cards */}
+            <div className="hidden lg:block">
+              <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={COLUMN_DEFS.filter((d) => canViewValues || (d.id !== 'amount' && d.id !== 'billing'))} />
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" leadingIcon={<Download />}>Exportar</Button>
@@ -698,7 +702,7 @@ const TaskList: React.FC = () => {
                 <DropdownMenuItem onSelect={() => exportTasksOnlyToExcel().catch(() => {})}>Só tarefas</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>}
+            {isAdmin && <Button className="flex-1 lg:flex-none" leadingIcon={<Plus />} onClick={() => navigate('/tasks/create')}>Nova tarefa</Button>}
           </>
         }
       />
@@ -925,6 +929,13 @@ const TaskList: React.FC = () => {
 
       {/* Mobile */}
       <div className="lg:hidden space-y-2">
+        <Input
+          leadingIcon={<Search />}
+          placeholder="Buscar pelo título..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Buscar tarefas pelo título"
+        />
         {loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
         {!loading && tasks.length === 0 && (
           chips.length > 0 ? (
@@ -950,9 +961,9 @@ const TaskList: React.FC = () => {
         {!loading && tasks.map((t: any) => (
           <div
             key={t.id}
-            className="w-full rounded-lg border border-border-subtle bg-surface-1 p-4 transition-colors"
+            className="w-full min-w-0 rounded-lg border border-border-subtle bg-surface-1 p-3 transition-colors"
           >
-            <div className="flex items-start justify-between gap-2 mb-1.5">
+            <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="font-mono text-xs text-text-tertiary shrink-0">#{t.id}</span>
                 {t.link ? (
@@ -970,75 +981,100 @@ const TaskList: React.FC = () => {
                   <span className="font-mono text-xs text-text-secondary truncate">{t.code}</span>
                 )}
               </div>
-              {canViewValues && <span className={`text-sm font-medium tabular-nums shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>}
+              {canViewValues && <span className={`text-sm font-semibold tabular-nums whitespace-nowrap shrink-0 ${(t.amount ?? 0) > 0 && t.hasQuoteInBilling ? 'text-success-strong' : 'text-text-primary'}`}>{brl(t.amount)}</span>}
             </div>
-            <button onClick={() => navigate(`/tasks/${t.id}`)} className="w-full text-left">
-              <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{t.title}</p>
+            <button onClick={() => navigate(`/tasks/${t.id}`)} className="w-full min-w-0 text-left">
+              <p className="text-sm font-medium text-text-primary mb-2 leading-snug break-words line-clamp-3">{t.title}</p>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {t.flowType && <FlowChip value={t.flowType} />}
                 <StatusPill on={!!t.hasDelivery}        onLabel="Entrega"  offLabel="Sem entrega" tone="info" />
                 {canViewValues && <StatusPill on={!!t.hasQuoteInBilling}  onLabel="Faturado" offLabel="Sem fatura"  tone="success" />}
               </div>
-              {t.requesterName && (
-                <p className="text-xs text-text-tertiary mt-1.5">{t.requesterName}</p>
-              )}
             </button>
 
-            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
-              <Button size="icon-sm" variant="ghost" onClick={() => setQuickViewId(t.id)} aria-label="Visualização rápida" title="Visualização rápida"><Eye /></Button>
-              {isAdmin && (
-                <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
-              )}
-              <Button
-                size="icon-sm"
-                variant="ghost"
-                onClick={() => handleGeneratePdf(t)}
-                loading={pdfLoadingId === t.id}
-                disabled={pdfLoadingId === t.id}
-                aria-label="Exportar PDF do orçamento"
-                title="Exportar PDF do orçamento"
-                className="text-text-secondary hover:text-[var(--danger-strong)]"
-              >
-                <PdfIcon />
-              </Button>
-              {isAdmin && (
+            <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-border-subtle">
+              <span className="flex-1 min-w-0 text-xs text-text-tertiary truncate">{t.requesterName || ''}</span>
+              <div className="flex items-center gap-0.5 shrink-0 -mr-1">
+                <Button size="icon-sm" variant="ghost" onClick={() => setQuickViewId(t.id)} aria-label="Visualização rápida" title="Visualização rápida"><Eye /></Button>
+                {isAdmin && (
+                  <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/tasks/${t.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
+                )}
                 <Button
                   size="icon-sm"
                   variant="ghost"
-                  onClick={() => setConfirmDelete({ kind: 'one', ids: [t.id] })}
-                  aria-label="Excluir"
-                  title="Excluir"
+                  onClick={() => handleGeneratePdf(t)}
+                  loading={pdfLoadingId === t.id}
+                  disabled={pdfLoadingId === t.id}
+                  aria-label="Exportar PDF do orçamento"
+                  title="Exportar PDF do orçamento"
                   className="text-text-secondary hover:text-[var(--danger-strong)]"
                 >
-                  <Trash2 />
+                  <PdfIcon />
                 </Button>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon-sm" variant="ghost" aria-label="Mais ações" title="Mais ações">
-                    <MoreHorizontal />
+                {isAdmin && (
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => setConfirmDelete({ kind: 'one', ids: [t.id] })}
+                    aria-label="Excluir"
+                    title="Excluir"
+                    className="text-text-secondary hover:text-[var(--danger-strong)]"
+                  >
+                    <Trash2 />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {isAdmin && (
-                    <>
-                      <DropdownMenuItem onSelect={() => handleSendFinancialEmail(t)} disabled={emailLoadingId === t.id}>
-                        <Mail />Enviar e-mail financeiro
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleSendTaskEmail(t)} disabled={emailLoadingId === t.id}>
-                        <Send />Enviar e-mail da tarefa
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem onSelect={() => navigate(`/tasks/${t.id}`)}>
-                    <Eye />Ver detalhes
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon-sm" variant="ghost" aria-label="Mais ações" title="Mais ações">
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem onSelect={() => handleSendFinancialEmail(t)} disabled={emailLoadingId === t.id}>
+                          <Mail />Enviar e-mail financeiro
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleSendTaskEmail(t)} disabled={emailLoadingId === t.id}>
+                          <Send />Enviar e-mail da tarefa
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem onSelect={() => navigate(`/tasks/${t.id}`)}>
+                      <Eye />Ver detalhes
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         ))}
+        {!loading && pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="secondary"
+              leadingIcon={<ChevronLeft />}
+              disabled={pagination.currentPage <= 0}
+              onClick={() => setPage(pagination.currentPage - 1)}
+            >
+              Anterior
+            </Button>
+            <span className="text-xs text-text-secondary tabular-nums">
+              {pagination.currentPage + 1} / {pagination.totalPages}
+            </span>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={pagination.currentPage + 1 >= pagination.totalPages}
+              trailingIcon={<ChevronRight />}
+              onClick={() => setPage(pagination.currentPage + 1)}
+            >
+              Próxima
+            </Button>
+          </div>
+        )}
       </div>
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>

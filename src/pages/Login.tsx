@@ -46,7 +46,7 @@ export default function Login() {
       <BrandPanel />
 
       {/* ---- Coluna do formulário ---- */}
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:px-8">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[max(2.5rem,env(safe-area-inset-top))] pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:px-8">
         <div className="w-full max-w-sm">
           {/* Logo DevQuote */}
           <div className="text-center mb-8">

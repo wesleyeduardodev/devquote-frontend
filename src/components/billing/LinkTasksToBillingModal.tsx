@@ -323,13 +323,13 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-7xl h-[75vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
+            <div className="bg-surface-1 rounded-none sm:rounded-xl shadow-2xl w-full max-w-7xl h-[100dvh] sm:h-[75vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-border-subtle bg-gradient-to-r from-blue-50 to-green-50">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-bold text-text-primary">
+                <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 pt-[calc(0.75rem+env(safe-area-inset-top))] sm:pt-4 border-b border-border-subtle bg-gradient-to-r from-blue-50 to-green-50">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <h2 className="text-base sm:text-xl font-bold text-text-primary">
                                 Vincular Tarefas ao Período
                             </h2>
                             {billingPeriod && (
@@ -340,7 +340,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-text-tertiary hover:text-text-secondary transition-colors"
+                            className="shrink-0 p-1 -m-1 text-text-tertiary hover:text-text-secondary transition-colors"
+                            aria-label="Fechar"
                         >
                             <X className="w-6 h-6" />
                         </button>
@@ -354,7 +355,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                             <LoadingSpinner size="lg" />
                         </div>
                     ) : (
-                        <div className="h-full p-6 overflow-auto">
+                        <div className="h-full p-3 sm:p-6 overflow-auto">
                             {/* Desktop: Tabela */}
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -469,7 +470,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                 {/* Filtros Mobile */}
                                 <div className="bg-surface-app rounded-lg p-3 space-y-3">
                                     <div className="text-sm font-medium text-text-secondary">Filtros</div>
-                                    <div className="grid grid-cols-1 gap-3">
+                                    <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <label className="block text-xs text-text-secondary mb-1">ID</label>
                                             <input
@@ -529,10 +530,10 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                     </div>
                                 ) : (
                                     tasks.map((task) => (
-                                        <div key={task.id} className="bg-surface-1 border border-border-subtle rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div key={task.id} className="bg-surface-1 border border-border-subtle rounded-lg p-3 hover:shadow-md transition-shadow">
                                             {/* Header do card com checkbox e ID */}
                                             <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-start gap-3">
+                                                <div className="flex items-start gap-3 min-w-0">
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedTasks.includes(task.id)}
@@ -545,8 +546,8 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                                         }}
                                                         className="mt-1 w-4 h-4 text-accent border-border-strong rounded focus:ring-accent"
                                                     />
-                                                    <div>
-                                                        <div className="font-semibold text-text-primary text-base">{task.title}</div>
+                                                    <div className="min-w-0">
+                                                        <div className="font-semibold text-text-primary text-sm sm:text-base break-words">{task.title}</div>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-accent-soft text-info-strong">
                                                                 #{task.id}
@@ -609,10 +610,10 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                             
                             {/* Paginação padrão */}
                             {pagination && pagination.totalPages > 0 && (
-                                <div className="bg-surface-1 px-4 py-3 border-t border-border-subtle">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-sm text-text-secondary">
+                                <div className="bg-surface-1 px-0 sm:px-4 py-3 border-t border-border-subtle mt-3 sm:mt-0">
+                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                            <div className="text-xs sm:text-sm text-text-secondary">
                                                 Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, pagination.totalElements)} de {pagination.totalElements} resultados
                                             </div>
                                             <div className="flex items-center space-x-2">
@@ -669,12 +670,12 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="shrink-0 px-6 py-4 border-t border-border-subtle bg-surface-app">
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm text-text-secondary">
+                <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-4 border-t border-border-subtle bg-surface-app">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-sm text-text-secondary min-w-0">
                             <span>Total: {tasks.length} tarefa(s)</span>
                             {selectedTasks.length > 0 && (
-                                <span className="ml-4 font-medium text-accent">
+                                <span className="block sm:inline sm:ml-4 font-medium text-accent">
                                     {selectedTasks.length} selecionada(s) - 
                                     Valor: R$ {
                                         tasks
@@ -685,7 +686,7 @@ const LinkTasksToBillingModal: React.FC<Props> = ({
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:flex sm:items-center sm:gap-3">
                             <Button
                                 onClick={onClose}
                                 variant="secondary"

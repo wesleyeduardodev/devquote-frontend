@@ -12,7 +12,7 @@ export interface DataTableBulkBarProps {
 export const DataTableBulkBar: React.FC<DataTableBulkBarProps> = ({ selectedCount, onClear, actions, className }) => {
   if (selectedCount === 0) return null
   return (
-    <div className={cn('flex items-center gap-3 px-3 py-2 mb-3 rounded-md border border-accent/30 bg-accent-soft', className)}>
+    <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 mb-3 rounded-md border border-accent/30 bg-accent-soft', className)}>
       <button onClick={onClear} className="p-0.5 rounded hover:bg-accent/10" aria-label="Limpar seleção">
         <X className="size-4 text-accent" />
       </button>
@@ -20,7 +20,7 @@ export const DataTableBulkBar: React.FC<DataTableBulkBarProps> = ({ selectedCoun
         {selectedCount} selecionado{selectedCount > 1 ? 's' : ''}
       </span>
       <div className="flex-1" />
-      <div className="flex items-center gap-1.5">{actions}</div>
+      <div className="flex flex-wrap items-center gap-1.5">{actions}</div>
     </div>
   )
 }

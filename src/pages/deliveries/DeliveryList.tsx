@@ -21,7 +21,7 @@ import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
 import { Skeleton } from '@/components/ui-v2/Skeleton'
 import { Input } from '@/components/ui-v2/Input'
-import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
+import { DataTable, DataTableBulkBar, FilterChipsRow, MobilePagination } from '@/components/ui-v2/DataTable'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -561,7 +561,7 @@ const DeliveryList: React.FC = () => {
         subtitle={pagination ? `${pagination.totalElements} entrega${pagination.totalElements === 1 ? '' : 's'}` : undefined}
         filters={
           <>
-            <Button variant="secondary" leadingIcon={<Filter />} onClick={() => setFiltersOpen(true)}>
+            <Button variant="secondary" leadingIcon={<Filter />} onClick={() => setFiltersOpen(true)} className="w-full sm:w-auto">
               Filtros
               {activeFilterCount > 0 && (
                 <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-accent-fg text-[10px] font-semibold">
@@ -570,12 +570,12 @@ const DeliveryList: React.FC = () => {
               )}
             </Button>
 
-            <div className="flex items-center gap-2 ml-1">
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:w-auto sm:ml-1">
               <Select
                 value={(filters.flowType as string) || '__all'}
                 onValueChange={(v) => setFilter('flowType', v === '__all' ? '' : v)}
               >
-                <SelectTrigger className="h-8 w-[200px]"><SelectValue placeholder="Fluxo: todos" /></SelectTrigger>
+                <SelectTrigger className="h-10 sm:h-8 w-full sm:w-[200px] min-w-0"><SelectValue placeholder="Fluxo: todos" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all">Fluxo: todos</SelectItem>
                   <SelectItem value="DESENVOLVIMENTO">
@@ -601,7 +601,7 @@ const DeliveryList: React.FC = () => {
                   else { setFilter('hasItems', ''); setFilter('status', v) }
                 }}
               >
-                <SelectTrigger className="h-8 w-[210px]"><SelectValue placeholder="Status: todos" /></SelectTrigger>
+                <SelectTrigger className="h-10 sm:h-8 w-full sm:w-[210px] min-w-0"><SelectValue placeholder="Status: todos" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all">Status: todos</SelectItem>
                   {STATUS_OPTIONS.map((o) => {
@@ -634,7 +634,7 @@ const DeliveryList: React.FC = () => {
             <ColumnsMenu visibility={columnVisibility} onChange={setColumnVisibility} defs={canViewValues ? COLUMN_DEFS : COLUMN_DEFS.filter((d) => d.id !== 'taskValue')} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" leadingIcon={<Download />} loading={generatingReport}>Relatórios</Button>
+                <Button variant="secondary" leadingIcon={<Download />} loading={generatingReport} className="flex-1 sm:flex-none">Relatórios</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onSelect={() => exportToExcel('DESENVOLVIMENTO', canViewValues).catch(() => {})}><FileSpreadsheet />Desenvolvimento (Excel)</DropdownMenuItem>
@@ -655,11 +655,14 @@ const DeliveryList: React.FC = () => {
                 onClick={handleForcePrJob}
                 loading={forcingPrJob}
                 title="Verifica os PRs das entregas de Desenvolvimento e marca como Produção os que foram mergeados (mesma rotina do job diário; não sincroniza com o ClickUp)"
+                aria-label="Verificar PRs"
+                className="flex-1 sm:flex-none"
               >
-                Verificar PRs
+                <span className="sm:hidden">PRs</span>
+                <span className="hidden sm:inline">Verificar PRs</span>
               </Button>
             )}
-            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')}>Nova entrega</Button>}
+            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => navigate('/deliveries/create')} className="flex-1 sm:flex-none">Nova entrega</Button>}
           </>
         }
       />
@@ -892,7 +895,7 @@ const DeliveryList: React.FC = () => {
         {!loading && deliveries.map((d: any) => (
           <div
             key={d.id}
-            className="w-full rounded-lg border border-border-subtle bg-surface-1 p-4 transition-colors"
+            className="w-full min-w-0 rounded-lg border border-border-subtle bg-surface-1 p-3.5 transition-colors"
           >
             <div className="flex items-start justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2 min-w-0">
@@ -912,7 +915,7 @@ const DeliveryList: React.FC = () => {
                   <span className="font-mono text-xs text-text-secondary truncate">{d.taskCode}</span>
                 )}
               </div>
-              {canViewValues && <span className="text-sm font-medium tabular-nums shrink-0 text-text-primary">{brl(d.taskValue)}</span>}
+              {canViewValues && <span className="text-sm font-semibold tabular-nums whitespace-nowrap shrink-0 text-text-primary">{brl(d.taskValue)}</span>}
             </div>
             <button onClick={() => navigate(`/deliveries/${d.id}`)} className="w-full text-left">
               <p className="text-sm text-text-primary mb-1.5 leading-snug break-words">{d.taskName}</p>
@@ -921,15 +924,14 @@ const DeliveryList: React.FC = () => {
                 <StatusPill status={d.status} />
               </div>
               {(d.startedAt || d.finishedAt) && (
-                <p className="text-xs text-text-tertiary mt-2">
-                  {d.startedAt && <>Início: {fmtDateTimeBR(d.startedAt)}</>}
-                  {d.startedAt && d.finishedAt && ' · '}
-                  {d.finishedAt && <>Fim: {fmtDateTimeBR(d.finishedAt)}</>}
+                <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-text-tertiary mt-2">
+                  {d.startedAt && <span className="whitespace-nowrap">Início: {fmtDateTimeBR(d.startedAt)}</span>}
+                  {d.finishedAt && <span className="whitespace-nowrap">Fim: {fmtDateTimeBR(d.finishedAt)}</span>}
                 </p>
               )}
             </button>
 
-            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+            <div className="flex items-center justify-end gap-0.5 mt-2.5 pt-2 border-t border-border-subtle">
               <Button size="icon-sm" variant="ghost" onClick={() => setQuickViewId(d.id)} aria-label="Visualização rápida" title="Visualização rápida"><Eye /></Button>
               {isAdmin && (
                 <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/deliveries/${d.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
@@ -976,6 +978,14 @@ const DeliveryList: React.FC = () => {
             </div>
           </div>
         ))}
+        {!loading && pagination && (
+          <MobilePagination
+            page={pagination.currentPage}
+            pageSize={pagination.pageSize}
+            total={pagination.totalElements}
+            onPageChange={setPage}
+          />
+        )}
       </div>
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -1201,7 +1211,7 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({ visibility, onChange, defs = 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="secondary" leadingIcon={<Settings2 />}>
+        <Button variant="secondary" leadingIcon={<Settings2 />} className="hidden lg:inline-flex">
           Colunas
           <span className="ml-1 text-text-tertiary tabular-nums">{visibleCount}/{defs.length}</span>
         </Button>

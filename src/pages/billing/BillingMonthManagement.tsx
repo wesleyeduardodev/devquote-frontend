@@ -384,9 +384,9 @@ const BillingMonthManagement: React.FC = () => {
         title="Faturamento"
         subtitle={`${kpis.count} período${kpis.count === 1 ? '' : 's'}`}
         filters={
-          <>
+          <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:items-center lg:w-auto">
             <Select value={filters.flowType || '__all'} onValueChange={(v) => setFilter('flowType', v === '__all' ? undefined : v)}>
-              <SelectTrigger className="w-[160px] h-8"><SelectValue placeholder="Fluxo" /></SelectTrigger>
+              <SelectTrigger className="w-full h-9 lg:w-[160px] lg:h-8"><SelectValue placeholder="Fluxo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos os fluxos</SelectItem>
                 <SelectItem value="DESENVOLVIMENTO">
@@ -398,7 +398,7 @@ const BillingMonthManagement: React.FC = () => {
               </SelectContent>
             </Select>
             <Select value={String(filters.year || '__all')} onValueChange={(v) => setFilter('year', v === '__all' ? undefined : Number(v))}>
-              <SelectTrigger className="w-[120px] h-8"><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectTrigger className="w-full h-9 lg:w-[120px] lg:h-8"><SelectValue placeholder="Ano" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos anos</SelectItem>
                 {availableYears.map((y) => (
@@ -407,14 +407,14 @@ const BillingMonthManagement: React.FC = () => {
               </SelectContent>
             </Select>
             <Select value={String(filters.month || '__all')} onValueChange={(v) => setFilter('month', v === '__all' ? undefined : Number(v))}>
-              <SelectTrigger className="w-[150px] h-8"><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectTrigger className="w-full h-9 lg:w-[150px] lg:h-8"><SelectValue placeholder="Mês" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos meses</SelectItem>
                 {Array.from({ length: 12 }).map((_, i) => <SelectItem key={i + 1} value={String(i + 1)}>{MONTH_LABEL(i + 1)}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filters.status || '__all'} onValueChange={(v) => setFilter('status', v === '__all' ? undefined : v)}>
-              <SelectTrigger className="w-[160px] h-8"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-full h-9 lg:w-[160px] lg:h-8"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos status</SelectItem>
                 {STATUS_ORDER.map((s) => {
@@ -429,7 +429,7 @@ const BillingMonthManagement: React.FC = () => {
               </SelectContent>
             </Select>
             <Select value={String(filters.moduleId || '__all')} onValueChange={(v) => setFilter('moduleId', v === '__all' ? undefined : Number(v))}>
-              <SelectTrigger className="w-[180px] h-8"><SelectValue placeholder="Módulo" /></SelectTrigger>
+              <SelectTrigger className="w-full h-9 lg:w-[180px] lg:h-8"><SelectValue placeholder="Módulo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos módulos</SelectItem>
                 {modules.map((m) => (
@@ -438,7 +438,7 @@ const BillingMonthManagement: React.FC = () => {
               </SelectContent>
             </Select>
             <Select value={filters.taskType || '__all'} onValueChange={(v) => setFilter('taskType', v === '__all' ? undefined : v)}>
-              <SelectTrigger className="w-[180px] h-8"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectTrigger className="w-full h-9 lg:w-[180px] lg:h-8"><SelectValue placeholder="Tipo" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">Todos tipos</SelectItem>
                 {TASK_TYPE_OPTIONS.map((o) => (
@@ -446,19 +446,20 @@ const BillingMonthManagement: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-          </>
+          </div>
         }
         actions={
-          <>
+          <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:items-center lg:w-auto">
             <Button
               variant="secondary"
+              className="w-full lg:w-auto"
               leadingIcon={<StickyNote />}
               onClick={() => setNotesOf({ periodId: null })}
               title="Anotações gerais de faturamento"
             >
               Anotações{noteCountOf(null) > 0 ? ` (${noteCountOf(null)})` : ''}
             </Button>
-            <Button variant="secondary" leadingIcon={<Download />} onClick={async () => {
+            <Button variant="secondary" className="w-full lg:w-auto" leadingIcon={<Download />} onClick={async () => {
               try {
                 const blob = await billingPeriodService.exportToExcel(filters)
                 const url = URL.createObjectURL(blob)
@@ -469,14 +470,18 @@ const BillingMonthManagement: React.FC = () => {
                 URL.revokeObjectURL(url)
               } catch { toast.error('Falha ao exportar') }
             }}>Exportar</Button>
-            {isAdmin && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo período</Button>}
-          </>
+            {isAdmin && (
+              <Button className="col-span-2 order-first w-full lg:order-none lg:w-auto" leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>
+                Novo período
+              </Button>
+            )}
+          </div>
         }
       />
 
       {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="lg:col-span-2">
+      <section className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+        <div className="sm:col-span-3 lg:col-span-2">
           <BillingKpiHero total={kpis.total} />
         </div>
         <BillingKpiCard label="Pago"      value={brl(kpis.paid)}      tone="success" hint={`${kpis.paidCount} período(s)`} />
@@ -492,20 +497,22 @@ const BillingMonthManagement: React.FC = () => {
             <label className="text-xs font-medium text-text-secondary block mb-1">
               Buscar tarefa por código
             </label>
-            <p className="text-xs text-text-tertiary">
+            <p className="hidden sm:block text-xs text-text-tertiary">
               Informe o código da tarefa para ver em qual período de faturamento ela está vinculada.
             </p>
           </div>
-          <div className="flex items-center gap-2 sm:w-auto w-full">
+          <div className="flex items-center gap-2 sm:w-auto w-full min-w-0">
+            <div className="flex-1 min-w-0 sm:flex-none">
             <Input
               value={lookupCode}
               onChange={(e) => setLookupCode(e.target.value)}
               placeholder="Código da tarefa"
               leadingIcon={<Search />}
               onKeyDown={(e) => { if (e.key === 'Enter') handleLookupByCode() }}
-              className="sm:w-64"
+              className="h-10 sm:h-8 sm:w-64"
             />
-            <Button onClick={handleLookupByCode} loading={lookupLoading} leadingIcon={<Search />}>
+            </div>
+            <Button onClick={handleLookupByCode} className="shrink-0" loading={lookupLoading} leadingIcon={<Search />}>
               Buscar
             </Button>
           </div>
@@ -553,21 +560,20 @@ const BillingMonthManagement: React.FC = () => {
             <EmptyState icon={<DollarSign />} title="Nenhum período" description="Crie o primeiro." actions={isAdmin && <Button leadingIcon={<Plus />} onClick={() => setPeriodSheet({ mode: 'create' })}>Novo</Button>} />
           )}
           {!loading && periods.map((p) => (
-            <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+            <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-3">
               <button onClick={() => setViewTasksOf(p)} className="w-full text-left">
-                <div className="mb-1.5">
-                  <span className="font-medium text-text-primary">{MONTH_LABEL(p.month)} {p.year}</span>
+                <div className="flex items-start justify-between gap-3 mb-1.5">
+                  <span className="font-medium text-text-primary min-w-0 break-words">{MONTH_LABEL(p.month)} {p.year}</span>
+                  <span className="text-sm font-semibold tabular-nums whitespace-nowrap shrink-0">{brl(p.totalAmount)}</span>
                 </div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                   <StatusPill status={p.status} />
-                  <span className="text-sm font-medium tabular-nums">{brl(p.totalAmount)}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-text-tertiary">
-                  <span>{p.taskCount ?? 0} tarefa(s)</span>
-                  {p.paymentDate && <span>vence {format(parseISO(p.paymentDate), 'dd/MM/yyyy')}</span>}
+                  <span className="text-xs text-text-tertiary whitespace-nowrap">
+                    {p.taskCount ?? 0} tarefa(s){p.paymentDate && ` · vence ${format(parseISO(p.paymentDate), 'dd/MM/yyyy')}`}
+                  </span>
                 </div>
               </button>
-              <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+              <div className="flex flex-wrap items-center justify-end gap-0.5 mt-2.5 pt-2 border-t border-border-subtle">
                 <Button size="icon-sm" variant="ghost" onClick={() => setViewTasksOf(p)} title="Ver tarefas"><Eye /></Button>
                 {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setLinkTo(p)} title="Vincular" className="text-[var(--info-strong)]"><LinkIcon /></Button>}
                 {isAdmin && <Button size="icon-sm" variant="ghost" onClick={() => setUnlinkFrom(p)} title="Desvincular"><Link2Off /></Button>}
@@ -682,8 +688,8 @@ const BillingMonthManagement: React.FC = () => {
             <div className="space-y-3 py-2">
               <div className="rounded-md border border-border-subtle bg-surface-2 p-3">
                 <div className="text-xs text-text-tertiary mb-1">Tarefa</div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-text-primary truncate">{lookupResult.taskTitle}</span>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium text-text-primary min-w-0 break-words">{lookupResult.taskTitle}</span>
                   <span className="font-mono text-xs text-text-secondary shrink-0">{lookupResult.taskCode}</span>
                 </div>
                 <div className="text-xs text-text-tertiary mt-1">#{lookupResult.taskId}</div>
@@ -713,7 +719,7 @@ const BillingMonthManagement: React.FC = () => {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row [&>button]:w-full sm:[&>button]:w-auto">
             {lookupResult && (
               <Button
                 variant="secondary"

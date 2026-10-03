@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { Badge } from '@/components/ui-v2/Badge'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
 import { Skeleton } from '@/components/ui-v2/Skeleton'
-import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
+import { DataTable, DataTableBulkBar, FilterChipsRow, MobilePagination } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Search } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
@@ -156,14 +156,15 @@ const ParameterList: React.FC = () => {
           </div>
         }
         actions={isAdmin?.() && (
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" leadingIcon={<RotateCcw />} onClick={() => setClickupResetOpen(true)} title="Apaga os 6 parâmetros do núcleo ClickUp (token, list, dev, etc.) pra reconfigurar do zero">
+          // Mobile: ação principal em largura total e as duas do ClickUp lado a lado abaixo.
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:w-auto">
+            <Button variant="ghost" leadingIcon={<RotateCcw />} onClick={() => setClickupResetOpen(true)} title="Apaga os 6 parâmetros do núcleo ClickUp (token, list, dev, etc.) pra reconfigurar do zero" className="px-2 text-xs sm:px-3 sm:text-sm">
               Resetar ClickUp
             </Button>
-            <Button variant="secondary" leadingIcon={<Plug />} onClick={() => setClickupWizardOpen(true)}>
+            <Button variant="secondary" leadingIcon={<Plug />} onClick={() => setClickupWizardOpen(true)} className="px-2 text-xs sm:px-3 sm:text-sm">
               Configurar ClickUp
             </Button>
-            <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo parâmetro</Button>
+            <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')} className="col-span-2 order-first sm:order-none">Novo parâmetro</Button>
           </div>
         )}
       />
@@ -213,25 +214,35 @@ const ParameterList: React.FC = () => {
           <EmptyState icon={<Settings />} title="Nenhum parâmetro" description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie o primeiro.'} actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => setEditingId('new')}>Novo</Button>} />
         )}
         {!loading && systemParameters.map((p: any) => (
-          <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
-            <button onClick={() => setEditingId(p.id)} className="w-full text-left">
-              <div className="flex items-center gap-2 mb-1">
+          <div key={p.id} className="flex items-start gap-2 rounded-lg border border-border-subtle bg-surface-1 py-3 pl-4 pr-2">
+            <button onClick={() => setEditingId(p.id)} className="flex-1 min-w-0 text-left">
+              <div className="flex items-center gap-2 mb-1 min-w-0">
                 <span className="font-mono text-sm text-text-primary truncate">{p.name}</span>
                 {isSensitiveParamName(p.name) && (
                   <Badge variant="warning" size="sm"><AlertTriangle className="size-3" /></Badge>
                 )}
               </div>
               <div className="text-xs text-text-tertiary mb-1">{inferCategory(p.name)}</div>
-              <SecretMask name={p.name} value={p.value} className="text-xs font-mono text-text-secondary" />
-              {p.description && <div className="text-xs text-text-secondary mt-1 line-clamp-1">{p.description}</div>}
+              <SecretMask name={p.name} value={p.value} className="block text-xs font-mono text-text-secondary truncate" />
+              {p.description && <div className="text-xs text-text-secondary mt-1 line-clamp-2 break-words">{p.description}</div>}
             </button>
-            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+            <div className="flex items-center gap-0.5 shrink-0">
               <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(p.id)} aria-label="Editar" title="Editar"><Pencil /></Button>
               <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ kind: 'one', ids: [p.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
             </div>
           </div>
         ))}
       </div>
+
+      {pagination && (
+        <MobilePagination
+          className="lg:hidden mt-3"
+          page={pagination.currentPage}
+          pageSize={pagination.pageSize}
+          total={pagination.totalElements}
+          onPageChange={setPage}
+        />
+      )}
 
       {editingId !== null && (
         <ParameterModal

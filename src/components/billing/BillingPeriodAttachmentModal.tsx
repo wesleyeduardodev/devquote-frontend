@@ -147,23 +147,24 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-surface-1 rounded-none sm:rounded-xl shadow-2xl w-full max-w-4xl h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-700 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center">
+        <div className="shrink-0 bg-gradient-to-r from-blue-600 to-purple-700 px-4 py-3 sm:px-6 sm:py-4 pt-[calc(0.75rem+env(safe-area-inset-top))] sm:pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 shrink-0 bg-surface-1/20 backdrop-blur rounded-lg flex items-center justify-center">
                 <File className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Anexos do Período</h2>
-                <p className="text-blue-100 text-sm">{billingPeriodTitle}</p>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-xl font-bold text-white">Anexos do Período</h2>
+                <p className="text-blue-100 text-sm truncate">{billingPeriodTitle}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-white/80 hover:text-white hover:bg-surface-1/20 rounded-lg p-2 transition-all"
+              className="shrink-0 text-white/80 hover:text-white hover:bg-surface-1/20 rounded-lg p-2 transition-all"
+              aria-label="Fechar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -171,13 +172,13 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto sm:max-h-[calc(90vh-80px)] p-4 sm:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6">
           <div className="space-y-6">
             {/* Upload Area - Apenas para Admin */}
             {isAdmin && (
               <div className="space-y-6">
                 <div
-                  className={`border-2 border-dashed border-border-strong rounded-lg p-6 text-center transition-colors ${
+                  className={`border-2 border-dashed border-border-strong rounded-lg p-4 sm:p-6 text-center transition-colors ${
                     isDragOver ? 'border-blue-400 bg-info-soft' : 'hover:border-text-tertiary'
                   }`}
                   onDrop={handleDrop}
@@ -281,8 +282,8 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
 
             {/* Lista de anexos */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-medium text-text-primary">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <h4 className="text-base sm:text-lg font-medium text-text-primary">
                   Anexos ({attachments.length})
                 </h4>
                 {!isAdmin && (
@@ -312,7 +313,7 @@ const BillingPeriodAttachmentModal: React.FC<BillingPeriodAttachmentModalProps> 
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 ml-4">
+                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 shrink-0">
                         <button
                           type="button"
                           onClick={() => handleDownload(attachment)}

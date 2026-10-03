@@ -109,22 +109,22 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
 
   const UserCard: React.FC<{ user: UserProfile; isAssigned: boolean }> = ({ user, isAssigned }) => (
     <div className="flex items-center justify-between p-3 bg-surface-app rounded-lg">
-      <div className="flex-1">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-accent-soft rounded-full flex items-center justify-center">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="w-8 h-8 bg-accent-soft rounded-full flex items-center justify-center shrink-0">
             <span className="text-accent font-medium text-sm">
               {user.username.charAt(0).toUpperCase()}
             </span>
           </div>
-          <div>
-            <h4 className="font-medium text-text-primary">{user.name || user.username}</h4>
-            <p className="text-sm text-text-secondary">{user.email}</p>
-            <p className="text-xs text-text-tertiary">@{user.username}</p>
+          <div className="min-w-0">
+            <h4 className="font-medium text-text-primary truncate">{user.name || user.username}</h4>
+            <p className="text-sm text-text-secondary truncate">{user.email}</p>
+            <p className="text-xs text-text-tertiary truncate">@{user.username}</p>
           </div>
         </div>
       </div>
       
-      <div className="ml-4">
+      <div className="ml-3 sm:ml-4 shrink-0">
         {isAssigned ? (
           <Button
             size="sm"
@@ -151,16 +151,16 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90dvh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border-subtle">
-          <div className="flex items-center">
-            <div className="p-2 bg-accent-soft rounded-lg mr-3">
-              <Users className="w-6 h-6 text-accent" />
+        <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-border-subtle shrink-0">
+          <div className="flex items-center min-w-0">
+            <div className="p-2 bg-accent-soft rounded-lg mr-3 shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold text-text-primary">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-text-primary break-words">
                 Gerenciar Usuários - {profile.name}
               </h2>
               <p className="text-sm text-text-secondary">
@@ -170,14 +170,15 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-surface-2 rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-2 rounded-lg transition-colors shrink-0"
+            aria-label="Fechar"
           >
             <X className="w-5 h-5 text-text-tertiary" />
           </button>
         </div>
 
         {/* Search */}
-        <div className="p-6 border-b border-border-subtle">
+        <div className="p-4 sm:p-6 border-b border-border-subtle shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary w-5 h-5" />
             <input
@@ -191,15 +192,15 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <LoadingSpinner size="md" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-gray-200 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200 h-full">
               {/* Assigned Users */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-text-primary">
                     Usuários com este perfil
@@ -209,7 +210,7 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
                   </span>
                 </div>
                 
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-3 md:max-h-96 md:overflow-y-auto">
                   {filteredAssignedUsers.length === 0 ? (
                     <div className="text-center py-8">
                       <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
@@ -226,7 +227,7 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
               </div>
 
               {/* Available Users */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-text-primary">
                     Usuários disponíveis
@@ -236,7 +237,7 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
                   </span>
                 </div>
                 
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-3 md:max-h-96 md:overflow-y-auto">
                   {filteredAvailableUsers.length === 0 ? (
                     <div className="text-center py-8">
                       <UserPlus className="w-12 h-12 text-gray-300 mx-auto mb-2" />
@@ -256,8 +257,8 @@ const UserAssignmentModal: React.FC<UserAssignmentModalProps> = ({ profile, user
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-border-subtle bg-surface-app">
-          <div className="flex justify-between items-center">
+        <div className="p-4 sm:p-6 border-t border-border-subtle bg-surface-app shrink-0">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
             <p className="text-sm text-text-secondary">
               {assignedUsers.length} usuário(s) com o perfil "{profile.name}"
             </p>

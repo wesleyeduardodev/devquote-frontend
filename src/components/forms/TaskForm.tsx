@@ -126,7 +126,7 @@ const FormSection: React.FC<{ title: string; description?: string; children: Rea
 )
 
 const SegmentedFlow: React.FC<{ value: string; onChange: (v: string) => void; disabled?: boolean }> = ({ value, onChange, disabled }) => (
-  <div role="radiogroup" className="inline-flex rounded-md border border-border-subtle bg-surface-2 p-0.5 select-none" aria-label="Tipo de fluxo">
+  <div role="radiogroup" className="flex w-full sm:inline-flex sm:w-auto rounded-md border border-border-subtle bg-surface-2 p-0.5 select-none" aria-label="Tipo de fluxo">
     {[
       { v: 'DESENVOLVIMENTO', Icon: Monitor,    label: 'Desenvolvimento' },
       { v: 'OPERACIONAL',     Icon: Settings2,  label: 'Operacional' },
@@ -141,7 +141,7 @@ const SegmentedFlow: React.FC<{ value: string; onChange: (v: string) => void; di
           disabled={disabled}
           onClick={() => onChange(v)}
           className={cn(
-            'flex items-center gap-1.5 px-3 h-8 text-sm font-medium rounded transition-colors',
+            'flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 h-8 text-sm font-medium rounded transition-colors',
             active
               ? 'bg-surface-1 text-text-primary shadow-sm border border-border-subtle'
               : 'text-text-secondary hover:text-text-primary',
@@ -383,7 +383,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </div>
         )}
 
-        <div className="space-y-6 rounded-lg border border-border-subtle bg-surface-1 p-6">
+        <div className="space-y-6 rounded-lg border border-border-subtle bg-surface-1 p-4 sm:p-6 min-w-0">
 
           {/* Classificação */}
           <FormSection title="Classificação">
@@ -648,7 +648,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
             )}
 
             {hasSubTasks ? (
-              <div className="rounded-md border border-border-subtle bg-surface-app/40 p-4">
+              <div className="rounded-md border border-border-subtle bg-surface-app/40 p-3 sm:p-4 min-w-0">
                 <SubTaskForm taskId={taskId || initialData?.id} />
                 {errors.subTasks && <p className="mt-2 text-xs text-[var(--danger-strong)]">{(errors as any).subTasks?.message}</p>}
               </div>
@@ -698,7 +698,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
             )}
 
             {isAttachmentSectionExpanded && (
-              <div className="mt-3 rounded-md border border-border-subtle p-4 bg-surface-app/40">
+              <div className="mt-3 rounded-md border border-border-subtle p-3 sm:p-4 bg-surface-app/40 min-w-0">
                 <p className="text-xs text-text-tertiary mb-3">
                   {taskId
                     ? 'Faça upload de documentos, imagens e outros arquivos da tarefa.'
@@ -736,11 +736,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
         <div className="sticky bottom-0 -mx-3 sm:-mx-4 lg:-mx-4 mt-6 px-3 sm:px-4 lg:px-4 py-3 bg-surface-app/95 backdrop-blur border-t border-border-subtle z-20">
           <div className="flex items-center justify-end gap-2">
             {onCancel && (
-              <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting || loading}>
+              <Button type="button" variant="secondary" className="flex-1 sm:flex-none" onClick={onCancel} disabled={isSubmitting || loading}>
                 Cancelar
               </Button>
             )}
-            <Button type="submit" loading={isSubmitting || loading} disabled={isSubmitting || loading}>
+            <Button type="submit" className="flex-1 sm:flex-none" loading={isSubmitting || loading} disabled={isSubmitting || loading}>
               {initialData?.id ? 'Salvar alterações' : 'Criar tarefa'}
             </Button>
           </div>

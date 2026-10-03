@@ -27,12 +27,12 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = 'SheetOverlay'
 
 const sheetVariants = cva(
-  'fixed z-50 gap-4 bg-surface-1 shadow-xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out duration-base',
+  'fixed z-50 gap-4 bg-surface-1 shadow-xl flex flex-col max-w-[100vw] data-[state=open]:animate-in data-[state=closed]:animate-out duration-base',
   {
     variants: {
       side: {
-        right:  'inset-y-0 right-0 h-full data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right border-l border-border-subtle',
-        left:   'inset-y-0 left-0  h-full data-[state=closed]:slide-out-to-left  data-[state=open]:slide-in-from-left  border-r border-border-subtle',
+        right:  'inset-y-0 right-0 h-full pt-[env(safe-area-inset-top)] data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right border-l border-border-subtle',
+        left:   'inset-y-0 left-0  h-full pt-[env(safe-area-inset-top)] data-[state=closed]:slide-out-to-left  data-[state=open]:slide-in-from-left  border-r border-border-subtle',
         top:    'inset-x-0 top-0   data-[state=closed]:slide-out-to-top    data-[state=open]:slide-in-from-top    border-b border-border-subtle',
         bottom: 'inset-x-0 bottom-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom border-t border-border-subtle',
       },
@@ -62,7 +62,7 @@ export const SheetContent = React.forwardRef<
     <DialogPrimitive.Content ref={ref} className={cn(sheetVariants({ side, size }), className)} {...props}>
       {children}
       {!hideClose && (
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-text-tertiary hover:bg-surface-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+        <DialogPrimitive.Close className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-md p-1.5 sm:p-1 text-text-tertiary hover:bg-surface-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
           <X className="size-4" />
           <span className="sr-only">Fechar</span>
         </DialogPrimitive.Close>
@@ -73,15 +73,15 @@ export const SheetContent = React.forwardRef<
 SheetContent.displayName = 'SheetContent'
 
 export const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-col gap-1 p-6 pb-4 border-b border-border-subtle', className)} {...props} />
+  <div className={cn('flex flex-col gap-1 px-4 pt-4 pb-4 pr-12 sm:px-6 sm:pt-6 sm:pr-12 border-b border-border-subtle', className)} {...props} />
 )
 
 export const SheetBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex-1 overflow-auto p-6', className)} {...props} />
+  <div className={cn('flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-4 sm:p-6', className)} {...props} />
 )
 
 export const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex justify-end gap-2 p-4 border-t border-border-subtle bg-surface-app/50', className)} {...props} />
+  <div className={cn('flex flex-wrap justify-end gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-border-subtle bg-surface-app/50', className)} {...props} />
 )
 
 export const SheetTitle = React.forwardRef<

@@ -29,13 +29,14 @@ const TONE_STYLE: Record<string, { bg: string; border: string; dot: string; valu
 export const BillingKpiCard: React.FC<KpiCardSimpleProps> = ({ label, value, hint, tone = 'neutral', className }) => {
   const s = TONE_STYLE[tone] || TONE_STYLE.neutral
   return (
-    <Card className={cn('p-4 border', s.bg, s.border, className)}>
-      <div className={cn('flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide', s.label)}>
-        <span className={cn('inline-block h-2 w-2 rounded-full', s.dot)} />
-        {label}
+    // Mobile: linha compacta (rótulo + dica à esquerda, valor à direita). sm+: card empilhado.
+    <Card className={cn('px-4 py-2.5 sm:p-4 border grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 sm:block', s.bg, s.border, className)}>
+      <div className={cn('flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide min-w-0', s.label)}>
+        <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', s.dot)} />
+        <span className="truncate">{label}</span>
       </div>
-      <p className={cn('mt-1.5 text-xl font-bold tabular-nums', s.value)}>{value}</p>
-      {hint && <p className="text-xs text-text-tertiary mt-0.5">{hint}</p>}
+      <p className={cn('row-span-2 text-lg sm:text-xl sm:mt-1.5 font-bold tabular-nums whitespace-nowrap text-right sm:text-left', s.value)}>{value}</p>
+      {hint && <p className="text-xs text-text-tertiary mt-0.5 truncate">{hint}</p>}
     </Card>
   )
 }
@@ -47,10 +48,10 @@ interface BillingKpiHeroProps {
 }
 
 export const BillingKpiHero: React.FC<BillingKpiHeroProps> = ({ total, delta, trendData }) => (
-  <Card className="p-6 border bg-info-soft border-info-border">
+  <Card className="p-4 sm:p-6 border bg-info-soft border-info-border">
     <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">Receita total</p>
-    <div className="mt-2 flex items-baseline gap-3">
-      <span className="text-3xl font-semibold text-text-primary tabular-nums">{brl(total)}</span>
+    <div className="mt-1 sm:mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <span className="text-2xl sm:text-3xl font-semibold text-text-primary tabular-nums whitespace-nowrap">{brl(total)}</span>
       {typeof delta === 'number' && (
         <span className={cn('inline-flex items-center gap-1 text-xs', delta >= 0 ? 'text-success-strong' : 'text-danger-strong')}>
           <TrendingUp className={cn('size-3', delta < 0 && 'rotate-180')} />

@@ -231,12 +231,12 @@ export default function ProjectSelectionModal({
     const selectedCount = selectedProjects.size;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface-1 rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-surface-1 rounded-lg shadow-xl w-full max-w-full sm:max-w-4xl max-h-[92dvh] sm:max-h-[85vh] overflow-hidden">
                 <div className="px-4 sm:px-6 py-3 border-b border-border-subtle bg-surface-1 sticky top-0">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-lg sm:text-xl font-semibold text-text-primary truncate pr-2">
+                        <div className="min-w-0">
+                            <h2 className="text-base sm:text-xl font-semibold text-text-primary truncate pr-2">
                                 Selecionar Repositórios/Projetos
                             </h2>
                         </div>
@@ -257,7 +257,7 @@ export default function ProjectSelectionModal({
                     )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto max-h-[calc(90vh-140px)] sm:max-h-[calc(85vh-140px)]">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden max-h-[calc(92dvh-140px)] sm:max-h-[calc(85vh-140px)]">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full">
                             <LoadingSpinner size="lg" />
@@ -316,8 +316,8 @@ export default function ProjectSelectionModal({
                     )}
                 </div>
 
-                <div className="px-4 sm:px-6 py-1.5 border-t border-border-subtle bg-surface-1 flex items-center justify-between">
-                    <div className="text-xs sm:text-sm text-text-secondary">
+                <div className="px-3 sm:px-6 py-2 sm:py-1.5 border-t border-border-subtle bg-surface-1 flex items-center justify-between gap-3">
+                    <div className="min-w-0 text-xs sm:text-sm text-text-secondary">
                         {paginationData?.totalElements || 0} projeto{(paginationData?.totalElements || 0) !== 1 ? 's' : ''} disponível{(paginationData?.totalElements || 0) !== 1 ? 'eis' : ''}
                         {selectedCount > 0 && (
                             <span className="ml-2 font-medium text-accent">
@@ -326,7 +326,7 @@ export default function ProjectSelectionModal({
                         )}
                     </div>
                     
-                    <div className="flex justify-center">
+                    <div className="flex justify-center shrink-0">
                         <Button
                             onClick={handleConfirmSelection}
                         >

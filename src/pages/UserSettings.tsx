@@ -162,7 +162,7 @@ export const UserSettings: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+        <div className="flex flex-col-reverse gap-2 pt-3 border-t border-border-subtle [&>*]:w-full sm:flex-row sm:items-center sm:justify-end sm:pt-2 sm:[&>*]:w-auto">
           <Button type="button" variant="secondary" onClick={() => navigate(-1)} disabled={loading}>Cancelar</Button>
           <Button type="submit" loading={loading} leadingIcon={!loading ? <Save /> : undefined}>Salvar alterações</Button>
         </div>

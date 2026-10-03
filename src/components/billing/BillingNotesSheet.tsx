@@ -331,13 +331,13 @@ const BillingNotesSheet: React.FC<BillingNotesSheetProps> = ({
                           className="flex-1 min-w-0 text-left"
                           onClick={() => toggleExpand(note)}
                         >
-                          <div className="flex items-center gap-1.5 text-xs text-text-tertiary mb-1">
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-tertiary mb-1">
                             {expanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
                             <span>{formatDateTime(note.createdAt)}</span>
                             {note.createdByName && <span>· {note.createdByName}</span>}
                           </div>
                           {note.title && (
-                            <p className="font-medium text-text-primary truncate">{note.title}</p>
+                            <p className="font-medium text-text-primary break-words">{note.title}</p>
                           )}
                           {!expanded && (
                             <p className="text-sm text-text-secondary line-clamp-2">

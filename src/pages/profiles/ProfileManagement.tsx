@@ -17,7 +17,7 @@ import { Card } from '@/components/ui-v2/Card'
 import { StatusDot } from '@/components/ui-v2/StatusDot'
 import { Switch } from '@/components/ui-v2/Switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui-v2/Tabs'
-import { DataTable, DataTableBulkBar } from '@/components/ui-v2/DataTable'
+import { DataTable, DataTableBulkBar, MobilePagination } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetBody, SheetFooter } from '@/components/ui-v2/Sheet'
@@ -223,7 +223,7 @@ const ProfileManagement: React.FC = () => {
 
       {/* KPIs (somente quando estiver na aba usuários) */}
       {tab === 'users' && (
-        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-5">
           <Card className="p-4">
             <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">Total</p>
             <p className="mt-1 text-xl font-semibold text-text-primary tabular-nums">{totalUsers}</p>
@@ -289,28 +289,39 @@ const ProfileManagement: React.FC = () => {
             {usersHook.loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
             {!usersHook.loading && usersHook.users.length === 0 && <EmptyState icon={<Users />} title="Nenhum usuário" description="—" />}
             {!usersHook.loading && usersHook.users.map((u) => (
-              <Card key={u.id} className="p-4">
-                <div className="flex items-center gap-2.5">
+              <Card key={u.id} className="p-3 sm:p-4">
+                <button onClick={() => setUserSheet({ mode: 'edit', user: u })} className="w-full flex items-center gap-2.5 text-left">
                   <Avatar name={u.name || u.username} size="md" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <span className="font-medium text-text-primary truncate">{u.name || u.username}</span>
                       <StatusDot tone={u.enabled ? 'success' : 'neutral'} />
                     </div>
                     <p className="text-xs text-text-tertiary truncate">{u.email}</p>
                   </div>
-                  <Button size="icon-sm" variant="ghost" onClick={() => setUserSheet({ mode: 'edit', user: u })} aria-label="Editar" title="Editar"><Pencil /></Button>
-                  <Button size="icon-sm" variant="ghost" onClick={() => setConfirmResetUser(u)} aria-label="Redefinir senha" title="Redefinir senha"><KeyRound /></Button>
-                  <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDeleteUser({ ids: [u.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
-                </div>
-                {u.profiles?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {u.profiles.map((p) => <Badge key={p.id} variant="info" size="sm">{p.name}</Badge>)}
+                </button>
+                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border-subtle">
+                  <div className="flex flex-wrap gap-1 flex-1 min-w-0">
+                    {u.profiles?.map((p) => <Badge key={p.id} variant="info" size="sm">{p.name}</Badge>)}
                   </div>
-                )}
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <Button size="icon-sm" variant="ghost" onClick={() => setUserSheet({ mode: 'edit', user: u })} aria-label="Editar" title="Editar"><Pencil /></Button>
+                    <Button size="icon-sm" variant="ghost" onClick={() => setConfirmResetUser(u)} aria-label="Redefinir senha" title="Redefinir senha"><KeyRound /></Button>
+                    <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDeleteUser({ ids: [u.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
+                  </div>
+                </div>
               </Card>
             ))}
           </div>
+          {usersHook.pagination && (
+            <MobilePagination
+              className="lg:hidden mt-3"
+              page={usersHook.pagination.currentPage}
+              pageSize={usersHook.pagination.pageSize}
+              total={usersHook.pagination.totalElements}
+              onPageChange={usersHook.setPage}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="profiles">
@@ -354,19 +365,19 @@ const ProfileManagement: React.FC = () => {
             {profilesHook.loading && Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
             {!profilesHook.loading && profilesHook.profiles.length === 0 && <EmptyState icon={<Shield />} title="Nenhum perfil" description="Crie o primeiro." actions={<Button leadingIcon={<Plus />} onClick={() => setProfileModal({ profile: null, isEditing: false })}>Novo</Button>} />}
             {!profilesHook.loading && profilesHook.profiles.map((p) => (
-              <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+              <div key={p.id} className="rounded-lg border border-border-subtle bg-surface-1 p-3 sm:p-4">
                 <button onClick={() => setProfileModal({ profile: p, isEditing: true })} className="w-full text-left">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-medium text-text-primary truncate">{p.name}</span>
-                      <Badge variant="neutral" size="sm">{p.code}</Badge>
+                      <Badge variant="neutral" size="sm" className="shrink-0">{p.code}</Badge>
                     </div>
                     <StatusDot tone={p.active ? 'success' : 'neutral'} />
                   </div>
                   {p.description && <p className="text-xs text-text-tertiary line-clamp-2">{p.description}</p>}
                   <p className="text-xs text-text-secondary mt-1">{p.userCount ?? 0} usuário(s) · nível {p.level}</p>
                 </button>
-                <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+                <div className="flex items-center justify-end gap-0.5 mt-2 pt-2 border-t border-border-subtle">
                   <Button size="icon-sm" variant="ghost" onClick={() => setProfileModal({ profile: p, isEditing: true })} aria-label="Editar" title="Editar"><Pencil /></Button>
                   <Button size="icon-sm" variant="ghost" onClick={() => setUserAssignment(p)} aria-label="Atribuir usuários" title="Atribuir usuários"><UserPlus /></Button>
                   <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDeleteProfile({ ids: [p.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
@@ -374,6 +385,15 @@ const ProfileManagement: React.FC = () => {
               </div>
             ))}
           </div>
+          {profilesHook.pagination && (
+            <MobilePagination
+              className="lg:hidden mt-3"
+              page={profilesHook.pagination.currentPage}
+              pageSize={profilesHook.pagination.pageSize}
+              total={profilesHook.pagination.totalElements}
+              onPageChange={profilesHook.setPage}
+            />
+          )}
         </TabsContent>
       </Tabs>
 

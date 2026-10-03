@@ -71,7 +71,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode; className?: 
 )
 
 const InfoField: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
-  <div className={className}>
+  <div className={cn('min-w-0', className)}>
     <p className="text-xs text-text-tertiary mb-0.5">{label}</p>
     <div className="text-sm text-text-primary">{children}</div>
   </div>
@@ -195,8 +195,8 @@ const TaskView: React.FC = () => {
             </span>
           }
           subtitle={
-            <span className="inline-flex items-center gap-2">
-              {task.code && <span className="font-mono text-xs">{task.code}</span>}
+            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
+              {task.code && <span className="font-mono text-xs break-all">{task.code}</span>}
               {task.code && task.requesterName && <span className="text-text-tertiary">·</span>}
               {task.requesterName && <span>{task.requesterName}</span>}
             </span>
@@ -211,8 +211,8 @@ const TaskView: React.FC = () => {
         />
 
         {/* Cabeçalho compacto: chips + valor à direita */}
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
             {task.flowType && <FlowChip value={task.flowType} />}
             {task.taskType && <TaskTypeLabel value={task.taskType} />}
             {task.environment && <EnvLabel value={task.environment} />}
@@ -224,14 +224,14 @@ const TaskView: React.FC = () => {
             )}
           </div>
           {canViewValues && (
-            <div className="text-right">
+            <div className="sm:text-right">
               <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor total</p>
-              <p className="text-lg font-semibold text-text-primary tabular-nums">{formatCurrency(total)}</p>
+              <p className="text-lg font-semibold text-text-primary tabular-nums whitespace-nowrap">{formatCurrency(total)}</p>
             </div>
           )}
         </div>
 
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6 space-y-6">
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 sm:p-6 space-y-6 min-w-0">
 
           <Section title="Conteúdo">
             <InfoField label="Título">
@@ -241,7 +241,7 @@ const TaskView: React.FC = () => {
             {task.description ? (
               <InfoField label="Descrição">
                 <div
-                  className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-md"
+                  className="prose prose-sm dark:prose-invert max-w-none break-words prose-img:max-w-full prose-img:h-auto prose-img:rounded-md prose-pre:overflow-x-auto prose-table:block prose-table:overflow-x-auto"
                   dangerouslySetInnerHTML={{ __html: task.description }}
                 />
               </InfoField>
@@ -280,13 +280,13 @@ const TaskView: React.FC = () => {
             <Section title="Links">
               {task.link && (
                 <InfoField label="Link da tarefa">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <LinkIcon className="size-3.5 text-text-tertiary shrink-0" />
                     <a
                       href={task.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-accent hover:underline truncate flex-1"
+                      className="text-accent hover:underline truncate flex-1 min-w-0"
                     >
                       {task.link}
                     </a>
@@ -297,13 +297,13 @@ const TaskView: React.FC = () => {
               )}
               {task.meetingLink && (
                 <InfoField label="Link da reunião">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <Video className="size-3.5 text-text-tertiary shrink-0" />
                     <a
                       href={task.meetingLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-accent hover:underline truncate flex-1"
+                      className="text-accent hover:underline truncate flex-1 min-w-0"
                     >
                       {task.meetingLink}
                     </a>
@@ -319,7 +319,7 @@ const TaskView: React.FC = () => {
             <Section title={`Subtarefas (${subtasks.length})`}>
               <div className="rounded-md border border-border-subtle divide-y divide-border-subtle overflow-hidden">
                 {subtasks.map((s, idx) => (
-                  <div key={s.id} className={cn('px-4 py-3 hover:bg-surface-app/40 transition-colors', s.completed && 'bg-success-soft/30')}>
+                  <div key={s.id} className={cn('px-3 sm:px-4 py-3 hover:bg-surface-app/40 transition-colors', s.completed && 'bg-success-soft/30')}>
                     <div className="flex items-start gap-3">
                       <span className="size-6 shrink-0 grid place-items-center rounded-full bg-surface-2 text-xs font-semibold text-text-secondary">
                         {idx + 1}
@@ -332,7 +332,7 @@ const TaskView: React.FC = () => {
                         )}
                         {s.description && (
                           <div
-                            className={cn('prose prose-sm dark:prose-invert max-w-none mt-1', s.completed && 'text-[var(--success-strong)]')}
+                            className={cn('prose prose-sm dark:prose-invert max-w-none break-words mt-1', s.completed && 'text-[var(--success-strong)]')}
                             dangerouslySetInnerHTML={{ __html: s.description }}
                           />
                         )}
@@ -400,7 +400,7 @@ const TaskView: React.FC = () => {
               </div>
             )}
             {isAttachmentSectionExpanded && (
-              <div className="mt-3 rounded-md border border-border-subtle p-4 bg-surface-app/40">
+              <div className="mt-3 rounded-md border border-border-subtle p-3 sm:p-4 bg-surface-app/40 min-w-0">
                 <AttachmentList taskId={task.id} forceExpanded={true} readOnly={true} onCountChange={setTaskAttachmentCount} />
               </div>
             )}
@@ -409,14 +409,14 @@ const TaskView: React.FC = () => {
           <Section title="Auditoria">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoField label="Criada em">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Calendar className="size-3.5 text-text-tertiary" />
                   <span className="font-medium tabular-nums">{formatDate(task.createdAt)}</span>
                   {task.createdByUserName && <span className="text-text-tertiary text-xs">· por {task.createdByUserName}</span>}
                 </div>
               </InfoField>
               <InfoField label="Última atualização">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Calendar className="size-3.5 text-text-tertiary" />
                   <span className="font-medium tabular-nums">{formatDate(task.updatedAt)}</span>
                   {task.updatedByUserName && <span className="text-text-tertiary text-xs">· por {task.updatedByUserName}</span>}

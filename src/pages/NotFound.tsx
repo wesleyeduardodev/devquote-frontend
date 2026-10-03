@@ -15,8 +15,8 @@ const NotFound: React.FC = () => (
         A página que você está procurando não existe ou foi movida.
       </p>
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
-        <Button variant="secondary" leadingIcon={<ArrowLeft />} onClick={() => window.history.back()}>Voltar</Button>
-        <Link to="/"><Button leadingIcon={<Home />}>Ir para o Dashboard</Button></Link>
+        <Button variant="secondary" leadingIcon={<ArrowLeft />} onClick={() => window.history.back()} className="w-full sm:w-auto">Voltar</Button>
+        <Link to="/" className="w-full sm:w-auto"><Button leadingIcon={<Home />} className="w-full">Ir para o Dashboard</Button></Link>
       </div>
     </div>
   </div>

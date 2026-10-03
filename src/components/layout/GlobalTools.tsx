@@ -53,7 +53,7 @@ export const GlobalTools: React.FC<GlobalToolsProps> = ({ onToggleSidebar }) => 
           aria-label="Buscar global"
         >
           <Search className="size-4" />
-          <kbd className="font-mono text-[10px] bg-surface-2 border border-border-subtle rounded px-1 py-0.5">⌘K</kbd>
+          <kbd className="hidden sm:inline font-mono text-[10px] bg-surface-2 border border-border-subtle rounded px-1 py-0.5">⌘K</kbd>
         </button>
       </TooltipQuick>
 
@@ -66,7 +66,7 @@ export const GlobalTools: React.FC<GlobalToolsProps> = ({ onToggleSidebar }) => 
         </button>
       </TooltipQuick>
 
-      <div className="h-5 w-px bg-border-subtle mx-1" aria-hidden />
+      <div className="hidden sm:block h-5 w-px bg-border-subtle mx-1" aria-hidden />
 
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-2 px-1.5 py-0.5 rounded-md hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">

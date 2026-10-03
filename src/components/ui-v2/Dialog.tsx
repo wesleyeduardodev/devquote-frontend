@@ -35,8 +35,8 @@ export const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
-        'w-[92vw] max-w-lg max-h-[90vh] overflow-auto',
-        'rounded-xl border border-border-subtle bg-surface-1 p-6 shadow-xl',
+        'w-[calc(100vw-1.5rem)] max-w-lg max-h-[90dvh] overflow-y-auto overflow-x-hidden overscroll-contain',
+        'rounded-xl border border-border-subtle bg-surface-1 p-4 sm:p-6 shadow-xl',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0',
         'data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95',
@@ -46,7 +46,7 @@ export const DialogContent = React.forwardRef<
     >
       {children}
       {!hideClose && (
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-text-tertiary hover:bg-surface-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+        <DialogPrimitive.Close className="absolute right-3 top-3 sm:right-4 sm:top-4 z-20 rounded-md p-1.5 sm:p-1 text-text-tertiary hover:bg-surface-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
           <X className="size-4" />
           <span className="sr-only">Fechar</span>
         </DialogPrimitive.Close>
@@ -57,11 +57,21 @@ export const DialogContent = React.forwardRef<
 DialogContent.displayName = 'DialogContent'
 
 export const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-col gap-1.5 pb-4', className)} {...props} />
+  <div className={cn('flex flex-col gap-1.5 pb-4 pr-8 min-w-0', className)} {...props} />
 )
 
 export const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex justify-end gap-2 pt-4 border-t border-border-subtle mt-4', className)} {...props} />
+  // Rodapé fixo no fim do scroll do diálogo. No mobile os botões empilham em largura total
+  // (ação principal em cima); a partir de sm voltam lado a lado alinhados à direita.
+  <div
+    className={cn(
+      'sticky bottom-0 z-10 bg-surface-1 flex flex-col-reverse gap-2 pt-4 border-t border-border-subtle mt-4',
+      '-mx-4 px-4 -mb-4 pb-4 sm:-mx-6 sm:px-6 sm:-mb-6 sm:pb-6',
+      '[&>*]:w-full sm:flex-row sm:justify-end sm:flex-wrap sm:[&>*]:w-auto',
+      className
+    )}
+    {...props}
+  />
 )
 
 export const DialogTitle = React.forwardRef<

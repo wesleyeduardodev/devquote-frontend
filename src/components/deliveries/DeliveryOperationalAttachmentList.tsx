@@ -255,17 +255,17 @@ export function DeliveryOperationalAttachmentList({
               </div>
             ) : hasAttachments ? (
               attachments.map((attachment) => (
-                <div key={attachment.id} className="flex items-center justify-between p-3 bg-surface-app rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <File className="w-5 h-5 text-text-tertiary" />
-                    <div>
-                      <p className="text-sm font-medium text-text-primary">{attachment.originalName}</p>
+                <div key={attachment.id} className="flex items-center justify-between gap-2 p-3 bg-surface-app rounded-lg min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <File className="w-5 h-5 text-text-tertiary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-text-primary truncate" title={attachment.originalName}>{attachment.originalName}</p>
                       <p className="text-xs text-text-tertiary">
                         {formatFileSize(attachment.fileSize)} • {new Date(attachment.uploadedAt).toLocaleString('pt-BR')}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleDownload(attachment)}

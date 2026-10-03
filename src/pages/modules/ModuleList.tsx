@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/ui-v2/PageHeader'
 import { Badge } from '@/components/ui-v2/Badge'
 import { EmptyState } from '@/components/ui-v2/EmptyState'
 import { Skeleton } from '@/components/ui-v2/Skeleton'
-import { DataTable, DataTableBulkBar, FilterChipsRow } from '@/components/ui-v2/DataTable'
+import { DataTable, DataTableBulkBar, FilterChipsRow, MobilePagination } from '@/components/ui-v2/DataTable'
 import { Input } from '@/components/ui-v2/Input'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from '@/components/ui-v2/Dialog'
 
@@ -125,20 +125,30 @@ const ModuleList: React.FC = () => {
           <EmptyState icon={<Boxes />} title="Nenhum módulo" description={chips.length > 0 ? 'Ajuste os filtros.' : 'Crie o primeiro.'} actions={isAdmin?.() && <Button leadingIcon={<Plus />} onClick={() => navigate('/modules/create')}>Novo</Button>} />
         )}
         {!loading && modules.map((m: any) => (
-          <div key={m.id} className="rounded-lg border border-border-subtle bg-surface-1 p-4">
-            <button onClick={() => navigate(`/modules/${m.id}/edit`)} className="w-full text-left">
-              <div className="flex items-start justify-between gap-2">
+          <div key={m.id} className="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface-1 py-2 pl-4 pr-2">
+            <button onClick={() => navigate(`/modules/${m.id}/edit`)} className="flex-1 min-w-0 text-left">
+              <div className="flex items-center gap-2 min-w-0">
                 <span className="font-medium text-text-primary truncate">{m.name}</span>
-                <Badge size="sm">#{m.id}</Badge>
+                <Badge size="sm" className="shrink-0">#{m.id}</Badge>
               </div>
             </button>
-            <div className="flex items-center justify-end gap-0.5 mt-3 pt-3 border-t border-border-subtle">
+            <div className="flex items-center gap-0.5 shrink-0">
               <Button size="icon-sm" variant="ghost" onClick={() => navigate(`/modules/${m.id}/edit`)} aria-label="Editar" title="Editar"><Pencil /></Button>
               <Button size="icon-sm" variant="ghost" onClick={() => setConfirmDelete({ kind: 'one', ids: [m.id] })} aria-label="Excluir" title="Excluir" className="text-text-secondary hover:text-[var(--danger-strong)]"><Trash2 /></Button>
             </div>
           </div>
         ))}
       </div>
+
+      {pagination && (
+        <MobilePagination
+          className="lg:hidden mt-3"
+          page={pagination.currentPage}
+          pageSize={pagination.pageSize}
+          total={pagination.totalElements}
+          onPageChange={setPage}
+        />
+      )}
 
       <Dialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}>
         <DialogContent>

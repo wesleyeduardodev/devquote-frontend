@@ -21,10 +21,10 @@ export const PriorityStatusBadge: React.FC<{ status: string; className?: string 
   const m = meta(status)
   return (
     <span
-      className={cn('inline-flex items-center gap-2 h-7 px-2.5 rounded-md text-xs font-semibold uppercase tracking-wide', className)}
+      className={cn('inline-flex items-center gap-2 min-h-7 py-1 px-2.5 rounded-md text-xs font-semibold uppercase tracking-wide leading-tight', className)}
       style={{ color: m.color, backgroundColor: `${m.color}1f` }}
     >
-      <span className="size-2 rounded-full" style={{ backgroundColor: m.color }} />
+      <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: m.color }} />
       {m.label}
     </span>
   )

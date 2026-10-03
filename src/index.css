@@ -199,3 +199,15 @@
   100% { transform: translateX(100%); }
 }
 .animate-loading-bar { animation: loading-bar 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+/* ============= Mobile / PWA ============= */
+/* iOS Safari dá zoom ao focar campo com fonte < 16px. No mobile força 16px em todo controle
+   de texto (inputs v2/legado, filtros de coluna, cmdk, editor rich-text); desktop (sm+) intacto. */
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+  select,
+  textarea,
+  [contenteditable='true'] {
+    font-size: 16px !important;
+  }
+}

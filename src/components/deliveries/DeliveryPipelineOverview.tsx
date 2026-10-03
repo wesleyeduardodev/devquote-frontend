@@ -32,7 +32,38 @@ export const DeliveryPipelineOverview: React.FC<Props> = ({ segments, total, onS
         <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">Pipeline</span>
         <span className="text-xs text-text-secondary">Total: <strong className="text-text-primary tabular-nums">{total}</strong></span>
       </div>
-      <div className="flex w-full h-16 overflow-hidden">
+      {/* Mobile: barra proporcional fina + grade de status (a barra larga não cabe com muitos status) */}
+      <div className="sm:hidden">
+        <div className="flex w-full h-1.5 overflow-hidden">
+          {segments.map((s) => (
+            <span
+              key={s.key}
+              style={{ flex: `${total > 0 ? s.count / total : 1 / segments.length} 1 0%` }}
+              className={TONE_BG[s.tone]}
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-3">
+          {segments.map((s) => (
+            <button
+              key={s.key}
+              onClick={() => onSegmentClick?.(s)}
+              className={cn(
+                'flex flex-col items-start px-3 py-2 text-left min-w-0',
+                TONE_BG[s.tone],
+                'border-r-0',
+                activeKey === s.key && 'ring-2 ring-inset ring-accent'
+              )}
+              title={`${s.label}: ${s.count}`}
+            >
+              <span className="text-lg font-semibold tabular-nums leading-none">{s.count}</span>
+              <span className="text-[10px] uppercase tracking-wide mt-1 leading-tight break-words w-full">{s.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden sm:flex w-full h-16 overflow-hidden">
         {segments.map((s) => {
           const flex = total > 0 ? Math.max(s.count / total, 0.05) : 1 / segments.length
           const active = activeKey === s.key

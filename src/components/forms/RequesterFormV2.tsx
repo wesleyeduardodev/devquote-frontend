@@ -54,7 +54,7 @@ export const RequesterFormV2: React.FC<Props> = ({ initialData, onSubmit, onCanc
         <Input leadingIcon={<Phone />} placeholder="(98) 98765-4321" {...register('phone')} invalid={!!errors.phone} />
       </Field>
 
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border-subtle sm:flex sm:items-center sm:justify-end">
         {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>}
         <Button type="submit" loading={loading}>{submitLabel}</Button>
       </div>

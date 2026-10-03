@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ListChecks, Truck, DollarSign,
   Users, FolderKanban, Shield, Bell, Settings,
   ChevronsLeft, ChevronsRight, Sun, Moon, Monitor,
-  Zap, LogOut, ListOrdered, Boxes, Server
+  Zap, LogOut, ListOrdered, Boxes, Server, X
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAuth } from '@/hooks/useAuth'
@@ -81,6 +81,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
     try { await logout?.() } finally { navigate('/login') }
   }
 
+  // Drawer mobile: mais largo (até 85vw), alvos de toque maiores e respeita a safe-area.
+  const isMobile = !!onCloseMobile
+
   return (
     <TooltipProvider delayDuration={150}>
       <aside
@@ -89,11 +92,20 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
           'bg-[var(--sidebar-bg)] text-[var(--sidebar-text)]',
           'border-r border-[var(--sidebar-border)]',
           'transition-[width] duration-base ease-smooth',
-          collapsed ? 'w-[64px]' : 'w-[260px]'
+          collapsed ? 'w-[64px]' : isMobile ? 'w-[min(288px,85vw)] shadow-xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]' : 'w-[260px]'
         )}
       >
         <div className={cn('h-14 flex items-center px-3 border-b border-[var(--sidebar-border)] gap-2 shrink-0', collapsed && 'justify-center px-0')}>
           <BrandMark collapsed={collapsed} />
+          {isMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="ml-auto p-2 -mr-1 rounded-md text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)] transition-colors"
+              aria-label="Fechar menu"
+            >
+              <X className="size-5" />
+            </button>
+          )}
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3 px-2">
@@ -112,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
                 <ul className={cn(collapsed ? 'space-y-1.5' : 'space-y-0.5')}>
                   {visibleItems.map((item) => (
                     <li key={item.to} className={cn(collapsed && 'flex justify-center')}>
-                      <NavItemEl item={item} collapsed={collapsed} onNavigate={onCloseMobile} />
+                      <NavItemEl item={item} collapsed={collapsed} onNavigate={onCloseMobile} mobile={isMobile} />
                     </li>
                   ))}
                 </ul>
@@ -130,13 +142,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapsed, onClose
             label="Sair da conta"
             danger
           />
-          <FooterIconButton
-            collapsed={collapsed}
-            onClick={onToggleCollapsed}
-            icon={collapsed ? <ChevronsRight /> : <ChevronsLeft />}
-            label={collapsed ? 'Expandir' : 'Recolher'}
-            shortcut="["
-          />
+          {!isMobile && (
+            <FooterIconButton
+              collapsed={collapsed}
+              onClick={onToggleCollapsed}
+              icon={collapsed ? <ChevronsRight /> : <ChevronsLeft />}
+              label={collapsed ? 'Expandir' : 'Recolher'}
+              shortcut="["
+            />
+          )}
         </div>
       </aside>
     </TooltipProvider>
@@ -156,7 +170,7 @@ const BrandMark: React.FC<{ collapsed: boolean }> = ({ collapsed }) => (
   </div>
 )
 
-const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () => void }> = ({ item, collapsed, onNavigate }) => {
+const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () => void; mobile?: boolean }> = ({ item, collapsed, onNavigate, mobile }) => {
   const Icon = item.icon
   const inner = (
     <NavLink
@@ -165,7 +179,7 @@ const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () =
       className={({ isActive }) =>
         cn(
           'group relative flex items-center gap-2.5 rounded-md text-sm font-medium transition-colors',
-          collapsed ? 'justify-center size-9' : 'h-8 px-2',
+          collapsed ? 'justify-center size-9' : mobile ? 'h-10 px-2.5' : 'h-8 px-2',
           isActive
             ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)]'
             : 'text-[var(--sidebar-text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--sidebar-text)]'
@@ -179,7 +193,7 @@ const NavItemEl: React.FC<{ item: NavItem; collapsed: boolean; onNavigate?: () =
           )}
           <Icon className="size-4 shrink-0" />
           {!collapsed && <span className="truncate flex-1">{item.label}</span>}
-          {!collapsed && item.shortcut && (
+          {!collapsed && !mobile && item.shortcut && (
             <kbd className="font-mono text-[10px] leading-none px-1.5 py-1 rounded border border-[var(--sidebar-border)] text-[var(--sidebar-text-dim)] opacity-0 group-hover:opacity-100 transition-opacity">{item.shortcut}</kbd>
           )}
         </>

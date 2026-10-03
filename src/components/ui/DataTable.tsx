@@ -334,7 +334,7 @@ const DataTable = <T extends Record<string, any>>({
 
         return (
             <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                {/* Mobile: Mostrar apenas botÃµes essenciais */}
+                {/* Mobile: Mostrar apenas botões essenciais */}
                 <div className="flex items-center space-x-1 sm:hidden">
                     <Button
                         size="sm"
@@ -363,7 +363,7 @@ const DataTable = <T extends Record<string, any>>({
                     </Button>
                 </div>
 
-                {/* Desktop: Mostrar todos os botÃµes */}
+                {/* Desktop: Mostrar todos os botões */}
                 <div className="hidden sm:flex sm:items-center sm:space-x-2">
                     <Button
                         size="sm"
@@ -410,7 +410,7 @@ const DataTable = <T extends Record<string, any>>({
     };
 
     return (
-        <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+        <div className={`bg-white rounded-lg shadow-sm border border-gray-200 max-w-full min-w-0 ${className}`}>
             {/* Header com controle de colunas e filtros - Mobile responsive */}
             {(showColumnToggle || hasActiveFilters) && (
                 <div className="border-b border-gray-200 px-4 py-3">
@@ -463,7 +463,7 @@ const DataTable = <T extends Record<string, any>>({
             )}
 
             {/* Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overscroll-x-contain">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                     <tr>
@@ -540,7 +540,7 @@ const DataTable = <T extends Record<string, any>>({
                         
                         {onPageSizeChange && (
                             <div className="flex items-center justify-center space-x-2">
-                                <span className="text-sm text-gray-700">Por pÃ¡gina:</span>
+                                <span className="text-sm text-gray-700">Por página:</span>
                                 <select
                                     value={pagination.pageSize}
                                     onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -565,7 +565,7 @@ const DataTable = <T extends Record<string, any>>({
 
                             {onPageSizeChange && (
                                 <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-gray-700">Itens por pÃ¡gina:</span>
+                                    <span className="text-sm text-gray-700">Itens por página:</span>
                                     <select
                                         value={pagination.pageSize}
                                         onChange={(e) => onPageSizeChange(Number(e.target.value))}

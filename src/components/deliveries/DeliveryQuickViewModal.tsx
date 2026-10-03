@@ -32,16 +32,16 @@ const formatDate = (s?: string) => {
 }
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="border-t border-border-subtle pt-4 first:border-t-0 first:pt-0">
+  <section className="min-w-0 border-t border-border-subtle pt-4 first:border-t-0 first:pt-0">
     <h3 className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-3">{title}</h3>
     <div className="space-y-3">{children}</div>
   </section>
 )
 
 const InfoField: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
-  <div className={className}>
+  <div className={['min-w-0', className].filter(Boolean).join(' ')}>
     <p className="text-xs text-text-tertiary mb-0.5">{label}</p>
-    <div className="text-sm text-text-primary">{children}</div>
+    <div className="text-sm text-text-primary min-w-0">{children}</div>
   </div>
 )
 
@@ -94,10 +94,10 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
             {loading
               ? 'Carregando…'
               : (
-                <span className="inline-flex items-center gap-2">
+                <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
                   {delivery?.taskCode && <span className="font-mono text-xs">{delivery.taskCode}</span>}
                   {delivery?.taskCode && delivery?.taskName && <span className="text-text-tertiary">·</span>}
-                  {delivery?.taskName && <span className="truncate">{delivery.taskName}</span>}
+                  {delivery?.taskName && <span className="min-w-0 break-words lg:truncate">{delivery.taskName}</span>}
                 </span>
               )}
           </DialogDescription>
@@ -122,9 +122,9 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                 <DeliveryStatusBadge status={delivery.status} />
               </div>
               {canViewValues && delivery.taskValue !== undefined && delivery.taskValue !== null && (
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor</p>
-                  <p className="text-base font-semibold text-text-primary tabular-nums">{brl(delivery.taskValue)}</p>
+                  <p className="text-base font-semibold text-text-primary tabular-nums whitespace-nowrap">{brl(delivery.taskValue)}</p>
                 </div>
               )}
             </div>
@@ -141,7 +141,7 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                   </button>
                 </InfoField>
                 <InfoField label="Código"><span className="font-mono">{delivery.taskCode || '—'}</span></InfoField>
-                <InfoField label="Título"><span className="block truncate">{delivery.taskName || '—'}</span></InfoField>
+                <InfoField label="Título"><span className="block break-words md:truncate">{delivery.taskName || '—'}</span></InfoField>
               </div>
             </Section>
 
@@ -168,7 +168,7 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                   <div className="flex items-start gap-2">
                     <StickyNote className="size-4 text-[var(--warning-strong)] shrink-0 mt-0.5" />
                     <div
-                      className="prose prose-sm dark:prose-invert max-w-none flex-1"
+                      className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto flex-1 min-w-0 [overflow-wrap:anywhere]"
                       dangerouslySetInnerHTML={{ __html: delivery.notes }}
                     />
                   </div>
@@ -187,11 +187,11 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                   {items.map((item: any, idx: number) => (
                     <div key={item.id} className="rounded-md border border-border-subtle overflow-hidden">
                       <div className="bg-surface-app/60 px-3 py-2 border-b border-border-subtle">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <span className="size-5 shrink-0 grid place-items-center rounded-full bg-surface-2 text-[10px] font-semibold text-text-secondary">
                             {idx + 1}
                           </span>
-                          <FolderOpen className="size-4 text-accent shrink-0" />
+                          <FolderOpen className="hidden sm:block size-4 text-accent shrink-0" />
                           <p className="flex-1 min-w-0 text-sm font-medium text-text-primary truncate">
                             {isOperacional ? (item.title || `Item #${item.id}`) : (item.projectName || `Item #${item.id}`)}
                           </p>
@@ -204,7 +204,7 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                             {item.description && (
                               <InfoField label="Descrição">
                                 <div
-                                  className="prose prose-sm dark:prose-invert max-w-none"
+                                  className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto [overflow-wrap:anywhere]"
                                   dangerouslySetInnerHTML={{ __html: item.description }}
                                 />
                               </InfoField>
@@ -226,7 +226,7 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                                     href={item.pullRequest}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-accent hover:underline truncate flex-1 text-xs"
+                                    className="text-accent hover:underline truncate flex-1 min-w-0 text-xs"
                                   >
                                     {item.pullRequest}
                                   </a>
@@ -249,7 +249,7 @@ export const DeliveryQuickViewModal: React.FC<Props> = ({ deliveryId, open, onCl
                             {item.notes && (
                               <InfoField label="Observações">
                                 <div
-                                  className="prose prose-sm dark:prose-invert max-w-none rounded-md border-l-2 border-warning-border bg-warning-soft/50 pl-3 py-2"
+                                  className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto [overflow-wrap:anywhere] rounded-md border-l-2 border-warning-border bg-warning-soft/50 pl-3 py-2"
                                   dangerouslySetInnerHTML={{ __html: item.notes }}
                                 />
                               </InfoField>

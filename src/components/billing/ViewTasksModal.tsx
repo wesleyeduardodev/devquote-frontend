@@ -320,13 +320,13 @@ const ViewTasksModal: React.FC<Props> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-7xl h-[75vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
+            <div className="bg-surface-1 rounded-none sm:rounded-xl shadow-2xl w-full max-w-7xl h-[100dvh] sm:h-[75vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-border-subtle bg-gradient-to-r from-gray-50 to-blue-50">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 pt-[calc(0.75rem+env(safe-area-inset-top))] sm:pt-4 border-b border-border-subtle bg-gradient-to-r from-gray-50 to-blue-50">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <h2 className="text-base sm:text-xl font-bold text-text-primary flex items-center gap-2">
                                 <Eye className="w-5 h-5" />
                                 Visualizar Tarefas do Período
                             </h2>
@@ -338,7 +338,8 @@ const ViewTasksModal: React.FC<Props> = ({
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-text-tertiary hover:text-text-secondary transition-colors"
+                            className="shrink-0 p-1 -m-1 text-text-tertiary hover:text-text-secondary transition-colors"
+                            aria-label="Fechar"
                         >
                             <X className="w-6 h-6" />
                         </button>
@@ -352,7 +353,7 @@ const ViewTasksModal: React.FC<Props> = ({
                             <LoadingSpinner size="lg" />
                         </div>
                     ) : (
-                        <div className="h-full p-6 overflow-auto">
+                        <div className="h-full p-3 sm:p-6 overflow-auto">
                             {/* Desktop: Tabela */}
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
@@ -428,7 +429,7 @@ const ViewTasksModal: React.FC<Props> = ({
                                 {/* Filtros Mobile */}
                                 <div className="bg-surface-app rounded-lg p-3 space-y-3">
                                     <div className="text-sm font-medium text-text-secondary">Filtros</div>
-                                    <div className="grid grid-cols-1 gap-3">
+                                    <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <label className="block text-xs text-text-secondary mb-1">ID</label>
                                             <input
@@ -488,11 +489,11 @@ const ViewTasksModal: React.FC<Props> = ({
                                     </div>
                                 ) : (
                                     filteredTasks.map((link, index) => (
-                                        <div key={link?.task?.id || index} className="bg-surface-1 border border-border-subtle rounded-lg p-4 shadow-sm">
+                                        <div key={link?.task?.id || index} className="bg-surface-1 border border-border-subtle rounded-lg p-3 shadow-sm">
                                             {/* Header do card com ID */}
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex-1">
-                                                    <div className="font-semibold text-text-primary text-base line-clamp-2">{link?.task?.title || '-'}</div>
+                                                    <div className="font-semibold text-text-primary text-sm sm:text-base break-words">{link?.task?.title || '-'}</div>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-surface-2 text-text-primary">
                                                             #{link?.task?.id}
@@ -554,10 +555,10 @@ const ViewTasksModal: React.FC<Props> = ({
                             
                             {/* Paginação padrão */}
                             {pagination && pagination.totalPages > 0 && (
-                                <div className="bg-surface-1 px-4 py-3 border-t border-border-subtle">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-sm text-text-secondary">
+                                <div className="bg-surface-1 px-0 sm:px-4 py-3 border-t border-border-subtle mt-3 sm:mt-0">
+                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                            <div className="text-xs sm:text-sm text-text-secondary">
                                                 Mostrando {currentPage * pageSize + 1} a {Math.min((currentPage + 1) * pageSize, pagination.totalElements)} de {pagination.totalElements} resultados
                                             </div>
                                             <div className="flex items-center space-x-2">
@@ -614,12 +615,12 @@ const ViewTasksModal: React.FC<Props> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="shrink-0 px-6 py-4 border-t border-border-subtle bg-surface-app">
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm text-text-secondary">
+                <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-4 border-t border-border-subtle bg-surface-app">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-sm text-text-secondary min-w-0">
                             <span>Total: {pagination?.totalElements || 0} tarefa(s)</span>
                             {filteredTasks.length > 0 && (
-                                <span className="ml-4 font-medium text-green-600">
+                                <span className="block sm:inline sm:ml-4 font-medium text-green-600">
                                     Valor da página: R$ {filteredTasks
                                         .reduce((sum, link) => sum + (link?.task?.amount || 0), 0)
                                         .toFixed(2)
@@ -629,7 +630,7 @@ const ViewTasksModal: React.FC<Props> = ({
                         </div>
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                            className="w-full sm:w-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                         >
                             Fechar
                         </button>

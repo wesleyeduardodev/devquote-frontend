@@ -189,14 +189,14 @@ const TaskCreate = () => {
 
     const RequesterCard: React.FC<{ requester: Requester }> = ({ requester }) => (
         <div className="bg-surface-1 rounded-lg border border-border-subtle p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent-soft text-accent">
                             #{requester.id}
                         </span>
                     </div>
-                    <h3 className="font-semibold text-text-primary text-base leading-tight mb-2">
+                    <h3 className="font-semibold text-text-primary text-base leading-tight mb-2 break-words">
                         {requester.name}
                     </h3>
 
@@ -214,7 +214,7 @@ const TaskCreate = () => {
                     size="sm"
                     variant="primary"
                     onClick={() => handleRequesterSelect(requester)}
-                    className="ml-3"
+                    className="shrink-0"
                 >
                     <Check className="w-4 h-4 mr-1" />
                     Selecionar
@@ -255,7 +255,7 @@ const TaskCreate = () => {
                             )}
                         </div>
                     </div>
-                    <Button variant="secondary" size="sm" onClick={() => setShowRequesterModal(true)}>
+                    <Button variant="secondary" size="sm" className="shrink-0" onClick={() => setShowRequesterModal(true)}>
                         {selectedRequester ? 'Alterar' : 'Selecionar'}
                     </Button>
                 </div>
@@ -283,7 +283,7 @@ const TaskCreate = () => {
                 {/* Modal de Seleção de Requester */}
                 {showRequesterModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-surface-1 rounded-lg shadow-xl w-full max-h-[90vh] overflow-hidden flex flex-col max-w-5xl">
+                        <div className="bg-surface-1 rounded-lg shadow-xl w-full max-h-[90dvh] overflow-hidden flex flex-col max-w-5xl">
                             {/* Header do Modal */}
                             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border-subtle flex-shrink-0">
                                 <div>

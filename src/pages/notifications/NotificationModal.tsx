@@ -196,16 +196,16 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+            <div className="bg-surface-1 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90dvh] overflow-y-auto overscroll-contain">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border-subtle">
-                    <div className="flex items-center">
-                        <div className="p-2 bg-accent-soft rounded-lg mr-3">
-                            <Bell className="w-6 h-6 text-accent" />
+                <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-border-subtle">
+                    <div className="flex items-center min-w-0">
+                        <div className="p-2 bg-accent-soft rounded-lg mr-3 shrink-0">
+                            <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-text-primary">
+                            <h2 className="text-lg sm:text-xl font-semibold text-text-primary">
                                 {isEditing ? 'Editar Configuração' : 'Nova Configuração'}
                             </h2>
                             <p className="text-sm text-text-secondary">
@@ -215,14 +215,15 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-surface-2 rounded-lg transition-colors"
+                        className="p-2 hover:bg-surface-2 rounded-lg transition-colors shrink-0"
+                        aria-label="Fechar"
                     >
                         <X className="w-5 h-5 text-text-tertiary" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 sm:space-y-6">
                     {/* Tipo de Configuração */}
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-2">
@@ -434,7 +435,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                     )}
 
                     {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-6 border-t border-border-subtle">
+                    <div className="flex flex-col-reverse gap-2 pt-5 sm:pt-6 border-t border-border-subtle [&>*]:w-full sm:flex-row sm:justify-end sm:gap-3 sm:[&>*]:w-auto">
                         <Button
                             type="button"
                             variant="outline"

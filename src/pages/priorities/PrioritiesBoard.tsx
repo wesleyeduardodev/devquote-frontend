@@ -83,60 +83,112 @@ interface RowProps {
   onView: (taskId: number) => void
 }
 
-const TaskRow: React.FC<RowProps> = ({ task, isAdmin, onCreate, onView }) => (
-  <li className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2 transition-colors">
-    <span className="shrink-0 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-surface-2 px-1.5 text-xs font-semibold tabular-nums text-text-secondary">
-      {task.ordem != null ? task.ordem : '–'}
-    </span>
-    <a
-      href={task.url}
-      target="_blank"
-      rel="noreferrer"
-      className="flex-1 min-w-0 group inline-flex items-center gap-1.5 text-sm text-text-primary hover:text-accent"
-      title={`${task.id} - ${task.name}`}
-    >
-      <span className="font-mono text-xs font-semibold text-accent bg-accent-soft px-1.5 py-0.5 rounded shrink-0">{task.id}</span>
-      <span className="truncate">{task.name}</span>
-      <ExternalLink className="size-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-    </a>
-    {task.tags && task.tags.length > 0 && (
-      <span className="hidden md:flex items-center gap-1 shrink-0">
-        {task.tags.slice(0, 2).map((t) => (
-          <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-text-tertiary">{t}</span>
-        ))}
+const TaskAction: React.FC<RowProps & { compact?: boolean }> = ({ task, isAdmin, onCreate, onView, compact }) => {
+  if (task.devQuoteTaskId != null) {
+    return (
+      <Button
+        size="sm"
+        variant="secondary"
+        leadingIcon={<Eye />}
+        onClick={() => onView(task.devQuoteTaskId as number)}
+        title="Ver tarefa no DevQuote"
+        className={cn('text-[var(--info-strong)] border-[var(--info-border)] hover:bg-[var(--info-soft)]', compact && 'w-full justify-center')}
+      >
+        Ver tarefa
+      </Button>
+    )
+  }
+  if (task.existsInDevQuote) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-success-strong" title="Tarefa já cadastrada no DevQuote">
+        <CheckCircle2 className="size-3.5" /> Já cadastrada
       </span>
-    )}
-    <span className="shrink-0 w-16 text-right"><PriorityFlag priority={task.priority} /></span>
-    <span className="shrink-0 w-28 flex justify-end">
-      {task.devQuoteTaskId != null ? (
-        <Button
-          size="sm"
-          variant="secondary"
-          leadingIcon={<Eye />}
-          onClick={() => onView(task.devQuoteTaskId as number)}
-          title="Ver tarefa no DevQuote"
-          className="text-[var(--info-strong)] border-[var(--info-border)] hover:bg-[var(--info-soft)]"
-        >
-          Ver tarefa
-        </Button>
-      ) : task.existsInDevQuote ? (
-        <span className="inline-flex items-center gap-1 text-xs text-success-strong" title="Tarefa já cadastrada no DevQuote">
-          <CheckCircle2 className="size-3.5" /> Já cadastrada
-        </span>
-      ) : isAdmin ? (
-        <Button
-          size="sm"
-          variant="secondary"
-          leadingIcon={<FilePlus2 />}
-          onClick={() => onCreate(task)}
-          className="text-[var(--success-strong)] border-[var(--success-border)] hover:bg-[var(--success-soft)]"
-        >
-          Criar tarefa
-        </Button>
-      ) : null}
-    </span>
-  </li>
+    )
+  }
+  if (!isAdmin) return null
+  return (
+    <Button
+      size="sm"
+      variant="secondary"
+      leadingIcon={<FilePlus2 />}
+      onClick={() => onCreate(task)}
+      className={cn('text-[var(--success-strong)] border-[var(--success-border)] hover:bg-[var(--success-soft)]', compact && 'w-full justify-center')}
+    >
+      Criar tarefa
+    </Button>
+  )
+}
+
+const OrderBadge: React.FC<{ ordem?: number | null }> = ({ ordem }) => (
+  <span className="shrink-0 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-surface-2 px-1.5 text-xs font-semibold tabular-nums text-text-secondary">
+    {ordem != null ? ordem : '–'}
+  </span>
 )
+
+const TaskRow: React.FC<RowProps> = (props) => {
+  const { task, isAdmin } = props
+  const hasAction = task.devQuoteTaskId != null || !!task.existsInDevQuote || isAdmin
+  return (
+    <li className="hover:bg-surface-2 transition-colors">
+      {/* Mobile (<md): card com título completo */}
+      <div className="md:hidden px-3 py-3 space-y-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <OrderBadge ordem={task.ordem} />
+          <span className="font-mono text-xs font-semibold text-accent bg-accent-soft px-1.5 py-0.5 rounded shrink-0">{task.id}</span>
+          <span className="ml-auto shrink-0"><PriorityFlag priority={task.priority} /></span>
+        </div>
+        <a
+          href={task.url}
+          target="_blank"
+          rel="noreferrer"
+          className="block text-sm font-medium leading-snug text-text-primary hover:text-accent break-words"
+        >
+          {task.name}
+          <ExternalLink className="inline size-3.5 ml-1 -mt-0.5 text-text-tertiary" />
+        </a>
+        {task.tags && task.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {task.tags.map((t) => (
+              <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-text-tertiary">{t}</span>
+            ))}
+          </div>
+        )}
+        {hasAction && (
+          <div className="pt-1">
+            <TaskAction {...props} compact />
+          </div>
+        )}
+      </div>
+
+      {/* Tablet/desktop (md+): linha */}
+      <div className="hidden md:flex items-center gap-3 px-4 py-2.5">
+        <OrderBadge ordem={task.ordem} />
+        <a
+          href={task.url}
+          target="_blank"
+          rel="noreferrer"
+          className="flex-1 min-w-0 group inline-flex items-center gap-1.5 text-sm text-text-primary hover:text-accent"
+          title={`${task.id} - ${task.name}`}
+        >
+          <span className="font-mono text-xs font-semibold text-accent bg-accent-soft px-1.5 py-0.5 rounded shrink-0">{task.id}</span>
+          <span className="truncate">{task.name}</span>
+          <ExternalLink className="size-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </a>
+        {task.tags && task.tags.length > 0 && (
+          <span className="flex items-center gap-1 shrink-0">
+            {task.tags.slice(0, 2).map((t) => (
+              <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-text-tertiary">{t}</span>
+            ))}
+          </span>
+        )}
+        <span className="shrink-0 w-16 text-right"><PriorityFlag priority={task.priority} /></span>
+        <span className="shrink-0 w-28 flex justify-end">
+          <TaskAction {...props} />
+        </span>
+      </div>
+    </li>
+  )
+}
 
 interface GroupSectionProps {
   group: PriorityGroup
@@ -178,7 +230,7 @@ const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin
           <button
             {...attributes}
             {...listeners}
-            className="inline-flex h-8 w-6 items-center justify-center text-text-tertiary hover:text-text-primary cursor-grab active:cursor-grabbing touch-none"
+            className="inline-flex h-8 w-6 shrink-0 self-start sm:self-center items-center justify-center text-text-tertiary hover:text-text-primary cursor-grab active:cursor-grabbing touch-none"
             aria-label="Arrastar pra reordenar"
             title="Arrastar pra reordenar"
           >
@@ -189,10 +241,10 @@ const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin
         {/* Expand/collapse + status badge + count */}
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex-1 flex items-center gap-3 py-2 text-left"
+          className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1.5 py-2 text-left"
         >
-          {open ? <ChevronDown className="size-4 text-text-tertiary" /> : <ChevronRight className="size-4 text-text-tertiary" />}
-          <PriorityStatusBadge status={group.status} />
+          {open ? <ChevronDown className="size-4 shrink-0 text-text-tertiary" /> : <ChevronRight className="size-4 shrink-0 text-text-tertiary" />}
+          <span className="min-w-0 max-w-[calc(100%-2rem)]"><PriorityStatusBadge status={group.status} /></span>
           <span className="text-sm font-medium text-text-secondary tabular-nums">{group.count}</span>
           {group.primary && (
             <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Principal</span>
@@ -204,7 +256,7 @@ const GroupSection: React.FC<GroupSectionProps> = ({ group, defaultOpen, isAdmin
 
         {/* Botões de ação (admin) */}
         {isAdmin && (
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 shrink-0 self-start sm:self-center">
             <button
               onClick={(e) => { e.stopPropagation(); onMarkPrimary?.(group.status) }}
               disabled={group.primary}
@@ -401,7 +453,9 @@ export default function PrioritiesBoard() {
             : undefined
         }
         actions={
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
+            {/* No mobile as abas rolam na horizontal (sem espremer em 2 linhas) */}
+            <div className="max-w-full overflow-x-auto snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible">
             <div className="inline-flex items-center rounded-md border border-border-strong bg-surface-1 p-0.5" role="group" aria-label="Filtro do board">
               {FILTER_MODES.map((m) => (
                 <button
@@ -409,7 +463,7 @@ export default function PrioritiesBoard() {
                   onClick={() => setMode(m.value)}
                   title={m.title}
                   className={cn(
-                    'h-7 rounded px-2.5 text-xs font-medium transition-colors',
+                    'h-8 sm:h-7 snap-start whitespace-nowrap rounded px-2.5 text-xs font-medium transition-colors',
                     mode === m.value
                       ? 'bg-accent text-accent-fg'
                       : 'text-text-secondary hover:text-text-primary hover:bg-surface-2',
@@ -419,8 +473,10 @@ export default function PrioritiesBoard() {
                 </button>
               ))}
             </div>
+            </div>
             <Button
               variant="secondary"
+              className="self-end sm:self-auto"
               leadingIcon={<RefreshCw className={refreshing ? 'animate-spin' : ''} />}
               onClick={refresh}
               loading={refreshing}
@@ -483,8 +539,8 @@ export default function PrioritiesBoard() {
 
       {/* Modal: criar tarefa no DevQuote a partir do ClickUp */}
       <Dialog open={!!createFor} onOpenChange={(o) => { if (!o) setCreateFor(null) }}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="p-4 sm:p-6">
+          <DialogHeader className="pr-6">
             <DialogTitle>Criar tarefa no DevQuote</DialogTitle>
             <DialogDescription>
               Será criada a tarefa (e a entrega) a partir desta tarefa do ClickUp. Fluxo e solicitante são obrigatórios; os demais campos são opcionais.
@@ -495,7 +551,7 @@ export default function PrioritiesBoard() {
             <div className="space-y-4">
               <div className="rounded-lg border border-border-subtle bg-surface-2 p-3">
                 <p className="text-xs text-text-tertiary">Código: <span className="font-mono text-text-secondary">{createFor.id}</span></p>
-                <p className="mt-1 text-sm text-text-primary">{createFor.name}</p>
+                <p className="mt-1 text-sm text-text-primary break-words">{createFor.name}</p>
                 <p className="mt-1 text-xs text-text-tertiary">Prioridade no ClickUp: {PRIORITY_META[(createFor.priority || '').toLowerCase()]?.label || 'não definida (usando Média)'}</p>
               </div>
 
@@ -595,7 +651,8 @@ export default function PrioritiesBoard() {
             </div>
           )}
 
-          <DialogFooter>
+          {/* Rodapé fixo no fim do modal (rolável) para os botões ficarem sempre visíveis no mobile */}
+          <DialogFooter className="sticky -bottom-4 sm:-bottom-6 -mx-4 px-4 pb-4 sm:-mx-6 sm:px-6 sm:pb-6 bg-surface-1 [&>button]:flex-1 sm:[&>button]:flex-none">
             <Button variant="secondary" onClick={() => setCreateFor(null)} disabled={submitting}>Cancelar</Button>
             <Button onClick={confirmCreate} loading={submitting} disabled={!flowType || !requesterId || submitting}>
               Criar tarefa

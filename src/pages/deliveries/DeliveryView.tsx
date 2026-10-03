@@ -33,16 +33,16 @@ const formatDate = (dateString?: string) => {
 }
 
 const Section: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
-  <section className={cn('border-t border-border-subtle pt-6 first:border-t-0 first:pt-0', className)}>
+  <section className={cn('min-w-0 border-t border-border-subtle pt-5 sm:pt-6 first:border-t-0 first:pt-0', className)}>
     <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-4">{title}</h2>
     <div className="space-y-4">{children}</div>
   </section>
 )
 
 const InfoField: React.FC<{ label: string; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
-  <div className={className}>
+  <div className={cn('min-w-0', className)}>
     <p className="text-xs text-text-tertiary mb-0.5">{label}</p>
-    <div className="text-sm text-text-primary">{children}</div>
+    <div className="text-sm text-text-primary min-w-0">{children}</div>
   </div>
 )
 
@@ -180,14 +180,14 @@ const DeliveryView: React.FC = () => {
             </span>
           }
           subtitle={
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
               {delivery.taskCode && <span className="font-mono text-xs">{delivery.taskCode}</span>}
               {delivery.taskCode && delivery.taskName && <span className="text-text-tertiary">·</span>}
-              {delivery.taskName && <span className="truncate">{delivery.taskName}</span>}
+              {delivery.taskName && <span className="min-w-0 break-words lg:truncate">{delivery.taskName}</span>}
             </span>
           }
           actions={
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:items-center sm:w-auto">
               {canEdit && (
                 <Button
                   variant="secondary"
@@ -195,8 +195,11 @@ const DeliveryView: React.FC = () => {
                   onClick={handleSyncPullRequests}
                   loading={syncingPr}
                   title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
+                  aria-label="Atualizar Branch"
+                  className="min-w-0"
                 >
-                  Atualizar Branch
+                  <span className="sm:hidden">Branch</span>
+                  <span className="hidden sm:inline">Atualizar Branch</span>
                 </Button>
               )}
               {canEdit && (
@@ -206,12 +209,15 @@ const DeliveryView: React.FC = () => {
                   onClick={handleSyncStatus}
                   loading={syncingStatus}
                   title="Sincroniza o status da entrega pro ClickUp"
+                  aria-label="Atualizar Status"
+                  className="min-w-0"
                 >
-                  Atualizar Status
+                  <span className="sm:hidden">Status</span>
+                  <span className="hidden sm:inline">Atualizar Status</span>
                 </Button>
               )}
               {canEdit && (
-                <Button variant="secondary" leadingIcon={<Edit3 />} onClick={() => navigate(`/deliveries/${delivery.id}/edit`)}>
+                <Button variant="secondary" leadingIcon={<Edit3 />} onClick={() => navigate(`/deliveries/${delivery.id}/edit`)} className="min-w-0">
                   Editar
                 </Button>
               )}
@@ -221,21 +227,21 @@ const DeliveryView: React.FC = () => {
 
         {/* Cabeçalho compacto: chips + valor à direita */}
         <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
             {delivery.flowType && <FlowChip value={delivery.flowType} />}
             {delivery.taskType && <TaskTypeLabel value={delivery.taskType} />}
             {delivery.environment && <EnvLabel value={delivery.environment} />}
             <DeliveryStatusBadge status={delivery.status} withTime={delivery.updatedAt} />
           </div>
           {canViewValues && delivery.taskValue !== undefined && delivery.taskValue !== null && (
-            <div className="text-right">
+            <div className="sm:text-right">
               <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-semibold">Valor</p>
-              <p className="text-lg font-semibold text-text-primary tabular-nums">{brl(delivery.taskValue)}</p>
+              <p className="text-lg font-semibold text-text-primary tabular-nums whitespace-nowrap">{brl(delivery.taskValue)}</p>
             </div>
           )}
         </div>
 
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6 space-y-6">
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 sm:p-6 space-y-5 sm:space-y-6">
 
           <Section title="Tarefa">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -252,7 +258,7 @@ const DeliveryView: React.FC = () => {
                 <span className="font-mono">{delivery.taskCode || '—'}</span>
               </InfoField>
               <InfoField label="Título">
-                <span className="truncate block">{delivery.taskName || '—'}</span>
+                <span className="block break-words md:truncate">{delivery.taskName || '—'}</span>
               </InfoField>
             </div>
           </Section>
@@ -276,11 +282,11 @@ const DeliveryView: React.FC = () => {
 
           {delivery.notes && (
             <Section title="Observações">
-              <div className="rounded-md border border-warning-border bg-warning-soft p-4">
+              <div className="rounded-md border border-warning-border bg-warning-soft p-3 sm:p-4">
                 <div className="flex items-start gap-2">
                   <StickyNote className="size-4 text-[var(--warning-strong)] shrink-0 mt-0.5" />
                   <div
-                    className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-md flex-1"
+                    className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-md flex-1 min-w-0 [overflow-wrap:anywhere]"
                     dangerouslySetInnerHTML={{ __html: delivery.notes }}
                   />
                 </div>
@@ -305,14 +311,14 @@ const DeliveryView: React.FC = () => {
                         onClick={() => toggleItem(item.id)}
                         className="w-full bg-surface-1 px-3 py-2.5 hover:bg-surface-2 transition-colors text-left"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           {isExpanded
                             ? <ChevronDown className="size-4 text-text-tertiary shrink-0" />
                             : <ChevronRight className="size-4 text-text-tertiary shrink-0" />}
                           <span className="size-6 shrink-0 grid place-items-center rounded-full bg-surface-2 text-xs font-semibold text-text-secondary">
                             {idx + 1}
                           </span>
-                          <FolderOpen className="size-4 text-accent shrink-0" />
+                          <FolderOpen className="hidden sm:block size-4 text-accent shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-text-primary truncate">
                               {isOperacional ? item.title : item.projectName}
@@ -330,7 +336,7 @@ const DeliveryView: React.FC = () => {
                               {item.description && (
                                 <InfoField label="Descrição">
                                   <div
-                                    className="prose prose-sm dark:prose-invert max-w-none"
+                                    className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto [overflow-wrap:anywhere]"
                                     dangerouslySetInnerHTML={{ __html: item.description }}
                                   />
                                 </InfoField>
@@ -361,7 +367,7 @@ const DeliveryView: React.FC = () => {
                                         href={item.pullRequest}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-accent hover:underline truncate flex-1 text-xs"
+                                        className="text-accent hover:underline truncate flex-1 min-w-0 text-xs"
                                       >
                                         {item.pullRequest}
                                       </a>
@@ -373,7 +379,7 @@ const DeliveryView: React.FC = () => {
                                 <InfoField label="Branch">
                                   {item.branch ? (
                                     <div className="flex items-center gap-2">
-                                      <code className="font-mono text-xs bg-surface-2 px-2 py-1 rounded flex-1 truncate">{item.branch}</code>
+                                      <code className="font-mono text-xs bg-surface-2 px-2 py-1 rounded flex-1 min-w-0 truncate">{item.branch}</code>
                                       <CopyButton value={item.branch} field={`branch-${item.id}`} copied={copiedField} onCopy={handleCopy} />
                                     </div>
                                   ) : <span className="text-text-tertiary">—</span>}
@@ -381,7 +387,7 @@ const DeliveryView: React.FC = () => {
                                 <InfoField label="Branch de origem">
                                   {item.sourceBranch ? (
                                     <div className="flex items-center gap-2">
-                                      <code className="font-mono text-xs bg-surface-2 px-2 py-1 rounded flex-1 truncate">{item.sourceBranch}</code>
+                                      <code className="font-mono text-xs bg-surface-2 px-2 py-1 rounded flex-1 min-w-0 truncate">{item.sourceBranch}</code>
                                       <CopyButton value={item.sourceBranch} field={`sb-${item.id}`} copied={copiedField} onCopy={handleCopy} />
                                     </div>
                                   ) : <span className="text-text-tertiary">—</span>}
@@ -391,7 +397,7 @@ const DeliveryView: React.FC = () => {
                               {item.notes && (
                                 <InfoField label="Observações">
                                   <div
-                                    className="prose prose-sm dark:prose-invert max-w-none rounded-md border-l-2 border-warning-border bg-warning-soft/50 pl-3 py-2"
+                                    className="prose prose-sm dark:prose-invert max-w-none prose-img:max-w-full prose-img:h-auto [overflow-wrap:anywhere] rounded-md border-l-2 border-warning-border bg-warning-soft/50 pl-3 py-2"
                                     dangerouslySetInnerHTML={{ __html: item.notes }}
                                   />
                                 </InfoField>
@@ -438,7 +444,7 @@ const DeliveryView: React.FC = () => {
                 : <ChevronRight className="size-4 text-text-tertiary" />}
             </button>
             {attachmentsExpanded && (
-              <div className="mt-3 rounded-md border border-border-subtle p-4 bg-surface-app/40">
+              <div className="mt-3 rounded-md border border-border-subtle p-3 sm:p-4 bg-surface-app/40">
                 <DeliveryAttachmentList deliveryId={delivery.id} forceExpanded={true} readOnly={true} />
               </div>
             )}

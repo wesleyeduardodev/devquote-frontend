@@ -130,10 +130,10 @@ export default function DeliveryOperationalItemForm({
     const statusInfo = getCurrentStatusInfo();
 
     return (
-        <div className="border border-border-subtle rounded-lg overflow-hidden">
+        <div className="min-w-0 border border-border-subtle rounded-lg overflow-hidden">
             {/* Header */}
             <div
-                className={`p-4 bg-surface-app cursor-pointer hover:bg-surface-2 transition-colors ${
+                className={`p-3 sm:p-4 bg-surface-app cursor-pointer hover:bg-surface-2 transition-colors ${
                     hasUnsavedChanges ? 'border-l-4 border-l-yellow-400' : ''
                 }`}
                 onClick={() => !isReadOnly && setIsExpanded(!isExpanded)}
@@ -336,7 +336,7 @@ export default function DeliveryOperationalItemForm({
 
             {/* Formulário expandido */}
             {isExpanded && (
-                <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-3 sm:p-4 space-y-4 min-w-0">
                     {/* Título */}
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-1">
@@ -437,7 +437,7 @@ export default function DeliveryOperationalItemForm({
 
                     {/* Ações */}
                     {!isReadOnly && (
-                        <div className="flex items-center gap-3 pt-4">
+                        <div className="flex flex-wrap items-center gap-3 pt-4">
                             <Button
                                 type="submit"
                                 disabled={!isDirty}

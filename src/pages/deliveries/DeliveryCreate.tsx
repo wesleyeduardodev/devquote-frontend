@@ -95,7 +95,7 @@ const DeliveryCreate: React.FC = () => {
 
         {/* Seletor de tarefa inline */}
         <div className={cn(
-          'rounded-lg border bg-surface-1 p-4 flex items-center justify-between gap-3',
+          'rounded-lg border bg-surface-1 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3',
           taskError ? 'border-[var(--danger-border)]' : 'border-border-subtle'
         )}>
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -108,9 +108,9 @@ const DeliveryCreate: React.FC = () => {
               </div>
               {selectedTask ? (
                 <div className="flex flex-col mt-0.5 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-medium text-text-primary truncate">{selectedTask.title}</span>
-                    <span className="font-mono text-xs text-text-tertiary shrink-0">· {selectedTask.code}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0">
+                    <span className="text-sm font-medium text-text-primary break-words sm:truncate">{selectedTask.title}</span>
+                    <span className="font-mono text-xs text-text-tertiary shrink-0"><span className="hidden sm:inline">· </span>{selectedTask.code}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {selectedTask.flowType && <FlowChip value={selectedTask.flowType} />}
@@ -128,23 +128,23 @@ const DeliveryCreate: React.FC = () => {
               )}
             </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => setShowTaskModal(true)}>
-            {selectedTask ? 'Alterar' : 'Selecionar'}
+          <Button variant="secondary" size="sm" onClick={() => setShowTaskModal(true)} className="w-full sm:w-auto shrink-0">
+            {selectedTask ? 'Alterar tarefa' : 'Selecionar tarefa'}
           </Button>
         </div>
 
         {/* Formulário principal */}
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6 space-y-6">
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 sm:p-6 space-y-5 sm:space-y-6">
 
           {!isOperacional && (
             <Section title="Projetos / Repositórios">
               {selectedProjects.length > 0 ? (
-                <div className="rounded-md border border-border-subtle bg-surface-app/40 p-4 space-y-3">
+                <div className="rounded-md border border-border-subtle bg-surface-app/40 p-3 sm:p-4 space-y-3">
                   <div className="space-y-2">
                     {selectedProjects.map((project) => (
-                      <div key={project.id} className="flex items-center gap-2">
+                      <div key={project.id} className="flex items-center gap-2 min-w-0">
                         <FolderOpen className="size-4 text-[var(--success-strong)] shrink-0" />
-                        <span className="text-sm text-text-primary">{project.name}</span>
+                        <span className="text-sm text-text-primary min-w-0 break-words">{project.name}</span>
                         <button
                           type="button"
                           onClick={() => setSelectedProjects((prev) => prev.filter((p) => p.id !== project.id))}
@@ -195,7 +195,7 @@ const DeliveryCreate: React.FC = () => {
 
         {/* Sticky footer */}
         <div className="sticky bottom-0 -mx-3 sm:-mx-4 lg:-mx-4 mt-6 px-3 sm:px-4 lg:px-4 py-3 bg-surface-app/95 backdrop-blur border-t border-border-subtle z-20">
-          <div className="flex items-center justify-end gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
             <Button variant="secondary" onClick={() => navigate('/deliveries')} disabled={isCreating}>
               Cancelar
             </Button>

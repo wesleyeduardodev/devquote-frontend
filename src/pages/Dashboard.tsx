@@ -46,11 +46,14 @@ interface KpiCardProps {
   icon?: React.ReactNode
   to?: string
   loading?: boolean
+  /** Valor monetário: no mobile ocupa a linha inteira (grid de 2 colunas) para o valor nunca ser cortado. */
+  wide?: boolean
 }
-const KpiCard: React.FC<KpiCardProps> = ({ label, value, hint, tone = 'neutral', icon, to, loading }) => {
+const KpiCard: React.FC<KpiCardProps> = ({ label, value, hint, tone = 'neutral', icon, to, loading, wide }) => {
+  const span = wide ? 'col-span-2 sm:col-span-1' : ''
   if (loading) {
     return (
-      <Card className="p-5">
+      <Card className={cn('p-3.5 sm:p-5', span)}>
         <Skeleton className="h-3 w-24 mb-3" />
         <Skeleton className="h-7 w-32 mb-2" />
         <Skeleton className="h-3 w-20" />
@@ -59,21 +62,21 @@ const KpiCard: React.FC<KpiCardProps> = ({ label, value, hint, tone = 'neutral',
   }
   const s = TONE_STYLE[tone]
   const inner = (
-    <Card className={cn('p-5 border transition-shadow', s.bg, s.border, to && 'hover:shadow-sm cursor-pointer')}>
-      <div className={cn('flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide', s.label)}>
-        {icon ? <span className="[&_svg]:size-3.5">{icon}</span> : <span className={cn('inline-block h-2 w-2 rounded-full', s.dot)} />}
-        {label}
+    <Card className={cn('h-full p-3.5 sm:p-5 border transition-shadow', s.bg, s.border, to && 'hover:shadow-sm cursor-pointer', !to && span)}>
+      <div className={cn('flex items-start gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide leading-tight', s.label)}>
+        {icon ? <span className="shrink-0 [&_svg]:size-3.5">{icon}</span> : <span className={cn('inline-block h-2 w-2 mt-0.5 shrink-0 rounded-full', s.dot)} />}
+        <span className="min-w-0">{label}</span>
       </div>
-      <p className={cn('mt-2 text-2xl font-bold tabular-nums', s.value)}>{value}</p>
+      <p className={cn('mt-1.5 sm:mt-2 text-xl sm:text-2xl font-bold tabular-nums whitespace-nowrap', s.value)}>{value}</p>
       {hint && (
-        <div className="mt-1 flex items-center gap-1 text-xs text-text-tertiary">
-          {hint}
-          {to && <ArrowRight className="size-3 ml-auto opacity-60" />}
+        <div className="mt-1 flex items-start gap-1 text-xs text-text-tertiary leading-snug">
+          <span className="min-w-0">{hint}</span>
+          {to && <ArrowRight className="size-3 mt-0.5 ml-auto shrink-0 opacity-60" />}
         </div>
       )}
     </Card>
   )
-  return to ? <Link to={to}>{inner}</Link> : inner
+  return to ? <Link to={to} className={cn('block', span)}>{inner}</Link> : inner
 }
 
 /* ============================ Trend chart ============================ */
@@ -93,7 +96,7 @@ const TrendChart: React.FC<{ data: { label: string; value: number }[]; loading?:
             </linearGradient>
           </defs>
           <XAxis dataKey="label" stroke="var(--text-tertiary)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-          <YAxis stroke="var(--text-tertiary)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={60}
+          <YAxis stroke="var(--text-tertiary)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={52}
             tickFormatter={(v) => `R$ ${(Number(v) / 1000).toFixed(0)}k`} />
           <RTooltip
             contentStyle={{ background: 'var(--surface-1)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', fontSize: 12 }}
@@ -142,7 +145,7 @@ const ActivityFeed: React.FC<{ items: any[]; loading?: boolean }> = ({ items, lo
               {isDelivery ? <Truck className="size-3.5" /> : <ListChecks className="size-3.5" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-text-primary truncate">{translateDescription(a.description || '')}</p>
+              <p className="text-sm text-text-primary break-words line-clamp-2 sm:line-clamp-none sm:truncate">{translateDescription(a.description || '')}</p>
               <p className="text-xs text-text-tertiary mt-0.5">
                 {a.user} · {a.timestamp ? format(new Date(a.timestamp), "dd MMM, HH:mm", { locale: ptBR }) : '—'}
               </p>
@@ -159,7 +162,7 @@ interface AttentionItem { icon: React.ReactNode; label: string; href: string }
 const AttentionCard: React.FC<{ items: AttentionItem[] }> = ({ items }) => {
   if (items.length === 0) {
     return (
-      <Card className="p-5 border-success-border bg-success-soft/40">
+      <Card className="p-4 sm:p-5 border-success-border bg-success-soft/40">
         <div className="flex items-center gap-2 text-[var(--success-strong)]">
           <CheckCircle2 className="size-4" />
           <span className="text-sm font-medium">Tudo em dia — nenhum gargalo no pipeline.</span>
@@ -180,10 +183,10 @@ const AttentionCard: React.FC<{ items: AttentionItem[] }> = ({ items }) => {
         <ul className="divide-y divide-border-subtle">
           {items.map((it, i) => (
             <li key={i}>
-              <Link to={it.href} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-2 transition-colors group">
-                <span className="text-[var(--warning-strong)] [&_svg]:size-4">{it.icon}</span>
-                <span className="text-sm text-text-primary flex-1">{it.label}</span>
-                <ArrowRight className="size-3.5 text-text-tertiary opacity-60 group-hover:opacity-100 transition-opacity" />
+              <Link to={it.href} className="flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-surface-2 transition-colors group">
+                <span className="shrink-0 text-[var(--warning-strong)] [&_svg]:size-4">{it.icon}</span>
+                <span className="text-sm text-text-primary flex-1 min-w-0">{it.label}</span>
+                <ArrowRight className="size-3.5 shrink-0 text-text-tertiary opacity-60 group-hover:opacity-100 transition-opacity" />
               </Link>
             </li>
           ))}
@@ -293,17 +296,17 @@ const Dashboard: React.FC = () => {
   }, [canViewValues, billing, taskStats, dlvStats])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Saudação */}
       <header>
-        <h1 className="text-xl font-semibold text-text-primary leading-tight">Bem-vindo de volta, {firstName}.</h1>
+        <h1 className="text-lg sm:text-xl font-semibold text-text-primary leading-tight break-words">Bem-vindo de volta, {firstName}.</h1>
         <p className="text-sm text-text-secondary mt-0.5">
           {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </header>
 
       {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {canViewValues ? (
           <>
             <KpiCard
@@ -314,6 +317,7 @@ const Dashboard: React.FC = () => {
               hint="Pendente + Faturado + Atrasado"
               to="/billing"
               loading={loading}
+              wide
             />
             <KpiCard
               label="Recebido"
@@ -323,6 +327,7 @@ const Dashboard: React.FC = () => {
               hint={`${brl(billing.total)} faturado no total`}
               to="/billing"
               loading={loading}
+              wide
             />
             <KpiCard
               label="Tarefas sem entrega"
@@ -395,7 +400,7 @@ const Dashboard: React.FC = () => {
         <section>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <CardTitle className="flex items-center gap-2"><ListOrdered className="size-4" /> Minhas tarefas ClickUp</CardTitle>
                 <CardDescription>{primaryGroup.count} tarefa(s) em "{primaryGroup.status}"</CardDescription>
               </div>
@@ -411,7 +416,7 @@ const Dashboard: React.FC = () => {
                       {t.ordem != null ? t.ordem : '–'}
                     </span>
                     <a href={t.url} target="_blank" rel="noreferrer" className="flex-1 min-w-0 group inline-flex items-center gap-1.5 text-sm text-text-primary hover:text-accent" title={t.name}>
-                      <span className="truncate">{t.name}</span>
+                      <span className="line-clamp-2 break-words sm:line-clamp-none sm:truncate">{t.name}</span>
                       <ExternalLink className="size-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </li>

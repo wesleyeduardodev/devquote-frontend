@@ -48,7 +48,7 @@ const formatDateTimeForAPI = (dateTime: string | undefined): string | undefined 
 }
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode; actions?: React.ReactNode }> = ({ title, description, children, actions }) => (
-  <section className="border-t border-border-subtle pt-6 first:border-t-0 first:pt-0">
+  <section className="min-w-0 border-t border-border-subtle pt-5 sm:pt-6 first:border-t-0 first:pt-0">
     <div className="flex items-start justify-between gap-3 mb-4">
       <div className="min-w-0">
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">{title}</h2>
@@ -419,22 +419,25 @@ const DeliveryEdit: React.FC = () => {
             </span>
           }
           subtitle={
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
               {selectedTask?.code && <span className="font-mono text-xs">{selectedTask.code}</span>}
               {selectedTask?.code && selectedTask?.title && <span className="text-text-tertiary">·</span>}
-              {selectedTask?.title && <span className="truncate">{selectedTask.title}</span>}
+              {selectedTask?.title && <span className="min-w-0 break-words lg:truncate">{selectedTask.title}</span>}
             </span>
           }
           actions={
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:items-center sm:w-auto">
               <Button
                 variant="secondary"
                 leadingIcon={<GitPullRequest />}
                 onClick={handleSyncPullRequests}
                 loading={syncingPr}
                 title="Sincroniza os PRs dos items pro ClickUp (campo Branch + descrição)"
+                aria-label="Atualizar Branch"
+                className="min-w-0"
               >
-                Atualizar Branch
+                <span className="sm:hidden">Branch</span>
+                <span className="hidden sm:inline">Atualizar Branch</span>
               </Button>
               <Button
                 variant="secondary"
@@ -442,18 +445,22 @@ const DeliveryEdit: React.FC = () => {
                 onClick={handleSyncStatus}
                 loading={syncingStatus}
                 title="Sincroniza o status da entrega pro ClickUp"
+                aria-label="Atualizar Status"
+                className="min-w-0"
               >
-                Atualizar Status
+                <span className="sm:hidden">Status</span>
+                <span className="hidden sm:inline">Atualizar Status</span>
               </Button>
-              <Button variant="secondary" leadingIcon={<Eye />} onClick={() => navigate(`/deliveries/${delivery.id}`)}>
-                Visualizar
+              <Button variant="secondary" leadingIcon={<Eye />} onClick={() => navigate(`/deliveries/${delivery.id}`)} aria-label="Visualizar" className="min-w-0">
+                <span className="sm:hidden">Ver</span>
+                <span className="hidden sm:inline">Visualizar</span>
               </Button>
             </div>
           }
         />
 
         {/* Tarefa associada (somente leitura) */}
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4">
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-3 sm:p-4">
           <div className="flex items-start gap-3">
             <div className="size-9 rounded-full bg-accent-soft text-accent grid place-items-center shrink-0">
               <Package className="size-4" />
@@ -464,9 +471,9 @@ const DeliveryEdit: React.FC = () => {
               </div>
               {selectedTask && (
                 <div className="flex flex-col mt-0.5 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-medium text-text-primary truncate">{selectedTask.title}</span>
-                    <span className="font-mono text-xs text-text-tertiary shrink-0">· {selectedTask.code}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0">
+                    <span className="text-sm font-medium text-text-primary break-words sm:truncate">{selectedTask.title}</span>
+                    <span className="font-mono text-xs text-text-tertiary shrink-0"><span className="hidden sm:inline">· </span>{selectedTask.code}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {selectedTask.flowType && <FlowChip value={selectedTask.flowType} />}
@@ -482,7 +489,7 @@ const DeliveryEdit: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border-subtle bg-surface-1 p-6 space-y-6">
+        <div className="rounded-lg border border-border-subtle bg-surface-1 p-4 sm:p-6 space-y-5 sm:space-y-6">
 
           <Section
             title="Ambiente da entrega"
@@ -510,7 +517,7 @@ const DeliveryEdit: React.FC = () => {
             ) : undefined}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-              <div>
+              <div className="min-w-0">
                 <Select value={environment || '__none'} onValueChange={(v) => setEnvironment(v === '__none' ? '' : v)} disabled={!canEdit}>
                   <SelectTrigger><SelectValue placeholder="Não especificado" /></SelectTrigger>
                   <SelectContent>
@@ -606,7 +613,7 @@ const DeliveryEdit: React.FC = () => {
                       {operationalItems.map((item, index) => (
                         <SortableListItem key={item.id} id={String(item.id)}>
                           {({ attributes, listeners }) => (
-                            <div className="rounded-md border border-border-subtle bg-surface-app/40 hover:bg-surface-2 transition-colors">
+                            <div className="min-w-0 rounded-md border border-border-subtle bg-surface-app/40 hover:bg-surface-2 transition-colors">
                               <DeliveryOperationalItemForm
                                 initialData={item}
                                 onSave={(data) => handleSaveOperationalItem(item.id, data)}
@@ -649,7 +656,7 @@ const DeliveryEdit: React.FC = () => {
                         return (
                           <SortableListItem key={item.id} id={String(item.id)}>
                             {({ attributes, listeners }) => (
-                              <div className="rounded-md border border-border-subtle bg-surface-app/40 p-4 hover:bg-surface-2 transition-colors">
+                              <div className="min-w-0 sm:rounded-md sm:border sm:border-border-subtle sm:bg-surface-app/40 sm:p-4 sm:hover:bg-surface-2 transition-colors">
                                 <DeliveryItemForm
                                   project={project}
                                   initialData={formData}
@@ -690,7 +697,7 @@ const DeliveryEdit: React.FC = () => {
 
         {/* Sticky footer */}
         <div className="sticky bottom-0 -mx-3 sm:-mx-4 lg:-mx-4 mt-6 px-3 sm:px-4 lg:px-4 py-3 bg-surface-app/95 backdrop-blur border-t border-border-subtle z-20">
-          <div className="flex items-center justify-end gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
             <Button variant="secondary" onClick={() => navigate('/deliveries')}>Voltar</Button>
             <Button variant="secondary" leadingIcon={<Eye />} onClick={() => navigate(`/deliveries/${delivery.id}`)}>
               Visualizar

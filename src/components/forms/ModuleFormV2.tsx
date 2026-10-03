@@ -38,7 +38,7 @@ export const ModuleFormV2: React.FC<Props> = ({ initialData, onSubmit, onCancel,
         {errors.name?.message && <p className="mt-1 text-xs text-danger-strong">{errors.name.message}</p>}
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border-subtle sm:flex sm:items-center sm:justify-end">
         {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>}
         <Button type="submit" loading={loading}>{submitLabel}</Button>
       </div>
