@@ -64,7 +64,7 @@ const createSchema = (isEdit: boolean) => yup.object({
     : yup.string().when('flowType', {
         is: 'DESENVOLVIMENTO',
         then: (schema) => schema.required('Código é obrigatório para tarefas de desenvolvimento').max(50, 'Máximo 50 caracteres'),
-        otherwise: (schema) => schema.optional(),
+        otherwise: (schema) => schema.optional().max(50, 'Máximo 50 caracteres'),
       }),
   requesterId: yup.mixed().required('Solicitante é obrigatório'),
   link: yup.string().url('URL inválida').optional(),
@@ -198,12 +198,6 @@ const TaskForm: React.FC<TaskFormProps> = ({
   const hasSubTasks = useWatch({ control, name: 'hasSubTasks' })
   const watchSubTasks = useWatch({ control, name: 'subTasks' })
   const flowType = useWatch({ control, name: 'flowType' })
-
-  useEffect(() => {
-    if (flowType === 'OPERACIONAL' && !initialData?.id) {
-      setValue('code', '')
-    }
-  }, [flowType, setValue, initialData?.id])
 
   useEffect(() => {
     if (initialData?.id) {
@@ -413,12 +407,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
                 placeholder={
                   initialData?.id
                     ? 'Digite o código'
-                    : (flowType === 'OPERACIONAL' ? 'Gerado automaticamente' : 'Digite o código')
+                    : (flowType === 'OPERACIONAL' ? 'Opcional — vazio gera automaticamente' : 'Digite o código')
                 }
                 error={errors.code?.message}
                 maxLength={100}
                 required={flowType === 'DESENVOLVIMENTO' || !!initialData?.id}
-                disabled={flowType === 'OPERACIONAL' && !initialData?.id}
               />
               <Controller
                 control={control}
